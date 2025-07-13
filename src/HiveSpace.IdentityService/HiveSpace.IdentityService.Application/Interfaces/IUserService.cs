@@ -3,7 +3,7 @@ using HiveSpace.IdentityService.Application.Models.Responses;
 
 namespace HiveSpace.IdentityService.Application.Interfaces;
 
-public interface IProfileService
+public interface IUserService
 {
     Task<SignupResponseDto> CreateUserAsync(SignupRequestDto requestDto);
     Task UpdateUserInfoAsync(UpdateUserRequestDto param);

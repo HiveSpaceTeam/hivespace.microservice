@@ -11,20 +11,20 @@ namespace HiveSpace.IdentityService.Application.Controllers;
 [Authorize(Policy = "RequireIdentityFullAccessScope")]
 [ApiController]
 [Route("api/v1/users")]
-public class ProfileController : ControllerBase
+public class UserController : ControllerBase
 {
-    private readonly IProfileService _profileService;
+    private readonly IUserService _userService;
     private readonly IValidator<SignupRequestDto> _signupValidator;
     private readonly IValidator<UpdateUserRequestDto> _updateUserValidator;
     private readonly IValidator<ChangePasswordRequestDto> _changePasswordValidator;
 
-    public ProfileController(
-        IProfileService profileService, 
+    public UserController(
+        IUserService userService, 
         IValidator<SignupRequestDto> signupValidator,
         IValidator<UpdateUserRequestDto> updateUserValidator,
         IValidator<ChangePasswordRequestDto> changePasswordValidator)
     {
-        _profileService = profileService;
+        _userService = userService;
         _signupValidator = signupValidator;
         _updateUserValidator = updateUserValidator;
         _changePasswordValidator = changePasswordValidator;
@@ -37,18 +37,18 @@ public class ProfileController : ControllerBase
     public async Task<IActionResult> Signup([FromBody] SignupRequestDto signupDto)
     {
         ValidationHelper.ValidateResult(_signupValidator.Validate(signupDto));
-        var result = await _profileService.CreateUserAsync(signupDto);
+        var result = await _userService.CreateUserAsync(signupDto);
         return CreatedAtAction(nameof(Signup), new { userId = result.UserId }, result);
     }
 
     /// <summary>
-    /// Update user profile information
+    /// Update user information
     /// </summary>
     [HttpPut("update")]
-    public async Task<IActionResult> UpdateProfile([FromBody] UpdateUserRequestDto updateDto)
+    public async Task<IActionResult> UpdateUser([FromBody] UpdateUserRequestDto updateDto)
     {
         ValidationHelper.ValidateResult(_updateUserValidator.Validate(updateDto));
-        await _profileService.UpdateUserInfoAsync(updateDto);
+        await _userService.UpdateUserInfoAsync(updateDto);
         return NoContent();
     }
 
@@ -59,7 +59,7 @@ public class ProfileController : ControllerBase
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequestDto changePasswordDto)
     {
         ValidationHelper.ValidateResult(_changePasswordValidator.Validate(changePasswordDto));
-        await _profileService.ChangePassword(changePasswordDto);
+        await _userService.ChangePassword(changePasswordDto);
         return NoContent();
     }
 } 

@@ -6,11 +6,12 @@ using HiveSpace.IdentityService.Application.Interfaces;
 using HiveSpace.IdentityService.Application.Models.Requests;
 using HiveSpace.IdentityService.Application.Services;
 using HiveSpace.IdentityService.Application.Validators.Address;
-using HiveSpace.IdentityService.Application.Validators.Profile;
+using HiveSpace.IdentityService.Application.Validators.User;
 using HiveSpace.IdentityService.Domain.Aggregates;
 using HiveSpace.IdentityService.Domain.Repositories;
 using HiveSpace.IdentityService.Infrastructure.Data;
 using HiveSpace.IdentityService.Infrastructure.Repositories;
+using HiveSpace.Infrastructure.EntityFrameworkCore.Interceptors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,8 +25,14 @@ internal static class ServiceCollectionExtensions
     {
         var connectionString = configuration.GetConnectionString(HostingExtensions.IdentityServiceDbConnection)
             ?? throw new InvalidOperationException($"Connection string '{HostingExtensions.IdentityServiceDbConnection}' not found.");
-        services.AddDbContext<IdentityDbContext>(options =>
-            options.UseSqlServer(connectionString));
+        services.AddSingleton<SoftDeleteInterceptor>();
+        services.AddSingleton<AuditableInterceptor>();
+        services.AddDbContext<IdentityDbContext>((serviceProvider, options) =>
+            options.UseSqlServer(connectionString)
+                   .AddInterceptors(
+                        serviceProvider.GetRequiredService<SoftDeleteInterceptor>(),
+                        serviceProvider.GetRequiredService<AuditableInterceptor>()
+                    ));
     }
 
     public static void AddAppIdentity(this IServiceCollection services)
@@ -49,7 +56,7 @@ internal static class ServiceCollectionExtensions
     {
         services.AddScoped<IUserContext, UserContext>();
         services.AddScoped<IAddressService, AddressService>();
-        services.AddScoped<IProfileService, ProfileService>();
+        services.AddScoped<IUserService, UserService>();
     }
 
     public static void AddFluentValidationServices(this IServiceCollection services)
