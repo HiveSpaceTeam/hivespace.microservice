@@ -4,7 +4,7 @@ using HiveSpace.Core.Exceptions.Models;
 using HiveSpace.IdentityService.Application.Models.Requests;
 using HiveSpace.IdentityService.Domain.Exceptions;
 
-namespace HiveSpace.IdentityService.Application.Validators.Profile;
+namespace HiveSpace.IdentityService.Application.Validators.User;
 
 public class UpdateUserValidator : AbstractValidator<UpdateUserRequestDto>
 {
