@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Path": "src\\HiveSpace.IdentityService\\HiveSpace.IdentityService.Application\\HiveSpace.IdentityService.Application.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "src\\HiveSpace.ApiGateway\\HiveSpace.YarpApiGateway\\HiveSpace.YarpApiGateway.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

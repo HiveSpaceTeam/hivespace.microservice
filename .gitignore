@@ -1,0 +1,26 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs/hivespace.microservice
+/libs/HiveSpace.Core/bin/Debug/net8.0
+/libs/HiveSpace.Core/obj
+/libs/HiveSpace.Domain.Shared/obj
+/libs/HiveSpace.Infrastructure.Messaging/obj
+/libs/HiveSpace.Infrastructure.Persistence/obj
+/src/HiveSpace.IdentityService/HiveSpace.IdentityService.Application/obj
+/src/HiveSpace.YarpApiGateway/bin/Debug/net8.0
+/src/HiveSpace.YarpApiGateway/obj
+/libs/HiveSpace.Infrastructure.EntityFrameworkCore/bin/Debug/net8.0
+/libs/HiveSpace.Infrastructure.EntityFrameworkCore/obj
+/libs/HiveSpace.Infrastructure.Messaging/bin/Debug/net8.0
+/libs/HiveSpace.Infrastructure.Persistence/bin/Debug/net8.0
+/src/HiveSpace.ApiGateway/HiveSpace.YarpApiGateway/bin/Debug/net8.0
+/src/HiveSpace.ApiGateway/HiveSpace.YarpApiGateway/obj
+/src/HiveSpace.IdentityService/HiveSpace.IdentityService.Domain/obj
+/src/HiveSpace.IdentityService/HiveSpace.IdentityService.Infrastructure/obj
+/src/HiveSpace.IdentityService/HiveSpace.IdentityService.Infrastructure/bin/Debug/net8.0
+/src/HiveSpace.IdentityService/HiveSpace.IdentityService.Application/bin/Debug/net8.0
+/src/HiveSpace.IdentityService/HiveSpace.IdentityService.Domain/bin/Debug/net8.0
+/.vs/ProjectEvaluation
+/libs/HiveSpace.Domain.Shared/bin/Debug/net8.0

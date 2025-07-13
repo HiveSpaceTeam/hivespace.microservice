@@ -1,0 +1,6 @@
+@HiveSpace.IdentityService.Application_HostAddress = http://localhost:5125
+
+GET {{HiveSpace.IdentityService.Application_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
