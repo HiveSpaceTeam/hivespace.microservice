@@ -1,6 +1,7 @@
 using Duende.IdentityServer;
 using FluentValidation;
 using HiveSpace.Core.UserContext;
+using HiveSpace.Core.Filters;
 using HiveSpace.IdentityService.Application.Configs;
 using HiveSpace.IdentityService.Application.Interfaces;
 using HiveSpace.IdentityService.Application.Models.Requests;
@@ -21,6 +22,14 @@ namespace HiveSpace.IdentityService.Application.Extensions;
 
 internal static class ServiceCollectionExtensions
 {
+    public static void AddAppApiControllers(this IServiceCollection services)
+    {
+        services.AddControllers(options =>
+        {
+            options.Filters.Add<CustomExceptionFilter>();
+        });
+    }
+
     public static void AddAppDbContext(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString(HostingExtensions.IdentityServiceDbConnection)
@@ -72,6 +81,7 @@ internal static class ServiceCollectionExtensions
         services
             .AddIdentityServer(options =>
             {
+                options.LicenseKey = configuration.GetValue<string>("Duende:LicenseKey", "");
                 options.Events.RaiseErrorEvents = true;
                 options.Events.RaiseInformationEvents = true;
                 options.Events.RaiseFailureEvents = true;

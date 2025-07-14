@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc.Filters;
 using HiveSpace.Core.Exceptions.Models;
 using HiveSpace.Domain.Shared;
+using HiveSpace.Core.Exceptions;
 
 namespace HiveSpace.Core.Filters
 {
@@ -27,17 +28,10 @@ namespace HiveSpace.Core.Filters
                 {
                     var errorDto = new ErrorCodeDto
                     {
-                        Code = error.Code == null ? "000000" : Convert.ToInt32(error.Code).ToString(),
+                        Code = error.Code.Code,
                         MessageCode = error.Code?.ToString() ?? string.Empty,
-                        Source = error.Source ?? (error.Data is not null && error.Data.Count > 0 ? error.Data[0].Key : null),
+                        Source = error.Source
                     };
-                    if (exception.EnableData && error.Data is not null)
-                    {
-                        foreach (var item in error.Data)
-                        {
-                            errorDto.Data.Add(item.Key, item.Value);
-                        }
-                    }
                     errorList.Add(errorDto);
                 }
                 errorResponse.Errors = [.. errorList];
@@ -46,12 +40,14 @@ namespace HiveSpace.Core.Filters
             else if (context.Exception is DomainException domainException)
             {
                 var errorCode = domainException.ErrorCode;
-                var error = new ErrorCodeDto
+                var errorDto = new ErrorCodeDto
                 {
                     Code = domainException.ErrorCode.Code,
                     MessageCode = domainException.ErrorCode.Name,
                     Source = domainException.Source,
                 };
+                errorResponse.Errors = [errorDto];
+                errorResponse.Status = domainException.HttpCode.ToString();
             }
             else
             {

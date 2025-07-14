@@ -1,9 +1,9 @@
 ﻿using HiveSpace.Domain.Shared;
 
 namespace HiveSpace.Core.Exceptions.Models;
-public class ErrorCode
+public class ErrorCode(ApplicationErrorCode code, string? source)
 {
-    public Enumeration? Code { get; set; }
-    public List<ErrorData>? Data { get; set; }
-    public string? Source { get; set; }
+    public ApplicationErrorCode Code { get; set; } = code;
+    public string? Source { get; set; } = source;
+
 }
