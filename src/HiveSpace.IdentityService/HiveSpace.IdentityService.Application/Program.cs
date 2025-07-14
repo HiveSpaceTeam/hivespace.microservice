@@ -21,6 +21,8 @@ try
         .Enrich.FromLogContext()
         .ReadFrom.Configuration(ctx.Configuration));
 
+    builder.Services.AddAppApiControllers();
+
     var app = builder
         .ConfigureServices(configuration)
         .ConfigurePipeline();
@@ -38,15 +40,15 @@ try
         return;
     }
 
-    //if (app.Environment.IsDevelopment())
-    //{
-    //    app.Lifetime.ApplicationStopping.Register(() =>
-    //    {
-    //        var usage = app.Services.GetRequiredService<LicenseUsageSummary>();
-    //        Console.Write(Summary(usage));
-    //        Console.ReadKey();
-    //    });
-    //}
+    if (app.Environment.IsDevelopment())
+    {
+        app.Lifetime.ApplicationStopping.Register(() =>
+        {
+            var usage = app.Services.GetRequiredService<LicenseUsageSummary>();
+            Console.Write(Summary(usage));
+            Console.ReadKey();
+        });
+    }
 
     app.Run();
 }
