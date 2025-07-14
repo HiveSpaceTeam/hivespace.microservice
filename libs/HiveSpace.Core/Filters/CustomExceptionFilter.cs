@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc.Filters;
 using HiveSpace.Core.Exceptions.Models;
 using HiveSpace.Domain.Shared;
-using HiveSpace.Core.Exceptions;
 
 namespace HiveSpace.Core.Filters
 {
@@ -24,12 +23,12 @@ namespace HiveSpace.Core.Filters
             if (context.Exception is Exceptions.ApplicationException exception) 
             {
                 var errorList = new List<ErrorCodeDto>();
-                foreach (var error in exception.ErrorCodeList)
+                foreach (ErrorCode error in exception.ErrorCodeList)
                 {
                     var errorDto = new ErrorCodeDto
                     {
-                        Code = error.Code.Code,
-                        MessageCode = error.Code?.ToString() ?? string.Empty,
+                        Code = error.Code,
+                        MessageCode = error.MessageCode,
                         Source = error.Source
                     };
                     errorList.Add(errorDto);
