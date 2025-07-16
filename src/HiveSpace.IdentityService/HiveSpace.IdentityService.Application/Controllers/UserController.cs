@@ -10,7 +10,8 @@ namespace HiveSpace.IdentityService.Application.Controllers;
 
 [Authorize(Policy = "RequireIdentityFullAccessScope")]
 [ApiController]
-[Route("api/v1/users")]
+[ApiVersion("2.0")]
+[Route("api/v{version:apiVersion}/users")]
 public class UserController : ControllerBase
 {
     private readonly IUserService _userService;

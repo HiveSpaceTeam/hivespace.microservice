@@ -20,6 +20,7 @@ internal static class HostingExtensions
         builder.Services.AddAppIdentityServer(configuration);
         builder.Services.AddAppAuthentication(configuration);
         builder.Services.AddAppAuthorization();
+        builder.Services.AddAppApiVersioning();
 
         return builder.Build();
     }

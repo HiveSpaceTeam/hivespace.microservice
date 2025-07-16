@@ -2,7 +2,6 @@ using FluentValidation;
 using HiveSpace.Core.Helpers;
 using HiveSpace.IdentityService.Application.Interfaces;
 using HiveSpace.IdentityService.Application.Models.Requests;
-using HiveSpace.IdentityService.Application.Models.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,7 +9,8 @@ namespace HiveSpace.IdentityService.Application.Controllers;
 
 [Authorize(Policy = "RequireIdentityFullAccessScope")]
 [ApiController]
-[Route("api/v1/users/address")]
+[ApiVersion("2.0")]
+[Route("api/v{version:apiVersion}/users/address")]
 public class AddressController : ControllerBase
 {
     private readonly IAddressService _addressService;
@@ -50,7 +50,7 @@ public class AddressController : ControllerBase
     {
         ValidationHelper.ValidateResult(_addressValidator.Validate(createDto));
         var address = await _addressService.CreateAddressAsync(createDto);
-        return CreatedAtAction(nameof(GetAddress), new { addressId = address.Id }, address.Id);
+        return CreatedAtAction(nameof(GetAddress), new { addressId = address.Id }, address);
     }
 
     /// <summary>

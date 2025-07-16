@@ -4,7 +4,6 @@ using HiveSpace.IdentityService.Domain.Repositories;
 using HiveSpace.IdentityService.Domain.Exceptions;
 using HiveSpace.IdentityService.Application.Models.Responses;
 using HiveSpace.IdentityService.Application.Models.Requests;
-using HiveSpace.IdentityService.Infrastructure.Data;
 using HiveSpace.IdentityService.Domain.Aggregates;
 
 namespace HiveSpace.IdentityService.Application.Services;
