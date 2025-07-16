@@ -5,12 +5,12 @@ public class ConcurrencyException : ApplicationException
 {
     private static readonly int _httpCode = 409; // HTTP 409 Conflict
 
-    public ConcurrencyException(List<ErrorCode> errorCodeList, bool? enableData = false)
+    public ConcurrencyException(List<Error> errorCodeList, bool? enableData = false)
         : base(errorCodeList, _httpCode, enableData)
     {
     }
 
-    public ConcurrencyException(List<ErrorCode> errorCodeList, Exception inner, bool? enableData = false)
+    public ConcurrencyException(List<Error> errorCodeList, Exception inner, bool? enableData = false)
         : base(errorCodeList, inner, _httpCode, enableData)
     {
     }

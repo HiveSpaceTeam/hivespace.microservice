@@ -7,11 +7,11 @@ public class ApplicationException : Exception
 
     private readonly bool _enableData;
 
-    private readonly IEnumerable<ErrorCode> _errorCodeList = [];
+    private readonly IEnumerable<Error> _errorList = [];
 
     public int HttpCode => _httpCode;
 
-    public IEnumerable<ErrorCode> ErrorCodeList => _errorCodeList;
+    public IEnumerable<Error> ErrorCodeList => _errorList;
 
     public bool EnableData => _enableData;
 
@@ -23,17 +23,17 @@ public class ApplicationException : Exception
     {
     }
 
-    public ApplicationException(IEnumerable<ErrorCode> errorCodeList, int? httpCode, bool? enableData) 
+    public ApplicationException(IEnumerable<Error> errorCodeList, int? httpCode, bool? enableData) 
     {
-        _errorCodeList = errorCodeList;
+        _errorList = errorCodeList;
         _httpCode = httpCode ?? _httpCode;
         _enableData = enableData ?? _enableData;
     }
 
-    public ApplicationException(IEnumerable<ErrorCode> errorCodeList, Exception inner, int? httpCode, bool? enableData)
+    public ApplicationException(IEnumerable<Error> errorCodeList, Exception inner, int? httpCode, bool? enableData)
         : base(inner.Message, inner)
     {
-        _errorCodeList = errorCodeList;
+        _errorList = errorCodeList;
         _httpCode = httpCode ?? _httpCode;
         _enableData = enableData ?? _enableData;
     }

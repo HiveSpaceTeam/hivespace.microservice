@@ -12,13 +12,13 @@ public class ChangePasswordValidator : AbstractValidator<ChangePasswordRequestDt
     {
         RuleFor(x => x.Password)
             .NotEmpty()
-            .WithState(_ => new ErrorCode(IdentityErrorCode.Required.Code, IdentityErrorCode.Required.Name, nameof(ChangePasswordRequestDto.Password)));
+            .WithState(_ => new Error(IdentityErrorCode.Required, nameof(ChangePasswordRequestDto.Password)));
 
         RuleFor(x => x.NewPassword)
             .NotEmpty()
-            .WithState(_ => new ErrorCode(IdentityErrorCode.Required.Code, IdentityErrorCode.Required.Name, nameof(ChangePasswordRequestDto.NewPassword)))
+            .WithState(_ => new Error(IdentityErrorCode.Required, nameof(ChangePasswordRequestDto.NewPassword)))
             .MinimumLength(8)
             .Matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]")
-            .WithState(_ => new ErrorCode(IdentityErrorCode.InvalidPasswordFormat.Code, IdentityErrorCode.InvalidPasswordFormat.Name, nameof(ChangePasswordRequestDto.NewPassword)));
+            .WithState(_ => new Error(IdentityErrorCode.InvalidPasswordFormat, nameof(ChangePasswordRequestDto.NewPassword)));
     }
 } 

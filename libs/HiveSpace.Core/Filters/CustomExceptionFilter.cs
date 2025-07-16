@@ -23,12 +23,12 @@ namespace HiveSpace.Core.Filters
             if (context.Exception is Exceptions.ApplicationException exception) 
             {
                 var errorList = new List<ErrorCodeDto>();
-                foreach (ErrorCode error in exception.ErrorCodeList)
+                foreach (Error error in exception.ErrorCodeList)
                 {
                     var errorDto = new ErrorCodeDto
                     {
-                        Code = error.Code,
-                        MessageCode = error.MessageCode,
+                        Code = error.ErrorCode.Code,
+                        MessageCode = error.ErrorCode.Name,
                         Source = error.Source
                     };
                     errorList.Add(errorDto);

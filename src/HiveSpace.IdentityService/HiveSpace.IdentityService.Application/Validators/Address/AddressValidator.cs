@@ -12,30 +12,30 @@ public class AddressValidator : AbstractValidator<AddressRequestDto>
     {
         RuleFor(x => x.FullName)
             .NotEmpty() 
-            .WithState(_ => new ErrorCode(IdentityErrorCode.Required.Code, IdentityErrorCode.Required.Name, nameof(AddressRequestDto.FullName)));
+            .WithState(_ => new Error(IdentityErrorCode.Required, nameof(AddressRequestDto.FullName)));
 
         RuleFor(x => x.Street)
             .NotEmpty()
-            .WithState(_ => new ErrorCode(IdentityErrorCode.Required.Code, IdentityErrorCode.Required.Name, nameof(AddressRequestDto.Street)));
+            .WithState(_ => new Error(IdentityErrorCode.Required, nameof(AddressRequestDto.Street)));
 
         RuleFor(x => x.Ward)
             .NotEmpty()
-            .WithState(_ => new ErrorCode(IdentityErrorCode.Required.Code, IdentityErrorCode.Required.Name, nameof(AddressRequestDto.Ward)));
+            .WithState(_ => new Error(IdentityErrorCode.Required, nameof(AddressRequestDto.Ward)));
 
         RuleFor(x => x.District)
             .NotEmpty()
-            .WithState(_ => new ErrorCode(IdentityErrorCode.Required.Code, IdentityErrorCode.Required.Name, nameof(AddressRequestDto.District)));
+            .WithState(_ => new Error(IdentityErrorCode.Required, nameof(AddressRequestDto.District)));
 
         RuleFor(x => x.Province)
             .NotEmpty()
-            .WithState(_ => new ErrorCode(IdentityErrorCode.Required.Code, IdentityErrorCode.Required.Name, nameof(AddressRequestDto.Province)));
+            .WithState(_ => new Error(IdentityErrorCode.Required, nameof(AddressRequestDto.Province)));
 
         RuleFor(x => x.Country)
             .NotEmpty()
-            .WithState(_ => new ErrorCode(IdentityErrorCode.Required.Code, IdentityErrorCode.Required.Name, nameof(AddressRequestDto.Country)));
+            .WithState(_ => new Error(IdentityErrorCode.Required, nameof(AddressRequestDto.Country)));
 
         RuleFor(x => x.PhoneNumber)
             .NotEmpty()
-            .WithState(_ => new ErrorCode(IdentityErrorCode.Required.Code, IdentityErrorCode.Required.Name, nameof(AddressRequestDto.PhoneNumber)));
+            .WithState(_ => new Error(IdentityErrorCode.Required, nameof(AddressRequestDto.PhoneNumber)));
     }
 } 

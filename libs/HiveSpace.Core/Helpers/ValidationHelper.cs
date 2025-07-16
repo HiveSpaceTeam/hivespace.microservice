@@ -23,11 +23,11 @@ public static class ValidationHelper
         }
     }
 
-    public static IEnumerable<ErrorCode> ValidateResultWithState(ValidationResult validationResult)
+    public static IEnumerable<Error> ValidateResultWithState(ValidationResult validationResult)
     {
         if (!validationResult.IsValid)
         {
-            return [.. validationResult.Errors.Select(x => x.CustomState as ErrorCode ?? 
+            return [.. validationResult.Errors.Select(x => x.CustomState as Error ?? 
                 new ErrorCode(ApplicationErrorCode.FluentValidationError.Code, ApplicationErrorCode.FluentValidationError.Name, null))];
         }
         return [];
