@@ -15,26 +15,26 @@ public class UpdateUserValidator : AbstractValidator<UpdateUserRequestDto>
             .MaximumLength(50)
             .Matches("^[a-zA-Z0-9_]+$")
             .When(x => !string.IsNullOrWhiteSpace(x.UserName))
-            .WithState(_ => new ErrorCode(IdentityErrorCode.InvalidUsername.Code, IdentityErrorCode.InvalidUsername.Name, nameof(UpdateUserRequestDto.UserName)));
+            .WithState(_ => new Error(IdentityErrorCode.InvalidUsername, nameof(UpdateUserRequestDto.UserName)));
 
         RuleFor(x => x.Email)
             .EmailAddress()
             .When(x => !string.IsNullOrWhiteSpace(x.Email))
-            .WithState(_ => new ErrorCode(IdentityErrorCode.InvalidEmail.Code, IdentityErrorCode.InvalidEmail.Name, nameof(UpdateUserRequestDto.Email)));
+            .WithState(_ => new Error(IdentityErrorCode.InvalidEmail, nameof(UpdateUserRequestDto.Email)));
 
         RuleFor(x => x.FullName)
             .MaximumLength(100)
             .When(x => !string.IsNullOrWhiteSpace(x.FullName))
-            .WithState(_ => new ErrorCode(IdentityErrorCode.InvalidFullName.Code, IdentityErrorCode.InvalidFullName.Name, nameof(UpdateUserRequestDto.FullName)));
+            .WithState(_ => new Error(IdentityErrorCode.InvalidFullName, nameof(UpdateUserRequestDto.FullName)));
 
         RuleFor(x => x.PhoneNumber)
             .Matches("^[+]?[1-9]\\d{1,14}$")
             .When(x => !string.IsNullOrWhiteSpace(x.PhoneNumber))
-            .WithState(_ => new ErrorCode(IdentityErrorCode.InvalidPhoneNumber.Code, IdentityErrorCode.InvalidPhoneNumber.Name, nameof(UpdateUserRequestDto.PhoneNumber)));
+            .WithState(_ => new Error(IdentityErrorCode.InvalidPhoneNumber, nameof(UpdateUserRequestDto.PhoneNumber)));
 
         RuleFor(x => x.DateOfBirth)
             .LessThan(DateTime.Today)
             .When(x => x.DateOfBirth.HasValue)
-            .WithState(_ => new ErrorCode(IdentityErrorCode.InvalidDateOfBirth.Code, IdentityErrorCode.InvalidDateOfBirth.Name, nameof(UpdateUserRequestDto.DateOfBirth)));
+            .WithState(_ => new Error(IdentityErrorCode.InvalidDateOfBirth, nameof(UpdateUserRequestDto.DateOfBirth)));
     }
 } 

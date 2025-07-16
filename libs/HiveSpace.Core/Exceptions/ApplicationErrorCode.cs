@@ -2,7 +2,7 @@
 
 namespace HiveSpace.Core.Exceptions;
 
-public class ApplicationErrorCode(int id, string name, string code) : Enumeration(id, name)
+public class ApplicationErrorCode(int id, string name, string code) : Enumeration(id, name), IErrorCode
 {
     public string Code { get; private set; } = code;
     public static readonly ApplicationErrorCode InternalServerError = new(0, "InternalServerError", "APP0000");
