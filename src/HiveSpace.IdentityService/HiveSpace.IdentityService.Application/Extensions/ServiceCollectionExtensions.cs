@@ -141,10 +141,5 @@ internal static class ServiceCollectionExtensions
             options.AssumeDefaultVersionWhenUnspecified = true;
             options.ReportApiVersions = true;
         });
-        // services.AddVersionedApiExplorer(options =>
-        // {
-        //     options.GroupNameFormat = "'v'VVV";
-        //     options.SubstituteApiVersionInUrl = true;
-        // });
     }
 }
