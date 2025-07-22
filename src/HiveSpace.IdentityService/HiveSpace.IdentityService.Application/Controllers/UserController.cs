@@ -2,7 +2,6 @@ using FluentValidation;
 using HiveSpace.Core.Helpers;
 using HiveSpace.IdentityService.Application.Interfaces;
 using HiveSpace.IdentityService.Application.Models.Requests;
-using HiveSpace.IdentityService.Application.Models.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -35,6 +34,7 @@ public class UserController : ControllerBase
     /// Create a new user account
     /// </summary>
     [HttpPost("signup")]
+    [AllowAnonymous]
     public async Task<IActionResult> Signup([FromBody] SignupRequestDto signupDto)
     {
         ValidationHelper.ValidateResult(_signupValidator.Validate(signupDto));

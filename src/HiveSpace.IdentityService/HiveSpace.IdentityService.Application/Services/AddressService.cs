@@ -1,5 +1,5 @@
 using HiveSpace.IdentityService.Application.Interfaces;
-using HiveSpace.Core.UserContext;
+using HiveSpace.Core.Contexts;
 using HiveSpace.IdentityService.Domain.Repositories;
 using HiveSpace.IdentityService.Domain.Exceptions;
 using HiveSpace.IdentityService.Application.Models.Responses;
@@ -126,20 +126,19 @@ public class AddressService : IAddressService
 
     private static AddressResponseDto MapToResponseDto(Address address)
     {
-        return new AddressResponseDto
-        {
-            Id = address.Id,
-            FullName = address.FullName,
-            Street = address.Street,
-            Ward = address.Ward,
-            District = address.District,
-            Province = address.Province,
-            Country = address.Country,
-            ZipCode = address.ZipCode,
-            PhoneNumber = address.PhoneNumber,
-            IsDefault = address.IsDefault,
-            CreatedAt = address.CreatedAt,
-            UpdatedAt = address.UpdatedAt,
-        };
+        return new AddressResponseDto(
+            address.Id,
+            address.FullName,
+            address.Street,
+            address.Ward,
+            address.District,
+            address.Province,
+            address.Country,
+            address.ZipCode,
+            address.PhoneNumber,
+            address.IsDefault,
+            address.CreatedAt,
+            address.UpdatedAt
+        );
     }
 } 

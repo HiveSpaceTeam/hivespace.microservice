@@ -1,4 +1,8 @@
 using Serilog;
+using Microsoft.EntityFrameworkCore;
+using HiveSpace.IdentityService.Infrastructure.Data;
+using HiveSpace.Infrastructure.Persistence;
+using HiveSpace.Core;
 
 namespace HiveSpace.IdentityService.Application.Extensions;
 
@@ -13,6 +17,9 @@ internal static class HostingExtensions
         builder.Services.AddEndpointsApiExplorer();
 
         builder.Services.AddAppDbContext(configuration);
+        builder.Services.AddScoped<DbContext, IdentityDbContext>();
+        builder.Services.AddCoreServices();
+        builder.Services.AddPersistenceInfrastructure();
         builder.Services.AddAppIdentity();
         builder.Services.AddFluentValidationServices();
         builder.Services.AddAppInfrastructure();
@@ -23,7 +30,7 @@ internal static class HostingExtensions
         builder.Services.AddAppApiVersioning();
 
         return builder.Build();
-    }
+     }
 
     public static WebApplication ConfigurePipeline(this WebApplication app)
     {

@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using HiveSpace.Core.Exceptions.Models;
-using HiveSpace.Domain.Shared;
+using HiveSpace.Domain.Shared.Exceptions;
 
 namespace HiveSpace.Core.Filters
 {
@@ -9,7 +9,6 @@ namespace HiveSpace.Core.Filters
     {
         public void OnException(ExceptionContext context)
         {
-
             context.ExceptionHandled = true;
             var errorResponse = new ExceptionModel
             {
@@ -25,12 +24,11 @@ namespace HiveSpace.Core.Filters
                 var errorList = new List<ErrorCodeDto>();
                 foreach (Error error in exception.ErrorCodeList)
                 {
-                    var errorDto = new ErrorCodeDto
-                    {
-                        Code = error.ErrorCode.Code,
-                        MessageCode = error.ErrorCode.Name,
-                        Source = error.Source
-                    };
+                    var errorDto = new ErrorCodeDto(
+                        error.ErrorCode.Code,
+                        error.ErrorCode.Name,
+                        error.Source
+                    );
                     errorList.Add(errorDto);
                 }
                 errorResponse.Errors = [.. errorList];
@@ -39,25 +37,23 @@ namespace HiveSpace.Core.Filters
             else if (context.Exception is DomainException domainException)
             {
                 var errorCode = domainException.ErrorCode;
-                var errorDto = new ErrorCodeDto
-                {
-                    Code = domainException.ErrorCode.Code,
-                    MessageCode = domainException.ErrorCode.Name,
-                    Source = domainException.Source,
-                };
+                var errorDto = new ErrorCodeDto(
+                    domainException.ErrorCode.Code,
+                    domainException.ErrorCode.Name,
+                    domainException.Source
+                );
                 errorResponse.Errors = [errorDto];
                 errorResponse.Status = domainException.HttpCode.ToString();
             }
             else
             {
-                var error = new ErrorCodeDto
-                {
-                    Code = "000000",
-                    MessageCode = "ServerError",
-                    Source = null,
-                };
+                var error = new ErrorCodeDto(
+                    "000000",
+                    "ServerError",
+                    null
+                );
 #if DEBUG
-                error.MessageCode = context.Exception.Message;
+                error = error with { MessageCode = context.Exception.Message };
 #endif
                 errorResponse.Errors = [error];
             }

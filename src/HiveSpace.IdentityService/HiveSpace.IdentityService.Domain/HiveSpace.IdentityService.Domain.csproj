@@ -14,4 +14,8 @@
     <ProjectReference Include="..\..\..\libs\HiveSpace.Domain.Shared\HiveSpace.Domain.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="DomainEvents\" />
+  </ItemGroup>
+
 </Project>

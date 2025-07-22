@@ -1,4 +1,5 @@
-using HiveSpace.Domain.Shared;
+using HiveSpace.Domain.Shared.Entities;
+using HiveSpace.Domain.Shared.Interfaces;
 
 namespace HiveSpace.IdentityService.Domain.Aggregates;
 
