@@ -48,7 +48,8 @@ public class TransactionService : ITransactionService
             try
             {
                 await action?.Invoke(transaction)!;
-                _incomingRequestRepository.Add(new IncomingRequest(System.Diagnostics.Activity.Current!.TraceId.ToString(), _requestId, actionName));
+                var traceId = System.Diagnostics.Activity.Current?.TraceId.ToString() ?? Guid.Empty.ToString();
+                _incomingRequestRepository.Add(new IncomingRequest(traceId, _requestId, actionName));
                 await _dbContext.SaveChangesAsync();
                 await transaction.CommitAsync();
             }
