@@ -1,6 +1,6 @@
 using Duende.IdentityServer;
 using FluentValidation;
-using HiveSpace.Core.UserContext;
+using HiveSpace.Core.Contexts;
 using HiveSpace.Core.Filters;
 using HiveSpace.IdentityService.Application.Configs;
 using HiveSpace.IdentityService.Application.Interfaces;
@@ -12,7 +12,7 @@ using HiveSpace.IdentityService.Domain.Aggregates;
 using HiveSpace.IdentityService.Domain.Repositories;
 using HiveSpace.IdentityService.Infrastructure.Data;
 using HiveSpace.IdentityService.Infrastructure.Repositories;
-using HiveSpace.Infrastructure.EntityFrameworkCore.Interceptors;
+using HiveSpace.Infrastructure.Persistence.Interceptors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 

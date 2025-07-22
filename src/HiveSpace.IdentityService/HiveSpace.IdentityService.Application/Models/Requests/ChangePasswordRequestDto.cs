@@ -1,7 +1,6 @@
 ﻿namespace HiveSpace.IdentityService.Application.Models.Requests;
 
-public class ChangePasswordRequestDto
-{
-    public string Password { get; set; } = string.Empty;
-    public string NewPassword { get; set; } = string.Empty;
-}
+public record ChangePasswordRequestDto(
+    string Password,
+    string NewPassword
+);

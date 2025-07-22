@@ -1,4 +1,4 @@
-﻿using HiveSpace.Domain.Shared;
+﻿using HiveSpace.Domain.Shared.Errors;
 
 namespace HiveSpace.IdentityService.Domain.Exceptions;
 public class IdentityErrorCode(int id, string name, string code) : DomainErrorCode(id, name, code)

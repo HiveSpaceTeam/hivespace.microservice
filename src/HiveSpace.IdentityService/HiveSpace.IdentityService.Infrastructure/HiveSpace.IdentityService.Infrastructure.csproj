@@ -11,13 +11,11 @@
     <PackageReference Include="Duende.IdentityServer.EntityFramework" Version="7.2.4" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.11" />
-	<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.11" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.11" />
     <PackageReference Include="Serilog" Version="3.1.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\libs\HiveSpace.Infrastructure.EntityFrameworkCore\HiveSpace.Infrastructure.EntityFrameworkCore.csproj" />
+    <ProjectReference Include="..\..\..\libs\HiveSpace.Infrastructure.Persistence\HiveSpace.Infrastructure.Persistence.csproj" />
     <ProjectReference Include="..\HiveSpace.IdentityService.Domain\HiveSpace.IdentityService.Domain.csproj" />
   </ItemGroup>
 

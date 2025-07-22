@@ -1,4 +1,5 @@
 using HiveSpace.IdentityService.Domain.Aggregates;
+using HiveSpace.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +18,9 @@ public class IdentityDbContext : IdentityDbContext<ApplicationUser>
         base.OnModelCreating(builder);
 
         builder.ApplyConfigurationsFromAssembly(typeof(IdentityDbContext).Assembly);
+
+
+        builder.AddPersistenceBuilder();
 
         // Configure table names
         builder.Entity<ApplicationUser>().ToTable("users");

@@ -1,4 +1,4 @@
-﻿using HiveSpace.Domain.Shared;
+﻿using HiveSpace.Domain.Shared.Errors;
 
 namespace HiveSpace.Core.Exceptions.Models;
 public class Error(IErrorCode errorCode, string? source)

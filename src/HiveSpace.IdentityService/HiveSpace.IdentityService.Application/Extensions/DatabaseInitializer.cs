@@ -1,6 +1,7 @@
 using HiveSpace.IdentityService.Application.Configs;
 using Microsoft.EntityFrameworkCore;
 using Duende.IdentityServer.EntityFramework.Mappers;
+using Microsoft.AspNetCore.Builder;
 
 namespace HiveSpace.IdentityService.Application.Extensions;
 
