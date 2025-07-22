@@ -11,7 +11,7 @@ public class IncomingRequest
     {
         CorrelationId = correlationId ?? throw new ArgumentNullException(nameof(correlationId));
         RequestId = Guid.Empty.Equals(requestId) ? throw new ArgumentNullException(nameof(requestId)) : requestId;
-        DateTimeCreated = DateTime.Now;
+        DateTimeCreated = DateTimeOffset.UtcNow;
         ActionName = actionName;
     }
 }
