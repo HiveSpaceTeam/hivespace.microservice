@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using HiveSpace.Domain.Shared;
+using HiveSpace.Domain.Shared.Interfaces;
 
 namespace HiveSpace.Infrastructure.Persistence.Outbox;
 
