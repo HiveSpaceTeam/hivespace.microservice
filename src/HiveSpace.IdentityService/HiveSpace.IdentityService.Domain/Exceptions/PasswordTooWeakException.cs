@@ -1,4 +1,4 @@
-using HiveSpace.Domain.Shared;
+using HiveSpace.Domain.Shared.Exceptions;
 
 namespace HiveSpace.IdentityService.Domain.Exceptions;
 

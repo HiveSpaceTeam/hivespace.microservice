@@ -1,13 +1,13 @@
 using HiveSpace.IdentityService.Domain.Repositories;
 using HiveSpace.IdentityService.Infrastructure.Data;
-using HiveSpace.Infrastructure.EntityFrameworkCore.Repositories;
+using HiveSpace.Infrastructure.Persistence.Repositories;
 using Microsoft.AspNetCore.Identity;
 using HiveSpace.IdentityService.Domain.Aggregates;
 using Microsoft.EntityFrameworkCore;
 
 namespace HiveSpace.IdentityService.Infrastructure.Repositories;
 
-public class UserRepository(IdentityDbContext _context, SignInManager<ApplicationUser> _signInManager) : BaseRepository<ApplicationUser, Guid>(_context), IUserRepository
+public class UserRepository(IdentityDbContext context, SignInManager<ApplicationUser> _signInManager) : BaseRepository<ApplicationUser, Guid>(context), IUserRepository
 {
     protected readonly SignInManager<ApplicationUser> signInManager = _signInManager;
 

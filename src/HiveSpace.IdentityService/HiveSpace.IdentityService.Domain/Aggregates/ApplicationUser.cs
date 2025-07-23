@@ -1,4 +1,4 @@
-using HiveSpace.Domain.Shared;
+using HiveSpace.Domain.Shared.Interfaces;
 using HiveSpace.IdentityService.Domain.Aggregates.Enums;
 using HiveSpace.IdentityService.Domain.Exceptions;
 using Microsoft.AspNetCore.Identity;
