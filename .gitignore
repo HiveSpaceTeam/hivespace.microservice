@@ -27,3 +27,7 @@
 .idx
 .vscode
 docker
+/src/HiveSpace.CatalogService/HiveSpace.CatalogService.API/obj
+/src/HiveSpace.CatalogService/HiveSpace.CatalogService.Application/obj
+/src/HiveSpace.CatalogService/HiveSpace.CatalogService.Domain/obj
+/src/HiveSpace.CatalogService/HiveSpace.CatalogService.Infrastructure/obj
