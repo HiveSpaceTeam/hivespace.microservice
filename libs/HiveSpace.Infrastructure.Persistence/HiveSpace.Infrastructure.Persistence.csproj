@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\HiveSpace.Core\HiveSpace.Core.csproj" />
+    <ProjectReference Include="..\HiveSpace.Infrastructure.Messaging\HiveSpace.Infrastructure.Messaging.csproj" />
   </ItemGroup>
 
   <ItemGroup>
