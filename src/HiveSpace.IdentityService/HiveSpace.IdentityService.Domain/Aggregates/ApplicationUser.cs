@@ -1,5 +1,6 @@
 using HiveSpace.Domain.Shared.Interfaces;
 using HiveSpace.IdentityService.Domain.Aggregates.Enums;
+using HiveSpace.IdentityService.Domain.DomainEvents;
 using HiveSpace.IdentityService.Domain.Exceptions;
 using Microsoft.AspNetCore.Identity;
 
@@ -10,7 +11,7 @@ public class ApplicationUser : IdentityUser, IAggregateRoot, IAuditable, ISoftDe
 {
     public string FullName { get; private set; }
     public Gender? Gender { get; private set; }
-    public DateTime? DateOfBirth { get; private set; }
+    public DateTimeOffset? DateOfBirth { get; private set; }
 
     private readonly List<Address> _addresses = [];
     public IReadOnlyCollection<Address> Addresses => _addresses;
@@ -35,7 +36,7 @@ public class ApplicationUser : IdentityUser, IAggregateRoot, IAuditable, ISoftDe
         string fullName,
         string? phoneNumber,
         Gender? gender = null,
-        DateTime? dob = null)
+        DateTimeOffset? dob = null)
     {
         PhoneNumber = phoneNumber;
         UserName = userName;
@@ -43,6 +44,7 @@ public class ApplicationUser : IdentityUser, IAggregateRoot, IAuditable, ISoftDe
         Email = email;
         Gender = gender;
         DateOfBirth = dob;
+        AddDomainEvent(new UserCreatedDomainEvent(Guid.Parse(Id), email, fullName));
     }
 
     public Address AddAddress(AddressProps props)
@@ -72,7 +74,7 @@ public class ApplicationUser : IdentityUser, IAggregateRoot, IAuditable, ISoftDe
         return address;
     }
 
-    public void UpdateUserInfo(string? userName, string? fullName, string? email, string? phoneNumber, Gender? gender, DateTime? dob)
+    public void UpdateUserInfo(string? userName, string? fullName, string? email, string? phoneNumber, Gender? gender, DateTimeOffset? dob)
     {
         if (!string.IsNullOrWhiteSpace(userName)) UserName = userName;
         if (!string.IsNullOrWhiteSpace(fullName)) FullName = fullName;

@@ -7,7 +7,7 @@ public class IncomingRequestEntityConfiguration : IEntityTypeConfiguration<Incom
 {
     public void Configure(EntityTypeBuilder<IncomingRequest> builder)
     {
-        builder.Property(x => x.DateTimeCreated).IsRequired();
+        builder.Property(x => x.CreatedAt).IsRequired();
         builder.Property(x => x.CorrelationId).IsRequired();
         builder.Property(x => x.RequestId).IsRequired();
         builder.Property(x => x.ActionName).IsRequired().HasMaxLength(256);
@@ -17,4 +17,4 @@ public class IncomingRequestEntityConfiguration : IEntityTypeConfiguration<Incom
 
         builder.ToTable("incoming_requests");
     }
-} 
+}

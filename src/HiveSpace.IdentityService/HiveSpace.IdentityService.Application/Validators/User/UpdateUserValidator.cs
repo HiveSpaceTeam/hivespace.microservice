@@ -1,5 +1,4 @@
 using FluentValidation;
-using HiveSpace.Core.Exceptions;
 using HiveSpace.Core.Exceptions.Models;
 using HiveSpace.IdentityService.Application.Models.Requests;
 using HiveSpace.IdentityService.Domain.Exceptions;
@@ -13,7 +12,7 @@ public class UpdateUserValidator : AbstractValidator<UpdateUserRequestDto>
         RuleFor(x => x.UserName)
             .MinimumLength(3)
             .MaximumLength(50)
-            .Matches("^[a-zA-Z0-9_]+$")
+            .Matches("^[a-zA-Z0-9_.-]+$")
             .When(x => !string.IsNullOrWhiteSpace(x.UserName))
             .WithState(_ => new Error(IdentityErrorCode.InvalidUsername, nameof(UpdateUserRequestDto.UserName)));
 
@@ -33,8 +32,8 @@ public class UpdateUserValidator : AbstractValidator<UpdateUserRequestDto>
             .WithState(_ => new Error(IdentityErrorCode.InvalidPhoneNumber, nameof(UpdateUserRequestDto.PhoneNumber)));
 
         RuleFor(x => x.DateOfBirth)
-            .LessThan(DateTime.Today)
+            .LessThan(DateTimeOffset.Now)
             .When(x => x.DateOfBirth.HasValue)
             .WithState(_ => new Error(IdentityErrorCode.InvalidDateOfBirth, nameof(UpdateUserRequestDto.DateOfBirth)));
     }
-} 
+}
