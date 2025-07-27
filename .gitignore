@@ -23,3 +23,6 @@
 /src/HiveSpace.IdentityService/HiveSpace.IdentityService.Application/bin/Debug/net8.0
 /src/HiveSpace.IdentityService/HiveSpace.IdentityService.Domain/bin/Debug/net8.0
 /libs/HiveSpace.Domain.Shared/bin/Debug/net8.0
+.idx
+.vscode
+docker
