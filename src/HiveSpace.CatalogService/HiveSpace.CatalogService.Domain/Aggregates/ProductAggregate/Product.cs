@@ -14,8 +14,8 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
         private readonly List<ProductCategory> _categories = [];
         public IReadOnlyCollection<ProductCategory> Categories => _categories.AsReadOnly();
 
-        //private readonly List<ProductAttributeValue> _attributeValues = [];
-        //public IReadOnlyCollection<ProductAttributeValue> AttributeValues => _attributeValues.AsReadOnly();
+        private readonly List<ProductAttributeValue> _attributeValues = [];
+        public IReadOnlyCollection<ProductAttributeValue> AttributeValues => _attributeValues.AsReadOnly();
 
         private readonly List<ProductVariant> _variants = [];
         public IReadOnlyCollection<ProductVariant> Variants => _variants.AsReadOnly();

@@ -55,3 +55,7 @@ test/HiveSpace.IdentityService/HiveSpace.IdentityService.FunctionalTests/bin
 /src/HiveSpace.CatalogService/HiveSpace.CatalogService.Application/obj
 /src/HiveSpace.CatalogService/HiveSpace.CatalogService.Domain/obj
 /src/HiveSpace.CatalogService/HiveSpace.CatalogService.Infrastructure/obj
+/src/HiveSpace.CatalogService/HiveSpace.CatalogService.API/bin/Debug/net8.0
+/src/HiveSpace.CatalogService/HiveSpace.CatalogService.Application/bin/Debug/net8.0
+/src/HiveSpace.CatalogService/HiveSpace.CatalogService.Domain/bin/Debug/net8.0
+/src/HiveSpace.CatalogService/HiveSpace.CatalogService.Infrastructure/bin/Debug/net8.0

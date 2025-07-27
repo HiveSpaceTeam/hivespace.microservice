@@ -1,5 +1,6 @@
 ﻿using HiveSpace.CatalogService.Domain.Common;
 using HiveSpace.CatalogService.Domain.Common.Enums;
+using HiveSpace.CatalogService.Domain.Exceptions;
 using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.Domain.Shared.Exceptions;
 
@@ -39,17 +40,7 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.SkuAggregate
 
             if (IsInvalid())
             {
-                throw new DomainException
-                {
-                    Errors =
-                    [
-                       new() {
-                        Field="Quantity",
-                        MessageCode= "i18nSku.InvalidSku",
-                        ErrorCode=ErrorCode.InvalidSku
-                    }
-                    ]
-                };
+                throw new InvalidSkuException();
             }
         }
 
