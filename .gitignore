@@ -2,7 +2,7 @@
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
-/.vs/hivespace.microservice
+/.vs
 /libs/HiveSpace.Core/bin/Debug/net8.0
 /libs/HiveSpace.Core/obj
 /libs/HiveSpace.Domain.Shared/obj
@@ -27,3 +27,4 @@
 .idx
 .vscode
 docker
+/libs/HiveSpace.Application.Shared/obj
