@@ -8,6 +8,7 @@
 /libs/HiveSpace.Domain.Shared/obj
 /libs/HiveSpace.Infrastructure.Messaging/obj
 /libs/HiveSpace.Infrastructure.Persistence/obj
+/libs/HiveSpace.Application.Shared/obj
 /src/HiveSpace.IdentityService/HiveSpace.IdentityService.Application/obj
 /src/HiveSpace.YarpApiGateway/bin/Debug/net8.0
 /src/HiveSpace.YarpApiGateway/obj
@@ -27,4 +28,3 @@
 .idx
 .vscode
 docker
-/libs/HiveSpace.Application.Shared/obj
