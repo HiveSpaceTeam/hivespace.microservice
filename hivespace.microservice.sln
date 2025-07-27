@@ -29,6 +29,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.YarpApiGateway", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.Application.Shared", "libs\HiveSpace.Application.Shared\HiveSpace.Application.Shared.csproj", "{5853E354-EB72-486A-B01F-83EA45070B1A}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "HiveSpace.CatalogService", "HiveSpace.CatalogService", "{E6F1AE7B-4977-43D2-B6DE-6A71027108B4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.CatalogService.API", "src\HiveSpace.CatalogService\HiveSpace.CatalogService.API\HiveSpace.CatalogService.API.csproj", "{F44A008B-261A-4C26-A087-E00DE27709B7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -147,6 +151,18 @@ Global
 		{5853E354-EB72-486A-B01F-83EA45070B1A}.Release|x64.Build.0 = Release|Any CPU
 		{5853E354-EB72-486A-B01F-83EA45070B1A}.Release|x86.ActiveCfg = Release|Any CPU
 		{5853E354-EB72-486A-B01F-83EA45070B1A}.Release|x86.Build.0 = Release|Any CPU
+		{F44A008B-261A-4C26-A087-E00DE27709B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F44A008B-261A-4C26-A087-E00DE27709B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F44A008B-261A-4C26-A087-E00DE27709B7}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F44A008B-261A-4C26-A087-E00DE27709B7}.Debug|x64.Build.0 = Debug|Any CPU
+		{F44A008B-261A-4C26-A087-E00DE27709B7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F44A008B-261A-4C26-A087-E00DE27709B7}.Debug|x86.Build.0 = Debug|Any CPU
+		{F44A008B-261A-4C26-A087-E00DE27709B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F44A008B-261A-4C26-A087-E00DE27709B7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F44A008B-261A-4C26-A087-E00DE27709B7}.Release|x64.ActiveCfg = Release|Any CPU
+		{F44A008B-261A-4C26-A087-E00DE27709B7}.Release|x64.Build.0 = Release|Any CPU
+		{F44A008B-261A-4C26-A087-E00DE27709B7}.Release|x86.ActiveCfg = Release|Any CPU
+		{F44A008B-261A-4C26-A087-E00DE27709B7}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -163,6 +179,8 @@ Global
 		{F9FF27C0-6F5C-40CE-9189-70060FEEC022} = {2C7D3B51-F066-40E6-A751-28FC3B1A5ABA}
 		{3462DB16-D695-9630-4391-D5ED5935099A} = {983AAABA-65F5-43CE-8A72-E2BD12AECEA4}
 		{5853E354-EB72-486A-B01F-83EA45070B1A} = {8E604477-D2AC-48FD-A8EF-349D246FAC03}
+		{E6F1AE7B-4977-43D2-B6DE-6A71027108B4} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{F44A008B-261A-4C26-A087-E00DE27709B7} = {E6F1AE7B-4977-43D2-B6DE-6A71027108B4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D8C2701B-2199-41FF-B96B-89B56EA2198C}

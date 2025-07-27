@@ -1,0 +1,6 @@
+@HiveSpace.CatalogService.API_HostAddress = http://localhost:5223
+
+GET {{HiveSpace.CatalogService.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

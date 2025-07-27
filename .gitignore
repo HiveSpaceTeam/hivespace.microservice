@@ -28,3 +28,4 @@
 .idx
 .vscode
 docker
+/src/HiveSpace.CatalogService/HiveSpace.CatalogService.API/obj
