@@ -1,4 +1,5 @@
 ﻿using HiveSpace.CatalogService.Domain.Common.Enums;
+using HiveSpace.CatalogService.Domain.Exceptions;
 using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.Domain.Shared.Exceptions;
 
@@ -16,17 +17,7 @@ namespace HiveSpace.CatalogService.Domain.Common
             Currency = currency;
             if (IsInvalid())
             {
-                throw new DomainException
-                {
-                    Errors =
-                   [
-                       new() {
-                        Field="Amount",
-                        MessageCode="i18nMoney.InvalidMoney",
-                        ErrorCode=ErrorCode.InvalidMoney
-                    }
-                   ]
-                };
+                throw new InvalidMoneyException();
             }
         }
 
