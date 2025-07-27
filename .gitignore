@@ -27,3 +27,4 @@
 .idx
 .vscode
 docker
+/libs/HiveSpace.Application.Shared/bin/Debug/net8.0
