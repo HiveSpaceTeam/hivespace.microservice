@@ -1,4 +1,8 @@
 using HiveSpace.Domain.Shared.Interfaces;
+using HiveSpace.Infrastructure.Messaging.Events;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json;
 
 namespace HiveSpace.Infrastructure.Persistence.Outbox;
 
@@ -6,27 +10,53 @@ namespace HiveSpace.Infrastructure.Persistence.Outbox;
 /// Represents an event message stored in the outbox table,
 /// waiting to be published to a message broker.
 /// </summary>
-public class OutboxMessage : IAuditable 
+public class OutboxMessage : IAuditable
 {
-    public Guid Id { get; set; }
-    public DateTime OccurredOnUtc { get; set; }
-    public string Type { get; set; } = string.Empty; // Full type name of the event
-    public string Content { get; set; } = string.Empty; // Serialized event payload (JSON)
-    public DateTime? ProcessedOnUtc { get; set; } // When the message was successfully published
-    public string? Error { get; set; } // Any error during publishing
-    public int Attempts { get; set; } // Number of publishing attempts
+    private static readonly JsonSerializerOptions s_indentedOptions = new() { WriteIndented = true };
+    private static readonly JsonSerializerOptions s_caseInsensitiveOptions = new() { PropertyNameCaseInsensitive = true };
 
-    // IAuditable properties (can be populated by AuditableInterceptor)
-    public DateTimeOffset CreatedAt { get; set; }
-    public DateTimeOffset? UpdatedAt { get; set; }
+    private OutboxMessage() { }
 
-    public OutboxMessage(Guid id, DateTime occurredOnUtc, string type, string content)
+    public OutboxMessage(IntegrationEvent @event, Guid transactionId)
     {
-        Id = id;
-        OccurredOnUtc = occurredOnUtc;
-        Type = type;
-        Content = content;
-        Attempts = 0;
-        CreatedAt = DateTimeOffset.UtcNow; // Set initially, interceptor will update
+        EventId = @event.Id;
+        EventCreationTime = @event.CreationDate.DateTime;
+        EventTypeName = @event.GetType().FullName ?? string.Empty;
+        Content = JsonSerializer.Serialize(@event, @event.GetType(), s_indentedOptions);
+        State = EventStateEnum.NotPublished;
+        TimesSent = 0;
+        OperationId = transactionId;
     }
-} 
+
+    public Guid EventId { get; private set; }
+    
+    [Required]
+    public string EventTypeName { get; private set; } = string.Empty;
+
+    [NotMapped]
+    public string EventTypeShortName => EventTypeName.Split('.')?.Last() ?? string.Empty;
+
+    [NotMapped]
+    public IntegrationEvent? IntegrationEvent { get; private set; }
+
+    public EventStateEnum State { get; set; }
+    public int TimesSent { get; set; }
+
+    public DateTimeOffset EventCreationTime { get; private set; }
+    public DateTimeOffset CreatedAt { get; private set; }
+    public DateTimeOffset? UpdatedAt { get; private set; }
+
+    [Required]
+    public string Content { get; private set; } = string.Empty;
+
+    public Guid OperationId { get; private set; }
+
+    /// <summary>
+    /// Deserializes the JSON content to an IntegrationEvent instance.
+    /// </summary>
+    public OutboxMessage DeserializeJsonContent(Type type)
+    {
+        IntegrationEvent = JsonSerializer.Deserialize(Content, type, s_caseInsensitiveOptions) as IntegrationEvent;
+        return this;
+    }
+}

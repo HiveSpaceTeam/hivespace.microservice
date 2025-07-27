@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using HiveSpace.Domain.Shared;
 
 namespace HiveSpace.Infrastructure.Persistence.Outbox;
 
@@ -42,8 +41,8 @@ public class OutboxMessageProcessor : BackgroundService
         var dbContext = scope.ServiceProvider.GetRequiredService<DbContext>();
 
         var messagesToProcess = await dbContext.Set<OutboxMessage>()
-            .Where(m => m.ProcessedOnUtc == null)
-            .OrderBy(m => m.OccurredOnUtc)
+            .Where(m => m.State == EventStateEnum.NotPublished)
+            .OrderBy(m => m.EventCreationTime)
             .Take(100) // Process in batches
             .ToListAsync(stoppingToken);
 
@@ -52,21 +51,17 @@ public class OutboxMessageProcessor : BackgroundService
             try
             {
                 // Deserialize the event
-                var eventType = Type.GetType(message.Type);
+                var eventType = Type.GetType(message.EventTypeName);
                 if (eventType == null)
                 {
-                    _logger.LogError("Could not load type {EventType} for outbox message {MessageId}", message.Type, message.Id);
-                    message.Error = $"Could not load type {message.Type}";
-                    message.Attempts++;
+                    _logger.LogError("Could not load type {EventType} for outbox message {MessageId}", message.EventTypeName, message.EventId);
                     continue;
                 }
 
                 var domainEvent = JsonSerializer.Deserialize(message.Content, eventType);
                 if (domainEvent == null)
                 {
-                    _logger.LogError("Could not deserialize content for outbox message {MessageId}", message.Id);
-                    message.Error = "Could not deserialize content";
-                    message.Attempts++;
+                    _logger.LogError("Could not deserialize content for outbox message {MessageId}", message.EventId);
                     continue;
                 }
 
@@ -74,21 +69,16 @@ public class OutboxMessageProcessor : BackgroundService
                 // This would typically use your messaging infrastructure
                 // await messagePublisher.PublishAsync(domainEvent, stoppingToken);
 
-                message.ProcessedOnUtc = DateTime.UtcNow;
-                message.Attempts++;
-                _logger.LogInformation("Outbox message {MessageId} of type {EventType} published successfully.", message.Id, message.Type);
+                // Mark as processed
+                // await outboxRepository.MarkMessageAsPublishedAsync(message.EventId);
+
+                _logger.LogInformation("Successfully processed outbox message {MessageId}", message.EventId);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to publish outbox message {MessageId} of type {EventType}.", message.Id, message.Type);
-                message.Error = ex.Message;
-                message.Attempts++;
-            }
-            finally
-            {
-                // Save changes to mark message as processed or update attempts/error
-                await dbContext.SaveChangesAsync(stoppingToken);
+                _logger.LogError(ex, "Error processing outbox message {MessageId}", message.EventId);
+                // await outboxRepository.MarkMessageAsFailedAsync(message.EventId);
             }
         }
     }
-} 
+}

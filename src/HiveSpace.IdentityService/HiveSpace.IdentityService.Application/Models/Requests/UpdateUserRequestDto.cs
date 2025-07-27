@@ -8,5 +8,5 @@ public record UpdateUserRequestDto(
     string? Email,
     string? PhoneNumber,
     Gender? Gender,
-    DateTime? DateOfBirth
+    DateTimeOffset? DateOfBirth
 );

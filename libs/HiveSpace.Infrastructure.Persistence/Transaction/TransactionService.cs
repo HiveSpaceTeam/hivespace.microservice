@@ -8,13 +8,18 @@ using HiveSpace.Core.Contexts;
 
 namespace HiveSpace.Infrastructure.Persistence.Transaction;
 
-public class TransactionService : ITransactionService
+/// <summary>
+/// Provides transaction management services with idempotence checking.
+/// </summary>
+public class TransactionService<TContext> : ITransactionService, IDisposable
+    where TContext : DbContext
 {
-    private readonly DbContext _dbContext;
+    private readonly TContext _dbContext;
     private readonly IIncomingRequestRepository _incomingRequestRepository;
     private readonly Guid _requestId;
+    private bool _disposedValue;
 
-    public TransactionService(DbContext context, IIncomingRequestRepository incomingRequestRepository, IRequestContext requestContext)
+    public TransactionService(TContext context, IIncomingRequestRepository incomingRequestRepository, IRequestContext requestContext)
     {
         if (!context.Database.IsRelational())
         {
@@ -44,7 +49,6 @@ public class TransactionService : ITransactionService
             {
                 await IdempotenceCheckAsync();
             }
-
             try
             {
                 await action?.Invoke(transaction)!;
@@ -65,12 +69,29 @@ public class TransactionService : ITransactionService
                 await transaction.RollbackAsync();
                 throw;
             }
-            
         });
     }
 
     public Task OutOfOrderCheckAsync()
     {
         throw new NotImplementedException();
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_disposedValue)
+        {
+            if (disposing)
+            {
+                _dbContext.Dispose();
+            }
+            _disposedValue = true;
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
     }
 }

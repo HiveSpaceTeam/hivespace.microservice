@@ -10,11 +10,15 @@ using HiveSpace.IdentityService.Application.Validators.Address;
 using HiveSpace.IdentityService.Application.Validators.User;
 using HiveSpace.IdentityService.Domain.Aggregates;
 using HiveSpace.IdentityService.Domain.Repositories;
+using HiveSpace.IdentityService.Infrastructure;
 using HiveSpace.IdentityService.Infrastructure.Data;
 using HiveSpace.IdentityService.Infrastructure.Repositories;
-using HiveSpace.Infrastructure.Persistence.Interceptors;
+using HiveSpace.Infrastructure.Messaging.Interfaces;
+using HiveSpace.Infrastructure.Persistence;
+using HiveSpace.Infrastructure.Persistence.Outbox;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace HiveSpace.IdentityService.Application.Extensions;
 
@@ -34,16 +38,26 @@ internal static class ServiceCollectionExtensions
     {
         var connectionString = configuration.GetConnectionString(HostingExtensions.IdentityServiceDbConnection)
             ?? throw new InvalidOperationException($"Connection string '{HostingExtensions.IdentityServiceDbConnection}' not found.");
-        services.AddSingleton<SoftDeleteInterceptor>();
-        services.AddSingleton<AuditableInterceptor>();
+        
+        services.AddAppInterceptors();
         services.AddDbContext<IdentityDbContext>((serviceProvider, options) =>
+        {
+            var interceptors = serviceProvider.GetServices<ISaveChangesInterceptor>();
             options.UseSqlServer(connectionString)
-                   .AddInterceptors(
-                        serviceProvider.GetRequiredService<SoftDeleteInterceptor>(),
-                        serviceProvider.GetRequiredService<AuditableInterceptor>()
-                    ));
-    }
+                .AddInterceptors(interceptors);     
+        });
 
+        // Register the generic DbContext to resolve to IdentityDbContext
+        // This is needed for services that depend on the generic DbContext type
+        services.AddScoped<DbContext>(provider => provider.GetRequiredService<IdentityDbContext>());
+
+        // Add persistence infrastructure with specific DbContext type
+        services.AddPersistenceInfrastructure<IdentityDbContext>();
+
+        // Add specific outbox repository for IdentityDbContext (for background services)
+        services.AddOutboxServices<IdentityDbContext>();
+    }
+     
     public static void AddAppIdentity(this IServiceCollection services)
     {
         services.AddIdentity<ApplicationUser, IdentityRole>(options =>
@@ -57,6 +71,7 @@ internal static class ServiceCollectionExtensions
     // Split AddAppDependencies into two methods for better separation of concerns
     public static void AddAppInfrastructure(this IServiceCollection services)
     {
+        services.AddScoped<IIntegrationEventMapper, IdentityIntegrationEventMapper>();
         services.AddHttpContextAccessor();
         services.AddScoped<IUserRepository, UserRepository>();
     }
@@ -140,6 +155,16 @@ internal static class ServiceCollectionExtensions
             options.DefaultApiVersion = new Microsoft.AspNetCore.Mvc.ApiVersion(1, 0);
             options.AssumeDefaultVersionWhenUnspecified = true;
             options.ReportApiVersions = true;
+        });
+    }
+
+    public static void AddMediatR(this IServiceCollection services)
+    {
+        // Register MediatR and scan for handlers in the current assembly
+        services.AddMediatR(cfg =>
+        {
+            cfg.LicenseKey = "eyJhbGciOiJSUzI1NiIsImtpZCI6Ikx1Y2t5UGVubnlTb2Z0d2FyZUxpY2Vuc2VLZXkvYmJiMTNhY2I1OTkwNGQ4OWI0Y2IxYzg1ZjA4OGNjZjkiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2x1Y2t5cGVubnlzb2Z0d2FyZS5jb20iLCJhdWQiOiJMdWNreVBlbm55U29mdHdhcmUiLCJleHAiOiIxNzg1MDI0MDAwIiwiaWF0IjoiMTc1MzUwMDAzMyIsImFjY291bnRfaWQiOiIwMTk4NDRiZTkxOTk3MDJlOWEzNjY1NTBmZWQyYzFjOSIsImN1c3RvbWVyX2lkIjoiY3RtXzAxazEyYnk4MXRxbnM1aG1mdjI5eDEzNDMzIiwic3ViX2lkIjoiLSIsImVkaXRpb24iOiIwIiwidHlwZSI6IjIifQ.TnGcyoTmMS9qvn1nW-GMkP79uNAQtIM4Ngbmvccqfzz_3FRMJo1SPvaMy-b5FPOScMV16M1ejMnM47l-1qIAx2gyKnMsrw11YFUNGIeS4JEqtkZHXKHUtehhHhBiFOjaRlNy6DaKS_BT8a3xraBoj5oNZVLgG9CiA5IJB0_47clGhsZdDvdPWZS3qDAffWx7n5-umO-SkfcTcE-cNy0R3CvNSt4ye5yfss-7zBpS_1Mh422KXhlLnPLRezxCF8sDy5L2HFe8nYJ0k5WUVvtBklGXzQKQhAC6KA0UpeLUtrPYLifJhV883ZFReVi_UI3YV5jkWOMotSdYqjjLgQn1uQ";
+            cfg.RegisterServicesFromAssemblyContaining(typeof(Program));
         });
     }
 }

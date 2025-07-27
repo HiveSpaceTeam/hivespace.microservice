@@ -2,11 +2,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HiveSpace.Infrastructure.Persistence.Idempotence;
 
-public class IncomingRequestRepository : IIncomingRequestRepository
+/// <summary>
+/// Implements IIncomingRequestRepository to manage incoming requests for idempotence checking.
+/// </summary>
+public class IncomingRequestRepository<TContext> : IIncomingRequestRepository, IDisposable
+    where TContext : DbContext
 {
-    private readonly DbContext _dbContext;
+    private readonly TContext _dbContext;
+    private bool _disposedValue;
 
-    public IncomingRequestRepository(DbContext dbContext)
+    public IncomingRequestRepository(TContext dbContext)
     {
         _dbContext = dbContext;
     }
@@ -26,4 +31,22 @@ public class IncomingRequestRepository : IIncomingRequestRepository
     {
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
-} 
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_disposedValue)
+        {
+            if (disposing)
+            {
+                _dbContext.Dispose();
+            }
+            _disposedValue = true;
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
+}
