@@ -48,12 +48,12 @@ public class DomainEventToOutboxInterceptor : ISaveChangesInterceptor
             var domainEvents = aggregateRoot.DomainEvents.ToList(); // Get a copy of events
             if (!domainEvents.Any())
             {
-                return;
+                continue;
             }
             var integrationEvents = _integrationEventMapper.Map(domainEvents);
             if (!integrationEvents.Any())
             {
-                return;
+                continue;
             }
             // Add events directly to the DbContext to avoid circular dependency
             foreach (var integrationEvent in integrationEvents)
