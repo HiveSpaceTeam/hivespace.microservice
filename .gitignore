@@ -59,3 +59,13 @@ test/HiveSpace.IdentityService/HiveSpace.IdentityService.FunctionalTests/bin
 /src/HiveSpace.CatalogService/HiveSpace.CatalogService.Application/bin/Debug/net8.0
 /src/HiveSpace.CatalogService/HiveSpace.CatalogService.Domain/bin/Debug/net8.0
 /src/HiveSpace.CatalogService/HiveSpace.CatalogService.Infrastructure/bin/Debug/net8.0
+/src/HiveSpace.OrderService/HiveSpace.OrderService.Domain/bin/Debug/net8.0
+/src/HiveSpace.OrderService/HiveSpace.OrderService.Domain/obj
+/src/HiveSpace.OrderService/HiveSpace.OrderService.Infrastructure/bin/Debug/net8.0
+/src/HiveSpace.OrderService/HiveSpace.OrderService.Infrastructure/obj
+/src/HiveSpace.OrderService/HiveSpace.OrderService.Application/bin/Debug/net8.0
+/src/HiveSpace.OrderService/HiveSpace.OrderService.Application/obj
+/libs/HiveSpace.Application.Shared/bin/Debug/net8.0
+/libs/HiveSpace.Application.Shared/obj
+/src/HiveSpace.OrderService/HiveSpace.OrderService.API/bin/Debug/net8.0
+/src/HiveSpace.OrderService/HiveSpace.OrderService.API/obj
