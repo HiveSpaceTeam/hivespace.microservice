@@ -21,8 +21,6 @@ try
         .Enrich.FromLogContext()
         .ReadFrom.Configuration(ctx.Configuration));
 
-    builder.Services.AddAppApiControllers();
-
     var app = builder
         .ConfigureServices(configuration)
         .ConfigurePipeline();

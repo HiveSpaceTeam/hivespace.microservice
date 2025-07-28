@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HiveSpace.Infrastructure.Persistence.Outbox;
@@ -7,16 +8,14 @@ namespace HiveSpace.Infrastructure.Persistence.Outbox;
 /// </summary>
 public static class OutboxServiceCollectionExtensions
 {
-    /// <summary>
-    /// Adds outbox services to the service collection.
-    /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <returns>The service collection for chaining.</returns>
-    public static IServiceCollection AddOutboxServices(this IServiceCollection services)
+    public static IServiceCollection AddOutboxServices<TContext>(this IServiceCollection services)
+        where TContext : DbContext
     {
-        services.AddScoped<IOutboxRepository, OutboxRepository>();
-        services.AddHostedService<OutboxMessageProcessor>();
+        services.AddScoped<IOutboxRepository, OutboxRepository<TContext>>();
+        
+        // Add background service for processing outbox messages
+        // services.AddHostedService<OutboxMessageProcessor>();
         
         return services;
     }
-} 
+}

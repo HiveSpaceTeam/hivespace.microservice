@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\HiveSpace.Domain.Shared\HiveSpace.Domain.Shared.csproj" />
+  </ItemGroup>
+
 </Project>

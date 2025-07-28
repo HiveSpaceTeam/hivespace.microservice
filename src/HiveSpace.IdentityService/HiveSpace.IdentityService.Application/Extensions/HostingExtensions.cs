@@ -12,17 +12,17 @@ internal static class HostingExtensions
 
     public static WebApplication ConfigureServices(this WebApplicationBuilder builder, IConfiguration configuration)
     {
+        builder.Services.AddMediatR();
+        builder.Services.AddAppApiControllers();
         builder.Services.AddRazorPages();
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
 
+        builder.Services.AddAppInfrastructure();
         builder.Services.AddAppDbContext(configuration);
-        builder.Services.AddScoped<DbContext, IdentityDbContext>();
         builder.Services.AddCoreServices();
-        builder.Services.AddPersistenceInfrastructure();
         builder.Services.AddAppIdentity();
         builder.Services.AddFluentValidationServices();
-        builder.Services.AddAppInfrastructure();
         builder.Services.AddAppApplicationServices();
         builder.Services.AddAppIdentityServer(configuration);
         builder.Services.AddAppAuthentication(configuration);

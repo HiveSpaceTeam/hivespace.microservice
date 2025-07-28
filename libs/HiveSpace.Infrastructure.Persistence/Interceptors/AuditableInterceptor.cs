@@ -7,18 +7,18 @@ namespace HiveSpace.Infrastructure.Persistence.Interceptors;
 /// <summary>
 /// Interceptor for applying audit logic to entities implementing IAuditable.
 /// </summary>
-public class AuditableInterceptor : SaveChangesInterceptor
+public class AuditableInterceptor : ISaveChangesInterceptor
 {
-    public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
+    public InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {
         ApplyAudit(eventData.Context);
-        return base.SavingChanges(eventData, result);
+        return result;
     }
 
-    public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
+    public ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
     {
         ApplyAudit(eventData.Context);
-        return base.SavingChangesAsync(eventData, result, cancellationToken);
+        return ValueTask.FromResult(result);
     }
 
     private static void ApplyAudit(DbContext? context)
@@ -45,4 +45,4 @@ public class AuditableInterceptor : SaveChangesInterceptor
             }
         }
     }
-} 
+}

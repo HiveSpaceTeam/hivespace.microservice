@@ -7,26 +7,26 @@ namespace HiveSpace.Infrastructure.Persistence.Interceptors;
 /// <summary>
 /// Interceptor for applying soft delete logic to entities implementing ISoftDeletable.
 /// </summary>
-public class SoftDeleteInterceptor : SaveChangesInterceptor
+public class SoftDeleteInterceptor : ISaveChangesInterceptor
 {
-    public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
+    public InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {
         ApplySoftDelete(eventData.Context);
-        return base.SavingChanges(eventData, result);
+        return result;
     }
 
-    public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
+    public ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
     {
         ApplySoftDelete(eventData.Context);
-        return base.SavingChangesAsync(eventData, result, cancellationToken);
+        return ValueTask.FromResult(result);
     }
 
     private static void ApplySoftDelete(DbContext? context)
     {
         if (context == null) return;
         var deletableEntries = context.ChangeTracker.Entries<ISoftDeletable>()
-            .Where(e => e.State == EntityState.Deleted)
-            .ToList();
+            .Where(e => e.State == EntityState.Deleted);
+
         foreach (var entry in deletableEntries)
         {
             entry.State = EntityState.Modified;
@@ -34,4 +34,4 @@ public class SoftDeleteInterceptor : SaveChangesInterceptor
             entry.Entity.DeletedAt = DateTimeOffset.UtcNow;
         }
     }
-} 
+}

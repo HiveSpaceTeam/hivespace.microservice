@@ -14,7 +14,7 @@ namespace HiveSpace.Core.Filters
             {
                 Errors = [],
                 Status = "500",
-                Timestamp = DateTime.UtcNow,
+                Timestamp = DateTimeOffset.Now,
                 TraceId = Guid.NewGuid().ToString(),
                 Version = "1.0"
             };

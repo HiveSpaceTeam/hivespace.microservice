@@ -1,4 +1,6 @@
-﻿namespace HiveSpace.Domain.Shared.Interfaces;
-public interface IDomainEvent
+﻿using MediatR;
+
+namespace HiveSpace.Domain.Shared.Interfaces;
+public interface IDomainEvent : INotification
 {
 }

@@ -16,7 +16,6 @@ public class UserService : IUserService
     private readonly IUserRepository _userRepository;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IUserContext _userContext;
-
     private readonly ITransactionService _transactionService;
 
     public UserService(
@@ -43,7 +42,8 @@ public class UserService : IUserService
     public async Task<SignupResponseDto> CreateUserAsync(SignupRequestDto requestDto)
     {
         SignupResponseDto resultDto = default!;
-        await _transactionService.InTransactionScopeAsync(async (transaction) => {
+        await _transactionService.InTransactionScopeAsync(async (transaction) =>
+        {
             if (await _userRepository.IsEmailExistsAsync(requestDto.Email))
                 throw new EmailAlreadyExistsException();
 
@@ -64,7 +64,6 @@ public class UserService : IUserService
             );
         }, true, nameof(CreateUserAsync));
         
-
         return resultDto;
     }
 

@@ -1,8 +1,8 @@
 using HiveSpace.Domain.Shared.Interfaces;
-using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.Infrastructure.Persistence.Outbox;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using HiveSpace.Infrastructure.Messaging.Interfaces;
 
 namespace HiveSpace.Infrastructure.Persistence.Interceptors;
 
@@ -10,25 +10,27 @@ namespace HiveSpace.Infrastructure.Persistence.Interceptors;
 /// EF Core SaveChangesInterceptor that extracts domain events from Aggregate Roots
 /// and adds them to the Outbox for reliable publishing.
 /// </summary>
-public class DomainEventToOutboxInterceptor : SaveChangesInterceptor
+public class DomainEventToOutboxInterceptor : ISaveChangesInterceptor
 {
-    private readonly IOutboxRepository _outboxRepository;
+    private readonly IIntegrationEventMapper _integrationEventMapper;
 
-    public DomainEventToOutboxInterceptor(IOutboxRepository outboxRepository)
+    public DomainEventToOutboxInterceptor(
+        IIntegrationEventMapper integrationEventMapper
+        )
     {
-        _outboxRepository = outboxRepository;
+        _integrationEventMapper = integrationEventMapper ?? throw new ArgumentNullException(nameof(integrationEventMapper));
     }
 
-    public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
+    public InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {
         AddDomainEventsToOutbox(eventData.Context);
-        return base.SavingChanges(eventData, result);
+        return result;
     }
 
-    public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
+    public ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
     {
         AddDomainEventsToOutbox(eventData.Context);
-        return base.SavingChangesAsync(eventData, result, cancellationToken);
+        return ValueTask.FromResult(result);
     }
 
     private void AddDomainEventsToOutbox(DbContext? context)
@@ -43,16 +45,23 @@ public class DomainEventToOutboxInterceptor : SaveChangesInterceptor
 
         foreach (var aggregateRoot in aggregateRoots)
         {
-            // Cast to the concrete type to access DomainEvents
-            if (aggregateRoot is AggregateRoot<Guid> typedAggregateRoot)
+            var domainEvents = aggregateRoot.DomainEvents.ToList(); // Get a copy of events
+            if (!domainEvents.Any())
             {
-                var domainEvents = typedAggregateRoot.DomainEvents.ToList(); // Get a copy of events
-                foreach (var domainEvent in domainEvents)
-                {
-                    _outboxRepository.AddDomainEvent(domainEvent);
-                }
-                typedAggregateRoot.ClearDomainEvents(); // Clear events from the aggregate root after adding to outbox
+                continue;
             }
+            var integrationEvents = _integrationEventMapper.Map(domainEvents);
+            if (!integrationEvents.Any())
+            {
+                continue;
+            }
+            // Add events directly to the DbContext to avoid circular dependency
+            foreach (var integrationEvent in integrationEvents)
+            {
+                var outboxMessage = new OutboxMessage(integrationEvent, Guid.NewGuid());
+                context.Set<OutboxMessage>().Add(outboxMessage);
+            }
+            aggregateRoot.ClearDomainEvents(); // Clear events from the aggregate root after adding to outbox
         }
     }
-} 
+}

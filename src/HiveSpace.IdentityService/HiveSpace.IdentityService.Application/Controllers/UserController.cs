@@ -45,7 +45,7 @@ public class UserController : ControllerBase
     /// <summary>
     /// Update user information
     /// </summary>
-    [HttpPut("update")]
+    [HttpPut()]
     public async Task<IActionResult> UpdateUser([FromBody] UpdateUserRequestDto updateDto)
     {
         ValidationHelper.ValidateResult(_updateUserValidator.Validate(updateDto));

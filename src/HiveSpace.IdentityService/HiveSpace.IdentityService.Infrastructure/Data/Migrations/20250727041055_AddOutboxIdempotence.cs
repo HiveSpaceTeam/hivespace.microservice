@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace HiveSpace.IdentityService.Infrastructure.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class AddOutBoxIdempotence : Migration
+    public partial class AddOutboxIdempotence : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -18,7 +18,7 @@ namespace HiveSpace.IdentityService.Infrastructure.Data.Migrations
                     CorrelationId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     RequestId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     ActionName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
-                    DateTimeCreated = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -29,19 +29,19 @@ namespace HiveSpace.IdentityService.Infrastructure.Data.Migrations
                 name: "outbox_messages",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    OccurredOnUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Type = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
-                    Content = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: false),
-                    ProcessedOnUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    Error = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
-                    Attempts = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
+                    EventId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    EventTypeName = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    State = table.Column<int>(type: "int", nullable: false),
+                    TimesSent = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
+                    EventCreationTime = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true)
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    Content = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: false),
+                    OperationId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_outbox_messages", x => x.Id);
+                    table.PrimaryKey("PK_outbox_messages", x => x.EventId);
                 });
 
             migrationBuilder.CreateIndex(

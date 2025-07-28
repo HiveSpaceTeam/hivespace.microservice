@@ -15,14 +15,14 @@ public class SignupValidator : AbstractValidator<SignupRequestDto>
             .WithState(_ => new Error(IdentityErrorCode.Required, nameof(SignupRequestDto.UserName)))
             .MinimumLength(3)
             .MaximumLength(50)
-            .Matches("^[a-zA-Z0-9_]+$")
+            .Matches("^[a-zA-Z0-9_.-]+$")
             .WithState(_ => new Error(IdentityErrorCode.InvalidUsername, nameof(SignupRequestDto.UserName)));
 
         RuleFor(x => x.Email)
             .NotEmpty()
             .WithState(_ => new Error(IdentityErrorCode.Required, nameof(SignupRequestDto.Email)))
             .EmailAddress()
-            .WithState(_ => new Error(IdentityErrorCode.InvalidEmail, nameof(SignupRequestDto.Email)));
+            .WithState(_ => new Error(IdentityErrorCode.InvalidEmail, nameof(SignupRequestDto.Email))); 
 
         RuleFor(x => x.FullName)
             .NotEmpty()
@@ -43,4 +43,4 @@ public class SignupValidator : AbstractValidator<SignupRequestDto>
             .Equal(x => x.Password)
             .WithState(_ => new Error(IdentityErrorCode.PasswordMismatch, nameof(SignupRequestDto.ConfirmPassword)));
     }
-} 
+}

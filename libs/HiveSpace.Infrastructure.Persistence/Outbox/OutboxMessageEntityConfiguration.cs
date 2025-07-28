@@ -7,36 +7,39 @@ public class OutboxMessageEntityConfiguration : IEntityTypeConfiguration<OutboxM
 {
     public void Configure(EntityTypeBuilder<OutboxMessage> builder)
     {
-        builder.HasKey(x => x.Id);
-        
-        // Configure required fields with appropriate constraints
-        builder.Property(x => x.Type)
+        builder.HasKey(x => x.EventId);
+
+        // EventTypeName: Required, max length 500
+        builder.Property(x => x.EventTypeName)
             .IsRequired()
             .HasMaxLength(500);
-            
+
+        // Content: Required, max length 4000
         builder.Property(x => x.Content)
             .IsRequired()
-            .HasMaxLength(4000); // Adjust based on your needs
-            
-        builder.Property(x => x.OccurredOnUtc)
+            .HasMaxLength(4000);
+
+        // CreationTime: Required
+        builder.Property(x => x.EventCreationTime)
             .IsRequired();
-            
-        builder.Property(x => x.ProcessedOnUtc);
-        
-        builder.Property(x => x.Error)
-            .HasMaxLength(1000);
-            
-        builder.Property(x => x.Attempts)
+
+        // OperationId: Required
+        builder.Property(x => x.OperationId)
+            .IsRequired();
+
+        // State: Required
+        builder.Property(x => x.State)
+            .IsRequired();
+
+        // TimesSent: Required, default 0
+        builder.Property(x => x.TimesSent)
             .IsRequired()
             .HasDefaultValue(0);
-            
-        // Configure audit fields
-        builder.Property(x => x.CreatedAt)
-            .IsRequired();
-            
-        builder.Property(x => x.UpdatedAt);
-            
-        // Configure table name following project conventions
+
+        // Ignore EventTypeShortName and IntegrationEvent (not mapped)
+        builder.Ignore(x => x.EventTypeShortName);
+        builder.Ignore(x => x.IntegrationEvent);
+
         builder.ToTable("outbox_messages");
     }
-} 
+}
