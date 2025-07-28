@@ -25,6 +25,16 @@
 /src/HiveSpace.IdentityService/HiveSpace.IdentityService.Application/bin/Debug/net8.0
 /src/HiveSpace.IdentityService/HiveSpace.IdentityService.Domain/bin/Debug/net8.0
 /libs/HiveSpace.Domain.Shared/bin/Debug/net8.0
+/src/HiveSpace.OrderService/HiveSpace.OrderService.Application/bin/Debug/net8.0
+/src/HiveSpace.OrderService/HiveSpace.OrderService.Application/obj
+/src/HiveSpace.OrderService/HiveSpace.OrderService.Domain/bin/Debug/net8.0
+/src/HiveSpace.OrderService/HiveSpace.OrderService.Domain/obj
+/src/HiveSpace.OrderService/HiveSpace.OrderService.Infrastructure/bin/Debug/net8.0
+/src/HiveSpace.OrderService/HiveSpace.OrderService.Infrastructure/obj
+/src/HiveSpace.OrderService/HiveSpace.OrderService.Presentation/obj
+/src/HiveSpace.OrderService/HiveSpace.OrderService.Presentation/bin/Debug/net8.0
 .idx
 .vscode
 docker
+/src/HiveSpace.OrderService/HiveSpace.OrderService.API/bin/Debug/net8.0
+/src/HiveSpace.OrderService/HiveSpace.OrderService.API/obj
