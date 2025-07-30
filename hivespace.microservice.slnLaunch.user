@@ -3,7 +3,7 @@
     "Name": "New Profile",
     "Projects": [
       {
-        "Path": "src\\HiveSpace.IdentityService\\HiveSpace.IdentityService.Application\\HiveSpace.IdentityService.Application.csproj",
+        "Path": "src\\HiveSpace.IdentityService\\HiveSpace.IdentityService.Application\\HiveSpace.IdentityService.Api.csproj",
         "Action": "Start"
       },
       {
