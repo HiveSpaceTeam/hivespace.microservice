@@ -28,3 +28,5 @@
 .idx
 .vscode
 docker
+/src/HiveSpace.IdentityService/HiveSpace.IdentityService.Api/bin/Debug/net8.0
+/src/HiveSpace.IdentityService/HiveSpace.IdentityService.Api/obj
