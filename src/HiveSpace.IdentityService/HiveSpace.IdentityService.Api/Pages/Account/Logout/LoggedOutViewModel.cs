@@ -1,4 +1,4 @@
-namespace HiveSpace.IdentityService.Application.Pages.Logout;
+namespace HiveSpace.IdentityService.Api.Pages.Account.Logout;
 
 public class LoggedOutViewModel
 {

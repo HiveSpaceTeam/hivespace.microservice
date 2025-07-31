@@ -1,4 +1,4 @@
-﻿using HiveSpace.IdentityService.Domain.Aggregates.Enums;
+using HiveSpace.IdentityService.Domain.Aggregates.Enums;
 
 namespace HiveSpace.IdentityService.Application.Models.Requests;
 

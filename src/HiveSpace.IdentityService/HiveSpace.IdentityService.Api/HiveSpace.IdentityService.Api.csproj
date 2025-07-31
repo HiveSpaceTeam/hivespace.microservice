@@ -1,10 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
-	<PropertyGroup>
-		<TargetFramework>net8.0</TargetFramework>
-		<Nullable>enable</Nullable>
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
-	</PropertyGroup>
+  </PropertyGroup>
 
 	<ItemGroup>
 		<Content Include="Properties\launchSettings.json" />
@@ -26,10 +27,12 @@
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" />
 	</ItemGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\..\..\libs\HiveSpace.Core\HiveSpace.Core.csproj" />
-		<ProjectReference Include="..\HiveSpace.IdentityService.Domain\HiveSpace.IdentityService.Domain.csproj" />
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\libs\HiveSpace.Application.Shared\HiveSpace.Application.Shared.csproj" />
+    <ProjectReference Include="..\..\..\libs\HiveSpace.Core\HiveSpace.Core.csproj" />
+		<ProjectReference Include="..\HiveSpace.IdentityService.Application\HiveSpace.IdentityService.Application.csproj" />
+    <ProjectReference Include="..\HiveSpace.IdentityService.Domain\HiveSpace.IdentityService.Domain.csproj" />
 		<ProjectReference Include="..\HiveSpace.IdentityService.Infrastructure\HiveSpace.IdentityService.Infrastructure.csproj" />
-	</ItemGroup>
+  </ItemGroup>
 
 </Project>

@@ -1,10 +1,8 @@
-using Serilog;
-using Microsoft.EntityFrameworkCore;
-using HiveSpace.IdentityService.Infrastructure.Data;
-using HiveSpace.Infrastructure.Persistence;
 using HiveSpace.Core;
+using HiveSpace.IdentityService.Application.Extensions;
+using Serilog;
 
-namespace HiveSpace.IdentityService.Application.Extensions;
+namespace HiveSpace.IdentityService.Api.Extensions;
 
 internal static class HostingExtensions
 {
@@ -12,7 +10,7 @@ internal static class HostingExtensions
 
     public static WebApplication ConfigureServices(this WebApplicationBuilder builder, IConfiguration configuration)
     {
-        builder.Services.AddMediatR();
+        builder.Services.AddMediatRRegistration(configuration);
         builder.Services.AddAppApiControllers();
         builder.Services.AddRazorPages();
         builder.Services.AddControllers();

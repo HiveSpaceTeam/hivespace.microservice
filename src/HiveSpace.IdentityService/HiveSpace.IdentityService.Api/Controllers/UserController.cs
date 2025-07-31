@@ -1,11 +1,13 @@
 using FluentValidation;
 using HiveSpace.Core.Helpers;
-using HiveSpace.IdentityService.Application.Interfaces;
+//using HiveSpace.IdentityService.Api.Models.Requests;
+using HiveSpace.IdentityService.Application.Commands.Users;
 using HiveSpace.IdentityService.Application.Models.Requests;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace HiveSpace.IdentityService.Application.Controllers;
+namespace HiveSpace.IdentityService.Api.Controllers;
 
 [Authorize(Policy = "RequireIdentityFullAccessScope")]
 [ApiController]
@@ -13,18 +15,18 @@ namespace HiveSpace.IdentityService.Application.Controllers;
 [Route("api/v{version:apiVersion}/users")]
 public class UserController : ControllerBase
 {
-    private readonly IUserService _userService;
+    private readonly IMediator _mediator;
     private readonly IValidator<SignupRequestDto> _signupValidator;
     private readonly IValidator<UpdateUserRequestDto> _updateUserValidator;
     private readonly IValidator<ChangePasswordRequestDto> _changePasswordValidator;
 
     public UserController(
-        IUserService userService, 
+        IMediator mediator,
         IValidator<SignupRequestDto> signupValidator,
         IValidator<UpdateUserRequestDto> updateUserValidator,
         IValidator<ChangePasswordRequestDto> changePasswordValidator)
     {
-        _userService = userService;
+        _mediator = mediator;
         _signupValidator = signupValidator;
         _updateUserValidator = updateUserValidator;
         _changePasswordValidator = changePasswordValidator;
@@ -38,7 +40,8 @@ public class UserController : ControllerBase
     public async Task<IActionResult> Signup([FromBody] SignupRequestDto signupDto)
     {
         ValidationHelper.ValidateResult(_signupValidator.Validate(signupDto));
-        var result = await _userService.CreateUserAsync(signupDto);
+        var command = CreateUserCommand.FromDto(signupDto);
+        var result = await _mediator.Send(command);
         return CreatedAtAction(nameof(Signup), new { userId = result.UserId }, result);
     }
 
@@ -49,7 +52,8 @@ public class UserController : ControllerBase
     public async Task<IActionResult> UpdateUser([FromBody] UpdateUserRequestDto updateDto)
     {
         ValidationHelper.ValidateResult(_updateUserValidator.Validate(updateDto));
-        await _userService.UpdateUserInfoAsync(updateDto);
+        var command = UpdateUserInfoCommand.FromDto(updateDto);
+        await _mediator.Send(command);
         return NoContent();
     }
 
@@ -60,7 +64,8 @@ public class UserController : ControllerBase
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequestDto changePasswordDto)
     {
         ValidationHelper.ValidateResult(_changePasswordValidator.Validate(changePasswordDto));
-        await _userService.ChangePassword(changePasswordDto);
+        var command = ChangePasswordCommand.FromDto(changePasswordDto);
+        await _mediator.Send(command);
         return NoContent();
     }
 } 

@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Security.Claims;
 
-namespace HiveSpace.IdentityService.Application.Pages.ExternalLogin;
+namespace HiveSpace.IdentityService.Api.Pages.ExternalLogin;
 [AllowAnonymous]
 [SecurityHeaders]
 public class Callback : PageModel

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace HiveSpace.IdentityService.Application.Pages;
+namespace HiveSpace.IdentityService.Api.Pages;
 public sealed class SecurityHeadersAttribute : ActionFilterAttribute
 {
     public override void OnResultExecuting(ResultExecutingContext context)

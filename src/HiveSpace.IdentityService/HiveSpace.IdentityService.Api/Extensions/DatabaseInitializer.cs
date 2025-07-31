@@ -1,9 +1,9 @@
-using HiveSpace.IdentityService.Application.Configs;
 using Microsoft.EntityFrameworkCore;
 using Duende.IdentityServer.EntityFramework.Mappers;
 using Microsoft.AspNetCore.Builder;
+using HiveSpace.IdentityService.Api.Configs;
 
-namespace HiveSpace.IdentityService.Application.Extensions;
+namespace HiveSpace.IdentityService.Api.Extensions;
 
 // --- Database initializer for separation of concerns ---
 

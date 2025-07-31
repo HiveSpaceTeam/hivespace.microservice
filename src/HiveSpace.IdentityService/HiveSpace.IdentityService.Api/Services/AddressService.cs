@@ -1,10 +1,10 @@
-using HiveSpace.IdentityService.Application.Interfaces;
 using HiveSpace.Core.Contexts;
 using HiveSpace.IdentityService.Domain.Repositories;
 using HiveSpace.IdentityService.Domain.Exceptions;
+using HiveSpace.IdentityService.Domain.Aggregates;
 using HiveSpace.IdentityService.Application.Models.Responses;
 using HiveSpace.IdentityService.Application.Models.Requests;
-using HiveSpace.IdentityService.Domain.Aggregates;
+using HiveSpace.IdentityService.Application.Interfaces;
 
 namespace HiveSpace.IdentityService.Application.Services;
 

@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace HiveSpace.IdentityService.Application.Pages.Ciba;
+namespace HiveSpace.IdentityService.Api.Pages.Ciba;
 [Authorize]
 [SecurityHeaders]
 public class Consent : PageModel

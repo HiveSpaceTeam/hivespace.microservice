@@ -1,6 +1,6 @@
 using Duende.IdentityServer.Models;
 
-namespace HiveSpace.IdentityService.Application.Pages.Error;
+namespace HiveSpace.IdentityService.Api.Pages.Home.Error;
 public class ViewModel
 {
     public ViewModel()

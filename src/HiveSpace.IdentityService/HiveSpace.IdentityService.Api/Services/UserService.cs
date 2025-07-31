@@ -1,13 +1,13 @@
 ﻿using HiveSpace.Core.Contexts;
-using HiveSpace.IdentityService.Application.Interfaces;
-using HiveSpace.IdentityService.Application.Models.Requests;
-using HiveSpace.IdentityService.Application.Models.Responses;
-using HiveSpace.IdentityService.Application.Constants;
 using HiveSpace.IdentityService.Domain.Aggregates;
 using HiveSpace.IdentityService.Domain.Exceptions;
 using HiveSpace.IdentityService.Domain.Repositories;
 using Microsoft.AspNetCore.Identity;
 using HiveSpace.Infrastructure.Persistence.Transaction;
+using HiveSpace.IdentityService.Application.Models.Responses;
+using HiveSpace.IdentityService.Application.Models.Requests;
+using HiveSpace.IdentityService.Application.Constants;
+using HiveSpace.IdentityService.Application.Interfaces;
 
 namespace HiveSpace.IdentityService.Application.Services;
 

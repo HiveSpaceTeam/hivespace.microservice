@@ -10,4 +10,4 @@ public record AddressRequestDto(
     string ZipCode = "",
     string PhoneNumber = "",
     bool IsDefault = false
-); 
+);

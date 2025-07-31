@@ -1,8 +1,9 @@
 using Duende.IdentityServer.Services;
+using HiveSpace.IdentityService.Api.Pages;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace HiveSpace.IdentityService.Application.Pages.Logout;
+namespace HiveSpace.IdentityService.Api.Pages.Account.Logout;
 [SecurityHeaders]
 [AllowAnonymous]
 public class LoggedOut : PageModel

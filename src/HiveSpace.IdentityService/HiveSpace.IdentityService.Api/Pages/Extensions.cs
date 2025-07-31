@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace HiveSpace.IdentityService.Application.Pages;
+namespace HiveSpace.IdentityService.Api.Pages;
 public static class Extensions
 {
     /// <summary>
@@ -13,7 +13,7 @@ public static class Extensions
     {
         var provider = context.RequestServices.GetRequiredService<IAuthenticationHandlerProvider>();
         var handler = await provider.GetHandlerAsync(context, scheme);
-        return (handler is IAuthenticationSignOutHandler);
+        return handler is IAuthenticationSignOutHandler;
     }
 
     /// <summary>

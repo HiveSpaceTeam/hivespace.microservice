@@ -1,4 +1,4 @@
-namespace HiveSpace.IdentityService.Application.Pages.Grants;
+namespace HiveSpace.IdentityService.Api.Pages.Grants;
 
 public class ViewModel
 {

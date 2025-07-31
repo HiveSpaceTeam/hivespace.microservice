@@ -2,11 +2,12 @@ using Duende.IdentityServer.Events;
 using Duende.IdentityServer.Extensions;
 using Duende.IdentityServer.Services;
 using Duende.IdentityServer.Stores;
+using HiveSpace.IdentityService.Api.Pages;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace HiveSpace.IdentityService.Application.Pages.Grants;
+namespace HiveSpace.IdentityService.Api.Pages.Grants;
 [SecurityHeaders]
 [Authorize]
 public class Index : PageModel

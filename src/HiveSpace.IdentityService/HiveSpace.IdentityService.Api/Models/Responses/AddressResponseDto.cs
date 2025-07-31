@@ -13,4 +13,4 @@ public record AddressResponseDto(
     bool IsDefault,
     DateTimeOffset CreatedAt,
     DateTimeOffset? UpdatedAt
-); 
+);

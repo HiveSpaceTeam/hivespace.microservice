@@ -4,7 +4,7 @@ using Duende.IdentityServer.Stores;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace HiveSpace.IdentityService.Application.Pages.ServerSideSessions;
+namespace HiveSpace.IdentityService.Api.Pages.ServerSideSessions;
 public class IndexModel : PageModel
 {
     private readonly ISessionManagementService? _sessionManagementService;
