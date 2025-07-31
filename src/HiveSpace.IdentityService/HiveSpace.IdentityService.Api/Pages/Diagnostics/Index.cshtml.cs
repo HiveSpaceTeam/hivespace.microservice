@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace HiveSpace.IdentityService.Application.Pages.Diagnostics;
+namespace HiveSpace.IdentityService.Api.Pages.Diagnostics;
 [SecurityHeaders]
 [Authorize]
 public class Index : PageModel

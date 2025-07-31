@@ -1,11 +1,13 @@
 using FluentValidation;
 using HiveSpace.Core.Helpers;
-using HiveSpace.IdentityService.Application.Interfaces;
+using HiveSpace.IdentityService.Application.Commands.Addresses;
 using HiveSpace.IdentityService.Application.Models.Requests;
+using HiveSpace.IdentityService.Application.Queries.Addresses;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace HiveSpace.IdentityService.Application.Controllers;
+namespace HiveSpace.IdentityService.Api.Controllers;
 
 [Authorize(Policy = "RequireIdentityFullAccessScope")]
 [ApiController]
@@ -13,12 +15,12 @@ namespace HiveSpace.IdentityService.Application.Controllers;
 [Route("api/v{version:apiVersion}/users/address")]
 public class AddressController : ControllerBase
 {
-    private readonly IAddressService _addressService;
+    private readonly IMediator _mediator;
     private readonly IValidator<AddressRequestDto> _addressValidator;
 
-    public AddressController(IAddressService addressService, IValidator<AddressRequestDto> createValidator)
+    public AddressController(IMediator mediator, IValidator<AddressRequestDto> createValidator)
     {
-        _addressService = addressService;
+        _mediator = mediator;
         _addressValidator = createValidator;
     }
 
@@ -28,7 +30,8 @@ public class AddressController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAddresses()
     {
-        var addresses = await _addressService.GetAddressesAsync();
+        var query = new GetAddressesQuery();
+        var addresses = await _mediator.Send(query);
         return Ok(addresses);
     }
 
@@ -38,7 +41,8 @@ public class AddressController : ControllerBase
     [HttpGet("{addressId:guid}")]
     public async Task<IActionResult> GetAddress(Guid addressId)
     {
-        var address = await _addressService.GetAddressAsync(addressId);
+        var query = new GetAddressQuery(addressId);
+        var address = await _mediator.Send(query);
         return Ok(address);
     }
 
@@ -49,7 +53,8 @@ public class AddressController : ControllerBase
     public async Task<IActionResult> CreateAddress([FromBody] AddressRequestDto createDto)
     {
         ValidationHelper.ValidateResult(_addressValidator.Validate(createDto));
-        var address = await _addressService.CreateAddressAsync(createDto);
+        var command = CreateAddressCommand.FromDto(createDto);
+        var address = await _mediator.Send(command);
         return CreatedAtAction(nameof(GetAddress), new { addressId = address.Id }, address);
     }
 
@@ -60,7 +65,8 @@ public class AddressController : ControllerBase
     public async Task<IActionResult> UpdateAddress(Guid addressId, [FromBody] AddressRequestDto updateDto)
     {
         ValidationHelper.ValidateResult(_addressValidator.Validate(updateDto));
-        var address = await _addressService.UpdateAddressAsync(addressId, updateDto);
+        var command = UpdateAddressCommand.FromDto(addressId, updateDto);
+        var address = await _mediator.Send(command);
         return Ok(address);
     }
 
@@ -70,7 +76,8 @@ public class AddressController : ControllerBase
     [HttpPut("{addressId:guid}/default")]
     public async Task<IActionResult> SetDefaultAddress(Guid addressId)
     {
-        await _addressService.SetDefaultAddressAsync(addressId);
+        var command = new SetDefaultAddressCommand(addressId);
+        await _mediator.Send(command);
         return NoContent();
     }
 
@@ -80,7 +87,8 @@ public class AddressController : ControllerBase
     [HttpDelete("{addressId:guid}")]
     public async Task<IActionResult> DeleteAddress(Guid addressId)
     {
-        await _addressService.DeleteAddressAsync(addressId);
+        var command = new DeleteAddressCommand(addressId);
+        await _mediator.Send(command);
         return NoContent();
     }
-} 
+}

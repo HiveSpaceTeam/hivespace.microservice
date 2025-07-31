@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authentication;
 using System.Text;
 using System.Text.Json;
 
-namespace HiveSpace.IdentityService.Application.Pages.Diagnostics;
+namespace HiveSpace.IdentityService.Api.Pages.Diagnostics;
 public class ViewModel
 {
     public ViewModel(AuthenticateResult result)

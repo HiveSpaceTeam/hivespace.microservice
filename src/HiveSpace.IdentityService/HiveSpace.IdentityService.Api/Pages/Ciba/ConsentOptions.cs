@@ -1,4 +1,4 @@
-namespace HiveSpace.IdentityService.Application.Pages.Ciba;
+namespace HiveSpace.IdentityService.Api.Pages.Ciba;
 
 public static class ConsentOptions
 {

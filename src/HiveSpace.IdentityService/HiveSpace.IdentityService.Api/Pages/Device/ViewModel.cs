@@ -1,4 +1,4 @@
-namespace HiveSpace.IdentityService.Application.Pages.Device;
+namespace HiveSpace.IdentityService.Api.Pages.Device;
 
 public class ViewModel
 {

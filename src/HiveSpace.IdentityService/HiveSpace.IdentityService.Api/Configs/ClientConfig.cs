@@ -1,5 +1,5 @@
 ﻿// Config.cs
-namespace HiveSpace.IdentityService.Application.Configs;
+namespace HiveSpace.IdentityService.Api.Configs;
 
 public record ClientConfig
 {

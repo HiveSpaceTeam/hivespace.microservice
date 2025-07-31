@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Text;
 using Duende.IdentityServer.Licensing;
-using HiveSpace.IdentityService.Application.Extensions;
+using HiveSpace.IdentityService.Api.Extensions;
 using HiveSpace.IdentityService.Infrastructure;
 using Serilog;
 

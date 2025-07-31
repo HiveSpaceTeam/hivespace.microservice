@@ -1,8 +1,9 @@
 using Duende.IdentityServer.Services;
+using HiveSpace.IdentityService.Api.Pages;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace HiveSpace.IdentityService.Application.Pages.Error;
+namespace HiveSpace.IdentityService.Api.Pages.Home.Error;
 [AllowAnonymous]
 [SecurityHeaders]
 public class Index : PageModel

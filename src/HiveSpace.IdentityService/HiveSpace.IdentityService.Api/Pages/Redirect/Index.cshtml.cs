@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace HiveSpace.IdentityService.Application.Pages.Redirect;
+namespace HiveSpace.IdentityService.Api.Pages.Redirect;
 [AllowAnonymous]
 public class IndexModel : PageModel
 {

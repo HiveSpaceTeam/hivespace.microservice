@@ -1,6 +1,6 @@
 using Duende.IdentityServer.Models;
 
-namespace HiveSpace.IdentityService.Application.Configs;
+namespace HiveSpace.IdentityService.Api.Configs;
 
 public static class Config
 {

@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace HiveSpace.IdentityService.Application.Pages.Consent;
+namespace HiveSpace.IdentityService.Api.Pages.Consent;
 [Authorize]
 [SecurityHeaders]
 public class Index : PageModel

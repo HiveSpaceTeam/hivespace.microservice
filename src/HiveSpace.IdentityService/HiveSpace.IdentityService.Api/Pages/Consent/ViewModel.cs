@@ -1,4 +1,4 @@
-namespace HiveSpace.IdentityService.Application.Pages.Consent;
+namespace HiveSpace.IdentityService.Api.Pages.Consent;
 
 public class ViewModel
 {

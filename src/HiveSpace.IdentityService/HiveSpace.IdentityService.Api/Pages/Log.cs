@@ -1,4 +1,4 @@
-namespace HiveSpace.IdentityService.Application.Pages;
+namespace HiveSpace.IdentityService.Api.Pages;
 
 internal static class Log
 {

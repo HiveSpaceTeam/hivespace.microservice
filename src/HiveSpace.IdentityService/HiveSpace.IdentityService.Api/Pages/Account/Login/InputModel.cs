@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace HiveSpace.IdentityService.Application.Pages.Login;
+namespace HiveSpace.IdentityService.Api.Pages.Account.Login;
 public class InputModel
 {
     [Required]

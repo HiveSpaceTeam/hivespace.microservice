@@ -2,12 +2,11 @@ using Duende.IdentityServer;
 using FluentValidation;
 using HiveSpace.Core.Contexts;
 using HiveSpace.Core.Filters;
-using HiveSpace.IdentityService.Application.Configs;
-using HiveSpace.IdentityService.Application.Interfaces;
-using HiveSpace.IdentityService.Application.Models.Requests;
-using HiveSpace.IdentityService.Application.Services;
+using HiveSpace.IdentityService.Api.Configs;
 using HiveSpace.IdentityService.Application.Validators.Address;
 using HiveSpace.IdentityService.Application.Validators.User;
+using HiveSpace.IdentityService.Application.Interfaces;
+using HiveSpace.IdentityService.Application.Services;
 using HiveSpace.IdentityService.Domain.Aggregates;
 using HiveSpace.IdentityService.Domain.Repositories;
 using HiveSpace.IdentityService.Infrastructure;
@@ -19,8 +18,9 @@ using HiveSpace.Infrastructure.Persistence.Outbox;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using HiveSpace.IdentityService.Application.Models.Requests;
 
-namespace HiveSpace.IdentityService.Application.Extensions;
+namespace HiveSpace.IdentityService.Api.Extensions;
 
 // --- Extension methods for separation of concerns ---
 
@@ -96,7 +96,7 @@ internal static class ServiceCollectionExtensions
         services
             .AddIdentityServer(options =>
             {
-                options.LicenseKey = configuration.GetValue<string>("Duende:LicenseKey", "");
+                options.LicenseKey = configuration.GetValue("Duende:LicenseKey", "");
                 options.Events.RaiseErrorEvents = true;
                 options.Events.RaiseInformationEvents = true;
                 options.Events.RaiseFailureEvents = true;
@@ -158,13 +158,5 @@ internal static class ServiceCollectionExtensions
         });
     }
 
-    public static void AddMediatR(this IServiceCollection services)
-    {
-        // Register MediatR and scan for handlers in the current assembly
-        services.AddMediatR(cfg =>
-        {
-            cfg.LicenseKey = "eyJhbGciOiJSUzI1NiIsImtpZCI6Ikx1Y2t5UGVubnlTb2Z0d2FyZUxpY2Vuc2VLZXkvYmJiMTNhY2I1OTkwNGQ4OWI0Y2IxYzg1ZjA4OGNjZjkiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2x1Y2t5cGVubnlzb2Z0d2FyZS5jb20iLCJhdWQiOiJMdWNreVBlbm55U29mdHdhcmUiLCJleHAiOiIxNzg1MDI0MDAwIiwiaWF0IjoiMTc1MzUwMDAzMyIsImFjY291bnRfaWQiOiIwMTk4NDRiZTkxOTk3MDJlOWEzNjY1NTBmZWQyYzFjOSIsImN1c3RvbWVyX2lkIjoiY3RtXzAxazEyYnk4MXRxbnM1aG1mdjI5eDEzNDMzIiwic3ViX2lkIjoiLSIsImVkaXRpb24iOiIwIiwidHlwZSI6IjIifQ.TnGcyoTmMS9qvn1nW-GMkP79uNAQtIM4Ngbmvccqfzz_3FRMJo1SPvaMy-b5FPOScMV16M1ejMnM47l-1qIAx2gyKnMsrw11YFUNGIeS4JEqtkZHXKHUtehhHhBiFOjaRlNy6DaKS_BT8a3xraBoj5oNZVLgG9CiA5IJB0_47clGhsZdDvdPWZS3qDAffWx7n5-umO-SkfcTcE-cNy0R3CvNSt4ye5yfss-7zBpS_1Mh422KXhlLnPLRezxCF8sDy5L2HFe8nYJ0k5WUVvtBklGXzQKQhAC6KA0UpeLUtrPYLifJhV883ZFReVi_UI3YV5jkWOMotSdYqjjLgQn1uQ";
-            cfg.RegisterServicesFromAssemblyContaining(typeof(Program));
-        });
-    }
+
 }

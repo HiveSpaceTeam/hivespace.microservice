@@ -2,6 +2,7 @@ using Duende.IdentityModel;
 using Duende.IdentityServer.Events;
 using Duende.IdentityServer.Extensions;
 using Duende.IdentityServer.Services;
+using HiveSpace.IdentityService.Api.Pages;
 using HiveSpace.IdentityService.Domain.Aggregates;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -9,7 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace HiveSpace.IdentityService.Application.Pages.Logout;
+namespace HiveSpace.IdentityService.Api.Pages.Account.Logout;
 [SecurityHeaders]
 [AllowAnonymous]
 public class Index : PageModel

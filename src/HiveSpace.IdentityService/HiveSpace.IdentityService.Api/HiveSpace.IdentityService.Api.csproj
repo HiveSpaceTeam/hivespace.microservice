@@ -28,6 +28,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\libs\HiveSpace.Core\HiveSpace.Core.csproj" />
+		<ProjectReference Include="..\HiveSpace.IdentityService.Application\HiveSpace.IdentityService.Application.csproj" />
 		<ProjectReference Include="..\HiveSpace.IdentityService.Domain\HiveSpace.IdentityService.Domain.csproj" />
 		<ProjectReference Include="..\HiveSpace.IdentityService.Infrastructure\HiveSpace.IdentityService.Infrastructure.csproj" />
 	</ItemGroup>

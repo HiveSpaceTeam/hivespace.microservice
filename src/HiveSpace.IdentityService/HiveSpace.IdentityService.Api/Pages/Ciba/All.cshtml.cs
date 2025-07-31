@@ -1,9 +1,10 @@
 using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Services;
+using HiveSpace.IdentityService.Api.Pages;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace HiveSpace.IdentityService.Application.Pages.Ciba;
+namespace HiveSpace.IdentityService.Api.Pages.Ciba;
 [SecurityHeaders]
 [Authorize]
 public class AllModel : PageModel
