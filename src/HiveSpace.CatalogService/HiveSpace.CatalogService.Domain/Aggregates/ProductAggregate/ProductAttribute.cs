@@ -1,4 +1,5 @@
-﻿using HiveSpace.Domain.Shared.Entities;
+﻿using HiveSpace.CatalogService.Domain.Exceptions;
+using HiveSpace.Domain.Shared.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,33 +8,38 @@ using System.Threading.Tasks;
 
 namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
 {
-    public class ProductAttributeValue : Entity<int>
+    public class ProductAttribute : Entity<int>
     {
         #region Properties
-        public int AttributeId { get; private set; }
-        public int? ValueId { get; private set; }
-        public string? RawValue { get; private set; }
+        public int AttributeId { get; set; }
+        public string Value { get; set; }
+        public int ProductId { get; set; }
         #endregion
 
         #region Constructors
-        public ProductAttributeValue(int attributeId, int? valueId, string? rawValue)
+        public ProductAttribute()
         {
+            
+        }
 
+        public ProductAttribute(int attributeId, string value, int productId)
+        {
             AttributeId = attributeId;
-            ValueId = valueId;
-            RawValue = rawValue;
+            Value = value;
+            ProductId = productId;
             if (IsInvalid())
             {
-                throw new Exception("Invalid attribute value");
+                throw new InvalidAttributeException();
             }
         }
+
+
         #endregion
 
         #region Methods
         private bool IsInvalid()
         {
-            return (string.IsNullOrEmpty(RawValue) && (ValueId == 0 || ValueId is null)) || (!string.IsNullOrEmpty(RawValue) && ValueId is not null && ValueId != 0)
-                || AttributeId == 0;
+            return string.IsNullOrEmpty(Value);
         }
 
         public void UpdateRawValue(string rawValue)
