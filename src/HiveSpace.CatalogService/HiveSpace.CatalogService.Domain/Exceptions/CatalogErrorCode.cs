@@ -5,4 +5,5 @@ public class CatalogErrorCode(int id, string name, string code) : DomainErrorCod
 {
     public static readonly CatalogErrorCode InvalidSku = new(1, "InvalidSku", "CTL0001");
     public static readonly CatalogErrorCode InvalidMoney = new(2, "InvalidMoney", "CTL0002");
+    public static readonly CatalogErrorCode InvalidAttribute = new(3, "InvalidAttribute", "CTL0003");
 }

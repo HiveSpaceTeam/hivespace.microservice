@@ -17,6 +17,9 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.SkuAggregate
 
         public IReadOnlyCollection<SkuVariant> SkuVariants => _skuVariants.AsReadOnly();
 
+        private readonly List<SkuImage> _images = [];
+        public IReadOnlyCollection<SkuImage> Images => _images.AsReadOnly();
+
         public int Quantity { get; private set; }
 
         public bool InActive { get; private set; }
