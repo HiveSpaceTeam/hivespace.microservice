@@ -30,7 +30,10 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore src/HiveSpace.IdentityService/HiveSpace.IdentityService.Api/HiveSpace.IdentityService.Api.csproj
 
-      - name: Build and Publish IdentityService
+      - name: Build IdentityService
+        run: dotnet build src/HiveSpace.IdentityService/HiveSpace.IdentityService.Api/HiveSpace.IdentityService.Api.csproj --configuration Release
+
+      - name: Publish IdentityService
         run: dotnet publish src/HiveSpace.IdentityService/HiveSpace.IdentityService.Api/HiveSpace.IdentityService.Api.csproj --no-build --configuration Release -o ./publish-identity
 
       - name: Upload Build Artifact
