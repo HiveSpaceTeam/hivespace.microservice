@@ -1,10 +1,5 @@
 ﻿using HiveSpace.CatalogService.Domain.Exceptions;
 using HiveSpace.Domain.Shared.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
 {
@@ -19,7 +14,7 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
         #region Constructors
         public ProductAttribute()
         {
-            
+
         }
 
         public ProductAttribute(int attributeId, string value, int productId)
@@ -42,17 +37,6 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
             return string.IsNullOrEmpty(Value);
         }
 
-        public void UpdateRawValue(string rawValue)
-        {
-            RawValue = rawValue;
-            ValueId = null;
-        }
-
-        public void UpdateValueId(int valueId)
-        {
-            ValueId = valueId;
-            RawValue = null;
-        } 
         #endregion
     }
 }
