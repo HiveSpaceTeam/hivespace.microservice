@@ -23,4 +23,4 @@ public static class IdentityResultError
     public const string UserLockoutNotEnabled = "UserLockoutNotEnabled";
     public const string UserAlreadyHasLogin = "UserAlreadyHasLogin";
     // Add more as needed from IdentityErrorDescriber
-} 
+}

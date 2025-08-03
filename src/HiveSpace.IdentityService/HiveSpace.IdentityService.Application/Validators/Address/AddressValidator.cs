@@ -1,5 +1,4 @@
 using FluentValidation;
-using HiveSpace.Core.Exceptions;
 using HiveSpace.Core.Exceptions.Models;
 using HiveSpace.IdentityService.Application.Models.Requests;
 using HiveSpace.IdentityService.Domain.Exceptions;

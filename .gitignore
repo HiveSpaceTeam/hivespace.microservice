@@ -36,6 +36,12 @@
 .idx
 .vscode
 docker
+/src/HiveSpace.IdentityService/HiveSpace.IdentityService.Api/bin/Debug/net8.0
+/src/HiveSpace.IdentityService/HiveSpace.IdentityService.Api/obj
+test/HiveSpace.IdentityService/HiveSpace.IdentityService.UnitTests/obj
+test/HiveSpace.IdentityService/HiveSpace.IdentityService.UnitTests/bin
+test/HiveSpace.IdentityService/HiveSpace.IdentityService.FunctionalTests/obj
+test/HiveSpace.IdentityService/HiveSpace.IdentityService.FunctionalTests/bin
 /src/HiveSpace.OrderService/HiveSpace.OrderService.API/bin/Debug/net8.0
 /src/HiveSpace.OrderService/HiveSpace.OrderService.API/obj
 /src/HiveSpace.CatalogService/HiveSpace.CatalogService.API/obj

@@ -1,0 +1,18 @@
+@HiveSpace.IdentityService.Application_HostAddress = http://localhost:5125
+
+GET {{HiveSpace.IdentityService.Application_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
+curl --location --request POST 'https://localhost:5001/api/v2/users/signup' \
+--header 'Content-Type: application/json' \
+--header 'Accept: */*' \
+--header 'Host: localhost:5001' \
+--header 'Connection: keep-alive' \
+--data-raw '{
+    "email": "Annie.Roberts184@yahoo.com",
+    "password": "tA$2jZnm",
+    "confirmPassword": "tA$2jZnm",
+    "userName": "Arma2ndo17",
+    "fullName": "Tomas Lehner"
+}'

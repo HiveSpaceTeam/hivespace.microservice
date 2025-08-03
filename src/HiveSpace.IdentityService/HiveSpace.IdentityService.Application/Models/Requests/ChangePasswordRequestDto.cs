@@ -1,4 +1,4 @@
-﻿namespace HiveSpace.IdentityService.Application.Models.Requests;
+namespace HiveSpace.IdentityService.Application.Models.Requests;
 
 public record ChangePasswordRequestDto(
     string Password,

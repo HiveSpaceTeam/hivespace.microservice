@@ -1,4 +1,4 @@
-﻿namespace HiveSpace.IdentityService.Application.Models.Responses;
+namespace HiveSpace.IdentityService.Application.Models.Responses;
 
 public record SignupResponseDto(
     string Email,
