@@ -1,5 +1,4 @@
-﻿using HiveSpace.CatalogService.Domain.Aggregates.SkuAggregate;
-using HiveSpace.Domain.Shared.Entities;
+﻿using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.Domain.Shared.Interfaces;
 
 namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
@@ -27,14 +26,13 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
         {
         }
 
-        public Product(string name, string description, ProductStatus status, List<ProductCategory> categories, List<ProductAttribute> attributeValues, List<SkuImage> images)
+        public Product(string name, string description, ProductStatus status, List<ProductCategory> categories, List<ProductAttribute> attributeValues)
         {
             Name = name;
             Description = description;
             Status = status;
             _categories = categories;
             _attributes = attributeValues;
-            _images = images;
 
             if (IsInvalid())
             {

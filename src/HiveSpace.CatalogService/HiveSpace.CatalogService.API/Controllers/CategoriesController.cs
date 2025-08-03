@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using HiveSpace.CatalogService.Application.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
 namespace HiveSpace.CatalogService.API.Controllers
