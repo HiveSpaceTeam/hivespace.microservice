@@ -3,11 +3,11 @@
     "Name": "New Profile",
     "Projects": [
       {
-        "Path": "src\\HiveSpace.IdentityService\\HiveSpace.IdentityService.Application\\HiveSpace.IdentityService.Api.csproj",
+        "Path": "src\\HiveSpace.ApiGateway\\HiveSpace.YarpApiGateway\\HiveSpace.YarpApiGateway.csproj",
         "Action": "Start"
       },
       {
-        "Path": "src\\HiveSpace.ApiGateway\\HiveSpace.YarpApiGateway\\HiveSpace.YarpApiGateway.csproj",
+        "Path": "src\\HiveSpace.IdentityService\\HiveSpace.IdentityService.Api\\HiveSpace.IdentityService.Api.csproj",
         "Action": "Start"
       }
     ]
