@@ -5,8 +5,6 @@ using HiveSpace.Core.Filters;
 using HiveSpace.IdentityService.Api.Configs;
 using HiveSpace.IdentityService.Application.Validators.Address;
 using HiveSpace.IdentityService.Application.Validators.User;
-using HiveSpace.IdentityService.Application.Interfaces;
-using HiveSpace.IdentityService.Application.Services;
 using HiveSpace.IdentityService.Domain.Aggregates;
 using HiveSpace.IdentityService.Domain.Repositories;
 using HiveSpace.IdentityService.Infrastructure;
@@ -79,8 +77,6 @@ internal static class ServiceCollectionExtensions
     public static void AddAppApplicationServices(this IServiceCollection services)
     {
         services.AddScoped<IUserContext, UserContext>();
-        services.AddScoped<IAddressService, AddressService>();
-        services.AddScoped<IUserService, UserService>();
     }
 
     public static void AddFluentValidationServices(this IServiceCollection services)
@@ -131,6 +127,21 @@ internal static class ServiceCollectionExtensions
                     options.ClientId = googleClientId;
                     options.ClientSecret = googleClientSecret;
                     options.CallbackPath = "/signin-google";
+                });
+        }
+
+        var facebookAppId = configuration["Authentication:Facebook:AppId"];
+        var facebookAppSecret = configuration["Authentication:Facebook:AppSecret"];
+        if (!string.IsNullOrWhiteSpace(facebookAppId) && !string.IsNullOrWhiteSpace(facebookAppSecret))
+        {
+            services
+                .AddAuthentication()
+                .AddFacebook(options =>
+                {
+                    options.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
+                    options.AppId = facebookAppId;
+                    options.AppSecret = facebookAppSecret;
+                    options.CallbackPath = "/signin-facebook";
                 });
         }
     }
