@@ -6,6 +6,12 @@ namespace HiveSpace.IdentityService.Application.DomainEventHandlers;
 public class UserCreatedDomainEventHandler() : INotificationHandler<UserCreatedDomainEvent>
 {
 
+    /// <summary>
+    /// Handles a <see cref="UserCreatedDomainEvent"/> raised when a user account is created.
+    /// </summary>
+    /// <param name="notification">The domain event containing the created user's details.</param>
+    /// <param name="cancellationToken">Cancellation token to observe while handling the event.</param>
+    /// <returns>A task that represents the asynchronous handling operation.</returns>
     public async Task Handle(UserCreatedDomainEvent notification, CancellationToken cancellationToken)
     {
 

@@ -74,11 +74,27 @@ internal static class ServiceCollectionExtensions
         services.AddScoped<IUserRepository, UserRepository>();
     }
 
+    /// <summary>
+    /// Registers application-level services required by the Identity API.
+    /// </summary>
+    /// <remarks>
+    /// Adds a scoped registration for IUserContext -> UserContext so a user context is available per request.
+    /// </remarks>
     public static void AddAppApplicationServices(this IServiceCollection services)
     {
         services.AddScoped<IUserContext, UserContext>();
     }
 
+    /// <summary>
+    /// Registers FluentValidation validators used by the API as transient services in the DI container.
+    /// </summary>
+    /// <remarks>
+    /// Registers the following validators:
+    /// - <see cref="IValidator{AddressRequestDto}"/> -> <see cref="AddressValidator"/>
+    /// - <see cref="IValidator{SignupRequestDto}"/> -> <see cref="SignupValidator"/>
+    /// - <see cref="IValidator{UpdateUserRequestDto}"/> -> <see cref="UpdateUserValidator"/>
+    /// - <see cref="IValidator{ChangePasswordRequestDto}"/> -> <see cref="ChangePasswordValidator"/>
+    /// </remarks>
     public static void AddFluentValidationServices(this IServiceCollection services)
     {
         services.AddTransient<IValidator<AddressRequestDto>, AddressValidator>();
@@ -107,6 +123,20 @@ internal static class ServiceCollectionExtensions
             .AddLicenseSummary();
     }
 
+    /// <summary>
+    /// Registers authentication handlers for the application:
+    /// - Local API authentication expecting the "identity.fullaccess" scope.
+    /// - Optional external Google authentication when <c>Authentication:Google:ClientId</c> and <c>Authentication:Google:ClientSecret</c> are present in configuration.
+    /// - Optional external Facebook authentication when <c>Authentication:Facebook:AppId</c> and <c>Authentication:Facebook:AppSecret</c> are present in configuration.
+    /// </summary>
+    /// <param name="configuration">Configuration containing external provider credentials. Recognized keys:
+    /// <c>Authentication:Google:ClientId</c>, <c>Authentication:Google:ClientSecret</c>,
+    /// <c>Authentication:Facebook:AppId</c>, <c>Authentication:Facebook:AppSecret</c>.
+    /// </param>
+    /// <remarks>
+    /// When Google is enabled the external callback path is <c>/signin-google</c>; when Facebook is enabled the callback path is <c>/signin-facebook</c>.
+    /// Both external providers use the IdentityServer external cookie sign-in scheme.
+    /// </remarks>
     public static void AddAppAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddAuthentication()
@@ -146,6 +176,14 @@ internal static class ServiceCollectionExtensions
         }
     }
 
+    /// <summary>
+    /// Registers authorization policies for the application.
+    /// </summary>
+    /// <remarks>
+    /// Adds the "RequireIdentityFullAccessScope" policy which requires an authenticated user,
+    /// a "scope" claim containing "identity.fullaccess", and authentication via the IdentityServer
+    /// local API authentication scheme.
+    /// </remarks>
     public static void AddAppAuthorization(this IServiceCollection services)
     {
         services.AddAuthorization(options =>
