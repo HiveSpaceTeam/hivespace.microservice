@@ -74,11 +74,28 @@ internal static class ServiceCollectionExtensions
         services.AddScoped<IUserRepository, UserRepository>();
     }
 
+    /// <summary>
+    /// Registers application-level services required by the Identity API.
+    /// </summary>
+    /// <remarks>
+    /// Adds a scoped registration for <see cref="IUserContext"/> with <see cref="UserContext"/> as the implementation.
+    /// </remarks>
     public static void AddAppApplicationServices(this IServiceCollection services)
     {
         services.AddScoped<IUserContext, UserContext>();
     }
 
+    /// <summary>
+    /// Registers FluentValidation validators for identity-related request DTOs in the DI container.
+    /// </summary>
+    /// <remarks>
+    /// Adds transient registrations for:
+    /// - <see cref="AddressRequestDto"/> -> <see cref="AddressValidator"/>,
+    /// - <see cref="SignupRequestDto"/> -> <see cref="SignupValidator"/>,
+    /// - <see cref="UpdateUserRequestDto"/> -> <see cref="UpdateUserValidator"/>,
+    /// - <see cref="ChangePasswordRequestDto"/> -> <see cref="ChangePasswordValidator"/>.
+    /// These validators are resolved as <see cref="IValidator{T}"/> instances.
+    /// </remarks>
     public static void AddFluentValidationServices(this IServiceCollection services)
     {
         services.AddTransient<IValidator<AddressRequestDto>, AddressValidator>();
@@ -107,6 +124,14 @@ internal static class ServiceCollectionExtensions
             .AddLicenseSummary();
     }
 
+    /// <summary>
+    /// Registers authentication handlers: a Local API handler that expects the "identity.fullaccess" scope,
+    /// and optional Google and Facebook external login handlers when their credentials are provided in configuration.
+    /// </summary>
+    /// <param name="configuration">Configuration used to read external provider credentials:
+    /// "Authentication:Google:ClientId" / "Authentication:Google:ClientSecret" and
+    /// "Authentication:Facebook:AppId" / "Authentication:Facebook:AppSecret".
+    /// A provider is registered only if both required values for that provider are present and non-empty.</param>
     public static void AddAppAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddAuthentication()
@@ -146,6 +171,15 @@ internal static class ServiceCollectionExtensions
         }
     }
 
+    /// <summary>
+    /// Registers the application's authorization policy that requires an authenticated caller to have the "identity.fullaccess" scope using the IdentityServer Local API authentication scheme.
+    /// </summary>
+    /// <remarks>
+    /// Adds a policy named "RequireIdentityFullAccessScope" which:
+    /// - requires an authenticated user,
+    /// - requires a "scope" claim with value "identity.fullaccess",
+    /// - and restricts evaluation to the IdentityServer local API authentication scheme.
+    /// </remarks>
     public static void AddAppAuthorization(this IServiceCollection services)
     {
         services.AddAuthorization(options =>
