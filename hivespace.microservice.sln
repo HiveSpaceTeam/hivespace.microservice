@@ -39,6 +39,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.IdentityService.U
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.IdentityService.FunctionalTests", "test\HiveSpace.IdentityService\HiveSpace.IdentityService.FunctionalTests\HiveSpace.IdentityService.FunctionalTests.csproj", "{60C49FDD-7A34-429B-B675-3094E2C53A53}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "HiveSpace.UserService", "HiveSpace.UserService", "{C6D12F93-D17B-4166-AD38-093ECCB27DC8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.UserService.Domain", "src\HiveSpace.UserService\HiveSpace.UserService.Domain\HiveSpace.UserService.Domain.csproj", "{C172BC1D-CA86-4940-B274-58919BC27A3F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -193,6 +197,18 @@ Global
 		{60C49FDD-7A34-429B-B675-3094E2C53A53}.Release|x64.Build.0 = Release|Any CPU
 		{60C49FDD-7A34-429B-B675-3094E2C53A53}.Release|x86.ActiveCfg = Release|Any CPU
 		{60C49FDD-7A34-429B-B675-3094E2C53A53}.Release|x86.Build.0 = Release|Any CPU
+		{C172BC1D-CA86-4940-B274-58919BC27A3F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C172BC1D-CA86-4940-B274-58919BC27A3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C172BC1D-CA86-4940-B274-58919BC27A3F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C172BC1D-CA86-4940-B274-58919BC27A3F}.Debug|x64.Build.0 = Debug|Any CPU
+		{C172BC1D-CA86-4940-B274-58919BC27A3F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C172BC1D-CA86-4940-B274-58919BC27A3F}.Debug|x86.Build.0 = Debug|Any CPU
+		{C172BC1D-CA86-4940-B274-58919BC27A3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C172BC1D-CA86-4940-B274-58919BC27A3F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C172BC1D-CA86-4940-B274-58919BC27A3F}.Release|x64.ActiveCfg = Release|Any CPU
+		{C172BC1D-CA86-4940-B274-58919BC27A3F}.Release|x64.Build.0 = Release|Any CPU
+		{C172BC1D-CA86-4940-B274-58919BC27A3F}.Release|x86.ActiveCfg = Release|Any CPU
+		{C172BC1D-CA86-4940-B274-58919BC27A3F}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -212,6 +228,8 @@ Global
 		{B58F7067-FFAF-47D3-8909-769C3D4435C6} = {3538206F-AE28-4881-AF2F-492BCED295A9}
 		{6C00DEB5-1930-40D9-BC72-DBCAE327F94D} = {B58F7067-FFAF-47D3-8909-769C3D4435C6}
 		{60C49FDD-7A34-429B-B675-3094E2C53A53} = {B58F7067-FFAF-47D3-8909-769C3D4435C6}
+		{C6D12F93-D17B-4166-AD38-093ECCB27DC8} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{C172BC1D-CA86-4940-B274-58919BC27A3F} = {C6D12F93-D17B-4166-AD38-093ECCB27DC8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D8C2701B-2199-41FF-B96B-89B56EA2198C}
