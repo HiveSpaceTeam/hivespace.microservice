@@ -1,0 +1,15 @@
+using HiveSpace.Domain.Shared.Exceptions;
+using HiveSpace.UserService.Domain.Aggregates.Store;
+
+namespace HiveSpace.UserService.Domain.Exceptions;
+
+/// <summary>
+/// Exception thrown when a user already owns a store and tries to create another one.
+/// </summary>
+public class UserStoreExistsException : ConflictException
+{
+    public UserStoreExistsException() 
+        : base(UserDomainErrorCode.UserStoreExists, nameof(Store))
+    {
+    }
+}

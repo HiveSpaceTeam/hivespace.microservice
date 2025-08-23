@@ -1,0 +1,12 @@
+using HiveSpace.Domain.Shared.Exceptions;
+using HiveSpace.UserService.Domain.Aggregates.User;
+
+namespace HiveSpace.UserService.Domain.Exceptions;
+
+public class CannotRemoveOnlyAddressException : DomainException
+{
+    public CannotRemoveOnlyAddressException()
+        : base(400, UserDomainErrorCode.CannotRemoveOnlyAddress, nameof(Address))
+    {
+    }
+}
