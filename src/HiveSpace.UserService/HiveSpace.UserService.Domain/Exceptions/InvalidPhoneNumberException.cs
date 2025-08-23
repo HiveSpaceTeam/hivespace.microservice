@@ -5,7 +5,7 @@ namespace HiveSpace.UserService.Domain.Exceptions;
 
 public class InvalidPhoneNumberException : DomainException
 {
-    public InvalidPhoneNumberException(string? message = null) : base(400, UserDomainErrorCode.InvalidPhoneNumber, nameof(PhoneNumber))
+    public InvalidPhoneNumberException() : base(400, UserDomainErrorCode.InvalidPhoneNumber, nameof(PhoneNumber))
     {
     }
 }

@@ -1,7 +1,10 @@
 namespace HiveSpace.UserService.Domain.Enums;
 
-public enum AdminStatus
+/// <summary>
+/// Lifecycle status of an admin account.
+/// </summary>
+public enum AdminStatus : byte
 {
-    Active,
-    Inactive
+    Active = 0,
+    Inactive = 1
 }

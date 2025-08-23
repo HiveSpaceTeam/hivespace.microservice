@@ -1,4 +1,5 @@
 using HiveSpace.Domain.Shared.Entities;
+using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Domain.Shared.Interfaces;
 using HiveSpace.UserService.Domain.Enums;
 using HiveSpace.UserService.Domain.Exceptions;
@@ -43,18 +44,47 @@ public class User : AggregateRoot<Guid>, IAuditable
     // Domain factory method - Internal to force creation through UserManager
     internal static User Create(Email email, string userName, string passwordHash, string fullName)
     {
+        ValidateAndThrow(email, userName, passwordHash, fullName);
+        
         var user = new User
         {
             Email = email,
-            UserName = userName,
+            UserName = userName.Trim(),
             PasswordHash = passwordHash,
-            FullName = fullName,
+            FullName = fullName.Trim(),
             Status = UserStatus.Active,
             StoreId = null
         };
         
-
         return user;
+    }
+    
+    private static void ValidateAndThrow(Email? email, string? userName, string? passwordHash, string? fullName)
+    {
+        if (email == null)
+            throw new InvalidUserInformationException();
+        if (string.IsNullOrWhiteSpace(userName))
+            throw new InvalidUserInformationException();
+        if (string.IsNullOrWhiteSpace(passwordHash))
+            throw new InvalidPasswordHashException();
+        if (string.IsNullOrWhiteSpace(fullName))
+            throw new InvalidUserInformationException();
+            
+        var trimmedUserName = userName.Trim();
+        var trimmedFullName = fullName.Trim();
+        
+        if (trimmedUserName.Length < 3 || trimmedUserName.Length > 50)
+            throw new InvalidUserInformationException();
+        if (trimmedFullName.Length < 2 || trimmedFullName.Length > 100)
+            throw new InvalidUserInformationException();
+        if (ContainsInvalidUsernameCharacters(trimmedUserName))
+            throw new InvalidUserInformationException();
+    }
+    
+    private static bool ContainsInvalidUsernameCharacters(string userName)
+    {
+        // Allow only alphanumeric characters, underscore, and hyphen
+        return !userName.All(c => char.IsLetterOrDigit(c) || c == '_' || c == '-');
     }
     
     public void UpdateProfile(string? fullName, PhoneNumber? phoneNumber, DateOfBirth? dateOfBirth, Gender? gender)
@@ -63,22 +93,24 @@ public class User : AggregateRoot<Guid>, IAuditable
         if (phoneNumber != null) PhoneNumber = phoneNumber;
         if (dateOfBirth != null) DateOfBirth = dateOfBirth;
         if (gender != null) Gender = gender;
-        
-        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+    
+    public void ChangePassword(string newPasswordHash)
+    {
+        if (string.IsNullOrWhiteSpace(newPasswordHash))
+            throw new InvalidPasswordHashException();
+            
+        PasswordHash = newPasswordHash;
     }
     
     public void AssignStore(Guid storeId)
     {
         StoreId = storeId;
-        UpdatedAt = DateTimeOffset.UtcNow;
-
     }
     
     public void RemoveStore()
     {
         StoreId = null;
-        UpdatedAt = DateTimeOffset.UtcNow;
-
     }
     
     public void AddAddress(string fullName, string phoneNumber, string street, string district, 
@@ -96,35 +128,31 @@ public class User : AggregateRoot<Guid>, IAuditable
         }
         
         _addresses.Add(address);
-        UpdatedAt = DateTimeOffset.UtcNow;
-
     }
     
     public void UpdateAddress(Guid addressId, string? fullName, string? phoneNumber, string? street, 
         string? district, string? province, string? country, string? zipCode, AddressType? addressType)
     {
-        var address = _addresses.FirstOrDefault(a => a.Id == addressId) ?? throw new AddressNotFoundException();
+        var address = _addresses.FirstOrDefault(a => a.Id == addressId) ?? throw new NotFoundException(UserDomainErrorCode.AddressNotFound, nameof(Address));
         address.UpdateDetails(fullName, phoneNumber, street, district, province, country, zipCode, addressType);
-        UpdatedAt = DateTimeOffset.UtcNow;
     }
     
     public void RemoveAddress(Guid addressId)
     {
-        var address = _addresses.FirstOrDefault(a => a.Id == addressId) ?? throw new AddressNotFoundException();
-            
-        if (address.IsDefault)
-            throw new CannotRemoveDefaultAddressException();
+        var address = _addresses.FirstOrDefault(a => a.Id == addressId) ?? throw new NotFoundException(UserDomainErrorCode.AddressNotFound, nameof(Address));
             
         if (_addresses.Count == 1)
             throw new CannotRemoveOnlyAddressException();
             
+        if (address.IsDefault)
+            throw new CannotRemoveDefaultAddressException();
+
         _addresses.Remove(address);
-        UpdatedAt = DateTimeOffset.UtcNow;
     }
     
     public void MarkAddressAsDefault(Guid addressId)
     {
-        var targetAddress = _addresses.FirstOrDefault(a => a.Id == addressId) ?? throw new AddressNotFoundException();
+        var targetAddress = _addresses.FirstOrDefault(a => a.Id == addressId) ?? throw new NotFoundException(UserDomainErrorCode.AddressNotFound, nameof(Address));
         
         foreach (var address in _addresses)
         {
@@ -132,7 +160,6 @@ public class User : AggregateRoot<Guid>, IAuditable
         }
         
         targetAddress.SetAsDefault();
-        UpdatedAt = DateTimeOffset.UtcNow;
     }
     
     public void Activate()

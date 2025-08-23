@@ -1,4 +1,5 @@
 using HiveSpace.Domain.Shared.Interfaces;
+using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.UserService.Domain.Aggregates.Store;
 using HiveSpace.UserService.Domain.Aggregates.User;
 using HiveSpace.UserService.Domain.Enums;
@@ -25,30 +26,13 @@ public class StoreManager : IDomainService
     }
     
     /// <summary>
-    /// Registers a new store with the provided details.
-    /// </summary>
-    /// <param name="name">Store name</param>
-    /// <param name="description">Store description</param>
-    /// <param name="ownerId">ID of the user who will own the store</param>
-    /// <param name="phoneNumber">Store contact phone number</param>
-    /// <param name="cancellationToken">Optional cancellation token</param>
-    /// <returns>The newly created store</returns>
-    /// <exception cref="ArgumentException">Thrown when store information is invalid</exception>
-    /// <exception cref="UserNotFoundException">Thrown when the owner user is not found</exception>
-    /// <exception cref="UserInactiveException">Thrown when the owner user is inactive</exception>
-    /// <exception cref="StoreAlreadyExistsException">Thrown when a store with the name already exists</exception>
-    
-    /// <summary>
     /// Validates the owner for store creation
     /// </summary>
     private async Task<User> ValidateStoreOwnerAsync(
         Guid ownerId,
         CancellationToken cancellationToken = default)
     {
-        if (ownerId == Guid.Empty)
-            throw new InvalidUserIdException();
-            
-        var owner = await _userRepository.GetByIdAsync(ownerId) ?? throw new UserNotFoundException();
+        var owner = await _userRepository.GetByIdAsync(ownerId) ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
         
         if (owner.Status != UserStatus.Active)
             throw new UserInactiveException();
@@ -63,10 +47,6 @@ public class StoreManager : IDomainService
         PhoneNumber phoneNumber,
         CancellationToken cancellationToken = default)
     {
-        // Validate input parameters
-        if (!ValidateStoreInformation(name, description))
-            throw new InvalidStoreInformationException();
-        
         // Validate owner exists and is active
         await ValidateStoreOwnerAsync(ownerId, cancellationToken);
         
@@ -76,10 +56,14 @@ public class StoreManager : IDomainService
         
         // Check if store with name already exists (case-insensitive)
         if (!await IsStoreNameAvailableAsync(name, cancellationToken))
-            throw new StoreAlreadyExistsException();
+            throw new ConflictException(UserDomainErrorCode.StoreNameAlreadyExists, nameof(Store));
         
-        // Create new store using internal factory method
-        var store = Store.Create(name.Trim(), description.Trim(), phoneNumber, ownerId);
+        // Additional business rule: Check for invalid characters in store name
+        if (!string.IsNullOrWhiteSpace(name) && ContainsInvalidCharacters(name.Trim()))
+            throw new InvalidStoreInformationException();
+        
+        // Create new store using internal factory method (includes validation)
+        var store = Store.Create(name, description, phoneNumber, ownerId);
         
         return store;
     }
@@ -96,41 +80,9 @@ public class StoreManager : IDomainService
             return false;
             
         // Use the more efficient exists check if available
-        return !await _storeRepository.StoreNameExistsAsync(name.Trim());
+        return !await _storeRepository.StoreNameExistsAsync(name.Trim(), cancellationToken);
     }
 
-    
-    /// <summary>
-    /// Validates store information before registration.
-    /// </summary>
-    /// <param name="name">Store name</param>
-    /// <param name="description">Store description</param>
-    /// <returns>True if all information is valid</returns>
-    private bool ValidateStoreInformation(string name, string description)
-    {
-        // Name validation
-        if (string.IsNullOrWhiteSpace(name))
-            return false;
-            
-        var trimmedName = name.Trim();
-        if (trimmedName.Length < 2 || trimmedName.Length > 100)
-            return false;
-        
-        // Description validation
-        if (string.IsNullOrWhiteSpace(description))
-            return false;
-            
-        var trimmedDescription = description.Trim();
-        if (trimmedDescription.Length < 10 || trimmedDescription.Length > 500)
-            return false;
-        
-        // Additional business rules
-        if (ContainsInvalidCharacters(trimmedName))
-            return false;
-        
-        return true;
-    }
-    
     /// <summary>
     /// Checks if a user can create a store.
     /// </summary>
@@ -140,7 +92,7 @@ public class StoreManager : IDomainService
     private async Task<bool> CanUserCreateStoreAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         // Business rule: Each user can only own at most 1 store
-        var userStore = await _storeRepository.GetByOwnerIdAsync(userId);
+        var userStore = await _storeRepository.GetByOwnerIdAsync(userId, cancellationToken);
         return userStore is null; // User can register only if they don't have any store
     }
 

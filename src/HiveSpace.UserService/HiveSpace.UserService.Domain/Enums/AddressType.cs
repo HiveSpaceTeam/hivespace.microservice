@@ -1,8 +1,11 @@
 namespace HiveSpace.UserService.Domain.Enums;
 
-public enum AddressType
+/// <summary>
+/// Type of a user address.
+/// </summary>
+public enum AddressType : byte
 {
-    Home = 1,
-    Work = 2,
-    Other = 3
+    Home = 0,
+    Work = 1,
+    Other = 2
 }

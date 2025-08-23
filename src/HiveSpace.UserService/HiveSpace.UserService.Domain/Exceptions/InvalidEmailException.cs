@@ -5,7 +5,7 @@ namespace HiveSpace.UserService.Domain.Exceptions;
 
 public class InvalidEmailException : DomainException
 {
-    public InvalidEmailException(string? message = null) : base(400, UserDomainErrorCode.InvalidEmail, nameof(Email))
+    public InvalidEmailException() : base(400, UserDomainErrorCode.InvalidEmail, nameof(Email))
     {
     }
 }

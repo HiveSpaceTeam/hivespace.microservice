@@ -1,4 +1,5 @@
 using HiveSpace.Domain.Shared.Entities;
+using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Domain.Shared.Interfaces;
 using HiveSpace.UserService.Domain.Aggregates.User;
 using HiveSpace.UserService.Domain.Enums;
@@ -26,6 +27,8 @@ public class Admin : AggregateRoot<Guid>, IAuditable
     // Domain Methods - Internal to force creation through AdminManager
     internal static Admin Create(Email email, string passwordHash, bool isSystem = false)
     {
+        ValidateAndThrow(email, passwordHash);
+        
         return new Admin
         {
             Email = email,
@@ -36,37 +39,42 @@ public class Admin : AggregateRoot<Guid>, IAuditable
         };
     }
     
+    private static void ValidateAndThrow(Email? email, string? passwordHash)
+    {
+        if (email == null)
+            throw new InvalidEmailException();
+        if (string.IsNullOrWhiteSpace(passwordHash))
+            throw new InvalidPasswordHashException();
+    }
+    
     public void ChangePassword(string newPasswordHash)
     {
         if (IsSystem)
-            throw new CannotModifySystemAdminException();
+            throw new ForbiddenException(UserDomainErrorCode.CannotModifySystemAdmin, nameof(Admin));
+        
+        if (string.IsNullOrWhiteSpace(newPasswordHash))
+            throw new InvalidPasswordHashException();
             
         PasswordHash = newPasswordHash;
-        UpdatedAt = DateTimeOffset.UtcNow;
-
     }
     
     public void Activate()
     {
         Status = AdminStatus.Active;
-        UpdatedAt = DateTimeOffset.UtcNow;
-
     }
     
     public void Deactivate()
     {
         if (IsSystem)
-            throw new CannotModifySystemAdminException();
+            throw new ForbiddenException(UserDomainErrorCode.CannotModifySystemAdmin, nameof(Admin));
             
         Status = AdminStatus.Inactive;
-        UpdatedAt = DateTimeOffset.UtcNow;
 
     }
     
     public void UpdateLastLogin()
     {
         LastLoginAt = DateTimeOffset.UtcNow;
-        UpdatedAt = DateTimeOffset.UtcNow;
     }
     
     public bool IsActive => Status == AdminStatus.Active;

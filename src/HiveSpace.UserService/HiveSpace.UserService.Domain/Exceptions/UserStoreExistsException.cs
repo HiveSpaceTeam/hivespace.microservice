@@ -6,10 +6,10 @@ namespace HiveSpace.UserService.Domain.Exceptions;
 /// <summary>
 /// Exception thrown when a user already owns a store and tries to create another one.
 /// </summary>
-public class UserStoreExistsException : DomainException
+public class UserStoreExistsException : ConflictException
 {
     public UserStoreExistsException() 
-        : base(409, UserDomainErrorCode.UserStoreExists, nameof(Store))
+        : base(UserDomainErrorCode.UserStoreExists, nameof(Store))
     {
     }
 }

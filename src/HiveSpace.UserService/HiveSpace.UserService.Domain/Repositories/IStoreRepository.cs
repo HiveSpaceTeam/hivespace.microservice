@@ -6,10 +6,10 @@ namespace HiveSpace.UserService.Domain.Repositories;
 
 public interface IStoreRepository : IRepository<Store>
 {
-    Task<Store?> GetByStoreNameAsync(string storeName);
-    Task<Store?> GetByOwnerIdAsync(Guid ownerId);
-    Task<IEnumerable<Store>> GetByStatusAsync(StoreStatus status);
-    Task<bool> StoreNameExistsAsync(string storeName);
-    Task<IEnumerable<Store>> GetPaginatedAsync(int page, int pageSize);
-    Task<int> GetTotalCountAsync();
+    Task<Store?> GetByStoreNameAsync(string storeName, CancellationToken cancellationToken = default);
+    Task<Store?> GetByOwnerIdAsync(Guid ownerId, CancellationToken cancellationToken = default);
+    Task<IEnumerable<Store>> GetByStatusAsync(StoreStatus status, CancellationToken cancellationToken = default);
+    Task<bool> StoreNameExistsAsync(string storeName, CancellationToken cancellationToken = default);
+    Task<IEnumerable<Store>> GetPaginatedAsync(int page, int pageSize, CancellationToken cancellationToken = default);
+    Task<int> GetTotalCountAsync(CancellationToken cancellationToken = default);
 }

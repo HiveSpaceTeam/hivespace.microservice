@@ -5,7 +5,7 @@ using HiveSpace.UserService.Domain.Exceptions;
 
 namespace HiveSpace.UserService.Domain.Aggregates.User;
 
-public class Email : ValueObject
+public partial class Email : ValueObject
 {
     public string Value { get; }
 
@@ -16,18 +16,23 @@ public class Email : ValueObject
 
     private Email(string value)
     {
-        if (string.IsNullOrWhiteSpace(value))
-            throw new InvalidEmailException("Email address cannot be empty.");
-        if (!IsValidEmail(value))
-            throw new InvalidEmailException("Invalid email address format.");
-        
+        ValidateAndThrow(value);
         Value = value.ToLowerInvariant(); // Store in consistent format
     }
 
-    private static bool IsValidEmail(string email)
+    private static void ValidateAndThrow(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            throw new InvalidEmailException();
+        
+        if (!IsValidEmailFormat(value))
+            throw new InvalidEmailException();
+    }
+
+    private static bool IsValidEmailFormat(string email)
     {
         // Basic regex for email validation. Consider more robust solutions for production.
-        return Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.IgnoreCase);
+        return EmailRegex().IsMatch(email);
     }
 
     protected override IEnumerable<object> GetEqualityComponents()
@@ -42,4 +47,7 @@ public class Email : ValueObject
     public static Email Create(string value) => new Email(value);
     public static Email? CreateOrDefault(string? value) => 
         string.IsNullOrWhiteSpace(value) ? null : new Email(value);
+    private static readonly Regex _emailRegex = new Regex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.IgnoreCase | RegexOptions.Compiled, TimeSpan.FromMilliseconds(250));
+
+    private static Regex EmailRegex() => _emailRegex;
 }

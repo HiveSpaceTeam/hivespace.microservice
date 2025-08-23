@@ -1,7 +1,10 @@
 namespace HiveSpace.UserService.Domain.Enums;
 
-public enum StoreStatus
+/// <summary>
+/// Lifecycle status of a store.
+/// </summary>
+public enum StoreStatus : byte
 {
-    Active,
-    Inactive
+    Active = 0,
+    Inactive = 1
 }

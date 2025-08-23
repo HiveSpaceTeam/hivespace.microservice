@@ -7,9 +7,9 @@ namespace HiveSpace.UserService.Domain.Repositories;
 
 public interface IAdminRepository : IRepository<Admin>
 {
-    Task<Admin?> GetByEmailAsync(Email email);
-    Task<IEnumerable<Admin>> GetByStatusAsync(AdminStatus status);
-    Task<bool> EmailExistsAsync(Email email);
-    Task<IEnumerable<Admin>> GetPaginatedAsync(int page, int pageSize);
-    Task<int> GetTotalCountAsync();
+    Task<Admin?> GetByEmailAsync(Email email, CancellationToken cancellationToken = default);
+    Task<IEnumerable<Admin>> GetByStatusAsync(AdminStatus status, CancellationToken cancellationToken = default);
+    Task<bool> EmailExistsAsync(Email email, CancellationToken cancellationToken = default);
+    Task<IEnumerable<Admin>> GetPaginatedAsync(int page, int pageSize, CancellationToken cancellationToken = default);
+    Task<int> GetTotalCountAsync(CancellationToken cancellationToken = default);
 }

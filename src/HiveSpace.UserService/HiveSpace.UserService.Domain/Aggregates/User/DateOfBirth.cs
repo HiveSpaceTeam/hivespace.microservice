@@ -11,16 +11,35 @@ public class DateOfBirth : ValueObject
     
     public DateOfBirth(DateTimeOffset value)
     {
+        ValidateAndThrow(value);
+        Value = value;
+    }
+    
+    private static void ValidateAndThrow(DateTimeOffset value)
+    {
         if (value > DateTimeOffset.UtcNow)
             throw new InvalidDateOfBirthException();
             
         if (value < DateTimeOffset.UtcNow.AddYears(-120))
             throw new InvalidDateOfBirthException();
-            
-        Value = value;
     }
     
-    public int Age => DateTimeOffset.UtcNow.Year - Value.Year;
+    private static bool IsValidDateOfBirth(DateTimeOffset value)
+    {
+        return value <= DateTimeOffset.UtcNow && value >= DateTimeOffset.UtcNow.AddYears(-120);
+    }
+    
+    public int Age
+    {
+        get
+        {
+            var today = DateTime.UtcNow.Date;
+            var dobDate = Value.UtcDateTime.Date;
+            var age = today.Year - dobDate.Year;
+            if (dobDate > today.AddYears(-age)) age--;
+            return age;
+        }
+    }
     
     protected override IEnumerable<object> GetEqualityComponents()
     {
