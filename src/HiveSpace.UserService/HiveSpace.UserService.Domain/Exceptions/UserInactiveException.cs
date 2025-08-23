@@ -9,7 +9,7 @@ namespace HiveSpace.UserService.Domain.Exceptions;
 public class UserInactiveException : DomainException
 {
     public UserInactiveException() 
-        : base(400, UserDomainErrorCode.UserNotFound, nameof(User))
+        : base(400, UserDomainErrorCode.UserInactive, nameof(User))
     {
     }
 }
