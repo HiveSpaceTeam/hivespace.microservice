@@ -73,19 +73,10 @@ public class PhoneNumber : ValueObject
         {
             return "1" + digitsOnly;
         }
-        
-        // For shorter numbers, assume US and pad/format appropriately
-        // This handles edge cases - you might want to throw an exception instead
-        if (digitsOnly.Length >= 7)
-        {
-            // Assume it's a US number missing area code, prepend common area code
-            var paddedNumber = digitsOnly.PadLeft(10, '0');
-            return "1" + paddedNumber;
-        }
-        
-        // For very short numbers, this might be invalid
-        return "1" + digitsOnly.PadLeft(10, '0');
-    }  
+
+        // Otherwise treat as invalid (will be rejected by validation)
+        return string.Empty;
+    }
     
     protected override IEnumerable<object> GetEqualityComponents()
     {
