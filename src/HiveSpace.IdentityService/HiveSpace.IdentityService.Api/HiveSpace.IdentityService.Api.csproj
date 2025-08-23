@@ -13,6 +13,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="AspNetCore.HealthChecks.UI.Client" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.Facebook" />
 
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.Google" />
 
