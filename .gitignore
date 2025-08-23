@@ -34,3 +34,5 @@ test/HiveSpace.IdentityService/HiveSpace.IdentityService.UnitTests/obj
 test/HiveSpace.IdentityService/HiveSpace.IdentityService.UnitTests/bin
 test/HiveSpace.IdentityService/HiveSpace.IdentityService.FunctionalTests/obj
 test/HiveSpace.IdentityService/HiveSpace.IdentityService.FunctionalTests/bin
+/src/HiveSpace.UserService/HiveSpace.UserService.Domain/obj
+/src/HiveSpace.UserService/HiveSpace.UserService.Domain/bin/Debug/net8.0
