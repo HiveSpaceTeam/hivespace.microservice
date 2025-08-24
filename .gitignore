@@ -2,6 +2,15 @@
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.csproj.user
+*.vbproj.user
+
 /.vs
 /libs/HiveSpace.Core/bin/Debug/net8.0
 /libs/HiveSpace.Core/obj
@@ -36,3 +45,7 @@ test/HiveSpace.IdentityService/HiveSpace.IdentityService.FunctionalTests/obj
 test/HiveSpace.IdentityService/HiveSpace.IdentityService.FunctionalTests/bin
 /src/HiveSpace.UserService/HiveSpace.UserService.Domain/bin/Debug/net8.0
 /src/HiveSpace.UserService/HiveSpace.UserService.Domain/obj
+/src/HiveSpace.UserService/HiveSpace.UserService.Infrastructure/obj
+/src/HiveSpace.UserService/HiveSpace.UserService.Infrastructure/bin/Debug/net8.0
+/src/HiveSpace.UserService/HiveSpace.UserService.Api/obj
+/src/HiveSpace.UserService/HiveSpace.UserService.Api/bin/Debug/net8.0
