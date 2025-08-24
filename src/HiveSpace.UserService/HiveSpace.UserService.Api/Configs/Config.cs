@@ -23,12 +23,27 @@ public static class Config
         [
             new ApiResource("user", "User API")
             {
-                Scopes = { "user.fullaccess", "openid", "profile", "offline_access" }
+                Scopes = { "user.fullaccess" }
+            },
+            new ApiResource("order", "Order API")
+            {
+                Scopes = { "order.fullaccess" },
+                UserClaims = { "sub", "name", "email", "phone_number" }
+            },
+            new ApiResource("basket", "Basket API")
+            {
+                Scopes = { "basket.fullaccess" },
+                UserClaims = { "sub", "name", "email" }
+            },
+            new ApiResource("catalog", "Catalog API")
+            {
+                Scopes = { "catalog.fullaccess" },
+                UserClaims = { "sub", "name", "email" }
             },
             new ApiResource("hivespace-backend", "HiveSpace Backend API")
             {
-                Scopes = { "hivespace-backend.fullaccess", "openid", "profile", "offline_access" },
-                UserClaims = { "sub", "name", "email", "phonenumber" }
+                Scopes = { "hivespace-backend.fullaccess" },
+                UserClaims = { "sub", "name", "email", "phone_number" }
             }
         ];
 
@@ -63,6 +78,19 @@ public static class Config
                 AccessTokenLifetime = webappConfig.AccessTokenLifetime,
                 IdentityTokenLifetime = webappConfig.IdentityTokenLifetime
             };
+
+            // Ensure offline_access scope is present when AllowOfflineAccess is true
+            if (webappConfig.AllowOfflineAccess)
+            {
+                webappClient.AllowedScopes ??= new List<string>();
+                var allowedScopes = webappClient.AllowedScopes.ToList();
+                if (!allowedScopes.Contains("offline_access"))
+                {
+                    allowedScopes.Add("offline_access");
+                    webappClient.AllowedScopes = allowedScopes;
+                }
+            }
+
             clients.Add(webappClient);
         }
 
@@ -75,7 +103,7 @@ public static class Config
                 ClientId = apiTestingConfig.ClientId,
                 ClientName = apiTestingConfig.ClientName,
                 ClientSecrets = !string.IsNullOrEmpty(apiTestingConfig.ClientSecret)
-                    ? new List<Secret> { new Secret(apiTestingConfig.ClientSecret.Sha256()) }
+                    ? [new Secret(apiTestingConfig.ClientSecret.Sha256())]
                     : new List<Secret>(),
                 RequireClientSecret = apiTestingConfig.RequireClientSecret,
                 AllowedGrantTypes = apiTestingConfig.AllowedGrantTypes ?? ["password"],

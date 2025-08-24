@@ -33,11 +33,16 @@ internal static class HostingExtensions
     public static WebApplication ConfigurePipeline(this WebApplication app)
     {
         app.UseSerilogRequestLogging();
-        app.UseDeveloperExceptionPage();
-
-        // Uncomment to initialize database on startup
-        // DatabaseInitializer.InitializeDatabase(app, app.Configuration);
-
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseDeveloperExceptionPage();
+        }
+        else
+        app.UseStaticFiles();
+        app.UseRouting();
+        app.UseIdentityServer();
+        app.UseAuthentication();
+        app.UseAuthorization();
         app.UseStaticFiles();
         app.UseRouting();
         app.UseAuthentication();

@@ -2,6 +2,15 @@
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.csproj.user
+*.vbproj.user
+
 /.vs
 /libs/HiveSpace.Core/bin/Debug/net8.0
 /libs/HiveSpace.Core/obj

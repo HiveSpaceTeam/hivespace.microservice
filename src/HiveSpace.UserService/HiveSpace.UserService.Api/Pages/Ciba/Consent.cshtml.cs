@@ -71,14 +71,13 @@ public class Consent : PageModel
         else if (Input.Button == "yes")
         {
             // if the user consented to some scope, build the response model
-            if (Input.ScopesConsented.Any())
+            if (Input.ScopesConsented?.Any() == true)
             {
                 var scopes = Input.ScopesConsented;
                 if (ConsentOptions.EnableOfflineAccess == false)
                 {
                     scopes = scopes.Where(x => x != Duende.IdentityServer.IdentityServerConstants.StandardScopes.OfflineAccess);
                 }
-
                 result = new CompleteBackchannelLoginRequest(Input.Id)
                 {
                     ScopesValuesConsented = scopes.ToArray(),

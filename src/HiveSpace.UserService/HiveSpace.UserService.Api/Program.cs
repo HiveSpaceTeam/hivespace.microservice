@@ -30,16 +30,7 @@ try
     if (app.Environment.IsDevelopment())
     {
         SeedData.EnsureSeedData(app);
-    }
-    if (args.Contains("/seed"))
-    {
-        Log.Information("Seeding database...");
-        Log.Information("Done seeding database. Exiting.");
-        return;
-    }
 
-    if (app.Environment.IsDevelopment())
-    {
         // TODO: Fix license usage summary when needed
         app.Lifetime.ApplicationStopping.Register(() =>
         {
@@ -66,11 +57,21 @@ static string Summary(LicenseUsageSummary usage)
 {
     var sb = new StringBuilder();
     sb.AppendLine("IdentityServer Usage Summary:");
-    sb.AppendLine(CultureInfo.InvariantCulture, $"  License: {usage.LicenseEdition}");
-    var features = usage.FeaturesUsed.Count > 0 ? string.Join(", ", usage.FeaturesUsed) : "None";
-    sb.AppendLine(CultureInfo.InvariantCulture, $"  Business and Enterprise Edition Features Used: {features}");
-    sb.AppendLine(CultureInfo.InvariantCulture, $"  {usage.ClientsUsed.Count} Client Id(s) Used");
-    sb.AppendLine(CultureInfo.InvariantCulture, $"  {usage.IssuersUsed.Count} Issuer(s) Used");
+    
+    // Use string.Format with CultureInfo.InvariantCulture for compatibility
+    sb.AppendLine(string.Format(CultureInfo.InvariantCulture, "  License: {0}", usage?.LicenseEdition ?? "Unknown"));
+    
+    // Make collection accesses null-safe
+    var features = (usage?.FeaturesUsed != null && usage.FeaturesUsed.Count > 0) 
+        ? string.Join(", ", usage.FeaturesUsed) 
+        : "None";
+    sb.AppendLine(string.Format(CultureInfo.InvariantCulture, "  Business and Enterprise Edition Features Used: {0}", features));
+    
+    var clientCount = usage?.ClientsUsed?.Count ?? 0;
+    sb.AppendLine(string.Format(CultureInfo.InvariantCulture, "  {0} Client Id(s) Used", clientCount));
+    
+    var issuerCount = usage?.IssuersUsed?.Count ?? 0;
+    sb.AppendLine(string.Format(CultureInfo.InvariantCulture, "  {0} Issuer(s) Used", issuerCount));
 
     return sb.ToString();
 }

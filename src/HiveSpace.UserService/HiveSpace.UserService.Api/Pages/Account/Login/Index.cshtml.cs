@@ -96,12 +96,69 @@ public class Index : PageModel
             // Only remember login if allowed
             var rememberLogin = LoginOptions.AllowRememberLogin && Input.RememberLogin;
 
-            var result = await _signInManager.PasswordSignInAsync(Input.Username!, Input.Password!, isPersistent: rememberLogin, lockoutOnFailure: true);
+            // attempt login with lockout on failure
+            var result = await _signInManager.PasswordSignInAsync(
+                Input.Username!,
+                Input.Password!,
+                isPersistent: rememberLogin,
+                lockoutOnFailure: true
+            );
+
+            // handle locked-out accounts
+            if (result.IsLockedOut)
+            {
+                await _events.RaiseAsync(new UserLoginFailureEvent(
+                    Input.Username,
+                    "locked out",
+                    clientId: context?.Client.ClientId
+                ));
+                Telemetry.Metrics.UserLoginFailure(
+                    context?.Client.ClientId,
+                    IdentityServerConstants.LocalIdentityProvider,
+                    "locked out"
+                );
+                ModelState.AddModelError(
+                    string.Empty,
+                    "This account has been locked out, please try again later."
+                );
+                await BuildModelAsync(Input.ReturnUrl);
+                return Page();
+            }
+
+            // handle two-factor authentication requirement
+            if (result.RequiresTwoFactor)
+            {
+                return RedirectToPage(
+                    "/Account/LoginWith2fa",
+                    new { ReturnUrl = Input.ReturnUrl, RememberMe = Input.RememberLogin }
+                );
+            }
+
+            // handle disallowed logins (e.g. email not confirmed)
+            if (result.IsNotAllowed)
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    "This account is not allowed to log in."
+                );
+                await BuildModelAsync(Input.ReturnUrl);
+                return Page();
+            }
+
+            // successful login
             if (result.Succeeded)
             {
                 var user = await _userManager.FindByNameAsync(Input.Username!);
-                await _events.RaiseAsync(new UserLoginSuccessEvent(user!.UserName, user.Id, user.UserName, clientId: context?.Client.ClientId));
-                Telemetry.Metrics.UserLogin(context?.Client.ClientId, IdentityServerConstants.LocalIdentityProvider);
+                await _events.RaiseAsync(new UserLoginSuccessEvent(
+                    user!.UserName,
+                    user.Id,
+                    user.UserName,
+                    clientId: context?.Client.ClientId
+                ));
+                Telemetry.Metrics.UserLogin(
+                    context?.Client.ClientId,
+                    IdentityServerConstants.LocalIdentityProvider
+                );
 
                 if (context != null)
                 {
@@ -134,7 +191,6 @@ public class Index : PageModel
                     throw new ArgumentException("invalid return URL");
                 }
             }
-
             const string error = "invalid credentials";
             await _events.RaiseAsync(new UserLoginFailureEvent(Input.Username, error, clientId: context?.Client.ClientId));
             Telemetry.Metrics.UserLoginFailure(context?.Client.ClientId, IdentityServerConstants.LocalIdentityProvider, error);
@@ -159,6 +215,16 @@ public class Index : PageModel
             var scheme = await _schemeProvider.GetSchemeAsync(context.IdP);
             if (scheme != null)
             {
+                // Validate that the scheme is usable by checking if it's in the available schemes
+                var allSchemes = await _schemeProvider.GetAllSchemesAsync();
+                var schemeExists = allSchemes.Any(s => s.Name == context.IdP);
+                
+                if (!schemeExists)
+                {
+                    // Scheme is not properly registered - fall through to normal view
+                    goto BuildNormalView;
+                }
+
                 var local = context.IdP == IdentityServerConstants.LocalIdentityProvider;
 
                 // this is meant to short circuit the UI and only trigger the one external IdP
@@ -173,10 +239,12 @@ public class Index : PageModel
                 {
                     View.ExternalProviders = [new ViewModel.ExternalProvider(authenticationScheme: context.IdP, displayName: scheme.DisplayName)];
                 }
-            }
 
-            return;
+                return;
+            }
         }
+
+        BuildNormalView:
 
         var schemes = await _schemeProvider.GetAllSchemesAsync();
 
