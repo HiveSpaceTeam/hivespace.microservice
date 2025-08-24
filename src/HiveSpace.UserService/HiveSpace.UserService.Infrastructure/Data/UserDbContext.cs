@@ -1,9 +1,10 @@
 using HiveSpace.UserService.Infrastructure.Identity;
 using HiveSpace.UserService.Domain.Aggregates.User;
-using HiveSpace.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using HiveSpace.UserService.Domain.Aggregates.Admin;
+using HiveSpace.UserService.Domain.Aggregates.Store;
 
 namespace HiveSpace.UserService.Infrastructure.Data;
 
@@ -11,8 +12,8 @@ public class UserDbContext : IdentityDbContext<ApplicationUser>
 {
     public DbSet<Address> Addresses { get; set; }
     // Note: Admin and Store entities temporarily removed due to domain User references
-    // public DbSet<Admin> Admins { get; set; }
-    // public DbSet<Store> Stores { get; set; }
+    public DbSet<Admin> Admins { get; set; }
+    public DbSet<Store> Stores { get; set; }
 
     public UserDbContext(DbContextOptions<UserDbContext> options) : base(options)
     {
@@ -25,9 +26,6 @@ public class UserDbContext : IdentityDbContext<ApplicationUser>
         // Only apply configurations from Infrastructure assembly (not Domain)
         builder.ApplyConfigurationsFromAssembly(typeof(UserDbContext).Assembly);
 
-        // Temporarily commented out to avoid domain entity discovery
-        // builder.AddPersistenceBuilder();
-
         // Configure table names following the Identity Service pattern
         builder.Entity<ApplicationUser>().ToTable("users");
         builder.Entity<Address>().ToTable("addresses");
@@ -38,7 +36,7 @@ public class UserDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<IdentityRoleClaim<string>>().ToTable("role_claims");
         builder.Entity<IdentityUserToken<string>>().ToTable("user_tokens");
         // Admin and Store tables temporarily removed
-        // builder.Entity<Admin>().ToTable("admins");
-        // builder.Entity<Store>().ToTable("stores");
+        builder.Entity<Admin>().ToTable("admins");
+        builder.Entity<Store>().ToTable("stores");
     }
 }

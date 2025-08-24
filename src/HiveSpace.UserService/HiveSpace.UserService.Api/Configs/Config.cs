@@ -79,6 +79,13 @@ public static class Config
                 IdentityTokenLifetime = webappConfig.IdentityTokenLifetime
             };
 
+            // Ensure OIDC identity scopes are present for interactive flows
+            var oidcScopes = new[] { "openid", "profile" };
+            webappClient.AllowedScopes = (webappClient.AllowedScopes ?? new List<string>())
+                .Concat(oidcScopes)
+                .Distinct()
+                .ToList();
+
             // Ensure offline_access scope is present when AllowOfflineAccess is true
             if (webappConfig.AllowOfflineAccess)
             {
@@ -106,7 +113,7 @@ public static class Config
                     ? [new Secret(apiTestingConfig.ClientSecret.Sha256())]
                     : new List<Secret>(),
                 RequireClientSecret = apiTestingConfig.RequireClientSecret,
-                AllowedGrantTypes = apiTestingConfig.AllowedGrantTypes ?? ["password"],
+                AllowedGrantTypes = apiTestingConfig.AllowedGrantTypes ?? ["client_credentials"],
                 AllowedScopes = apiTestingConfig.AllowedScopes ?? [],
                 AlwaysIncludeUserClaimsInIdToken = apiTestingConfig.AlwaysIncludeUserClaimsInIdToken
             };
