@@ -7,6 +7,7 @@ using HiveSpace.UserService.Infrastructure.Identity;
 // using HiveSpace.UserService.Application.Validators.Address;
 // using HiveSpace.UserService.Application.Validators.User;
 using HiveSpace.UserService.Domain.Repositories;
+using HiveSpace.UserService.Domain.Services;
 using HiveSpace.UserService.Infrastructure;
 using HiveSpace.UserService.Infrastructure.Data;
 using HiveSpace.UserService.Infrastructure.Repositories;
@@ -34,7 +35,7 @@ internal static class ServiceCollectionExtensions
      
     public static void AddAppIdentity(this IServiceCollection services)
     {
-        services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+        services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
         {
             options.User.RequireUniqueEmail = true;
         })
@@ -51,6 +52,8 @@ internal static class ServiceCollectionExtensions
     public static void AddAppApplicationServices(this IServiceCollection services)
     {
         services.AddScoped<IUserContext, UserContext>();
+        // Domain services
+        services.AddScoped<StoreManager>();
     }
 
     public static void AddFluentValidationServices(this IServiceCollection services)
@@ -80,6 +83,11 @@ internal static class ServiceCollectionExtensions
             .AddInMemoryClients(Config.GetClients(configuration))
             .AddAspNetIdentity<ApplicationUser>()
             .AddLicenseSummary();
+
+        // Register the custom profile service to enrich tokens with application-specific claims
+        // Ensure the implementation type `CustomProfileService` is available from
+        // `HiveSpace.UserService.Infrastructure.Identity` namespace/project.
+        services.AddScoped<Duende.IdentityServer.Services.IProfileService, CustomProfileService>();
     }
 
     public static void AddAppAuthentication(this IServiceCollection services, IConfiguration configuration)

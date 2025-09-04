@@ -13,6 +13,7 @@ public class User : AggregateRoot<Guid>, IAuditable
     public string UserName { get; private set; }
     public string PasswordHash { get; private set; }
     public UserStatus Status { get; private set; }
+    public Role? Role { get; private set; }
     
     // Store relationship
     public Guid? StoreId { get; private set; }
@@ -32,31 +33,47 @@ public class User : AggregateRoot<Guid>, IAuditable
     public DateTimeOffset? UpdatedAt { get; private set; }
     public DateTimeOffset? LastLoginAt { get; private set; }
     
-    private User() 
+
+    private User()
     {
         _addresses = new List<Address>();
         Email = null!;
         UserName = string.Empty;
         PasswordHash = null!;
         FullName = string.Empty;
+        Role = null!;
+    }
+
+    internal User(Email email, string userName, string passwordHash, string fullName, Role? role = null, 
+        PhoneNumber? phoneNumber = null, DateOfBirth? dateOfBirth = null, Gender? gender = null, 
+        Guid? storeId = null, UserStatus status = UserStatus.Active, 
+        DateTimeOffset? createdAt = null, DateTimeOffset? updatedAt = null, DateTimeOffset? lastLoginAt = null)
+    {
+        _addresses = new List<Address>();
+        Email = email;
+        UserName = userName.Trim();
+        PasswordHash = passwordHash;
+        FullName = fullName.Trim();
+        Status = status;
+        StoreId = storeId;
+        Role = role;
+        PhoneNumber = phoneNumber;
+        DateOfBirth = dateOfBirth;
+        Gender = gender;
+        CreatedAt = createdAt ?? DateTimeOffset.UtcNow;
+        UpdatedAt = updatedAt;
+        LastLoginAt = lastLoginAt;
     }
 
     // Domain factory method - Internal to force creation through UserManager
-    internal static User Create(Email email, string userName, string passwordHash, string fullName)
+    internal static User Create(Email email, string userName, string passwordHash, string fullName, Role? role = null,
+        PhoneNumber? phoneNumber = null, DateOfBirth? dateOfBirth = null, Gender? gender = null, 
+        Guid? storeId = null, UserStatus status = UserStatus.Active, 
+        DateTimeOffset? createdAt = null, DateTimeOffset? updatedAt = null, DateTimeOffset? lastLoginAt = null)
     {
         ValidateAndThrow(email, userName, passwordHash, fullName);
-        
-        var user = new User
-        {
-            Email = email,
-            UserName = userName.Trim(),
-            PasswordHash = passwordHash,
-            FullName = fullName.Trim(),
-            Status = UserStatus.Active,
-            StoreId = null
-        };
-        
-        return user;
+        return new User(email, userName, passwordHash, fullName, role, phoneNumber, dateOfBirth, gender, 
+            storeId, status, createdAt, updatedAt, lastLoginAt);
     }
     
     private static void ValidateAndThrow(Email? email, string? userName, string? passwordHash, string? fullName)
@@ -177,6 +194,12 @@ public class User : AggregateRoot<Guid>, IAuditable
         LastLoginAt = DateTimeOffset.UtcNow;
     }
     
-    public bool IsCustomer => StoreId == null;
-    public bool IsSeller => StoreId != null;
+    internal void SetRole(Role role)
+    {
+        Role = role;
+    }
+
+    public bool IsSeller => Role?.Name == Role.RoleNames.Seller;
+    public bool IsAdmin => Role?.Name == Role.RoleNames.Admin;
+    public bool IsSystemAdmin => Role?.Name == Role.RoleNames.SystemAdmin;
 }
