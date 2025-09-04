@@ -40,17 +40,15 @@ public class Role : ValueObject
 
     public static Role FromName(string name)
     {
-        switch (name)
-        {
-            case var n when n.Equals(RoleNames.Seller, StringComparison.OrdinalIgnoreCase):
-                return Seller;
-            case var n when n.Equals(RoleNames.Admin, StringComparison.OrdinalIgnoreCase):
-                return Admin;
-            case var n when n.Equals(RoleNames.SystemAdmin, StringComparison.OrdinalIgnoreCase):
-                return SystemAdmin;
-            default:
-                throw new ArgumentException($"Unknown role name: {name}");
-        }
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("Role name cannot be null or empty.", nameof(name));
+
+        var normalized = name.Trim();
+        if (normalized.Equals(RoleNames.Seller, StringComparison.OrdinalIgnoreCase)) return Seller;
+        if (normalized.Equals(RoleNames.Admin, StringComparison.OrdinalIgnoreCase)) return Admin;
+        if (normalized.Equals(RoleNames.SystemAdmin, StringComparison.OrdinalIgnoreCase)) return SystemAdmin;
+
+        throw new ArgumentException($"Unknown role name: {name}", nameof(name));
     }
 
     protected override IEnumerable<object> GetEqualityComponents()
