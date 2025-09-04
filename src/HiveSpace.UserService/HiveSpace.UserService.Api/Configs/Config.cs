@@ -52,7 +52,7 @@ public static class Config
         var clients = new List<Client>();
         var clientsSection = configuration.GetSection("Clients");
 
-        // dmin Portal Client (full config)
+        // Admin Portal Client (full config)
         var adminPortalConfig = clientsSection.GetSection("adminportal").Get<ClientConfig>();
         if (adminPortalConfig != null)
         {

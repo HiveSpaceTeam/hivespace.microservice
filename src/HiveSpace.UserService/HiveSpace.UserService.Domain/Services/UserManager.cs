@@ -212,14 +212,18 @@ public class UserManager : IDomainService
     {
         // Validate actor has appropriate privileges
         bool requireSystemAdmin = newRole.Name == RoleNames.SystemAdmin;
-        await ValidateAdminUserAsync(actorUserId, requireSystemAdmin, cancellationToken);
-        
+        var actorUser = await ValidateAdminUserAsync(actorUserId, requireSystemAdmin, cancellationToken);
+
         var targetUser = await _userRepository.GetByIdAsync(targetUserId) 
             ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
-        
+
+        // Prevent regular admins from modifying SystemAdmin accounts
+        if (targetUser.IsSystemAdmin && !actorUser.IsSystemAdmin)
+            throw new ForbiddenException(UserDomainErrorCode.InsufficientPrivileges, nameof(User));
+
         // Set the new role
         targetUser.SetRole(newRole);
-        
+
         return targetUser;
     }
 

@@ -29,9 +29,14 @@ public class Role : ValueObject
     }
 
 
-    public static Role Seller => new(RoleNames.Seller, "Seller role with product management capabilities.");
-    public static Role Admin => new(RoleNames.Admin, "Administrator role with system access.");
-    public static Role SystemAdmin => new(RoleNames.SystemAdmin, "System Administrator role with full system access.");
+    // Cache Role instances so they’re only created once
+    private static readonly Role _seller = new(RoleNames.Seller, "Seller role with product management capabilities.");
+    private static readonly Role _admin = new(RoleNames.Admin, "Administrator role with system access.");
+    private static readonly Role _systemAdmin = new(RoleNames.SystemAdmin, "System Administrator role with full system access.");
+
+    public static Role Seller => _seller;
+    public static Role Admin => _admin;
+    public static Role SystemAdmin => _systemAdmin;
 
     public static Role FromName(string name)
     {
