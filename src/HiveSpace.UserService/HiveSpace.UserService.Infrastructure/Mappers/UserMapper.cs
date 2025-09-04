@@ -41,6 +41,10 @@ public static class UserMapper
     /// </summary>
     public static User ToDomainUser(this ApplicationUser applicationUser, IEnumerable<string> roleNames, UserManager userManager)
     {
+        if (roleNames == null)
+        {
+            throw new ArgumentNullException(nameof(roleNames), "Role names cannot be null.");
+        }
         // Get the single role (enforces one role only business rule)
         var userRole = RoleMapper.GetSingleRole(roleNames);
         if (userRole == null)
@@ -52,7 +56,7 @@ public static class UserMapper
         var email = Email.Create(applicationUser.Email ?? string.Empty);
         var phoneNumber = PhoneNumber.CreateOrDefault(applicationUser.PhoneNumber);
         var dateOfBirth = applicationUser.DateOfBirth.HasValue 
-            ? new DateOfBirth(new DateTimeOffset(applicationUser.DateOfBirth.Value))
+            ? new DateOfBirth(new DateTimeOffset(applicationUser.DateOfBirth.Value, TimeSpan.Zero))
             : null;
         var gender = !string.IsNullOrEmpty(applicationUser.Gender) 
             && Enum.TryParse<Gender>(applicationUser.Gender, out var parsedGender) 
@@ -91,7 +95,7 @@ public static class UserMapper
         applicationUser.Email = domainUser.Email.Value;
         applicationUser.PhoneNumber = domainUser.PhoneNumber?.Value;
         applicationUser.FullName = domainUser.FullName;
-        applicationUser.StoreId = domainUser.StoreId;
+        applicationUser.UpdatedAt = DateTimeOffset.UtcNow;
         applicationUser.DateOfBirth = domainUser.DateOfBirth?.Value.DateTime;
         applicationUser.Gender = domainUser.Gender?.ToString();
         applicationUser.UserStatus = domainUser.Status.ToString();

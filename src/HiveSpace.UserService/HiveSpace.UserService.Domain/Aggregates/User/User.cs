@@ -65,6 +65,28 @@ public class User : AggregateRoot<Guid>, IAuditable
         LastLoginAt = lastLoginAt;
     }
 
+    // Rehydration factory for persistence
+    internal static User Rehydrate(
+        Guid id,
+        Email email,
+        string userName,
+        string passwordHash,
+        string fullName,
+        Role? role = null,
+        PhoneNumber? phoneNumber = null,
+        DateOfBirth? dateOfBirth = null,
+        Gender? gender = null,
+        Guid? storeId = null,
+        UserStatus status = UserStatus.Active,
+        DateTimeOffset? createdAt = null,
+        DateTimeOffset? updatedAt = null,
+        DateTimeOffset? lastLoginAt = null)
+    {
+        var user = new User(email, userName, passwordHash, fullName, role, phoneNumber, dateOfBirth, gender, storeId, status, createdAt, updatedAt, lastLoginAt);
+        user.Id = id; // protected setter from AggregateRoot
+        return user;
+    }
+
     // Domain factory method - Internal to force creation through UserManager
     internal static User Create(Email email, string userName, string passwordHash, string fullName, Role? role = null,
         PhoneNumber? phoneNumber = null, DateOfBirth? dateOfBirth = null, Gender? gender = null, 

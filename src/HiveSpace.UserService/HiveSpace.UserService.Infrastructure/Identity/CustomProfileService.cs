@@ -37,7 +37,7 @@ public class CustomProfileService : IProfileService
         // Get the user based on the subject ID from the authentication request.
         var user = await _userManager.GetUserAsync(context.Subject);
         
-        if (user == null)
+        if (user is null)
         {
             // If the user isn't found, no claims can be issued.
             return;

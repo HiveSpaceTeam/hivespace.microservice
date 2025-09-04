@@ -101,7 +101,7 @@ public class UserAggregateRepository : BaseRepository<User, Guid>
     public async Task<User> CreateUserAggregateAsync(User domainUser, string password, CancellationToken cancellationToken = default)
     {
         // Convert to ApplicationUser
-        var applicationUser = UserMapper.ToApplicationUser(domainUser);
+        var applicationUser = domainUser.ToApplicationUser();
 
         // Create user with Identity
         var result = await _userManager.CreateAsync(applicationUser, password);
