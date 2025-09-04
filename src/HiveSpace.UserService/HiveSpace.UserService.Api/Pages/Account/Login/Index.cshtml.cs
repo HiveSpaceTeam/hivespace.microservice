@@ -151,7 +151,7 @@ public class Index : PageModel
                 var user = await _userManager.FindByNameAsync(Input.Username!);
                 await _events.RaiseAsync(new UserLoginSuccessEvent(
                     user!.UserName,
-                    user.Id,
+                    user.Id.ToString(),
                     user.UserName,
                     clientId: context?.Client.ClientId
                 ));

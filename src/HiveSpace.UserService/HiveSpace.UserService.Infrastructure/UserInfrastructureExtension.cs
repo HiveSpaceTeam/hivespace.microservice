@@ -47,7 +47,6 @@ public static class UserInfrastructureExtension
     public static void AddUserServiceRepositories(this IServiceCollection services)
     {
         services.AddScoped<IUserRepository, UserRepository>();
-        services.AddScoped<IAdminRepository, AdminRepository>();
         services.AddScoped<IStoreRepository, StoreRepository>();
     }
 }

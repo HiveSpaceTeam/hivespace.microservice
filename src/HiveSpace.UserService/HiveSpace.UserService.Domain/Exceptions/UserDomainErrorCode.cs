@@ -23,15 +23,9 @@ public class UserDomainErrorCode : DomainErrorCode
     public static readonly UserDomainErrorCode CannotRemoveDefaultAddress = new(10, "CannotRemoveDefaultAddress", "USR0010");
     public static readonly UserDomainErrorCode CannotRemoveOnlyAddress = new(11, "CannotRemoveOnlyAddress", "USR0011");
     
-    // Store-related errors (ID: 12-13, 16-17)
+    // Store-related errors (ID: 12-13, 18-19)
     public static readonly UserDomainErrorCode StoreNameAlreadyExists = new(12, "StoreNameAlreadyExists", "USR0012");
     public static readonly UserDomainErrorCode StoreNotFound = new(13, "StoreNotFound", "USR0013");
-    
-    // Admin-related errors (ID: 14-17)
-    public static readonly UserDomainErrorCode AdminNotFound = new(14, "AdminNotFound", "USR0014");
-    public static readonly UserDomainErrorCode AdminAlreadyExists = new(15, "AdminAlreadyExists", "USR0015");
-    public static readonly UserDomainErrorCode AdminInactive = new(16, "AdminInactive", "USR0016");
-    public static readonly UserDomainErrorCode CannotModifySystemAdmin = new(17, "CannotModifySystemAdmin", "USR0017");
     
     // Store-related errors (continued)
     public static readonly UserDomainErrorCode InvalidStoreInformation = new(18, "InvalidStoreInformation", "USR0018");
@@ -44,4 +38,7 @@ public class UserDomainErrorCode : DomainErrorCode
     // Field validation errors (ID: 22-23)
     public static readonly UserDomainErrorCode InvalidField = new(22, "InvalidField", "USR0023");
     public static readonly UserDomainErrorCode InvalidAddress = new(23, "InvalidAddress", "USR0024");
+    
+    // Authorization errors (ID: 24)
+    public static readonly UserDomainErrorCode InsufficientPrivileges = new(24, "InsufficientPrivileges", "USR0025");
 }

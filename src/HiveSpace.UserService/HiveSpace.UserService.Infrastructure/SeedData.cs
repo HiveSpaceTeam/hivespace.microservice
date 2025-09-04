@@ -2,6 +2,8 @@ using Duende.IdentityModel;
 using HiveSpace.UserService.Infrastructure.Data;
 using HiveSpace.UserService.Infrastructure.Identity;
 using HiveSpace.UserService.Domain.Aggregates.User;
+using HiveSpace.UserService.Domain.Aggregates.Store;
+using HiveSpace.UserService.Domain.Services;
 using HiveSpace.UserService.Domain.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -22,6 +24,13 @@ public class SeedData
             context.Database.Migrate();
 
             var userMgr = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var roleMgr = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+            var storeManager = scope.ServiceProvider.GetRequiredService<StoreManager>();
+
+            // Create roles if they don't exist
+            EnsureRole(roleMgr, "SystemAdmin");
+            EnsureRole(roleMgr, "Admin");
+            EnsureRole(roleMgr, "Seller");
 
             // Seed Alice
             var alice = userMgr.FindByNameAsync("alice").Result;
@@ -36,6 +45,7 @@ public class SeedData
                     PhoneNumber = "+1234567890",
                     DateOfBirth = new DateTime(1990, 1, 15),
                     Gender = "Female",
+                    UserStatus = UserStatus.Active.ToString(),
                     CreatedAt = DateTimeOffset.UtcNow
                 };
 
@@ -101,6 +111,7 @@ public class SeedData
                     PhoneNumber = "+0987654321",
                     DateOfBirth = new DateTime(1985, 6, 20),
                     Gender = "Male",
+                    UserStatus = UserStatus.Active.ToString(),
                     CreatedAt = DateTimeOffset.UtcNow
                 };
 
@@ -164,6 +175,250 @@ public class SeedData
             {
                 Log.Debug("bob already exists");
             }
+
+            // Seed System Admin
+            var systemAdmin = userMgr.FindByNameAsync("sysadmin").Result;
+            if (systemAdmin == null)
+            {
+                systemAdmin = new ApplicationUser
+                {
+                    UserName = "sysadmin",
+                    Email = "sysadmin@hivespace.com",
+                    EmailConfirmed = true,
+                    FullName = "System Administrator",
+                    PhoneNumber = "+1111111111",
+                    DateOfBirth = new DateTime(1980, 3, 10),
+                    Gender = "Male",
+                    UserStatus = UserStatus.Active.ToString(),
+                    CreatedAt = DateTimeOffset.UtcNow
+                };
+
+                var result = userMgr.CreateAsync(systemAdmin, "SysAdmin123$").Result;
+                if (!result.Succeeded)
+                {
+                    Log.Error("Failed to create System Admin: {Error}", result.Errors.First().Description);
+                    throw new Exception(result.Errors.First().Description);
+                }
+
+                // Add role
+                result = userMgr.AddToRoleAsync(systemAdmin, "SystemAdmin").Result;
+                if (!result.Succeeded)
+                {
+                    Log.Error("Failed to add SystemAdmin role: {Error}", result.Errors.First().Description);
+                }
+
+                // Add claims
+                result = userMgr.AddClaimsAsync(systemAdmin, new[]
+                {
+                    new Claim(JwtClaimTypes.Name, "System Administrator"),
+                    new Claim(JwtClaimTypes.GivenName, "System"),
+                    new Claim(JwtClaimTypes.FamilyName, "Administrator"),
+                    new Claim(JwtClaimTypes.Role, "SystemAdmin"),
+                    new Claim("permissions", "system.manage"),
+                    new Claim("permissions", "user.manage"),
+                    new Claim("permissions", "store.manage")
+                }).Result;
+
+                Log.Debug("sysadmin created");
+            }
+            else
+            {
+                Log.Debug("sysadmin already exists");
+            }
+
+            // Seed Admin
+            var admin = userMgr.FindByNameAsync("admin").Result;
+            if (admin == null)
+            {
+                admin = new ApplicationUser
+                {
+                    UserName = "admin",
+                    Email = "admin@hivespace.com",
+                    EmailConfirmed = true,
+                    FullName = "Admin User",
+                    PhoneNumber = "+2222222222",
+                    DateOfBirth = new DateTime(1985, 8, 22),
+                    Gender = "Female",
+                    UserStatus = UserStatus.Active.ToString(),
+                    CreatedAt = DateTimeOffset.UtcNow
+                };
+
+                var result = userMgr.CreateAsync(admin, "Admin123$").Result;
+                if (!result.Succeeded)
+                {
+                    Log.Error("Failed to create Admin: {Error}", result.Errors.First().Description);
+                    throw new Exception(result.Errors.First().Description);
+                }
+
+                // Add role
+                result = userMgr.AddToRoleAsync(admin, "Admin").Result;
+                if (!result.Succeeded)
+                {
+                    Log.Error("Failed to add Admin role: {Error}", result.Errors.First().Description);
+                }
+
+                // Add sample address
+                var adminAddress = new Address(
+                    fullName: "Admin User",
+                    phoneNumber: "+2222222222",
+                    street: "100 Admin Plaza",
+                    district: "Central",
+                    province: "New York",
+                    country: "USA",
+                    zipCode: "10001",
+                    addressType: AddressType.Work
+                );
+                
+                context.Entry(adminAddress).Property("UserId").CurrentValue = admin.Id;
+                context.Addresses.Add(adminAddress);
+
+                var isDefaultProperty = typeof(Address).GetProperty("IsDefault");
+                isDefaultProperty?.SetValue(adminAddress, true);
+
+                // Add claims
+                result = userMgr.AddClaimsAsync(admin, new[]
+                {
+                    new Claim(JwtClaimTypes.Name, "Admin User"),
+                    new Claim(JwtClaimTypes.GivenName, "Admin"),
+                    new Claim(JwtClaimTypes.FamilyName, "User"),
+                    new Claim(JwtClaimTypes.Role, "Admin"),
+                    new Claim("permissions", "user.manage"),
+                    new Claim("permissions", "store.view")
+                }).Result;
+
+                context.SaveChanges();
+                Log.Debug("admin created with sample address");
+            }
+            else
+            {
+                Log.Debug("admin already exists");
+            }
+
+            // Seed Seller
+            var seller = userMgr.FindByNameAsync("seller").Result;
+            if (seller == null)
+            {
+                // Create seller user first to get the ID
+                seller = new ApplicationUser
+                {
+                    UserName = "seller",
+                    Email = "seller@example.com",
+                    EmailConfirmed = true,
+                    FullName = "John Seller",
+                    PhoneNumber = "+3333333333",
+                    DateOfBirth = new DateTime(1988, 12, 5),
+                    Gender = "Male",
+                    UserStatus = UserStatus.Active.ToString(),
+                    CreatedAt = DateTimeOffset.UtcNow
+                };
+
+                var sellerResult = userMgr.CreateAsync(seller, "Seller123$").Result;
+                if (!sellerResult.Succeeded)
+                {
+                    Log.Error("Failed to create Seller: {Error}", sellerResult.Errors.First().Description);
+                    throw new Exception(sellerResult.Errors.First().Description);
+                }
+
+                // Create a store for the seller using StoreManager domain service
+                var phoneNumber = new PhoneNumber("+3333333333");
+                try
+                {
+                    var sampleStore = storeManager.RegisterStoreAsync(
+                        name: "John's Electronics Store",
+                        description: "Quality electronics and gadgets",
+                        ownerId: seller.Id,
+                        phoneNumber: phoneNumber
+                    ).Result;
+                    
+                    // Set the store ID on the seller
+                    seller.StoreId = sampleStore.Id;
+                    var updateResult = userMgr.UpdateAsync(seller).Result;
+                    if (!updateResult.Succeeded)
+                    {
+                        Log.Error("Failed to update Seller with StoreId: {Error}", updateResult.Errors.First().Description);
+                    }
+                    
+                    context.Stores.Add(sampleStore);
+                    context.SaveChanges();
+                    Log.Debug("Store created successfully for seller");
+                }
+                catch (Exception ex)
+                {
+                    Log.Error("Failed to create store for seller: {Error}", ex.Message);
+                }
+
+                // Add role
+                sellerResult = userMgr.AddToRoleAsync(seller, "Seller").Result;
+                if (!sellerResult.Succeeded)
+                {
+                    Log.Error("Failed to add Seller role: {Error}", sellerResult.Errors.First().Description);
+                }
+
+                // Add sample addresses
+                var sellerHomeAddress = new Address(
+                    fullName: "John Seller",
+                    phoneNumber: "+3333333333",
+                    street: "555 Commerce Street",
+                    district: "Market District",
+                    province: "Florida",
+                    country: "USA",
+                    zipCode: "33101",
+                    addressType: AddressType.Home
+                );
+
+                var sellerBusinessAddress = new Address(
+                    fullName: "John Seller",
+                    phoneNumber: "+3333333333",
+                    street: "777 Business Center",
+                    district: "Commercial Zone",
+                    province: "Florida",
+                    country: "USA",
+                    zipCode: "33102",
+                    addressType: AddressType.Work
+                );
+
+                context.Entry(sellerHomeAddress).Property("UserId").CurrentValue = seller.Id;
+                context.Entry(sellerBusinessAddress).Property("UserId").CurrentValue = seller.Id;
+                context.Addresses.AddRange(sellerHomeAddress, sellerBusinessAddress);
+
+                var isDefaultProperty = typeof(Address).GetProperty("IsDefault");
+                isDefaultProperty?.SetValue(sellerHomeAddress, true);
+
+                // Add claims
+                sellerResult = userMgr.AddClaimsAsync(seller, new[]
+                {
+                    new Claim(JwtClaimTypes.Name, "John Seller"),
+                    new Claim(JwtClaimTypes.GivenName, "John"),
+                    new Claim(JwtClaimTypes.FamilyName, "Seller"),
+                    new Claim(JwtClaimTypes.Role, "Seller"),
+                    new Claim("permissions", "store.manage"),
+                    new Claim("permissions", "product.manage"),
+                    new Claim("permissions", "order.view")
+                }).Result;
+
+                context.SaveChanges();
+                Log.Debug("seller created with sample addresses");
+            }
+            else
+            {
+                Log.Debug("seller already exists");
+            }
+        }
+    }
+
+    private static void EnsureRole(RoleManager<IdentityRole<Guid>> roleMgr, string roleName)
+    {
+        var role = roleMgr.FindByNameAsync(roleName).Result;
+        if (role == null)
+        {
+            role = new IdentityRole<Guid>(roleName);
+            var result = roleMgr.CreateAsync(role).Result;
+            if (!result.Succeeded)
+            {
+                Log.Error("Failed to create role {RoleName}: {Error}", roleName, result.Errors.First().Description);
+                throw new Exception(result.Errors.First().Description);
+            }
+            Log.Debug("Role {RoleName} created", roleName);
         }
     }
 }

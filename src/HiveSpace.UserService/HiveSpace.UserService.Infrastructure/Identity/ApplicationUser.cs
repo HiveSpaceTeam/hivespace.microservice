@@ -3,7 +3,7 @@ using HiveSpace.UserService.Domain.Aggregates.User;
 
 namespace HiveSpace.UserService.Infrastructure.Identity;
 
-public class ApplicationUser : IdentityUser
+public class ApplicationUser : IdentityUser<Guid>
 {
     // Additional fields from User domain entity that are not in IdentityUser
     public string FullName { get; set; } = string.Empty;
@@ -17,4 +17,7 @@ public class ApplicationUser : IdentityUser
     
     // Navigation properties - using domain Address entity
     public virtual ICollection<Address> Addresses { get; set; } = new List<Address>();
+    
+    // Navigation property for user roles
+    public virtual ICollection<IdentityUserRole<Guid>> UserRoles { get; set; } = new List<IdentityUserRole<Guid>>();
 }

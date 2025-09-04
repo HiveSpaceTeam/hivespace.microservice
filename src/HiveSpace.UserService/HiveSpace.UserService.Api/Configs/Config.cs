@@ -52,53 +52,53 @@ public static class Config
         var clients = new List<Client>();
         var clientsSection = configuration.GetSection("Clients");
 
-        // WebApp Client (full config)
-        var webappConfig = clientsSection.GetSection("webapp").Get<ClientConfig>();
-        if (webappConfig != null)
+        // Admin Portal Client (full config)
+        var adminPortalConfig = clientsSection.GetSection("adminportal").Get<ClientConfig>();
+        if (adminPortalConfig != null)
         {
-            var webappClient = new Client
+            var adminPortalClient = new Client
             {
-                ClientId = webappConfig.ClientId,
-                ClientName = webappConfig.ClientName,
-                ClientUri = webappConfig.ClientUri,
-                ClientSecrets = !string.IsNullOrEmpty(webappConfig.ClientSecret)
-                    ? new List<Secret> { new Secret(webappConfig.ClientSecret.Sha256()) }
+                ClientId = adminPortalConfig.ClientId,
+                ClientName = adminPortalConfig.ClientName,
+                ClientUri = adminPortalConfig.ClientUri,
+                ClientSecrets = !string.IsNullOrEmpty(adminPortalConfig.ClientSecret)
+                    ? new List<Secret> { new Secret(adminPortalConfig.ClientSecret.Sha256()) }
                     : new List<Secret>(),
-                RequireClientSecret = webappConfig.RequireClientSecret,
-                AllowedGrantTypes = webappConfig.AllowedGrantTypes ?? ["authorization_code"],
-                AllowAccessTokensViaBrowser = webappConfig.AllowAccessTokensViaBrowser,
-                RequireConsent = webappConfig.RequireConsent,
-                AllowOfflineAccess = webappConfig.AllowOfflineAccess,
-                AlwaysIncludeUserClaimsInIdToken = webappConfig.AlwaysIncludeUserClaimsInIdToken,
-                RequirePkce = webappConfig.RequirePkce,
-                RedirectUris = webappConfig.RedirectUris ?? [],
-                PostLogoutRedirectUris = webappConfig.PostLogoutRedirectUris ?? [],
-                AllowedCorsOrigins = webappConfig.AllowedCorsOrigins ?? [],
-                AllowedScopes = webappConfig.AllowedScopes ?? [],
-                AccessTokenLifetime = webappConfig.AccessTokenLifetime,
-                IdentityTokenLifetime = webappConfig.IdentityTokenLifetime
+                RequireClientSecret = adminPortalConfig.RequireClientSecret,
+                AllowedGrantTypes = adminPortalConfig.AllowedGrantTypes ?? ["authorization_code"],
+                AllowAccessTokensViaBrowser = adminPortalConfig.AllowAccessTokensViaBrowser,
+                RequireConsent = adminPortalConfig.RequireConsent,
+                AllowOfflineAccess = adminPortalConfig.AllowOfflineAccess,
+                AlwaysIncludeUserClaimsInIdToken = adminPortalConfig.AlwaysIncludeUserClaimsInIdToken,
+                RequirePkce = adminPortalConfig.RequirePkce,
+                RedirectUris = adminPortalConfig.RedirectUris ?? [],
+                PostLogoutRedirectUris = adminPortalConfig.PostLogoutRedirectUris ?? [],
+                AllowedCorsOrigins = adminPortalConfig.AllowedCorsOrigins ?? [],
+                AllowedScopes = adminPortalConfig.AllowedScopes ?? [],
+                AccessTokenLifetime = adminPortalConfig.AccessTokenLifetime,
+                IdentityTokenLifetime = adminPortalConfig.IdentityTokenLifetime
             };
 
             // Ensure OIDC identity scopes are present for interactive flows
             var oidcScopes = new[] { "openid", "profile" };
-            webappClient.AllowedScopes = (webappClient.AllowedScopes ?? new List<string>())
+            adminPortalClient.AllowedScopes = (adminPortalClient.AllowedScopes ?? new List<string>())
                 .Concat(oidcScopes)
                 .Distinct()
                 .ToList();
 
             // Ensure offline_access scope is present when AllowOfflineAccess is true
-            if (webappConfig.AllowOfflineAccess)
+            if (adminPortalConfig.AllowOfflineAccess)
             {
-                webappClient.AllowedScopes ??= new List<string>();
-                var allowedScopes = webappClient.AllowedScopes.ToList();
+                adminPortalClient.AllowedScopes ??= new List<string>();
+                var allowedScopes = adminPortalClient.AllowedScopes.ToList();
                 if (!allowedScopes.Contains("offline_access"))
                 {
                     allowedScopes.Add("offline_access");
-                    webappClient.AllowedScopes = allowedScopes;
+                    adminPortalClient.AllowedScopes = allowedScopes;
                 }
             }
 
-            clients.Add(webappClient);
+            clients.Add(adminPortalClient);
         }
 
         // API Testing Client (minimal config)

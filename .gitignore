@@ -10,7 +10,7 @@
 *.sln.docstates
 *.csproj.user
 *.vbproj.user
-
+/preview
 /.vs
 /libs/HiveSpace.Core/bin/Debug/net8.0
 /libs/HiveSpace.Core/obj
