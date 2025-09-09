@@ -15,6 +15,8 @@ namespace HiveSpace.UserService.Domain.Services;
 public class UserManager : IDomainService
 {
     private readonly IUserRepository _userRepository;
+    // Placeholder used during creation; Infrastructure sets the real password via Identity
+    private const string PasswordPlaceholder = "__TO_BE_SET_BY_IDENTITY__";
     
     public UserManager(IUserRepository userRepository)
     {
@@ -26,16 +28,13 @@ public class UserManager : IDomainService
     /// </summary>
     /// <param name="email">User's email address</param>
     /// <param name="userName">User's chosen username</param>
-    /// <param name="passwordHash">Hashed password</param>
     /// <param name="fullName">User's full name</param>
     /// <returns>The newly created user</returns>
     /// <exception cref="InvalidUserInformationException">Thrown when user information is invalid</exception>
-    /// <exception cref="InvalidPasswordHashException">Thrown when password hash is invalid</exception>
     /// <exception cref="ConflictException">Thrown when a user with the email already exists or when a username is already taken</exception>
     public async Task<User> RegisterUserAsync(
         Email email,
         string userName,
-        string passwordHash,
         string fullName,
         CancellationToken cancellationToken = default)
     {
@@ -43,7 +42,7 @@ public class UserManager : IDomainService
         await CanUserBeRegisteredAsync(email, userName?.Trim() ?? string.Empty, cancellationToken);
         
         // Create new user - validation handled in User.Create
-        var user = User.Create(email, userName ?? string.Empty, passwordHash, fullName);
+        var user = User.Create(email, userName ?? string.Empty, PasswordPlaceholder, fullName);
         
         return user;
     }
@@ -135,7 +134,6 @@ public class UserManager : IDomainService
     /// </summary>
     /// <param name="email">Email address for the new admin</param>
     /// <param name="userName">Username for the new admin</param>
-    /// <param name="passwordHash">Hashed password for the new admin</param>
     /// <param name="fullName">Full name of the new admin</param>
     /// <param name="role">Role to assign (Admin or SystemAdmin)</param>
     /// <param name="creatorUserId">The ID of the admin creating this account</param>
@@ -147,7 +145,6 @@ public class UserManager : IDomainService
     public async Task<User> CreateAdminUserAsync(
         Email email,
         string userName,
-        string passwordHash,
         string fullName,
         Role role,
         Guid creatorUserId,
@@ -161,7 +158,7 @@ public class UserManager : IDomainService
         await CanUserBeRegisteredAsync(email, userName?.Trim() ?? string.Empty, cancellationToken);
         
         // Create new admin user
-        var user = User.Create(email, userName ?? string.Empty, passwordHash, fullName, role);
+        var user = User.Create(email, userName ?? string.Empty, PasswordPlaceholder, fullName, role);
         
         return user;
     }
@@ -171,7 +168,6 @@ public class UserManager : IDomainService
     /// </summary>
     /// <param name="email">Email address for the new system admin</param>
     /// <param name="userName">Username for the new system admin</param>
-    /// <param name="passwordHash">Hashed password for the new system admin</param>
     /// <param name="fullName">Full name of the new system admin</param>
     /// <param name="creatorUserId">The ID of the system admin creating this account</param>
     /// <param name="cancellationToken">Cancellation token</param>
@@ -179,7 +175,6 @@ public class UserManager : IDomainService
     public async Task<User> CreateSystemAdminAsync(
         Email email,
         string userName,
-        string passwordHash,
         string fullName,
         Guid creatorUserId,
         CancellationToken cancellationToken = default)
@@ -187,7 +182,6 @@ public class UserManager : IDomainService
         return await CreateAdminUserAsync(
             email,
             userName,
-            passwordHash,
             fullName,
             Role.SystemAdmin,
             creatorUserId,

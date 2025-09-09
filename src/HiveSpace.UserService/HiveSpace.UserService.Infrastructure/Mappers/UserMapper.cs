@@ -3,7 +3,10 @@ using HiveSpace.UserService.Domain.Aggregates.User;
 using HiveSpace.UserService.Domain.Enums;
 using HiveSpace.UserService.Domain.Services;
 using HiveSpace.UserService.Infrastructure.Identity;
-using HiveSpace.UserService.Infrastructure.Mappers;
+using System.Reflection;
+using System.Linq;
+using HiveSpace.Core.Exceptions;
+using HiveSpace.Core.Exceptions.Models;
 
 namespace HiveSpace.UserService.Infrastructure.Mappers;
 
@@ -39,19 +42,22 @@ public static class UserMapper
     /// <summary>
     /// Convert ApplicationUser to Domain User using UserManager for reconstruction
     /// </summary>
-    public static User ToDomainUser(this ApplicationUser applicationUser, IEnumerable<string> roleNames, UserManager userManager)
+    public static User ToDomainUser(this ApplicationUser applicationUser, IEnumerable<string> roleNames)
     {
         if (roleNames == null)
         {
-            throw new ArgumentNullException(nameof(roleNames), "Role names cannot be null.");
+            throw new HiveSpace.Core.Exceptions.ApplicationException(
+                [new Error(CommonErrorCode.ArgumentNull, nameof(roleNames))], 
+                400, 
+                false);
         }
         // Get the single role (enforces one role only business rule)
-        var userRole = RoleMapper.GetSingleRole(roleNames);
-        if (userRole == null)
-        {
-            throw new ArgumentException("User must have a valid role assigned", nameof(roleNames));
-        }
-        
+        var userRole = RoleMapper.GetSingleRole(roleNames)
+            ?? throw new HiveSpace.Core.Exceptions.ApplicationException(
+                [new Error(CommonErrorCode.InvalidArgument, nameof(roleNames))], 
+                400, 
+                false);
+
         // Parse domain value objects using factory methods
         var email = Email.Create(applicationUser.Email ?? string.Empty);
         var phoneNumber = PhoneNumber.CreateOrDefault(applicationUser.PhoneNumber);
@@ -68,8 +74,9 @@ public static class UserMapper
             ? parsedStatus 
             : UserStatus.Active;
 
-        // Use UserManager to reconstruct the domain user
-        return userManager.ReconstructUser(
+        // Use internal rehydration API (visible only to Infrastructure via InternalsVisibleTo)
+        return User.Rehydrate(
+            id: applicationUser.Id,
             email: email,
             userName: applicationUser.UserName ?? string.Empty,
             passwordHash: applicationUser.PasswordHash ?? string.Empty,
@@ -82,24 +89,7 @@ public static class UserMapper
             status: status,
             createdAt: applicationUser.CreatedAt,
             updatedAt: applicationUser.UpdatedAt,
-            lastLoginAt: applicationUser.LastLoginAt);
-    }
-
-    /// <summary>
-    /// Update ApplicationUser with changes from Domain User
-    /// Preserves EF Core change tracking
-    /// </summary>
-    public static void UpdateApplicationUser(this ApplicationUser applicationUser, User domainUser)
-    {
-        applicationUser.UserName = domainUser.UserName;
-        applicationUser.Email = domainUser.Email.Value;
-        applicationUser.PhoneNumber = domainUser.PhoneNumber?.Value;
-        applicationUser.FullName = domainUser.FullName;
-        applicationUser.UpdatedAt = DateTimeOffset.UtcNow;
-        applicationUser.DateOfBirth = domainUser.DateOfBirth?.Value.DateTime;
-        applicationUser.Gender = domainUser.Gender?.ToString();
-        applicationUser.UserStatus = domainUser.Status.ToString();
-        applicationUser.UpdatedAt = DateTime.UtcNow;
-        // Note: Addresses are updated separately via EF Core change tracking
+            lastLoginAt: applicationUser.LastLoginAt,
+            addresses: applicationUser.Addresses);
     }
 }

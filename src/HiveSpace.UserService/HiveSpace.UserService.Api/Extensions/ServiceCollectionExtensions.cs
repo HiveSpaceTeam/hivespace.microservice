@@ -1,22 +1,13 @@
 using Duende.IdentityServer;
-using FluentValidation;
 using HiveSpace.Core.Contexts;
 using HiveSpace.Core.Filters;
 using HiveSpace.UserService.Api.Configs;
 using HiveSpace.UserService.Infrastructure.Identity;
-// using HiveSpace.UserService.Application.Validators.Address;
-// using HiveSpace.UserService.Application.Validators.User;
-using HiveSpace.UserService.Domain.Repositories;
 using HiveSpace.UserService.Domain.Services;
 using HiveSpace.UserService.Infrastructure;
 using HiveSpace.UserService.Infrastructure.Data;
-using HiveSpace.UserService.Infrastructure.Repositories;
-using HiveSpace.Infrastructure.Messaging.Interfaces;
-using HiveSpace.Infrastructure.Persistence;
-using HiveSpace.Infrastructure.Persistence.Outbox;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
+using HiveSpace.UserService.Application.Services;
 // using HiveSpace.UserService.Application.Models.Requests;
 
 namespace HiveSpace.UserService.Api.Extensions;
@@ -52,18 +43,17 @@ internal static class ServiceCollectionExtensions
     public static void AddAppApplicationServices(this IServiceCollection services)
     {
         services.AddScoped<IUserContext, UserContext>();
-        // Domain services
-        services.AddScoped<StoreManager>();
+        services.AddScoped<IAdminService, AdminService>();
     }
 
-    public static void AddFluentValidationServices(this IServiceCollection services)
+    public static void AddAppDomainServices(this IServiceCollection services)
     {
-        // TODO: Uncomment when Application layer is created
-        // services.AddTransient<IValidator<AddressRequestDto>, AddressValidator>();
-        // services.AddTransient<IValidator<SignupRequestDto>, SignupValidator>();
-        // services.AddTransient<IValidator<UpdateUserRequestDto>, UpdateUserValidator>();
-        // services.AddTransient<IValidator<ChangePasswordRequestDto>, ChangePasswordValidator>();
+        // Domain services
+        services.AddScoped<StoreManager>();
+        services.AddScoped<UserManager>();
     }
+
+
 
     public static void AddAppIdentityServer(this IServiceCollection services, IConfiguration configuration)
     {

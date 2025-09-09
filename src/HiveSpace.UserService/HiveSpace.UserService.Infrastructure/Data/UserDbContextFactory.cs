@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 using System.IO;
+using HiveSpace.Core.Exceptions;
+using HiveSpace.Core.Exceptions.Models;
 
 namespace HiveSpace.UserService.Infrastructure.Data;
 
@@ -16,8 +18,12 @@ public class UserDbContextFactory : IDesignTimeDbContextFactory<UserDbContext>
             .AddJsonFile("appsettings.json", optional: false)
             .Build();
 
-        var connectionString = configuration.GetConnectionString("UserServiceDb")
-            ?? throw new InvalidOperationException("Connection string 'UserServiceDb' not found.");
+        var connectionString = configuration.GetConnectionString("UserServiceDb");
+        if (connectionString == null)
+        {
+            var error = new Error(CommonErrorCode.ConfigurationMissing, "UserServiceDb");
+            throw new HiveSpace.Core.Exceptions.ApplicationException([error], 500, false);
+        }
 
         var optionsBuilder = new DbContextOptionsBuilder<UserDbContext>();
         optionsBuilder.UseSqlServer(connectionString);

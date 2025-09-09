@@ -11,7 +11,6 @@ public class UserDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Gui
 {
     public DbSet<Address> Addresses { get; set; }
     public DbSet<Store> Stores { get; set; }
-
     public UserDbContext(DbContextOptions<UserDbContext> options) : base(options)
     {
     }
@@ -33,5 +32,13 @@ public class UserDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Gui
         builder.Entity<IdentityRoleClaim<Guid>>().ToTable("role_claims");
         builder.Entity<IdentityUserToken<Guid>>().ToTable("user_tokens");
         builder.Entity<Store>().ToTable("stores");
+
+        // Explicitly map ApplicationUser -> IdentityUserRole using UserId (avoid shadow FK ApplicationUserId)
+        builder.Entity<ApplicationUser>()
+            .HasMany(u => u.UserRoles)
+            .WithOne() // IdentityUserRole<TKey> has no navigation back to user by default
+            .HasForeignKey(ur => ur.UserId)
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

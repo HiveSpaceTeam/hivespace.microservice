@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using HiveSpace.Core.Exceptions;
+using HiveSpace.Core.Exceptions.Models;
 
 namespace HiveSpace.UserService.Infrastructure;
 
@@ -16,8 +18,12 @@ public static class UserInfrastructureExtension
 
     public static void AddUserDbContext(this IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("UserServiceDb")
-            ?? throw new InvalidOperationException($"Connection string 'UserServiceDb' not found.");
+        var connectionString = configuration.GetConnectionString("UserServiceDb");
+        if (connectionString is null)
+        {
+            var error = new Error(CommonErrorCode.ConfigurationMissing, "UserServiceDb");
+            throw new HiveSpace.Core.Exceptions.ApplicationException([error], 500, false);
+        }
 
         // Register interceptors manually
         services.AddScoped<ISaveChangesInterceptor, AuditableInterceptor>();

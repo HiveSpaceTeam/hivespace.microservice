@@ -28,7 +28,7 @@ public static class ValidationHelper
         if (!validationResult.IsValid)
         {
             return [.. validationResult.Errors.Select(x => x.CustomState as Error ?? 
-                new Error(ApplicationErrorCode.FluentValidationError, null))
+                new Error(CommonErrorCode.FluentValidationError, null))
             ];
         }
         return [];

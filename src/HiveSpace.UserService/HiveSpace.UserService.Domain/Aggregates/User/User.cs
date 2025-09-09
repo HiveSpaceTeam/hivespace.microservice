@@ -65,29 +65,40 @@ public class User : AggregateRoot<Guid>, IAuditable
         LastLoginAt = lastLoginAt;
     }
 
-    // Rehydration factory for persistence
+    /// <summary>
+    /// Rehydrates a User aggregate from persisted/raw values. Intended for Infrastructure only.
+    /// </summary>
     internal static User Rehydrate(
         Guid id,
         Email email,
         string userName,
         string passwordHash,
         string fullName,
-        Role? role = null,
-        PhoneNumber? phoneNumber = null,
-        DateOfBirth? dateOfBirth = null,
-        Gender? gender = null,
-        Guid? storeId = null,
-        UserStatus status = UserStatus.Active,
-        DateTimeOffset? createdAt = null,
-        DateTimeOffset? updatedAt = null,
-        DateTimeOffset? lastLoginAt = null)
+        Role? role,
+        PhoneNumber? phoneNumber,
+        DateOfBirth? dateOfBirth,
+        Gender? gender,
+        Guid? storeId,
+        UserStatus status,
+        DateTimeOffset createdAt,
+        DateTimeOffset? updatedAt,
+        DateTimeOffset? lastLoginAt,
+        IEnumerable<Address>? addresses = null)
     {
         var user = new User(email, userName, passwordHash, fullName, role, phoneNumber, dateOfBirth, gender, storeId, status, createdAt, updatedAt, lastLoginAt);
-        user.Id = id; // protected setter from AggregateRoot
+        user.Id = id; // protected setter available within the assembly
+
+        if (addresses != null)
+        {
+            foreach (var addr in addresses)
+            {
+                user._addresses.Add(addr);
+            }
+        }
+
         return user;
     }
-
-    // Domain factory method - Internal to force creation through UserManager
+    
     internal static User Create(Email email, string userName, string passwordHash, string fullName, Role? role = null,
         PhoneNumber? phoneNumber = null, DateOfBirth? dateOfBirth = null, Gender? gender = null, 
         Guid? storeId = null, UserStatus status = UserStatus.Active, 
@@ -105,7 +116,7 @@ public class User : AggregateRoot<Guid>, IAuditable
         if (string.IsNullOrWhiteSpace(userName))
             throw new InvalidUserInformationException();
         if (string.IsNullOrWhiteSpace(passwordHash))
-            throw new InvalidPasswordHashException();
+            throw new InvalidPasswordException();
         if (string.IsNullOrWhiteSpace(fullName))
             throw new InvalidUserInformationException();
             
@@ -123,7 +134,7 @@ public class User : AggregateRoot<Guid>, IAuditable
     private static bool ContainsInvalidUsernameCharacters(string userName)
     {
         // Allow only alphanumeric characters, underscore, and hyphen
-        return !userName.All(c => char.IsLetterOrDigit(c) || c == '_' || c == '-');
+        return !userName.All(c => char.IsLetterOrDigit(c) || c == '_' || c == '-' || c == '@' || c == '.');
     }
     
     public void UpdateProfile(string? fullName, PhoneNumber? phoneNumber, DateOfBirth? dateOfBirth, Gender? gender)
@@ -137,7 +148,7 @@ public class User : AggregateRoot<Guid>, IAuditable
     public void ChangePassword(string newPasswordHash)
     {
         if (string.IsNullOrWhiteSpace(newPasswordHash))
-            throw new InvalidPasswordHashException();
+            throw new InvalidPasswordException();
             
         PasswordHash = newPasswordHash;
     }
