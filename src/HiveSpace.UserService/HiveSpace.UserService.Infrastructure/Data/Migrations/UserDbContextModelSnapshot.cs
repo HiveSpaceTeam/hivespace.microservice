@@ -323,6 +323,8 @@ namespace HiveSpace.UserService.Infrastructure.Data.Migrations
 
                     b.HasKey("UserId", "RoleId");
 
+                    b.HasIndex("ApplicationUserId");
+
                     b.HasIndex("RoleId");
 
                     b.ToTable("user_roles", (string)null);
