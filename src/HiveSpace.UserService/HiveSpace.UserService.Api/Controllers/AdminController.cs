@@ -4,7 +4,7 @@ using HiveSpace.UserService.Application.Models.Responses.Admin;
 using HiveSpace.UserService.Application.Validators.Admin;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using HiveSpace.UserService.Application.Interface;
+using HiveSpace.UserService.Application.Interfaces;
 
 namespace HiveSpace.UserService.Api.Controllers;
 
