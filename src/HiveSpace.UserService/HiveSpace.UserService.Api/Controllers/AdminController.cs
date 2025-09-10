@@ -1,10 +1,10 @@
 using HiveSpace.Core.Helpers;
-using HiveSpace.UserService.Application.Models.Requests;
-using HiveSpace.UserService.Application.Models.Responses;
-using HiveSpace.UserService.Application.Services;
+using HiveSpace.UserService.Application.Models.Requests.Admin;
+using HiveSpace.UserService.Application.Models.Responses.Admin;
 using HiveSpace.UserService.Application.Validators.Admin;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using HiveSpace.UserService.Application.Interface;
 
 namespace HiveSpace.UserService.Api.Controllers;
 

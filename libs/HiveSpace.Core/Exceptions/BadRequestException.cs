@@ -1,16 +1,18 @@
 ﻿using HiveSpace.Core.Exceptions.Models;
 
 namespace HiveSpace.Core.Exceptions;
-public class BadRequestException : ApplicationException
-{
-    private static readonly int _httpCode = 400;
 
-    public BadRequestException(List<Error> errorCodeList, bool? enableData = false) 
-        : base(errorCodeList, _httpCode, enableData)
+public class BadRequestException : HiveSpaceException
+{
+    private const int HttpStatusCode = 400;
+
+    public BadRequestException(IEnumerable<Error> errorList, bool? enableData = false) 
+        : base(errorList, HttpStatusCode, enableData)
     {
     }
 
-    public BadRequestException(List<Error> errorCodeList, Exception inner, bool? enableData =false) : base(errorCodeList, inner, _httpCode, enableData)
+    public BadRequestException(IEnumerable<Error> errorList, Exception innerException, bool? enableData = false) 
+        : base(errorList, innerException, HttpStatusCode, enableData)
     {
     }
 }

@@ -1,7 +1,7 @@
 using FluentValidation;
 using HiveSpace.Core.Exceptions;
 using HiveSpace.Core.Exceptions.Models;
-using HiveSpace.UserService.Application.Models.Requests;
+using HiveSpace.UserService.Application.Models.Requests.Admin;
 using HiveSpace.UserService.Domain.Exceptions;
 
 namespace HiveSpace.UserService.Application.Validators.Admin;
@@ -13,7 +13,7 @@ public class CreateAdminValidator : AbstractValidator<CreateAdminRequestDto>
         RuleFor(x => x.FullName)
             .NotEmpty()
             .WithState(_ => new Error(CommonErrorCode.Required, nameof(CreateAdminRequestDto.FullName)))
-            .MaximumLength(100)
+            .Length(2, 100)  
             .WithState(_ => new Error(UserDomainErrorCode.InvalidField, nameof(CreateAdminRequestDto.FullName)));
 
         RuleFor(x => x.Email)
@@ -27,7 +27,7 @@ public class CreateAdminValidator : AbstractValidator<CreateAdminRequestDto>
             .WithState(_ => new Error(CommonErrorCode.Required, nameof(CreateAdminRequestDto.Password)))
             .MinimumLength(12)
             .WithState(_ => new Error(UserDomainErrorCode.InvalidPassword, nameof(CreateAdminRequestDto.Password)))
-            .Matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]")
+            .Matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]+$")
             .WithState(_ => new Error(UserDomainErrorCode.InvalidPassword, nameof(CreateAdminRequestDto.Password)));
 
         RuleFor(x => x.ConfirmPassword)

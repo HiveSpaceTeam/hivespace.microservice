@@ -1,7 +1,7 @@
-using HiveSpace.UserService.Application.Models.Requests;
-using HiveSpace.UserService.Application.Models.Responses;
+using HiveSpace.UserService.Application.Models.Requests.Admin;
+using HiveSpace.UserService.Application.Models.Responses.Admin;
 
-namespace HiveSpace.UserService.Application.Services;
+namespace HiveSpace.UserService.Application.Interface;
 
 public interface IAdminService
 {

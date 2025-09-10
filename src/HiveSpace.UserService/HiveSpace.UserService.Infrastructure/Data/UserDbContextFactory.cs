@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
-using System.IO;
 using HiveSpace.Core.Exceptions;
 using HiveSpace.Core.Exceptions.Models;
 
@@ -19,10 +18,10 @@ public class UserDbContextFactory : IDesignTimeDbContextFactory<UserDbContext>
             .Build();
 
         var connectionString = configuration.GetConnectionString("UserServiceDb");
-        if (connectionString == null)
+        if (string.IsNullOrWhiteSpace(connectionString))
         {
             var error = new Error(CommonErrorCode.ConfigurationMissing, "UserServiceDb");
-            throw new HiveSpace.Core.Exceptions.ApplicationException([error], 500, false);
+            throw new ConfigurationException(new[] { error });
         }
 
         var optionsBuilder = new DbContextOptionsBuilder<UserDbContext>();

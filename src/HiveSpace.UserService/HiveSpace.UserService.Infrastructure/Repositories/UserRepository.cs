@@ -23,13 +23,14 @@ public class UserRepository : IUserRepository
         _userManager = userManager;
     }
 
-    public async Task<User?> GetByIdAsync(object id, bool includeDetail = false)
+    public async Task<User?> GetByIdAsync(Guid id, bool includeDetail = false)
     {
-        var appUser = await _context.Users
-            .Include(u => u.Addresses)
-            .FirstOrDefaultAsync(u => u.Id.ToString() == id.ToString());
+        IQueryable<ApplicationUser> query = _context.Users.AsNoTracking();
+        if (includeDetail)
+            query = query.Include(u => u.Addresses);
 
-        if (appUser == null)
+        var appUser = await query.FirstOrDefaultAsync(u => u.Id == id);
+        if (appUser == null) 
             return null;
 
         var roleNames = await _userManager.GetRolesAsync(appUser);
@@ -87,6 +88,7 @@ public class UserRepository : IUserRepository
     {
         var users = await _context.Users
             .Include(u => u.Addresses)
+            .Include(u => u.UserRoles) // Include Store navigation property
             .ToListAsync();
 
         var result = new List<User>(users.Count);

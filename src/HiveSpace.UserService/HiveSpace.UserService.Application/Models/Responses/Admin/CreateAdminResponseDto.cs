@@ -1,4 +1,4 @@
-namespace HiveSpace.UserService.Application.Models.Responses;
+namespace HiveSpace.UserService.Application.Models.Responses.Admin;
 
 public record CreateAdminResponseDto(
     Guid Id,

@@ -4,11 +4,10 @@ using HiveSpace.Core.Filters;
 using HiveSpace.UserService.Api.Configs;
 using HiveSpace.UserService.Infrastructure.Identity;
 using HiveSpace.UserService.Domain.Services;
-using HiveSpace.UserService.Infrastructure;
 using HiveSpace.UserService.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using HiveSpace.UserService.Application.Services;
-// using HiveSpace.UserService.Application.Models.Requests;
+using HiveSpace.UserService.Application.Interface;
 
 namespace HiveSpace.UserService.Api.Extensions;
 

@@ -1,4 +1,4 @@
-namespace HiveSpace.UserService.Application.Models.Requests;
+namespace HiveSpace.UserService.Application.Models.Requests.Admin;
 
 public record CreateAdminRequestDto(
     string Email,

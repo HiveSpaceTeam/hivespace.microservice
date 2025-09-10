@@ -2,17 +2,17 @@
 
 namespace HiveSpace.Core.Exceptions;
 
-public class ForbiddenException : ApplicationException
+public class ForbiddenException : HiveSpaceException
 {
-    private static readonly int _httpCode = 403;
+    private const int HttpStatusCode = 403;
 
-    public ForbiddenException(List<Error> errorCodeList, bool? enableData = false)
-        : base(errorCodeList, _httpCode, enableData)
+    public ForbiddenException(IEnumerable<Error> errorList, bool? enableData = false)
+        : base(errorList, HttpStatusCode, enableData)
     {
     }
 
-    public ForbiddenException(List<Error> errorCodeList, Exception inner, bool? enableData = false)
-        : base(errorCodeList, inner, _httpCode, enableData)
+    public ForbiddenException(IEnumerable<Error> errorList, Exception innerException, bool? enableData = false)
+        : base(errorList, innerException, HttpStatusCode, enableData)
     {
     }
 }

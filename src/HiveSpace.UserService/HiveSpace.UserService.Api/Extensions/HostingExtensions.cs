@@ -21,7 +21,6 @@ internal static class HostingExtensions
         builder.Services.AddCoreServices();
         builder.Services.AddAppDomainServices();
         builder.Services.AddAppIdentity();
-        builder.Services.AddFluentValidationServices();
         builder.Services.AddAppApplicationServices();
         builder.Services.AddAppIdentityServer(configuration);
         builder.Services.AddAppAuthentication(configuration);

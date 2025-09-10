@@ -42,9 +42,7 @@ public class UserManager : IDomainService
         await CanUserBeRegisteredAsync(email, userName?.Trim() ?? string.Empty, cancellationToken);
         
         // Create new user - validation handled in User.Create
-        var user = User.Create(email, userName ?? string.Empty, PasswordPlaceholder, fullName);
-        
-        return user;
+        var user = User.Create(email, userName?.Trim() ?? string.Empty, PasswordPlaceholder, fullName);        return user;
     }
     
     /// <summary>
@@ -153,7 +151,7 @@ public class UserManager : IDomainService
         // Validate creator has appropriate privileges
         bool requireSystemAdmin = role.Name == RoleNames.SystemAdmin;
         await ValidateAdminUserAsync(creatorUserId, requireSystemAdmin, cancellationToken);
-        
+
         // Check availability (will throw specific exceptions if not available)
         await CanUserBeRegisteredAsync(email, userName?.Trim() ?? string.Empty, cancellationToken);
         
