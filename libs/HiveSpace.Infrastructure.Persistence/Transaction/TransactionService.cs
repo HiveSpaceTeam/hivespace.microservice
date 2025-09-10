@@ -61,7 +61,7 @@ public class TransactionService<TContext> : ITransactionService, IDisposable
                 await transaction.RollbackAsync();
                 _dbContext.ChangeTracker.Clear();
                 throw new ConcurrencyException([
-                    new Error(ApplicationErrorCode.ConcurrencyException, null)
+                    new Error(CommonErrorCode.ConcurrencyException, null)
                 ], ex);
             }
             catch (Exception)

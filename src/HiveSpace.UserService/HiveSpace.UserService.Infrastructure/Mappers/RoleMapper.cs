@@ -1,5 +1,7 @@
 using HiveSpace.UserService.Domain.Aggregates.User;
 using Microsoft.AspNetCore.Identity;
+using HiveSpace.Core.Exceptions;
+using HiveSpace.Core.Exceptions.Models;
 
 namespace HiveSpace.UserService.Infrastructure.Mappers;
 
@@ -13,7 +15,10 @@ public static class RoleMapper
     /// </summary>
     public static string ToRoleName(Role? role)
     {
-        return role?.Name ?? throw new ArgumentNullException(nameof(role), "Role cannot be null. All users must have a role.");
+        return role?.Name ?? throw new HiveSpace.Core.Exceptions.ApplicationException(
+            [new Error(CommonErrorCode.ArgumentNull, nameof(role))], 
+            400, 
+            false);
     }
 
     /// <summary>
@@ -41,7 +46,10 @@ public static class RoleMapper
         {
             0 => null, // No role assigned
             1 => roles.First(),
-            _ => throw new InvalidOperationException($"User has multiple roles: {string.Join(", ", roles.Select(r => r?.Name))}")
+            _ => throw new HiveSpace.Core.Exceptions.ApplicationException(
+                [new Error(CommonErrorCode.RoleMappingError, "roles")], 
+                400, 
+                false)
         };
     }
 }

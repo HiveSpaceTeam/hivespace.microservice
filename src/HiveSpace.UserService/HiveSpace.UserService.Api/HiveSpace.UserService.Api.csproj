@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- <ProjectReference Include="..\HiveSpace.UserService.Application\HiveSpace.UserService.Application.csproj" /> -->
+    <ProjectReference Include="..\HiveSpace.UserService.Application\HiveSpace.UserService.Application.csproj" />
     <ProjectReference Include="..\HiveSpace.UserService.Infrastructure\HiveSpace.UserService.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\libs\HiveSpace.Core\HiveSpace.Core.csproj" />
   </ItemGroup>
