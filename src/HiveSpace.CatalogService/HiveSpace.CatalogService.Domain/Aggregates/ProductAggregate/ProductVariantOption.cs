@@ -4,6 +4,7 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
 {
     public class ProductVariantOption : ValueObject
     {
+        public int VariantId { get; set; }
         public string Value { get; private set; }
 
         private ProductVariantOption()

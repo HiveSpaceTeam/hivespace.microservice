@@ -4,6 +4,7 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
 {
     public class ProductVariant : Entity<int>
     {
+        public int ProductId { get; set; }
         public string Name { get; private set; }
 
         private readonly List<ProductVariantOption> _options = [];

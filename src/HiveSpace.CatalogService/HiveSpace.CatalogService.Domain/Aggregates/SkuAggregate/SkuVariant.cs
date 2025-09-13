@@ -4,18 +4,21 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.SkuAggregate
 {
     public class SkuVariant : ValueObject
     {
-        public string Name { get; private set; }
+        public int SkuId { get; set; }
+        public int VariantId { get; set; }
         public string Value { get; private set; }
 
-        public SkuVariant(string name, string value)
+        public SkuVariant(int skuId, int variantId, string value)
         {
-            Name = name;
+            SkuId = skuId;
+            VariantId = variantId;
             Value = value;
         }
 
         protected override IEnumerable<object> GetEqualityComponents()
         {
-            yield return Name;
+            yield return SkuId;
+            yield return VariantId;
             yield return Value;
         }
     }
