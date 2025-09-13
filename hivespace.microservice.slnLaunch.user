@@ -5,10 +5,6 @@
       {
         "Path": "src\\HiveSpace.ApiGateway\\HiveSpace.YarpApiGateway\\HiveSpace.YarpApiGateway.csproj",
         "Action": "Start"
-      },
-      {
-        "Path": "src\\HiveSpace.IdentityService\\HiveSpace.IdentityService.Api\\HiveSpace.IdentityService.Api.csproj",
-        "Action": "Start"
       }
     ]
   }

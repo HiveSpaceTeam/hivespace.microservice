@@ -1,7 +1,7 @@
 using HiveSpace.Core.Contexts;
 using HiveSpace.UserService.Application.Models.Requests.Admin;
 using HiveSpace.UserService.Application.Models.Responses.Admin;
-using HiveSpace.UserService.Application.Interface;
+using HiveSpace.UserService.Application.Interfaces;
 using HiveSpace.UserService.Domain.Aggregates.User;
 using HiveSpace.UserService.Domain.Services;
 using HiveSpace.UserService.Domain.Repositories;
