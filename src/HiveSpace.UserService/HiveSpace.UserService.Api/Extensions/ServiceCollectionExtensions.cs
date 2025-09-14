@@ -141,20 +141,4 @@ internal static class ServiceCollectionExtensions
             options.ReportApiVersions = true;
         });
     }
-
-    public static void AddAppCors(this IServiceCollection services, IConfiguration configuration)
-    {
-        services.AddCors(options =>
-        {
-            options.AddPolicy("AllowFrontend", policy =>
-            {
-                policy.WithOrigins("http://localhost:5173")
-                      .AllowAnyMethod()
-                      .AllowAnyHeader()
-                      .AllowCredentials();
-            });
-        });
-    }
-
-
 }

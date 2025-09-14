@@ -1,6 +1,6 @@
 ﻿using HiveSpace.Core.Models.Pagination;
+using HiveSpace.UserService.Application.Models.Queries;
 using HiveSpace.UserService.Application.Models.Responses.Admin;
-using HiveSpace.UserService.Domain.Models;
 
 namespace HiveSpace.UserService.Application.Queries;
 

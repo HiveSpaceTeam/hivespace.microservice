@@ -1,7 +1,7 @@
 using HiveSpace.Core.Models.Filtering;
-using HiveSpace.UserService.Domain.Enums;
+using HiveSpace.UserService.Application.Constant.Enum;
 
-namespace HiveSpace.UserService.Domain.Models;
+namespace HiveSpace.UserService.Application.Models.Queries;
 
 public class AdminUserFilterRequest : FilterRequest
 {

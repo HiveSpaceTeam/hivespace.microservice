@@ -1,9 +1,9 @@
 using Dapper;
 using HiveSpace.Core.Models.Pagination;
+using HiveSpace.UserService.Application.Constant.Enum;
+using HiveSpace.UserService.Application.Models.Queries;
 using HiveSpace.UserService.Application.Models.Responses.Admin;
 using HiveSpace.UserService.Application.Queries;
-using HiveSpace.UserService.Domain.Enums;
-using HiveSpace.UserService.Domain.Models;
 using Microsoft.Data.SqlClient;
 
 namespace HiveSpace.UserService.Infrastructure.Queries;

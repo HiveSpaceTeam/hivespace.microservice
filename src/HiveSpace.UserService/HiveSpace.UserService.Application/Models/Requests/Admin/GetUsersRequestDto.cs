@@ -1,4 +1,4 @@
-using HiveSpace.UserService.Domain.Enums;
+using HiveSpace.UserService.Application.Constant.Enum;
 
 namespace HiveSpace.UserService.Application.Models.Requests.Admin;
 

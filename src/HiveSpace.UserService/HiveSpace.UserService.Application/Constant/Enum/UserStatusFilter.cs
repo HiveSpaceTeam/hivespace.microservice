@@ -1,4 +1,4 @@
-namespace HiveSpace.UserService.Domain.Enums;
+namespace HiveSpace.UserService.Application.Constant.Enum;
 
 public enum UserStatusFilter
 {

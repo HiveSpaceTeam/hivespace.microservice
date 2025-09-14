@@ -26,7 +26,6 @@ internal static class HostingExtensions
         builder.Services.AddAppAuthentication(configuration);
         builder.Services.AddAppAuthorization();
         builder.Services.AddAppApiVersioning();
-        builder.Services.AddAppCors(configuration);
 
         return builder.Build();
     }
@@ -41,9 +40,6 @@ internal static class HostingExtensions
 
         app.UseStaticFiles();
         app.UseRouting();
-
-        // Add CORS before authentication
-        app.UseCors("AllowFrontend");
 
         app.UseIdentityServer();
         app.UseAuthentication();

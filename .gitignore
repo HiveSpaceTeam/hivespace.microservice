@@ -51,3 +51,6 @@ test/HiveSpace.IdentityService/HiveSpace.IdentityService.FunctionalTests/bin
 /src/HiveSpace.UserService/HiveSpace.UserService.Api/bin/Debug/net8.0
 /src/HiveSpace.UserService/HiveSpace.UserService.Application/bin/Debug/net8.0
 /src/HiveSpace.UserService/HiveSpace.UserService.Application/obj
+/hivespace.microservice.slnLaunch.user
+/.vscode
+/.vscode/launch.json

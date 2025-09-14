@@ -9,7 +9,7 @@ using HiveSpace.UserService.Application.Interfaces;
 namespace HiveSpace.UserService.Api.Controllers;
 
 [ApiController]
-[Route("api/v{version:apiVersion}/admin")]
+[Route("api/v{version:apiVersion}/admins")]
 [ApiVersion("1.0")]
 public class AdminController : ControllerBase
 {

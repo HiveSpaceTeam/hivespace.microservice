@@ -6,7 +6,7 @@ using HiveSpace.UserService.Application.Queries;
 using HiveSpace.UserService.Domain.Aggregates.User;
 using HiveSpace.UserService.Domain.Services;
 using HiveSpace.UserService.Domain.Repositories;
-using HiveSpace.UserService.Domain.Models;
+using HiveSpace.UserService.Application.Models.Queries;
 
 namespace HiveSpace.UserService.Application.Services;
 
@@ -54,8 +54,8 @@ public class AdminService : IAdminService
             created.Id,
             created.Email.Value,
             created.UserName,
-            created.FullName,
-            created.Role?.Name ?? string.Empty);
+            created.IsSystemAdmin,
+            created.CreatedAt);
     }
 
     public async Task<GetUsersResponseDto> GetUsersAsync(GetUsersRequestDto request, CancellationToken cancellationToken = default)
