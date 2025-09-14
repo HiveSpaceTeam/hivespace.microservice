@@ -28,4 +28,19 @@ public class AdminController : ControllerBase
         var result = await _adminService.CreateAdminAsync(request, cancellationToken);
         return CreatedAtAction(nameof(CreateAdmin), new { id = result.Id }, result);
     }
+
+    [HttpGet("users")]
+    [Authorize(Policy = "RequireUserFullAccessScope")]
+    public async Task<ActionResult<GetUsersResponseDto>> GetUsers(
+        [FromQuery] GetUsersRequestDto request,
+        CancellationToken cancellationToken)
+    {
+        // Validate request
+        ValidationHelper.ValidateResult(new GetUsersValidator().Validate(request));
+
+        // Call service
+        var result = await _adminService.GetUsersAsync(request, cancellationToken);
+
+        return Ok(result);
+    }
 }

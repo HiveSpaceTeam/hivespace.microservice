@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\libs\HiveSpace.Domain.Shared\HiveSpace.Domain.Shared.csproj" />
+    <ProjectReference Include="..\..\..\libs\HiveSpace.Core\HiveSpace.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -22,7 +22,7 @@ internal static class ServiceCollectionExtensions
             options.Filters.Add<CustomExceptionFilter>();
         });
     }
-     
+
     public static void AddAppIdentity(this IServiceCollection services)
     {
         services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
@@ -139,6 +139,20 @@ internal static class ServiceCollectionExtensions
             options.DefaultApiVersion = new Microsoft.AspNetCore.Mvc.ApiVersion(1, 0);
             options.AssumeDefaultVersionWhenUnspecified = true;
             options.ReportApiVersions = true;
+        });
+    }
+
+    public static void AddAppCors(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddCors(options =>
+        {
+            options.AddPolicy("AllowFrontend", policy =>
+            {
+                policy.WithOrigins("http://localhost:5173")
+                      .AllowAnyMethod()
+                      .AllowAnyHeader()
+                      .AllowCredentials();
+            });
         });
     }
 
