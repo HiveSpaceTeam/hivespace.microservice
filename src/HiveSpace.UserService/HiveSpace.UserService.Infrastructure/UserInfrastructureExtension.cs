@@ -2,7 +2,7 @@ using HiveSpace.UserService.Domain.Repositories;
 using HiveSpace.UserService.Infrastructure.Data;
 using HiveSpace.UserService.Infrastructure.Repositories;
 using HiveSpace.UserService.Infrastructure.Queries;
-using HiveSpace.UserService.Application.Queries;
+using HiveSpace.UserService.Application.Interfaces.DataQueries;
 using HiveSpace.Infrastructure.Persistence;
 using HiveSpace.Infrastructure.Persistence.Outbox;
 using HiveSpace.Infrastructure.Persistence.Interceptors;
