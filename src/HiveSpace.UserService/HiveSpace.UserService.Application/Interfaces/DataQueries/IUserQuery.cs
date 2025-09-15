@@ -2,7 +2,7 @@
 using HiveSpace.UserService.Application.Models.Queries;
 using HiveSpace.UserService.Application.Models.Responses.Admin;
 
-namespace HiveSpace.UserService.Application.Queries;
+namespace HiveSpace.UserService.Application.Interfaces.DataQueries;
 
 public interface IUserQuery
 {

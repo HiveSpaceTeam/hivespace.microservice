@@ -3,7 +3,7 @@ using HiveSpace.Core.Models.Pagination;
 using HiveSpace.UserService.Application.Constant.Enum;
 using HiveSpace.UserService.Application.Models.Queries;
 using HiveSpace.UserService.Application.Models.Responses.Admin;
-using HiveSpace.UserService.Application.Queries;
+using HiveSpace.UserService.Application.Interfaces.DataQueries;
 using Microsoft.Data.SqlClient;
 
 namespace HiveSpace.UserService.Infrastructure.Queries;
