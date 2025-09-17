@@ -67,25 +67,15 @@ public class UserQuery : IUserQuery
         var parameters = BuildParameters(request);
 
         // Execute queries in parallel using separate connections
-        var usersTask = Task.Run(async () =>
-        {
-            using var connection = new SqlConnection(_connectionString);
-            return await connection.QueryAsync<UserListItemDto>(mainQuery, parameters);
-        });
-
-        var countTask = Task.Run(async () =>
-        {
-            using var connection = new SqlConnection(_connectionString);
-            return await connection.QuerySingleAsync<int>(countQuery, parameters);
-        });
-
-        await Task.WhenAll(usersTask, countTask);
-
-        var users = await usersTask;
-        var totalItems = await countTask;
+        var batchSql = $"{mainQuery};{countQuery};";
+        using var connection = new SqlConnection(_connectionString);
+        var cmd = new CommandDefinition(batchSql, parameters, cancellationToken: cancellationToken);
+        using var grid = await connection.QueryMultipleAsync(cmd);
+        var users = (await grid.ReadAsync<UserListItemDto>()).AsList();
+        var totalItems = await grid.ReadSingleAsync<int>();
 
         return new PagedResult<UserListItemDto>(
-            [.. users],
+            users,
             request.Page,
             request.PageSize,
             totalItems);
@@ -95,14 +85,22 @@ public class UserQuery : IUserQuery
     {
         using var connection = new SqlConnection(_connectionString);
 
-        var whereConditions = BuildWhereConditions(request);
-        var countQuery = $@"
-            SELECT COUNT(*)
-            FROM users u
-            {whereConditions}";
+        var whereConditions = BuildWhereConditions(request);  
+        var countQuery = $@"  
+            SELECT COUNT(DISTINCT u.Id)  
+            FROM users u  
+            WHERE NOT EXISTS (  
+                SELECT 1 
+                FROM user_roles ur2 
+                JOIN roles r2 ON ur2.RoleId = r2.Id 
+                WHERE ur2.UserId = u.Id 
+                AND r2.Name IN ('SystemAdmin', 'Admin')  
+            )  
+            {whereConditions}";  
 
-        var parameters = BuildParameters(request);
-        return await connection.QuerySingleAsync<int>(countQuery, parameters);
+        var parameters = BuildParameters(request);  
+        var cmd = new CommandDefinition(countQuery, parameters, cancellationToken: cancellationToken);  
+        return await connection.QuerySingleAsync<int>(cmd);    
     }
 
     private static string BuildWhereConditions(AdminUserFilterRequest request)

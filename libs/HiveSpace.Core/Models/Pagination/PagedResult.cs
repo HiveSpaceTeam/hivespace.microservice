@@ -23,6 +23,10 @@ public class PaginationMetadata
 
     public PaginationMetadata(int currentPage, int pageSize, int totalItems)
     {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(pageSize);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(currentPage);
+        ArgumentOutOfRangeException.ThrowIfNegative(totalItems);
+
         CurrentPage = currentPage;
         PageSize = pageSize;
         TotalItems = totalItems;
