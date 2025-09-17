@@ -3,7 +3,6 @@ using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Services;
 using Microsoft.AspNetCore.Identity;
 using HiveSpace.UserService.Domain.Repositories;
-using HiveSpace.UserService.Infrastructure.Data;
 using HiveSpace.UserService.Domain.Enums;
 
 namespace HiveSpace.UserService.Infrastructure.Identity;
