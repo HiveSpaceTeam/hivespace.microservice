@@ -29,8 +29,8 @@ public static class UserMapper
             FullName = domainUser.FullName,
             StoreId = domainUser.StoreId,
             DateOfBirth = domainUser.DateOfBirth?.Value.DateTime,
-            Gender = domainUser.Gender?.ToString(),
-            UserStatus = domainUser.Status.ToString(),
+            Gender = (int?)domainUser.Gender,
+            Status = (int)domainUser.Status,
             CreatedAt = domainUser.CreatedAt,
             UpdatedAt = domainUser.UpdatedAt,
             LastLoginAt = domainUser.LastLoginAt,
@@ -64,15 +64,12 @@ public static class UserMapper
         var dateOfBirth = applicationUser.DateOfBirth.HasValue 
             ? new DateOfBirth(new DateTimeOffset(applicationUser.DateOfBirth.Value, TimeSpan.Zero))
             : null;
-        var gender = !string.IsNullOrEmpty(applicationUser.Gender) 
-            && Enum.TryParse<Gender>(applicationUser.Gender, out var parsedGender) 
-            ? parsedGender 
+        var gender = applicationUser.Gender.HasValue 
+            ? (Gender)applicationUser.Gender.Value 
             : (Gender?)null;
         
         // Parse status
-        var status = Enum.TryParse<UserStatus>(applicationUser.UserStatus, out var parsedStatus) 
-            ? parsedStatus 
-            : UserStatus.Active;
+        var status = (UserStatus)applicationUser.Status;
 
         // Use internal rehydration API (visible only to Infrastructure via InternalsVisibleTo)
         return User.Rehydrate(

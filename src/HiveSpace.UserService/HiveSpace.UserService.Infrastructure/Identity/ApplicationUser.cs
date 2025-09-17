@@ -9,8 +9,8 @@ public class ApplicationUser : IdentityUser<Guid>
     public string FullName { get; set; } = string.Empty;
     public Guid? StoreId { get; set; }
     public DateTime? DateOfBirth { get; set; }
-    public string? Gender { get; set; }
-    public string UserStatus { get; set; } = string.Empty;
+    public int? Gender { get; set; }
+    public int Status { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset? UpdatedAt { get; set; }
     public DateTimeOffset? LastLoginAt { get; set; }

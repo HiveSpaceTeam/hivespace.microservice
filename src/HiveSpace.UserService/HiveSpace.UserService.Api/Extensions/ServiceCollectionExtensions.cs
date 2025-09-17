@@ -22,7 +22,7 @@ internal static class ServiceCollectionExtensions
             options.Filters.Add<CustomExceptionFilter>();
         });
     }
-     
+
     public static void AddAppIdentity(this IServiceCollection services)
     {
         services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
@@ -141,6 +141,4 @@ internal static class ServiceCollectionExtensions
             options.ReportApiVersions = true;
         });
     }
-
-
 }

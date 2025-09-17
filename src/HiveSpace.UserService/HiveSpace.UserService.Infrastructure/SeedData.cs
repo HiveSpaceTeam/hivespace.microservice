@@ -44,8 +44,8 @@ public class SeedData
                     FullName = "Alice Smith",
                     PhoneNumber = "+1234567890",
                     DateOfBirth = new DateTime(1990, 1, 15),
-                    Gender = "Female",
-                    UserStatus = UserStatus.Active.ToString(),
+                    Gender = (int)Gender.Female,
+                    Status = (int)UserStatus.Active,
                     CreatedAt = DateTimeOffset.UtcNow
                 };
 
@@ -110,8 +110,8 @@ public class SeedData
                     FullName = "Bob Smith",
                     PhoneNumber = "+0987654321",
                     DateOfBirth = new DateTime(1985, 6, 20),
-                    Gender = "Male",
-                    UserStatus = UserStatus.Active.ToString(),
+                    Gender = (int)Gender.Male,
+                    Status = (int)UserStatus.Active,
                     CreatedAt = DateTimeOffset.UtcNow
                 };
 
@@ -188,8 +188,8 @@ public class SeedData
                     FullName = "System Administrator",
                     PhoneNumber = "+1111111111",
                     DateOfBirth = new DateTime(1980, 3, 10),
-                    Gender = "Male",
-                    UserStatus = UserStatus.Active.ToString(),
+                    Gender = (int)Gender.Male,
+                    Status = (int)UserStatus.Active,
                     CreatedAt = DateTimeOffset.UtcNow
                 };
 
@@ -238,8 +238,8 @@ public class SeedData
                     FullName = "Admin User",
                     PhoneNumber = "+2222222222",
                     DateOfBirth = new DateTime(1985, 8, 22),
-                    Gender = "Female",
-                    UserStatus = UserStatus.Active.ToString(),
+                    Gender = (int)Gender.Female,
+                    Status = (int)UserStatus.Active,
                     CreatedAt = DateTimeOffset.UtcNow
                 };
 
@@ -307,8 +307,8 @@ public class SeedData
                     FullName = "John Seller",
                     PhoneNumber = "+3333333333",
                     DateOfBirth = new DateTime(1988, 12, 5),
-                    Gender = "Male",
-                    UserStatus = UserStatus.Active.ToString(),
+                    Gender = (int)Gender.Male,
+                    Status = (int)UserStatus.Active,
                     CreatedAt = DateTimeOffset.UtcNow
                 };
 

@@ -2,8 +2,8 @@ namespace HiveSpace.UserService.Domain.Enums;
 
 public enum Gender
 {
+    Female = 0,
     Male = 1,
-    Female = 2,
-    Other = 3,
-    PreferNotToSay = 4
+    Other = 2,
+    PreferNotToSay = 3
 }

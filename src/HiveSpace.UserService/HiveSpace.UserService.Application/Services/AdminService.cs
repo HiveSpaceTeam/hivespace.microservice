@@ -2,9 +2,11 @@ using HiveSpace.Core.Contexts;
 using HiveSpace.UserService.Application.Models.Requests.Admin;
 using HiveSpace.UserService.Application.Models.Responses.Admin;
 using HiveSpace.UserService.Application.Interfaces;
+using HiveSpace.UserService.Application.Interfaces.DataQueries;
 using HiveSpace.UserService.Domain.Aggregates.User;
 using HiveSpace.UserService.Domain.Services;
 using HiveSpace.UserService.Domain.Repositories;
+using HiveSpace.UserService.Application.Models.Queries;
 
 namespace HiveSpace.UserService.Application.Services;
 
@@ -13,15 +15,18 @@ public class AdminService : IAdminService
     private readonly IUserContext _userContext;
     private readonly UserManager _domainUserManager;
     private readonly IUserRepository _userRepository;
+    private readonly IUserQuery _userQuery;
 
     public AdminService(
         IUserContext userContext,
         UserManager domainUserManager,
-        IUserRepository userRepository)
+        IUserRepository userRepository,
+        IUserQuery userQuery)
     {
         _userContext = userContext;
         _domainUserManager = domainUserManager;
         _userRepository = userRepository;
+        _userQuery = userQuery;
     }
 
     public async Task<CreateAdminResponseDto> CreateAdminAsync(CreateAdminRequestDto request, CancellationToken cancellationToken = default)
@@ -51,5 +56,26 @@ public class AdminService : IAdminService
             created.UserName,
             created.IsSystemAdmin,
             created.CreatedAt);
+    }
+
+    public async Task<GetUsersResponseDto> GetUsersAsync(GetUsersRequestDto request, CancellationToken cancellationToken = default)
+    {
+        // Map to domain filter
+        var filterRequest = new AdminUserFilterRequest
+        {
+            Page = request.Page,
+            PageSize = request.PageSize,
+            Role = request.Role,
+            Status = request.Status,
+            SearchTerm = request.SearchTerm?.Trim(),
+            Sort = request.Sort
+        };
+
+        filterRequest.Validate();
+
+        // Get paginated results from Dapper query
+        var pagedUsers = await _userQuery.GetPagingUsersAsync(filterRequest, cancellationToken);
+
+        return new GetUsersResponseDto(pagedUsers.Items, pagedUsers.Pagination);
     }
 }

@@ -34,8 +34,10 @@ public class ApplicationUserEntityConfiguration : IEntityTypeConfiguration<Appli
         
         builder.Property(u => u.DateOfBirth);
         
-        builder.Property(u => u.Gender)
-            .HasConversion<string>();
+        builder.Property(u => u.Gender);
+        
+        builder.Property(u => u.Status)
+            .IsRequired();
         
         builder.Property(u => u.StoreId);
 
@@ -50,6 +52,13 @@ public class ApplicationUserEntityConfiguration : IEntityTypeConfiguration<Appli
         builder.HasMany(u => u.Addresses)
             .WithOne()
             .HasForeignKey("UserId")
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Configure the UserRoles collection (Identity relationship)
+        builder.HasMany(u => u.UserRoles)
+            .WithOne() // IdentityUserRole<TKey> has no navigation back to user by default
+            .HasForeignKey(ur => ur.UserId)
+            .IsRequired()
             .OnDelete(DeleteBehavior.Cascade);
 
         // Table name
