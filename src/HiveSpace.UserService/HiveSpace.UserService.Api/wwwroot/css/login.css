@@ -484,8 +484,8 @@ input[type="checkbox"]:checked ~ .checkbox-custom .checkbox-mark {
     color: var(--color-error-500);
 }
 
-/* Button base styles */
-button {
+/* Button base styles (scoped to login page) */
+.login-container button {
     border: none !important;
     border-width: 0 !important;
     border-style: none !important;

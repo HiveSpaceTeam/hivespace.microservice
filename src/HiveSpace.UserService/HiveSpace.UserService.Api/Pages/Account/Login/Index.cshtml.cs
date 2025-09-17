@@ -157,8 +157,7 @@ public class Index : PageModel
                 await _events.RaiseAsync(new UserLoginSuccessEvent(
                     user.UserName,
                     user.Id.ToString(),
-                    user.Email,
-                    clientId: context?.Client.ClientId
+                    user.UserName // Use display name or full name if available
                 ));
                 Telemetry.Metrics.UserLogin(
                     context?.Client.ClientId,
