@@ -3,16 +3,16 @@ using HiveSpace.Core.Models.Pagination;
 using HiveSpace.UserService.Application.Constant.Enum;
 using HiveSpace.UserService.Application.Models.Queries;
 using HiveSpace.UserService.Application.Models.Responses.Admin;
-using HiveSpace.UserService.Application.Interfaces.DataQueries;
+using HiveSpace.UserService.Application.Interfaces;
 using Microsoft.Data.SqlClient;
 
-namespace HiveSpace.UserService.Infrastructure.Queries;
+namespace HiveSpace.UserService.Infrastructure.DataQueries;
 
-public class UserQuery : IUserQuery
+public class UserDataQuery : IUserDataQuery
 {
     private readonly string _connectionString;
 
-    public UserQuery(string connectionString)
+    public UserDataQuery(string connectionString)
     {
         _connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
     }

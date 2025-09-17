@@ -85,7 +85,8 @@ public class CustomProfileService : IProfileService
         
         if (user.Gender.HasValue)
         {
-            claims.Add(new Claim("gender", user.Gender.Value.ToString()));
+            var genderName = ((Gender)user.Gender.Value).ToString().ToLowerInvariant();
+            claims.Add(new Claim("gender", genderName));
         }
 
         // Finally, issue the claims to the token.

@@ -1,8 +1,8 @@
 using HiveSpace.UserService.Domain.Repositories;
 using HiveSpace.UserService.Infrastructure.Data;
 using HiveSpace.UserService.Infrastructure.Repositories;
-using HiveSpace.UserService.Infrastructure.Queries;
-using HiveSpace.UserService.Application.Interfaces.DataQueries;
+using HiveSpace.UserService.Infrastructure.DataQueries;
+using HiveSpace.UserService.Application.Interfaces;
 using HiveSpace.Infrastructure.Persistence;
 using HiveSpace.Infrastructure.Persistence.Outbox;
 using HiveSpace.Infrastructure.Persistence.Interceptors;
@@ -64,6 +64,6 @@ public static class UserInfrastructureExtension
     public static void AddUserServiceQueries(this IServiceCollection services, string connectionString)
     {
         // Register Dapper Query services with connection string
-        services.AddScoped<IUserQuery>(provider => new UserQuery(connectionString));
+        services.AddScoped<IUserDataQuery>(provider => new UserDataQuery(connectionString));
     }
 }

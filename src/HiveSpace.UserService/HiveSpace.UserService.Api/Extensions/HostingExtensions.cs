@@ -13,9 +13,7 @@ internal static class HostingExtensions
         // builder.Services.AddMediatRRegistration(configuration);
         builder.Services.AddAppApiControllers();
         builder.Services.AddRazorPages();
-        builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
-
         builder.Services.AddAppInfrastructure();
         builder.Services.AddUserDbContext(configuration);
         builder.Services.AddCoreServices();
