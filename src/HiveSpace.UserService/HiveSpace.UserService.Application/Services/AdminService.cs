@@ -2,7 +2,6 @@ using HiveSpace.Core.Contexts;
 using HiveSpace.UserService.Application.Models.Requests.Admin;
 using HiveSpace.UserService.Application.Models.Responses.Admin;
 using HiveSpace.UserService.Application.Interfaces;
-using HiveSpace.UserService.Application.Interfaces.DataQueries;
 using HiveSpace.UserService.Domain.Aggregates.User;
 using HiveSpace.UserService.Domain.Services;
 using HiveSpace.UserService.Domain.Repositories;
@@ -15,18 +14,18 @@ public class AdminService : IAdminService
     private readonly IUserContext _userContext;
     private readonly UserManager _domainUserManager;
     private readonly IUserRepository _userRepository;
-    private readonly IUserQuery _userQuery;
+    private readonly IUserDataQuery _userDataQuery;
 
     public AdminService(
         IUserContext userContext,
         UserManager domainUserManager,
         IUserRepository userRepository,
-        IUserQuery userQuery)
+        IUserDataQuery userDataQuery)
     {
         _userContext = userContext;
         _domainUserManager = domainUserManager;
         _userRepository = userRepository;
-        _userQuery = userQuery;
+        _userDataQuery = userDataQuery;
     }
 
     public async Task<CreateAdminResponseDto> CreateAdminAsync(CreateAdminRequestDto request, CancellationToken cancellationToken = default)
@@ -74,7 +73,7 @@ public class AdminService : IAdminService
         filterRequest.Validate();
 
         // Get paginated results from Dapper query
-        var pagedUsers = await _userQuery.GetPagingUsersAsync(filterRequest, cancellationToken);
+        var pagedUsers = await _userDataQuery.GetPagingUsersAsync(filterRequest, cancellationToken);
 
         return new GetUsersResponseDto(pagedUsers.Items, pagedUsers.Pagination);
     }

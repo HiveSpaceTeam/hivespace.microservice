@@ -3,7 +3,6 @@ using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Services;
 using Microsoft.AspNetCore.Identity;
 using HiveSpace.UserService.Domain.Repositories;
-using HiveSpace.UserService.Infrastructure.Data;
 using HiveSpace.UserService.Domain.Enums;
 
 namespace HiveSpace.UserService.Infrastructure.Identity;
@@ -85,7 +84,8 @@ public class CustomProfileService : IProfileService
         
         if (user.Gender.HasValue)
         {
-            claims.Add(new Claim("gender", user.Gender.Value.ToString()));
+            var genderName = ((Gender)user.Gender.Value).ToString().ToLowerInvariant();
+            claims.Add(new Claim("gender", genderName));
         }
 
         // Finally, issue the claims to the token.

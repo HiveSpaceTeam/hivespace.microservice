@@ -30,6 +30,7 @@ public class GetUsersValidator : AbstractValidator<GetUsersRequestDto>
 
         RuleFor(x => x.Sort)
             .Must(BeValidSortFormat)
+            .When(x => !string.IsNullOrWhiteSpace(x.Sort))
             .WithMessage("Sort must be in format 'field.direction' (e.g., 'email.asc', 'createdDate.desc')");
     }
 

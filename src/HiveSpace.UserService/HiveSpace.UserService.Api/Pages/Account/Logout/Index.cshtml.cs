@@ -33,84 +33,80 @@ public class Index : PageModel
     {
         LogoutId = logoutId;
 
-        var showLogoutPrompt = LogoutOptions.ShowLogoutPrompt;
+        try
+        {
+            var showLogoutPrompt = LogoutOptions.ShowLogoutPrompt;
 
-        if (User.Identity?.IsAuthenticated != true)
-        {
-            // if the user is not authenticated, then just show logged out page
-            showLogoutPrompt = false;
-        }
-        else
-        {
-            var context = await _interaction.GetLogoutContextAsync(LogoutId);
-            if (context?.ShowSignoutPrompt == false)
+            if (User.Identity?.IsAuthenticated != true)
             {
-                // it's safe to automatically sign-out
+                // if the user is not authenticated, then just show logged out page
                 showLogoutPrompt = false;
             }
-        }
+            else
+            {
+                var context = await _interaction.GetLogoutContextAsync(LogoutId);
+                if (context?.ShowSignoutPrompt == false)
+                {
+                    // it's safe to automatically sign-out
+                    showLogoutPrompt = false;
+                }
+            }
 
-        if (showLogoutPrompt == false)
+            if (showLogoutPrompt == false)
+            {
+                // if the request for logout was properly authenticated from IdentityServer, then
+                // we don't need to show the prompt and can just log the user out directly.
+                return await OnPost();
+            }
+
+            return Page();
+        }
+        catch (Exception)
         {
-            // if the request for logout was properly authenticated from IdentityServer, then
-            // we don't need to show the prompt and can just log the user out directly.
-            return await OnPost();
+            // Log the error and redirect to login
+            // In a production environment, you would want to log this properly
+            return RedirectToPage("/Account/Login/Index");
         }
-
-        return Page();
     }
 
     public async Task<IActionResult> OnPost()
     {
-        if (User.Identity?.IsAuthenticated == true)
+        try
         {
-            // if there's no current logout context, we need to create one
-            // this captures necessary info from the current logged in user
-            // this can still return null if there is no context needed
-            LogoutId ??= await _interaction.CreateLogoutContextAsync();
-            var logoutRequest = await _interaction.GetLogoutContextAsync(LogoutId);
-
             if (User.Identity?.IsAuthenticated == true)
             {
+                // Get the logout context using the LogoutId from the request
+                var logoutRequest = await _interaction.GetLogoutContextAsync(LogoutId);
+                
+                // if there's no current logout context, we need to create one
+                // this captures necessary info from the current logged in user
+                // this can still return null if there is no context needed
+                if (logoutRequest == null && string.IsNullOrEmpty(LogoutId))
+                {
+                    LogoutId = await _interaction.CreateLogoutContextAsync();
+                    logoutRequest = await _interaction.GetLogoutContextAsync(LogoutId);
+                }
+
+                // Perform the actual sign out
                 await _signInManager.SignOutAsync();
-
                 await _events.RaiseAsync(new UserLogoutSuccessEvent(User.GetSubjectId(), User.GetDisplayName()));
+
+                // if there's a valid post logout redirect URI, use it
+                if (!string.IsNullOrEmpty(logoutRequest?.PostLogoutRedirectUri))
+                {
+                    return Redirect(logoutRequest.PostLogoutRedirectUri);
+                }
+
+                // Otherwise, redirect to login page
+                return RedirectToPage("/Account/Login/Index");
             }
 
-            // if a valid post logout redirect URI is found, use it
-            if (!string.IsNullOrEmpty(logoutRequest?.PostLogoutRedirectUri))
-            {
-                return Redirect(logoutRequest.PostLogoutRedirectUri);
-            }
-
-            //var logout = await _interaction.GetLogoutContextAsync(logoutId);
-            //// delete local authentication cookie
-            //await _signInManager.SignOutAsync();
-
-            //// see if we need to trigger federated logout
-            //var idp = User.FindFirst(JwtClaimTypes.IdentityProvider)?.Value;
-
-            //// raise the logout event
-            //await _events.RaiseAsync(new UserLogoutSuccessEvent(User.GetSubjectId(), User.GetDisplayName()));
-            //Telemetry.Metrics.UserLogout(idp);
-
-            //// if it's a local login we can ignore this workflow
-            //if (idp != null && idp != Duende.IdentityServer.IdentityServerConstants.LocalIdentityProvider)
-            //{
-            //    // we need to see if the provider supports external logout
-            //    if (await HttpContext.GetSchemeSupportsSignOutAsync(idp))
-            //    {
-            //        // build a return URL so the upstream provider will redirect back
-            //        // to us after the user has logged out. this allows us to then
-            //        // complete our single sign-out processing.
-            //        var url = Url.Page("/Account/Logout/Loggedout", new { logoutId = LogoutId });
-
-            //        // this triggers a redirect to the external provider for sign-out
-            //        return SignOut(new AuthenticationProperties { RedirectUri = url }, idp);
-            //    }
-            //}
+            return RedirectToPage("/Account/Login/Index");
         }
-
-        return RedirectToPage("/Account/Logout/LoggedOut", new { logoutId = LogoutId });
+        catch (Exception)
+        {
+            // If anything goes wrong during logout, still redirect to login
+            return RedirectToPage("/Account/Login/Index");
+        }
     }
 }
