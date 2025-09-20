@@ -21,6 +21,7 @@ public class Index : PageModel
     private readonly IEventService _events;
     private readonly IAuthenticationSchemeProvider _schemeProvider;
     private readonly IIdentityProviderStore _identityProviderStore;
+    private readonly IConfiguration _configuration;
 
     public ViewModel View { get; set; } = default!;
 
@@ -33,7 +34,8 @@ public class Index : PageModel
         IIdentityProviderStore identityProviderStore,
         IEventService events,
         UserManager<ApplicationUser> userManager,
-        SignInManager<ApplicationUser> signInManager)
+        SignInManager<ApplicationUser> signInManager,
+        IConfiguration configuration)
     {
         _userManager = userManager;
         _signInManager = signInManager;
@@ -41,6 +43,7 @@ public class Index : PageModel
         _schemeProvider = schemeProvider;
         _identityProviderStore = identityProviderStore;
         _events = events;
+        _configuration = configuration;
     }
 
     public async Task<IActionResult> OnGet(string? returnUrl)
@@ -187,7 +190,13 @@ public class Index : PageModel
                 }
                 else if (string.IsNullOrEmpty(Input.ReturnUrl))
                 {
-                    return Redirect("http://localhost:5173");
+                         // Use a configurable default redirect URL from configuration
+                    var defaultRedirectUrl = _configuration["DefaultRedirectUrl"];
+                    if (string.IsNullOrWhiteSpace(defaultRedirectUrl))
+                    {
+                        defaultRedirectUrl = "/"; // fallback to root if not configured
+                    }
+                    return Redirect(defaultRedirectUrl);
                 }
                 else
                 {

@@ -81,7 +81,7 @@ internal static class ServiceCollectionExtensions
 
     public static void AddAppAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddAuthentication(IdentityServerConstants.LocalApi.AuthenticationScheme)
+        services.AddAuthentication()
             .AddLocalApi(options =>
             {
                 options.ExpectedScope = "user.fullaccess";
