@@ -485,12 +485,11 @@ input[type="checkbox"]:checked ~ .checkbox-custom .checkbox-mark {
 }
 
 /* Button base styles (scoped to login page) */
-.login-container button {
-    border: none !important;
-    border-width: 0 !important;
-    border-style: none !important;
+.login-container button:not(.submit-button):not(.social-button) {
+    border: none;
+    border-width: 0;
+    border-style: none;
     outline: none;
-    background: none;
     font-family: inherit;
     padding: 0;
     margin: 0;
