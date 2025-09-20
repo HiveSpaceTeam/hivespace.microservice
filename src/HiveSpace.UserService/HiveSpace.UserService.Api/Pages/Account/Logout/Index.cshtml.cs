@@ -35,31 +35,8 @@ public class Index : PageModel
 
         try
         {
-            var showLogoutPrompt = LogoutOptions.ShowLogoutPrompt;
-
-            if (User.Identity?.IsAuthenticated != true)
-            {
-                // if the user is not authenticated, then just show logged out page
-                showLogoutPrompt = false;
-            }
-            else
-            {
-                var context = await _interaction.GetLogoutContextAsync(LogoutId);
-                if (context?.ShowSignoutPrompt == false)
-                {
-                    // it's safe to automatically sign-out
-                    showLogoutPrompt = false;
-                }
-            }
-
-            if (showLogoutPrompt == false)
-            {
-                // if the request for logout was properly authenticated from IdentityServer, then
-                // we don't need to show the prompt and can just log the user out directly.
-                return await OnPost();
-            }
-
-            return Page();
+            // Always perform logout without showing prompt
+            return await OnPost();
         }
         catch (Exception)
         {

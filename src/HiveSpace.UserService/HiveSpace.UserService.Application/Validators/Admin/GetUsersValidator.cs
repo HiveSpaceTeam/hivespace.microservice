@@ -1,4 +1,6 @@
 using FluentValidation;
+using HiveSpace.Core.Exceptions;
+using HiveSpace.Core.Exceptions.Models;
 using HiveSpace.UserService.Application.Models.Requests.Admin;
 
 namespace HiveSpace.UserService.Application.Validators.Admin;
@@ -9,29 +11,29 @@ public class GetUsersValidator : AbstractValidator<GetUsersRequestDto>
     {
         RuleFor(x => x.Page)
             .GreaterThan(0)
-            .WithMessage("Page must be greater than 0");
+            .WithState(_ => new Error(CommonErrorCode.InvalidPageNumber, nameof(GetUsersRequestDto.Page)));
 
         RuleFor(x => x.PageSize)
             .InclusiveBetween(10, 50)
-            .WithMessage("Page size must be between 10 and 50");
+            .WithState(_ => new Error(CommonErrorCode.InvalidPageSize, nameof(GetUsersRequestDto.PageSize)));
 
         RuleFor(x => x.Role)
             .IsInEnum()
-            .WithMessage("Invalid role filter value");
+            .WithState(_ => new Error(CommonErrorCode.InvalidRoleFilter, nameof(GetUsersRequestDto.Role)));
 
         RuleFor(x => x.Status)
             .IsInEnum()
-            .WithMessage("Invalid status filter value");
+            .WithState(_ => new Error(CommonErrorCode.InvalidStatusFilter, nameof(GetUsersRequestDto.Status)));
 
         RuleFor(x => x.SearchTerm)
             .EmailAddress()
             .When(x => !string.IsNullOrWhiteSpace(x.SearchTerm))
-            .WithMessage("Search term must be a valid email address");
+            .WithState(_ => new Error(CommonErrorCode.InvalidSearchTerm, nameof(GetUsersRequestDto.SearchTerm)));
 
         RuleFor(x => x.Sort)
             .Must(BeValidSortFormat)
             .When(x => !string.IsNullOrWhiteSpace(x.Sort))
-            .WithMessage("Sort must be in format 'field.direction' (e.g., 'email.asc', 'createdDate.desc')");
+            .WithState(_ => new Error(CommonErrorCode.InvalidSortFormat, nameof(GetUsersRequestDto.Sort)));
     }
 
     private static bool BeValidSortFormat(string sort)

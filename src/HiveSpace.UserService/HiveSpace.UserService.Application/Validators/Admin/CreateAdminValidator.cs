@@ -29,6 +29,7 @@ public class CreateAdminValidator : AbstractValidator<CreateAdminRequestDto>
             .WithState(_ => new Error(UserDomainErrorCode.InvalidPassword, nameof(CreateAdminRequestDto.Password)))
             .Matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]+$")
             .WithState(_ => new Error(UserDomainErrorCode.InvalidPassword, nameof(CreateAdminRequestDto.Password)));
+            
         RuleFor(x => x.ConfirmPassword)
             .NotEmpty()
             .WithState(_ => new Error(CommonErrorCode.Required, nameof(CreateAdminRequestDto.ConfirmPassword)))

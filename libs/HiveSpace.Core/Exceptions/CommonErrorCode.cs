@@ -16,4 +16,10 @@ public class CommonErrorCode(int id, string name, string code) : Enumeration(id,
     public static readonly CommonErrorCode InvalidArgument = new(7, "InvalidArgument", "APP0007");
     public static readonly CommonErrorCode ConfigurationMissing = new(10, "ConfigurationMissing", "APP0008");
     public static readonly CommonErrorCode RoleMappingError = new(11, "RoleMappingError", "APP0009");
+    public static readonly CommonErrorCode InvalidPageNumber = new(12, "InvalidPageNumber", "APP0010");
+    public static readonly CommonErrorCode InvalidPageSize = new(13, "InvalidPageSize", "APP0011");
+    public static readonly CommonErrorCode InvalidRoleFilter = new(14, "InvalidRoleFilter", "APP0012");
+    public static readonly CommonErrorCode InvalidStatusFilter = new(15, "InvalidStatusFilter", "APP0013");
+    public static readonly CommonErrorCode InvalidSearchTerm = new(16, "InvalidSearchTerm", "APP0014");
+    public static readonly CommonErrorCode InvalidSortFormat = new(17, "InvalidSortFormat", "APP0015");
 }
