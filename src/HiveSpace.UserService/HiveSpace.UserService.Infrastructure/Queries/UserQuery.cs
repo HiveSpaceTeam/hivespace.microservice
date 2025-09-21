@@ -110,21 +110,25 @@ public class UserQuery : IUserQuery
         // Base condition to exclude SystemAdmin and Admin roles is already in the main query
         
         // Status filter
-        if (request.Status != UserStatusFilter.All)
+        if (request.Status != StatusFilter.All)
         {
             conditions.Add("u.Status = @Status");
         }
 
         // Role filter (Seller vs Customer)
-        if (request.Role != UserRoleFilter.All)
+        if (request.Role != RoleFilter.All)
         {
-            if (request.Role == UserRoleFilter.Seller)
+            if (request.Role == RoleFilter.Seller)
             {
                 conditions.Add("EXISTS (SELECT 1 FROM user_roles ur3 JOIN roles r3 ON ur3.RoleId = r3.Id WHERE ur3.UserId = u.Id AND r3.Name = 'Seller')");
             }
-            else if (request.Role == UserRoleFilter.Customer)
+            else if (request.Role == RoleFilter.Customer)
             {
                 conditions.Add("NOT EXISTS (SELECT 1 FROM user_roles ur3 JOIN roles r3 ON ur3.RoleId = r3.Id WHERE ur3.UserId = u.Id AND r3.Name = 'Seller')");
+            }
+            else if (request.Role == RoleFilter.RegularAdmin)
+            {
+                conditions.Add("NOT EXISTS (SELECT 1 FROM user_roles ur3 JOIN roles r3 ON ur3.RoleId = r3.Id WHERE ur3.UserId = u.Id AND r3.Name IN ('Admin','SystemAdmin'))");
             }
         }
 

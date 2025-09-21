@@ -1,3 +1,4 @@
+using System;
 using Dapper;
 using HiveSpace.Core.Models.Pagination;
 using HiveSpace.UserService.Application.Constant.Enum;
@@ -110,22 +111,24 @@ public class UserDataQuery : IUserDataQuery
         // Base condition to exclude SystemAdmin and Admin roles is already in the main query
         
         // Status filter
-        if (request.Status != UserStatusFilter.All)
+        if (request.Status != StatusFilter.All)
         {
             conditions.Add("u.Status = @Status");
         }
 
-        // Role filter (Seller vs Customer)
-        if (request.Role != UserRoleFilter.All)
+        // Role filter (Seller vs Customer). Ignore admin-related filters here.
+        if (request.Role != RoleFilter.All)
         {
-            if (request.Role == UserRoleFilter.Seller)
+            // Safety: if enum value is not defined, treat as All (ignore)
+            if (request.Role == RoleFilter.Seller)
             {
                 conditions.Add("EXISTS (SELECT 1 FROM user_roles ur3 JOIN roles r3 ON ur3.RoleId = r3.Id WHERE ur3.UserId = u.Id AND r3.Name = 'Seller')");
             }
-            else if (request.Role == UserRoleFilter.Customer)
+            else if (request.Role == RoleFilter.Customer)
             {
                 conditions.Add("NOT EXISTS (SELECT 1 FROM user_roles ur3 JOIN roles r3 ON ur3.RoleId = r3.Id WHERE ur3.UserId = u.Id AND r3.Name = 'Seller')");
             }
+            // If RegularAdmin or SystemAdmin is provided, ignore here (no additional condition)
         }
 
         // Search filter (email)

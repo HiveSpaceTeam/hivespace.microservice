@@ -3,6 +3,7 @@ using HiveSpace.UserService.Infrastructure.Data;
 using HiveSpace.UserService.Infrastructure.Repositories;
 using HiveSpace.UserService.Infrastructure.DataQueries;
 using HiveSpace.UserService.Application.Interfaces;
+using HiveSpace.UserService.Application.Interfaces.DataQueries;
 using HiveSpace.Infrastructure.Persistence;
 using HiveSpace.Infrastructure.Persistence.Outbox;
 using HiveSpace.Infrastructure.Persistence.Interceptors;
@@ -65,5 +66,6 @@ public static class UserInfrastructureExtension
     {
         // Register Dapper Query services with connection string
         services.AddScoped<IUserDataQuery>(provider => new UserDataQuery(connectionString));
+        services.AddScoped<IAdminDataQuery>(provider => new AdminDataQuery(connectionString));
     }
 }

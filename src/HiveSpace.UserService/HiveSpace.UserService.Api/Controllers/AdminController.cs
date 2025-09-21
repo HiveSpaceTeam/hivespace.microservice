@@ -43,4 +43,17 @@ public class AdminController : ControllerBase
 
         return Ok(result);
     }
+
+    [HttpGet]
+    [Authorize(Policy = "RequireUserFullAccessScope")]
+    public async Task<ActionResult<GetAdminResponseDto>> GetAdmins(
+        [FromQuery] GetAdminRequestDto request,
+        CancellationToken cancellationToken)
+    {
+        ValidationHelper.ValidateResult(new GetAdminValidator().Validate(request));
+
+        var result = await _adminService.GetAdminsAsync(request, cancellationToken);
+
+        return Ok(result);
+    }
 }

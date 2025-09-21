@@ -17,14 +17,6 @@ public class GetUsersValidator : AbstractValidator<GetUsersRequestDto>
             .InclusiveBetween(10, 50)
             .WithState(_ => new Error(CommonErrorCode.InvalidPageSize, nameof(GetUsersRequestDto.PageSize)));
 
-        RuleFor(x => x.Role)
-            .IsInEnum()
-            .WithState(_ => new Error(CommonErrorCode.InvalidRoleFilter, nameof(GetUsersRequestDto.Role)));
-
-        RuleFor(x => x.Status)
-            .IsInEnum()
-            .WithState(_ => new Error(CommonErrorCode.InvalidStatusFilter, nameof(GetUsersRequestDto.Status)));
-
         RuleFor(x => x.SearchTerm)
             .EmailAddress()
             .When(x => !string.IsNullOrWhiteSpace(x.SearchTerm))

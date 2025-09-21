@@ -180,3 +180,392 @@ Limited technical debt exists:
 **When adding new projects**: Follow the existing clean architecture pattern and add entries to the main solution file.
 
 **For API changes**: Update both the User Service (if identity-related) and API Gateway routing configurations as needed.
+
+## Development Workflow for DDD Services
+
+### For Command Operations & Simple Query Operations (Domain-First Approach)
+
+When implementing **write operations** or **simple read operations** that require domain validation, follow this sequence:
+
+#### 1. **Domain Layer** (Start Here)
+```csharp
+// Example from User aggregate - Domain entity with business logic
+public class User : AggregateRoot<Guid>, IAuditable
+{
+    public Email Email { get; private set; }
+    public string FullName { get; private set; }
+    public PhoneNumber? PhoneNumber { get; private set; }
+    
+    // Business method with domain validation
+    public void UpdateProfile(string fullName, PhoneNumber? phoneNumber)
+    {
+        ValidateFullName(fullName);
+        FullName = fullName;
+        PhoneNumber = phoneNumber;
+        RaiseDomainEvent(new UserProfileUpdatedEvent(Id));
+    }
+}
+
+// Example from UserManager - Domain service for complex business operations
+public class UserManager : IDomainService
+{
+    private readonly IUserRepository _userRepository;
+    
+    public async Task<User> RegisterUserAsync(Email email, string userName, string fullName, 
+        CancellationToken cancellationToken = default)
+    {
+        // Domain validation and business rules
+        await CanUserBeRegisteredAsync(email, userName?.Trim() ?? string.Empty, cancellationToken);
+        var user = User.Create(email, userName?.Trim() ?? string.Empty, PasswordPlaceholder, fullName);
+        return user;
+    }
+    
+    private async Task<bool> CanUserBeRegisteredAsync(Email email, string userName, CancellationToken cancellationToken)
+    {
+        if (!await IsEmailAvailableAsync(email, cancellationToken))
+            throw new ConflictException(UserDomainErrorCode.EmailAlreadyExists, nameof(User.Email));
+        if (!await IsUserNameAvailableAsync(userName, cancellationToken))
+            throw new ConflictException(UserDomainErrorCode.UserNameAlreadyExists, nameof(User.UserName));
+        return true;
+    }
+}
+
+// Repository interface in domain layer
+public interface IUserRepository
+{
+    Task<User?> GetByEmailAsync(Email email, CancellationToken cancellationToken = default);
+    Task<User> CreateUserAsync(User domainUser, string password, CancellationToken cancellationToken = default);
+    Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+}
+```
+
+#### 2. **Application Layer**
+```csharp
+// Example from CreateAdminRequestDto - Request DTO
+public record CreateAdminRequestDto(
+    string Email,
+    string Password,
+    string FullName,
+    string ConfirmPassword,
+    bool IsSystemAdmin = false
+);
+
+// Example from CreateAdminResponseDto - Response DTO
+public record CreateAdminResponseDto(
+    Guid Id,
+    string Email,
+    string FullName,
+    bool IsSystemAdmin,
+    DateTimeOffset CreatedAt,
+    bool IsActive = true
+);
+
+// Example from CreateAdminValidator - FluentValidation validator
+public class CreateAdminValidator : AbstractValidator<CreateAdminRequestDto>
+{
+    public CreateAdminValidator()
+    {
+        RuleFor(x => x.FullName)
+            .NotEmpty()
+            .WithState(_ => new Error(CommonErrorCode.Required, nameof(CreateAdminRequestDto.FullName)))
+            .Length(2, 100)
+            .WithState(_ => new Error(UserDomainErrorCode.InvalidField, nameof(CreateAdminRequestDto.FullName)));
+
+        RuleFor(x => x.Email)
+            .NotEmpty()
+            .WithState(_ => new Error(CommonErrorCode.Required, nameof(CreateAdminRequestDto.Email)))
+            .EmailAddress()
+            .WithState(_ => new Error(UserDomainErrorCode.InvalidEmail, nameof(CreateAdminRequestDto.Email)));
+
+        RuleFor(x => x.Password)
+            .NotEmpty()
+            .MinimumLength(12)
+            .Matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]+$");
+    }
+}
+
+// Example from AdminService - Application service orchestrating domain operations
+public class AdminService : IAdminService
+{
+    private readonly IUserContext _userContext;
+    private readonly UserManager _domainUserManager;
+    private readonly IUserRepository _userRepository;
+
+    public async Task<CreateAdminResponseDto> CreateAdminAsync(CreateAdminRequestDto request, 
+        CancellationToken cancellationToken = default)
+    {
+        // Build domain value objects
+        var email = Email.Create(request.Email);
+        var role = Role.FromName(request.IsSystemAdmin ? Role.RoleNames.SystemAdmin : Role.RoleNames.Admin);
+
+        // Use domain manager for business logic validation
+        var domainUser = await _domainUserManager.CreateAdminUserAsync(
+            email, email, request.FullName.Trim(), role, _userContext.UserId, cancellationToken);
+
+        // Persist through repository
+        var created = await _userRepository.CreateUserAsync(domainUser, request.Password, cancellationToken);
+
+        // Map to response DTO
+        return new CreateAdminResponseDto(
+            created.Id, created.Email.Value, created.FullName, 
+            created.Role?.Name == Role.RoleNames.SystemAdmin, created.CreatedAt);
+    }
+}
+```
+
+#### 3. **Register in DI Container**
+```csharp
+// Example from ServiceCollectionExtensions.cs - Actual DI registration
+public static void AddAppApplicationServices(this IServiceCollection services)
+{
+    services.AddScoped<IUserContext, UserContext>();
+    services.AddScoped<IAdminService, AdminService>();
+}
+
+public static void AddAppDomainServices(this IServiceCollection services)
+{
+    services.AddScoped<UserManager>();
+    services.AddScoped<StoreManager>();
+}
+```
+
+#### 4. **Infrastructure Layer**
+```csharp
+// Example from UserRepository - Repository implementation
+public class UserRepository : IUserRepository
+{
+    private readonly UserDbContext _context;
+    private readonly UserManager<ApplicationUser> _userManager;
+
+    public async Task<User> CreateUserAsync(User domainUser, string password, CancellationToken cancellationToken = default)
+    {
+        var appUser = domainUser.ToApplicationUser();
+        var result = await _userManager.CreateAsync(appUser, password);
+        
+        if (!result.Succeeded)
+            throw new InvalidOperationException($"Failed to create user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+
+        // Add to role if specified
+        if (domainUser.Role != null)
+            await _userManager.AddToRoleAsync(appUser, domainUser.Role.Name);
+
+        await _context.SaveChangesAsync(cancellationToken);
+        
+        // Convert back to domain entity
+        var roleNames = await _userManager.GetRolesAsync(appUser);
+        return appUser.ToDomainUser(roleNames);
+    }
+}
+
+// Entity configuration example
+public class UserConfiguration : IEntityTypeConfiguration<ApplicationUser>
+{
+    public void Configure(EntityTypeBuilder<ApplicationUser> builder)
+    {
+        builder.Property(x => x.FullName).HasMaxLength(200).IsRequired();
+        builder.Property(x => x.Email).HasMaxLength(256).IsRequired();
+        builder.HasIndex(x => x.Email).IsUnique();
+    }
+}
+```
+
+#### 5. **API Layer**
+```csharp
+// Example from AdminController - Actual controller implementation
+[ApiController]
+[Route("api/v{version:apiVersion}/admins")]
+[ApiVersion("1.0")]
+public class AdminController : ControllerBase
+{
+    private readonly IAdminService _adminService;
+
+    public AdminController(IAdminService adminService) => _adminService = adminService;
+
+    [HttpPost]
+    [Authorize(Policy = "RequireUserFullAccessScope")]
+    public async Task<ActionResult<CreateAdminResponseDto>> CreateAdmin(
+        [FromBody] CreateAdminRequestDto request, CancellationToken cancellationToken)
+    {
+        // Validate request using FluentValidation
+        ValidationHelper.ValidateResult(new CreateAdminValidator().Validate(request));
+        
+        // Call application service
+        var result = await _adminService.CreateAdminAsync(request, cancellationToken);
+        
+        return CreatedAtAction(nameof(CreateAdmin), new { id = result.Id }, result);
+    }
+}
+```
+
+### For Complex Query Operations (Bypass Domain Approach)
+
+When implementing **complex read operations** that don't require domain validation and need performance optimization:
+
+#### 1. **Application Layer**
+```csharp
+// Example request DTO for complex queries
+public record GetUsersRequestDto(
+    string? SearchTerm = null,
+    UserStatus? Status = null,
+    int PageNumber = 1,
+    int PageSize = 10,
+    string? SortField = null,
+    SortDirection? SortDirection = null
+);
+
+// Example response DTO
+public record GetUsersResponseDto(
+    PagedResult<UserListItemDto> Users
+);
+
+public record UserListItemDto(
+    Guid Id,
+    string Username,
+    string FullName,
+    string Email,
+    UserStatus Status,
+    bool IsSeller,
+    DateTime CreatedDate,
+    DateTime? LastLoginDate,
+    string Avatar
+);
+
+// Validator for query request
+public class GetUsersValidator : AbstractValidator<GetUsersRequestDto>
+{
+    public GetUsersValidator()
+    {
+        RuleFor(x => x.PageNumber).GreaterThan(0);
+        RuleFor(x => x.PageSize).InclusiveBetween(1, 100);
+    }
+}
+
+// Application service using data query
+public class AdminService : IAdminService
+{
+    private readonly IUserDataQuery _userDataQuery;
+
+    public async Task<GetUsersResponseDto> GetUsersAsync(GetUsersRequestDto request, 
+        CancellationToken cancellationToken = default)
+    {
+        // Convert to internal query model
+        var filterRequest = new AdminUserFilterRequest
+        {
+            SearchTerm = request.SearchTerm,
+            Status = request.Status,
+            PageNumber = request.PageNumber,
+            PageSize = request.PageSize,
+            SortField = request.SortField ?? "CreatedDate",
+            SortDirection = request.SortDirection ?? SortDirection.Desc
+        };
+
+        // Execute direct query bypassing domain
+        var result = await _userDataQuery.GetPagingUsersAsync(filterRequest, cancellationToken);
+        
+        return new GetUsersResponseDto(result);
+    }
+}
+```
+
+#### 2. **Data Query Interface**
+```csharp
+// Example from IUserDataQuery - Query interface in Application layer
+public interface IUserDataQuery
+{
+    Task<PagedResult<UserListItemDto>> GetPagingUsersAsync(AdminUserFilterRequest request, 
+        CancellationToken cancellationToken = default);
+    Task<UserListItemDto?> GetUserByIdAsync(Guid userId, CancellationToken cancellationToken = default);
+}
+```
+
+#### 3. **Infrastructure Layer (DataQueries)**
+```csharp
+// Example from UserDataQuery - Direct SQL implementation
+public class UserDataQuery : IUserDataQuery
+{
+    private readonly string _connectionString;
+
+    public UserDataQuery(string connectionString) => 
+        _connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
+
+    public async Task<PagedResult<UserListItemDto>> GetPagingUsersAsync(AdminUserFilterRequest request, 
+        CancellationToken cancellationToken = default)
+    {
+        var whereConditions = BuildWhereConditions(request);
+        var orderBy = BuildOrderByClause(request.SortField, request.SortDirection);
+
+        // Complex SQL query for performance
+        var mainQuery = $@"
+            WITH FilteredUsers AS (
+                SELECT DISTINCT
+                    u.Id,
+                    u.UserName AS Username,
+                    u.FullName,
+                    u.Email,
+                    u.Status,
+                    CAST(CASE WHEN u.StoreId IS NOT NULL THEN 1 ELSE 0 END AS BIT) AS IsSeller,
+                    CAST(u.CreatedAt AT TIME ZONE 'UTC' AS DATETIME2) AS CreatedDate,
+                    CAST(u.LastLoginAt AT TIME ZONE 'UTC' AS DATETIME2) AS LastLoginDate,
+                    '' AS Avatar
+                FROM users u
+                WHERE NOT EXISTS (
+                    SELECT 1 FROM user_roles ur2 JOIN roles r2 ON ur2.RoleId = r2.Id 
+                    WHERE ur2.UserId = u.Id AND r2.Name IN ('SystemAdmin', 'Admin')
+                )
+                {whereConditions}
+            )
+            SELECT * FROM FilteredUsers {orderBy}
+            OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+
+        using var connection = new SqlConnection(_connectionString);
+        
+        var parameters = new
+        {
+            SearchTerm = request.SearchTerm,
+            Status = (int?)request.Status,
+            Offset = (request.PageNumber - 1) * request.PageSize,
+            PageSize = request.PageSize
+        };
+
+        var users = await connection.QueryAsync<UserListItemDto>(mainQuery, parameters);
+        var totalCount = await GetTotalCountAsync(connection, request);
+
+        return new PagedResult<UserListItemDto>(users.ToList(), totalCount, request.PageNumber, request.PageSize);
+    }
+}
+```
+
+#### 4. **API Layer**
+```csharp
+// Example from AdminController - Query endpoint
+[HttpGet("users")]
+[Authorize(Policy = "RequireUserFullAccessScope")]
+public async Task<ActionResult<GetUsersResponseDto>> GetUsers(
+    [FromQuery] GetUsersRequestDto request, CancellationToken cancellationToken)
+{
+    // Validate query parameters
+    ValidationHelper.ValidateResult(new GetUsersValidator().Validate(request));
+
+    // Execute query through application service
+    var result = await _adminService.GetUsersAsync(request, cancellationToken);
+
+    return Ok(result);
+}
+```
+
+### Key Principles to Follow
+
+1. **Commands/Writes**: Always go through domain layer for business rule validation
+2. **Simple Queries**: Go through domain if business logic is needed, otherwise use DataQueries
+3. **Complex Queries**: Bypass domain layer and use direct SQL via DataQueries for performance
+4. **Always validate**: Use FluentValidation for input validation at application boundary, using withState and error codes
+5. **Register DI**: Don't forget to register new services and interfaces in dependency injection
+6. **Follow naming**: Use consistent naming patterns (RequestDto, ResponseDto, Validator, Handler)
+7. **Async/Await**: Use async patterns throughout for I/O operations
+8. **Error handling**: Let domain exceptions bubble up, handle infrastructure exceptions appropriately
+
+### Future: Simple Services with Vertical Slice
+
+For simpler microservices, we will adopt a vertical slice architecture pattern where each feature is organized by business capability rather than technical layer. This will be documented when those services are implemented.
+
+**Note**: Current services (User Service) use DDD with layered architecture. Follow the patterns above for consistency.
