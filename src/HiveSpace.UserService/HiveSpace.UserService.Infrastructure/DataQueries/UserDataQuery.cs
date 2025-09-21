@@ -149,7 +149,7 @@ public class UserDataQuery : IUserDataQuery
             "fullname" => "FullName",
             "email" => "Email",
             "status" => "Status",
-            "lastlogindate" => "LastLoginAt",
+            "lastloginat" => "LastLoginAt",
             "createdat" or _ => "CreatedAt"
         };
 
