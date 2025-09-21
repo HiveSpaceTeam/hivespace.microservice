@@ -31,10 +31,10 @@ public class AdminDataQuery : IAdminDataQuery
                     u.Email,
                     u.Status,
                     CAST(CASE WHEN EXISTS (SELECT 1 FROM user_roles ur2 JOIN roles r2 ON ur2.RoleId = r2.Id WHERE ur2.UserId = u.Id AND r2.Name = 'SystemAdmin') THEN 1 ELSE 0 END AS BIT) AS IsSystemAdmin,
-                    CAST(u.CreatedAt AT TIME ZONE 'UTC' AS DATETIME2) AS CreatedDate,
-                    CAST(u.UpdatedAt AT TIME ZONE 'UTC' AS DATETIME2) AS LastUpdatedDate,
-                    CAST(u.LastLoginAt AT TIME ZONE 'UTC' AS DATETIME2) AS LastLoginDate,
-                    '' AS Avatar
+                    CAST(u.CreatedAt AT TIME ZONE 'UTC' AS DATETIMEOFFSET) AS CreatedAt,
+                    CAST(u.UpdatedAt AT TIME ZONE 'UTC' AS DATETIMEOFFSET) AS UpdatedAt,
+                    CAST(u.LastLoginAt AT TIME ZONE 'UTC' AS DATETIMEOFFSET) AS LastLoginAt,
+                    '' AS AvatarUrl
                 FROM users u
                 WHERE EXISTS (
                     SELECT 1 FROM user_roles ur2 JOIN roles r2 ON ur2.RoleId = r2.Id WHERE ur2.UserId = u.Id AND r2.Name IN ('Admin','SystemAdmin')
@@ -115,15 +115,15 @@ public class AdminDataQuery : IAdminDataQuery
 
     private static string BuildOrderByClause(string? field, string? direction)
     {
-        var normalizedField = (field ?? "createddate").ToLowerInvariant();
+        var normalizedField = (field ?? "createdat").ToLowerInvariant();
         var column = normalizedField switch
         {
             "username" => "Username",
             "fullname" => "FullName",
             "email" => "Email",
             "status" => "Status",
-            "lastlogindate" => "LastLoginDate",
-            "createddate" or _ => "CreatedDate"
+            "lastlogindate" => "LastLoginAt",
+            "createdat" or _ => "CreatedAt"
         };
 
         var dir = string.Equals(direction, "asc", StringComparison.OrdinalIgnoreCase) ? "ASC" : "DESC";

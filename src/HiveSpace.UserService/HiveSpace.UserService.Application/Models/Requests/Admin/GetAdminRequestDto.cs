@@ -8,5 +8,5 @@ public record GetAdminRequestDto(
     int Role = (int)RoleFilter.All,
     int Status = (int)StatusFilter.All,
     string? SearchTerm = null,
-    string Sort = "createdDate.desc"
+    string Sort = "createdAt.desc"
 );

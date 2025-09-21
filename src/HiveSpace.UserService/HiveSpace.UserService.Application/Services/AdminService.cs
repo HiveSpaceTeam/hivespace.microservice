@@ -57,9 +57,11 @@ public class AdminService : IAdminService
         return new CreateAdminResponseDto(
             created.Id,
             created.Email.Value,
-            created.UserName,
+            created.FullName,
             created.IsSystemAdmin,
-            created.CreatedAt);
+            created.CreatedAt,
+            created.UpdatedAt ?? created.CreatedAt,
+            created.LastLoginAt ?? created.CreatedAt);
     }
 
     public async Task<GetUsersResponseDto> GetUsersAsync(GetUsersRequestDto request, CancellationToken cancellationToken = default)

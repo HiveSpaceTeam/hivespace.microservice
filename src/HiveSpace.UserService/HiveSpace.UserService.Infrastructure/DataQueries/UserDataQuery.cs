@@ -18,7 +18,7 @@ public class UserDataQuery : IUserDataQuery
         _connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
     }
 
-    public async Task<PagedResult<UserListItemDto>> GetPagingUsersAsync(AdminUserFilterRequest request, CancellationToken cancellationToken = default)
+    public async Task<PagedResult<UserDto>> GetPagingUsersAsync(AdminUserFilterRequest request, CancellationToken cancellationToken = default)
     {
         var whereConditions = BuildWhereConditions(request);
         var orderBy = BuildOrderByClause(request.SortField, request.SortDirection);
@@ -33,9 +33,10 @@ public class UserDataQuery : IUserDataQuery
                     u.Email,
                     u.Status,
                     CAST(CASE WHEN u.StoreId IS NOT NULL THEN 1 ELSE 0 END AS BIT) AS IsSeller,
-                    CAST(u.CreatedAt AT TIME ZONE 'UTC' AS DATETIME2) AS CreatedDate,
-                    CAST(u.LastLoginAt AT TIME ZONE 'UTC' AS DATETIME2) AS LastLoginDate,
-                    '' AS Avatar
+                    CAST(u.CreatedAt AT TIME ZONE 'UTC' AS DATETIMEOFFSET) AS CreatedAt,
+                    CAST(u.UpdatedAt AT TIME ZONE 'UTC' AS DATETIMEOFFSET) AS UpdatedAt,
+                    CAST(u.LastLoginAt AT TIME ZONE 'UTC' AS DATETIMEOFFSET) AS LastLoginAt,
+                    '' AS AvatarUrl
                 FROM users u
                 WHERE NOT EXISTS (
                     SELECT 1 
@@ -72,10 +73,10 @@ public class UserDataQuery : IUserDataQuery
         using var connection = new SqlConnection(_connectionString);
         var cmd = new CommandDefinition(batchSql, parameters, cancellationToken: cancellationToken);
         using var grid = await connection.QueryMultipleAsync(cmd);
-        var users = (await grid.ReadAsync<UserListItemDto>()).AsList();
+        var users = (await grid.ReadAsync<UserDto>()).AsList();
         var totalItems = await grid.ReadSingleAsync<int>();
 
-        return new PagedResult<UserListItemDto>(
+        return new PagedResult<UserDto>(
             users,
             request.Page,
             request.PageSize,
@@ -148,8 +149,8 @@ public class UserDataQuery : IUserDataQuery
             "fullname" => "FullName",
             "email" => "Email",
             "status" => "Status",
-            "lastlogindate" => "LastLoginDate",
-            "createddate" or _ => "CreatedDate"
+            "lastloginat" => "LastLoginAt",
+            "createdat" or _ => "CreatedAt"
         };
 
         var dir = direction.ToLowerInvariant() == "asc" ? "ASC" : "DESC";

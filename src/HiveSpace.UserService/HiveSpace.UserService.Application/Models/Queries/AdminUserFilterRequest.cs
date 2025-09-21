@@ -14,7 +14,7 @@ public class AdminUserFilterRequest : FilterRequest
 
     private static readonly HashSet<string> ValidSortFields = new(StringComparer.OrdinalIgnoreCase)
     {
-        "username", "fullname", "email", "status", "createdDate", "lastLoginDate"
+        "username", "fullname", "email", "status", "createdat", "updatedat", "lastloginat"
     };
 
     public override void Validate()
@@ -35,7 +35,7 @@ public class AdminUserFilterRequest : FilterRequest
         // Validate sort field
         if (!ValidSortFields.Contains(SortField))
         {
-            Sort = "createddate.desc";
+            Sort = "createdat.desc";
         }
 
         // Validate sort direction

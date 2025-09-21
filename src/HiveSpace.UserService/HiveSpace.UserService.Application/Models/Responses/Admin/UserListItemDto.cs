@@ -1,13 +1,14 @@
 namespace HiveSpace.UserService.Application.Models.Responses.Admin;
 
-public record UserListItemDto(
+public record UserDto(
     Guid Id,
     string Username,
     string FullName,
     string Email,
     int Status,
     bool IsSeller,
-    DateTime CreatedDate,
-    DateTime? LastLoginDate,
-    string? Avatar
+    DateTimeOffset CreatedAt,
+    DateTimeOffset? UpdatedAt,
+    DateTimeOffset? LastLoginAt,
+    string? AvatarUrl
 );
