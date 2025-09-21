@@ -113,9 +113,10 @@ public class AdminDataQuery : IAdminDataQuery
         return conditions.Count > 0 ? $"AND {string.Join(" AND ", conditions)}" : string.Empty;
     }
 
-    private static string BuildOrderByClause(string field, string direction)
+    private static string BuildOrderByClause(string? field, string? direction)
     {
-        var column = field.ToLowerInvariant() switch
+        var normalizedField = (field ?? "createddate").ToLowerInvariant();
+        var column = normalizedField switch
         {
             "username" => "Username",
             "fullname" => "FullName",
@@ -125,8 +126,8 @@ public class AdminDataQuery : IAdminDataQuery
             "createddate" or _ => "CreatedDate"
         };
 
-        var dir = direction.ToLowerInvariant() == "asc" ? "ASC" : "DESC";
-        return $"ORDER BY {column} {dir}";
+        var dir = string.Equals(direction, "asc", StringComparison.OrdinalIgnoreCase) ? "ASC" : "DESC";
+        return $"ORDER BY {column} {dir}, Id ASC";
     }
 
     private static object BuildParameters(AdminUserFilterRequest request)

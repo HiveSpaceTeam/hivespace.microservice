@@ -137,30 +137,6 @@ The service integrates **Duende IdentityServer v7** for OAuth2/OIDC authenticati
 ### 🚀 Quick Setup Guide
 
 #### 1. **License Configuration**
-```json
-// appsettings.json
-{
-  "Duende": {
-    "LicenseKey": "your-duende-license-key-here"
-  }
-}
-```
-> ⚠️ **License Note**: Community edition is free for development. Production requires a [commercial license](https://duendesoftware.com/products/identityserver).
-
-#### 2. **Database Setup**
-Identity Server data is stored in the same database as user data. Migrations are automatically applied in development.
-
-#### 3. **Access Identity Server**
-- **Discovery Document**: https://localhost:5001/.well-known/openid_configuration
-- **Admin UI**: https://localhost:5001 (requires authentication)
-
-### 🎯 Pre-configured Clients
-
-The service comes with two ready-to-use client configurations:
-
-#### 1. **Admin Portal** (Single Page Application)
-```json
-{
   "ClientId": "adminportal",
   "ClientName": "Admin Portal",
   "GrantTypes": ["authorization_code"],
@@ -437,23 +413,35 @@ public class AdminService : IAdminService
 ```csharp
 public class AdminService : IAdminService
 {
-    private readonly IUserDataQuery _userDataQuery;
+  private readonly IAdminDataQuery _adminDataQuery;
 
-    public async Task<GetUsersResponseDto> GetUsersAsync(GetUsersRequestDto request)
-    {
-        // Bypasses domain layer for read-only operations
-        var result = await _userDataQuery.GetPagingUsersAsync(
-            new AdminUserFilterRequest
-            {
-                SearchTerm = request.SearchTerm,
-                Status = request.Status,
-                PageNumber = request.PageNumber,
-                PageSize = request.PageSize
-            }
-        );
-        
-        return new GetUsersResponseDto { Users = result };
-    }
+  public async Task<GetAdminResponseDto> GetAdminsAsync(GetAdminRequestDto request)
+  {
+    // Bypasses domain layer for read-only admin retrieval
+    var admins = await _adminDataQuery.GetPagingAdminsAsync(
+      new AdminUserFilterRequest
+      {
+        SearchTerm = request.SearchTerm,
+        Status = request.Status, // StatusFilter enum
+        Role = request.Role,     // RoleFilter enum
+        PageNumber = request.PageNumber,
+        PageSize = request.PageSize
+      }
+    );
+
+    var total = await _adminDataQuery.GetTotalAdminsCountAsync(
+      new AdminUserFilterRequest
+      {
+        SearchTerm = request.SearchTerm,
+        Status = request.Status,
+        Role = request.Role
+      }
+    );
+
+    return new GetAdminResponseDto { Items = admins, Total = total };
+  }
+}
+```
 }
 ```
 
@@ -487,22 +475,23 @@ Content-Type: application/json
 }
 ```
 
-#### Get Users (Paginated)
+#### Get Admins (Paginated)
 ```http
-GET /api/v1/admins/users?searchTerm=john&status=1&pageNumber=1&pageSize=10
+GET /api/v1/admins?searchTerm=john&status=Active&role=Admin&pageNumber=1&pageSize=10
 Authorization: Bearer {token}
 ```
 
 **Query Parameters:**
 - `searchTerm` (optional): Search in name, email, username
-- `status` (optional): User status filter (0=Inactive, 1=Active, 2=Suspended)
+- `status` (optional): Admin status filter (`StatusFilter` enum; e.g., `Active`, `Inactive`, `Suspended`)
+- `role` (optional): Admin role filter (`RoleFilter` enum; e.g., `Admin`, `SuperAdmin`)
 - `pageNumber` (default: 1): Page number for pagination
 - `pageSize` (default: 10): Items per page
 
 ### API Versioning
 - **Current Version**: `v1.0`
-- **Header**: `X-Version: 1.0`
 - **URL**: `/api/v{version:apiVersion}/`
+
 
 ## 🛠️ Development Guidelines
 
