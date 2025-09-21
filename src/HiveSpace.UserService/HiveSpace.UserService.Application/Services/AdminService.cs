@@ -6,6 +6,8 @@ using HiveSpace.UserService.Domain.Aggregates.User;
 using HiveSpace.UserService.Domain.Services;
 using HiveSpace.UserService.Domain.Repositories;
 using HiveSpace.UserService.Application.Models.Queries;
+using HiveSpace.UserService.Application.Interfaces.DataQueries;
+using HiveSpace.UserService.Application.Constant.Enum;
 
 namespace HiveSpace.UserService.Application.Services;
 
@@ -15,17 +17,20 @@ public class AdminService : IAdminService
     private readonly UserManager _domainUserManager;
     private readonly IUserRepository _userRepository;
     private readonly IUserDataQuery _userDataQuery;
+    private readonly IAdminDataQuery _adminDataQuery;
 
     public AdminService(
         IUserContext userContext,
         UserManager domainUserManager,
         IUserRepository userRepository,
-        IUserDataQuery userDataQuery)
+        IUserDataQuery userDataQuery,
+        IAdminDataQuery adminDataQuery)
     {
         _userContext = userContext;
         _domainUserManager = domainUserManager;
         _userRepository = userRepository;
         _userDataQuery = userDataQuery;
+        _adminDataQuery = adminDataQuery;
     }
 
     public async Task<CreateAdminResponseDto> CreateAdminAsync(CreateAdminRequestDto request, CancellationToken cancellationToken = default)
@@ -64,8 +69,8 @@ public class AdminService : IAdminService
         {
             Page = request.Page,
             PageSize = request.PageSize,
-            Role = request.Role,
-            Status = request.Status,
+            Role = (RoleFilter)request.Role,
+            Status = (StatusFilter)request.Status,
             SearchTerm = request.SearchTerm?.Trim(),
             Sort = request.Sort
         };
@@ -76,5 +81,24 @@ public class AdminService : IAdminService
         var pagedUsers = await _userDataQuery.GetPagingUsersAsync(filterRequest, cancellationToken);
 
         return new GetUsersResponseDto(pagedUsers.Items, pagedUsers.Pagination);
+    }
+
+    public async Task<GetAdminResponseDto> GetAdminsAsync(GetAdminRequestDto request, CancellationToken cancellationToken = default)
+    {
+        var filterRequest = new AdminUserFilterRequest
+        {
+            Page = request.Page,
+            PageSize = request.PageSize,
+            Role = (RoleFilter)request.Role,
+            Status = (StatusFilter)request.Status,
+            SearchTerm = request.SearchTerm?.Trim(),
+            Sort = request.Sort
+        };
+
+        filterRequest.Validate();
+
+        var paged = await _adminDataQuery.GetPagingAdminsAsync(filterRequest, cancellationToken);
+
+        return new GetAdminResponseDto(paged.Items, paged.Pagination);
     }
 }

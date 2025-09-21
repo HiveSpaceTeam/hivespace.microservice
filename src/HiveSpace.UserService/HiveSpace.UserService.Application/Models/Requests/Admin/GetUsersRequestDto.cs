@@ -5,8 +5,8 @@ namespace HiveSpace.UserService.Application.Models.Requests.Admin;
 public record GetUsersRequestDto(
     int Page = 1,
     int PageSize = 10,
-    UserRoleFilter Role = UserRoleFilter.All,
-    UserStatusFilter Status = UserStatusFilter.All,
+    int Role = (int)RoleFilter.All,
+    int Status = (int)StatusFilter.All,
     string? SearchTerm = null,
     string Sort = "createdDate.desc"
 );
