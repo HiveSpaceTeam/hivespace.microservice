@@ -5,5 +5,5 @@ public record CreateAdminRequestDto(
     string Password,
     string FullName,
     string ConfirmPassword,
-    bool IsSystemAdmin = false // "Admin" or "SystemAdmin"
+    bool IsSystemAdmin = false
 );

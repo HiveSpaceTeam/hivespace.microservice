@@ -7,8 +7,8 @@ public record AdminDto(
     string Email,
     int Status,
     bool IsSystemAdmin,
-    DateTime CreatedDate,
-    DateTime? LastUpdatedDate,
-    DateTime? LastLoginDate,
-    string? Avatar
+    DateTimeOffset CreatedAt,
+    DateTimeOffset? UpdatedAt,
+    DateTimeOffset? LastLoginAt,
+    string? AvatarUrl
 );

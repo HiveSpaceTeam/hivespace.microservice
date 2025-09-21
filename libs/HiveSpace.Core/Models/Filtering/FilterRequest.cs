@@ -4,9 +4,9 @@ public abstract class FilterRequest
 {
     public int Page { get; set; } = 1;
     public int PageSize { get; set; } = 10;
-    public string Sort { get; set; } = "createdDate.desc";
+    public string Sort { get; set; } = "createdAt.desc";
 
-    public string SortField => Sort?.Split('.').FirstOrDefault() ?? "createdDate";
+    public string SortField => Sort?.Split('.').FirstOrDefault() ?? "createdAt";
     public string SortDirection => Sort?.Split('.').LastOrDefault() ?? "desc";
 
     public virtual void Validate()

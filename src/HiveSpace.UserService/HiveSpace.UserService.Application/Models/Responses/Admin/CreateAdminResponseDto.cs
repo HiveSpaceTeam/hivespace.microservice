@@ -6,5 +6,7 @@ public record CreateAdminResponseDto(
     string FullName,
     bool IsSystemAdmin,
     DateTimeOffset CreatedAt,
+    DateTimeOffset UpdatedAt,
+    DateTimeOffset LastLoginAt,
     bool IsActive = true
 );

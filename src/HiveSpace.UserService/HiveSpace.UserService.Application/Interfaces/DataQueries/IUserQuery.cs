@@ -6,6 +6,6 @@ namespace HiveSpace.UserService.Application.Interfaces.DataQueries;
 
 public interface IUserQuery
 {
-    Task<PagedResult<UserListItemDto>> GetPagingUsersAsync(AdminUserFilterRequest request, CancellationToken cancellationToken = default);
+    Task<PagedResult<UserDto>> GetPagingUsersAsync(AdminUserFilterRequest request, CancellationToken cancellationToken = default);
     Task<int> GetTotalUsersCountAsync(AdminUserFilterRequest request, CancellationToken cancellationToken = default);
 }

@@ -36,7 +36,7 @@ public class GetAdminValidator : AbstractValidator<GetAdminRequestDto>
         var parts = sort.Split('.');
         if (parts.Length != 2) return false;
 
-        var validFields = new[] { "fullname", "email", "status", "createddate", "lastupdatedate", "lastlogindate" };
+    var validFields = new[] { "fullname", "email", "status", "createdat", "lastupdatedat", "lastloginat" };
         var validDirections = new[] { "asc", "desc" };
 
         return validFields.Contains(parts[0].ToLowerInvariant()) &&

@@ -35,7 +35,7 @@ public class GetUsersValidator : AbstractValidator<GetUsersRequestDto>
         var parts = sort.Split('.');
         if (parts.Length != 2) return false;
 
-        var validFields = new[] { "username", "fullname", "email", "status", "createddate", "lastlogindate" };
+    var validFields = new[] { "username", "fullname", "email", "status", "createdat", "updatedat", "lastloginat" };
         var validDirections = new[] { "asc", "desc" };
 
         return validFields.Contains(parts[0].ToLowerInvariant()) &&
