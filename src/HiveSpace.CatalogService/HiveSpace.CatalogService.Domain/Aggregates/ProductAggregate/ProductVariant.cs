@@ -1,33 +1,22 @@
 ﻿using HiveSpace.Domain.Shared.Entities;
+using System.Text.Json.Serialization;
 
 namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
 {
-    public class ProductVariant : Entity<int>
+    public class ProductVariant : Entity<Guid>
     {
-        public int ProductId { get; set; }
+        public Guid Id { get; private set; }
         public string Name { get; private set; }
+        public IReadOnlyCollection<ProductVariantOption> Options { get; private set; }
 
-        private readonly List<ProductVariantOption> _options = [];
-        public IReadOnlyCollection<ProductVariantOption> Options => _options.AsReadOnly();
-
-        private ProductVariant()
+        [JsonConstructor]
+        public ProductVariant(Guid id, string name, IReadOnlyCollection<ProductVariantOption> options)
         {
-        }
-
-        public ProductVariant(string name, List<ProductVariantOption> options)
-        {
+            Id = id;
             Name = name;
-            _options = options;
-
-            if (IsInvalid())
-            {
-                throw new Exception("Invalid product variant");
-            }
+            Options = options;
         }
 
-        private bool IsInvalid()
-        {
-            return _options is null || _options.Count <= 1;
-        }
+        private ProductVariant() { }
     }
 }

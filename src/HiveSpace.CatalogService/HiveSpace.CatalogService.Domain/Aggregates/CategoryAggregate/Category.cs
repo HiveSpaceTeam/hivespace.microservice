@@ -2,7 +2,7 @@
 
 namespace HiveSpace.CatalogService.Domain.Aggregates.CategoryAggregate
 {
-    public class Category: AggregateRoot<int>
+    public class Category: AggregateRoot<Guid>
     {
         public string Name { get; private set; }
 
@@ -21,7 +21,7 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.CategoryAggregate
 
         public List<int> AttributeIds { get; set; }
 
-        public Category(int id, string name, string displayName, int? parentId, string? fileImageId = null)
+        public Category(Guid id, string name, string displayName, int? parentId, string? fileImageId = null)
         {
             Id = id;
             Name = name;

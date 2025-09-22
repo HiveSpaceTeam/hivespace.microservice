@@ -1,19 +1,25 @@
 ﻿using HiveSpace.Domain.Shared.Entities;
+using System.Text.Json.Serialization;
 
-namespace HiveSpace.CatalogService.Domain.Aggregates.SkuAggregate
+namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
 {
     public class SkuVariant : ValueObject
     {
-        public int SkuId { get; set; }
-        public int VariantId { get; set; }
+        public Guid SkuId { get; private set; }
+        public Guid VariantId { get; private set; }
+        public Guid OptionId { get; private set; }
         public string Value { get; private set; }
 
-        public SkuVariant(int skuId, int variantId, string value)
+        [JsonConstructor]
+        public SkuVariant(Guid skuId, Guid variantId, Guid optionId, string value)
         {
             SkuId = skuId;
             VariantId = variantId;
+            OptionId = optionId;
             Value = value;
         }
+
+        private SkuVariant() { }
 
         protected override IEnumerable<object> GetEqualityComponents()
         {

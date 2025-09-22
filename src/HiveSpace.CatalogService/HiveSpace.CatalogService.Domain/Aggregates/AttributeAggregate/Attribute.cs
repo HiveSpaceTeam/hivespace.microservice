@@ -3,7 +3,7 @@ using HiveSpace.Domain.Shared.Entities;
 
 namespace HiveSpace.CatalogService.Domain.Aggregates.AttributeAggregate
 {
-    public class Attribute : AggregateRoot<int>
+    public class Attribute : AggregateRoot<Guid>
     {
         public string Name { get; private set; }
         public int ValueId { get; private set; }

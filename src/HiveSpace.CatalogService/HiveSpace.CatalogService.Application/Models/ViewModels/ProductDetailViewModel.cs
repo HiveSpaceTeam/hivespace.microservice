@@ -1,5 +1,4 @@
 ﻿using HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate;
-using HiveSpace.CatalogService.Domain.Aggregates.SkuAggregate;
 
 namespace HiveSpace.CatalogService.Application.Models.ViewModels
 {

@@ -2,15 +2,16 @@
 using HiveSpace.CatalogService.Domain.Exceptions;
 using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.Domain.Shared.Exceptions;
+using System.Text.Json.Serialization;
 
 namespace HiveSpace.CatalogService.Domain.Common
 {
     public class Money : ValueObject
     {
         public double Amount { get; private set; }
-
         public Currency Currency { get; private set; }
 
+        [JsonConstructor]
         public Money(double amount, Currency currency)
         {
             Amount = amount;
@@ -20,6 +21,8 @@ namespace HiveSpace.CatalogService.Domain.Common
                 throw new InvalidMoneyException();
             }
         }
+
+        private Money() { }
 
         private bool IsInvalid()
         {

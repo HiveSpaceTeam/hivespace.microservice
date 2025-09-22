@@ -1,6 +1,6 @@
 ﻿using HiveSpace.Domain.Shared.Entities;
 
-namespace HiveSpace.CatalogService.Domain.Aggregates.SkuAggregate
+namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
 {
     public class SkuImage : ValueObject
     {
