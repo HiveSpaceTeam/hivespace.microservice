@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Your Name",
+  "classifications": [ "Minimal API", "Web API", "Simple" ],
+  "name": "Minimal API Template",
+  "identity": "MinimalApi.Template",
+  "shortName": "minimalapi",
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "sourceName": "ServiceName",
+  "preferNameDirectory": false,
+  "sources": [
+    {
+      "source": "./",
+      "target": "./",
+      "modifiers": [
+        {
+          "exclude": [
+            "**/bin/**",
+            "**/obj/**",
+            "**/.vs/**",
+            ".template.config/**"
+          ]
+        }
+      ]
+    }
+  ]
+}
