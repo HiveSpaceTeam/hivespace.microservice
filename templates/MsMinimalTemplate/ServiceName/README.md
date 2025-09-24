@@ -40,7 +40,13 @@ ServiceName/
    dotnet run
    ```
 
-3. Open your browser and navigate to `https://localhost:5001/swagger` to view the API documentation.
+3. Open your browser and navigate to the URL shown in the console output after `dotnet run`, or to the URL configured in `Properties/launchSettings.json` or the `ASPNETCORE_URLS` environment variable. For example:
+
+```
+https://localhost:<port>/swagger
+```
+
+Use the exact URL (host and port) displayed by Kestrel in the console when the app starts.
 
 ## Configuration
 

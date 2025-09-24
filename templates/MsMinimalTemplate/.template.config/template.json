@@ -1,7 +1,11 @@
 {
   "$schema": "http://json.schemastore.org/template",
-  "author": "Your Name",
-  "classifications": [ "Minimal API", "Web API", "Simple" ],
+  "author": "HiveSpace",
+  "classifications": [
+    "Minimal API",
+    "Web API",
+    "Simple"
+  ],
   "name": "Minimal API Template",
   "identity": "MinimalApi.Template",
   "shortName": "minimalapi",
