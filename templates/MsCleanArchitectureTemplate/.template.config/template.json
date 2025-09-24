@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Your Name",
+  "classifications": [
+    "Microservice",
+    "Clean Architecture",
+    "Projects",
+    "Web API"
+  ],
+  "name": "Clean Architecture Microservice Template",
+  "identity": "CleanArchitecture.MicroserviceTemplate",
+  "shortName": "clean-architecture-ms",
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "sourceName": "ServiceName",
+  "preferNameDirectory": false,
+  "sources": [
+    {
+      "modifiers": [
+        {
+          "exclude": [
+            "**/bin/**",
+            "**/obj/**",
+            "**/.vs/**",
+            "**/*.sln",
+            "**/README.md",
+            "**/.gitkeep"
+          ]
+        }
+      ]
+    }
+  ],
+  "postActions": [
+    {
+      "condition": "(!skipRestore)",
+      "description": "Restore NuGet packages required by this project.",
+      "manualInstructions": [
+        {
+          "text": "Run 'dotnet restore'"
+        }
+      ],
+      "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9025",
+      "continueOnError": true
+    },
+    {
+      "description": "Remove template placeholder files used to create empty folders.",
+      "manualInstructions": [
+        {
+          "text": "To remove placeholder files from empty folders, run this in PowerShell after project creation:"
+        },
+        {
+          "text": "Get-ChildItem -Path . -Recurse -Filter __EMPTY_FOLDER__README.md | Remove-Item -Force -ErrorAction SilentlyContinue"
+        }
+      ],
+      "actionId": "E2C2F14B-3C34-4DF4-9B1C-1C7A731B6C46"
+    }
+  ]
+}
