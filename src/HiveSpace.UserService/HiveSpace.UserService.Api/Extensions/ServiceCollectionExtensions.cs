@@ -22,7 +22,7 @@ internal static class ServiceCollectionExtensions
             options.Filters.Add<CustomExceptionFilter>();
         });
     }
-     
+
     public static void AddAppIdentity(this IServiceCollection services)
     {
         services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
@@ -81,7 +81,7 @@ internal static class ServiceCollectionExtensions
 
     public static void AddAppAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddAuthentication()
+        services.AddAuthentication(IdentityServerConstants.LocalApi.AuthenticationScheme)
             .AddLocalApi(options =>
             {
                 options.ExpectedScope = "user.fullaccess";
@@ -101,11 +101,6 @@ internal static class ServiceCollectionExtensions
                     options.CallbackPath = "/signin-google";
                 });
         }
-
-        // TODO: Add Facebook authentication when package is available
-        // var facebookAppId = configuration["Authentication:Facebook:AppId"];
-        // var facebookAppSecret = configuration["Authentication:Facebook:AppSecret"];
-        // if (!string.IsNullOrWhiteSpace(facebookAppId) && !string.IsNullOrWhiteSpace(facebookAppSecret))
         // {
         //     services
         //         .AddAuthentication()
@@ -141,6 +136,4 @@ internal static class ServiceCollectionExtensions
             options.ReportApiVersions = true;
         });
     }
-
-
 }

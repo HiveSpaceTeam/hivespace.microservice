@@ -1,0 +1,40 @@
+@{
+    var hasApiErrors = ViewData["ApiErrors"] != null;
+    var hasGeneralErrors = !string.IsNullOrEmpty(ViewData["ErrorMessage"] as string);
+}
+
+@if (hasApiErrors || hasGeneralErrors)
+{
+    <div class="error-container mb-4">
+        @* Display general API error message *@
+        @if (hasGeneralErrors)
+        {
+            <div class="api-error-message">
+                <svg class="error-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M8 1.5C4.41 1.5 1.5 4.41 1.5 8S4.41 14.5 8 14.5 14.5 11.59 14.5 8 11.59 1.5 8 1.5ZM8.75 11.25H7.25V9.75H8.75V11.25ZM8.75 8.25H7.25V4.75H8.75V8.25Z"
+                        fill="currentColor" />
+                </svg>
+                @ViewData["ErrorMessage"]
+            </div>
+        }
+
+        @* Display specific API errors *@
+        @if (hasApiErrors)
+        {
+            @foreach (var error in (List<string>)ViewData["ApiErrors"]!)
+            {
+                <div class="api-error-message">
+                    <svg class="error-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M8 1.5C4.41 1.5 1.5 4.41 1.5 8S4.41 14.5 8 14.5 14.5 11.59 14.5 8 11.59 1.5 8 1.5ZM8.75 11.25H7.25V9.75H8.75V11.25ZM8.75 8.25H7.25V4.75H8.75V8.25Z"
+                            fill="currentColor" />
+                    </svg>
+                    @error
+                </div>
+            }
+        }
+    </div>
+}

@@ -1,6 +1,9 @@
 using HiveSpace.UserService.Domain.Repositories;
 using HiveSpace.UserService.Infrastructure.Data;
 using HiveSpace.UserService.Infrastructure.Repositories;
+using HiveSpace.UserService.Infrastructure.DataQueries;
+using HiveSpace.UserService.Application.Interfaces;
+using HiveSpace.UserService.Application.Interfaces.DataQueries;
 using HiveSpace.Infrastructure.Persistence;
 using HiveSpace.Infrastructure.Persistence.Outbox;
 using HiveSpace.Infrastructure.Persistence.Interceptors;
@@ -38,11 +41,14 @@ public static class UserInfrastructureExtension
         // Register UserService repositories
         services.AddUserServiceRepositories();
 
+        // Register UserService queries with connection string
+        services.AddUserServiceQueries(connectionString);
+
         services.AddDbContext<UserDbContext>((serviceProvider, options) =>
         {
             var interceptors = serviceProvider.GetServices<ISaveChangesInterceptor>();
-            options.UseSqlServer(connectionString)      
-                .AddInterceptors(interceptors);     
+            options.UseSqlServer(connectionString)
+                .AddInterceptors(interceptors);
         });
 
         // Register the generic DbContext to resolve to UserDbContext
@@ -54,5 +60,12 @@ public static class UserInfrastructureExtension
     {
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IStoreRepository, StoreRepository>();
+    }
+
+    public static void AddUserServiceQueries(this IServiceCollection services, string connectionString)
+    {
+        // Register Dapper Query services with connection string
+        services.AddScoped<IUserDataQuery>(provider => new UserDataQuery(connectionString));
+        services.AddScoped<IAdminDataQuery>(provider => new AdminDataQuery(connectionString));
     }
 }

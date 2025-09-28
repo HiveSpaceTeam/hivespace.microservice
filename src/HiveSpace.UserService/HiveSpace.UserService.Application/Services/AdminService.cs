@@ -1,10 +1,13 @@
 using HiveSpace.Core.Contexts;
 using HiveSpace.UserService.Application.Models.Requests.Admin;
 using HiveSpace.UserService.Application.Models.Responses.Admin;
-using HiveSpace.UserService.Application.Interface;
+using HiveSpace.UserService.Application.Interfaces;
 using HiveSpace.UserService.Domain.Aggregates.User;
 using HiveSpace.UserService.Domain.Services;
 using HiveSpace.UserService.Domain.Repositories;
+using HiveSpace.UserService.Application.Models.Queries;
+using HiveSpace.UserService.Application.Interfaces.DataQueries;
+using HiveSpace.UserService.Application.Constant.Enum;
 
 namespace HiveSpace.UserService.Application.Services;
 
@@ -13,15 +16,21 @@ public class AdminService : IAdminService
     private readonly IUserContext _userContext;
     private readonly UserManager _domainUserManager;
     private readonly IUserRepository _userRepository;
+    private readonly IUserDataQuery _userDataQuery;
+    private readonly IAdminDataQuery _adminDataQuery;
 
     public AdminService(
         IUserContext userContext,
         UserManager domainUserManager,
-        IUserRepository userRepository)
+        IUserRepository userRepository,
+        IUserDataQuery userDataQuery,
+        IAdminDataQuery adminDataQuery)
     {
         _userContext = userContext;
         _domainUserManager = domainUserManager;
         _userRepository = userRepository;
+        _userDataQuery = userDataQuery;
+        _adminDataQuery = adminDataQuery;
     }
 
     public async Task<CreateAdminResponseDto> CreateAdminAsync(CreateAdminRequestDto request, CancellationToken cancellationToken = default)
@@ -48,8 +57,50 @@ public class AdminService : IAdminService
         return new CreateAdminResponseDto(
             created.Id,
             created.Email.Value,
-            created.UserName,
             created.FullName,
-            created.Role?.Name ?? string.Empty);
+            created.IsSystemAdmin,
+            created.CreatedAt,
+            created.UpdatedAt ?? created.CreatedAt,
+            created.LastLoginAt ?? created.CreatedAt);
+    }
+
+    public async Task<GetUsersResponseDto> GetUsersAsync(GetUsersRequestDto request, CancellationToken cancellationToken = default)
+    {
+        // Map to domain filter
+        var filterRequest = new AdminUserFilterRequest
+        {
+            Page = request.Page,
+            PageSize = request.PageSize,
+            Role = (RoleFilter)request.Role,
+            Status = (StatusFilter)request.Status,
+            SearchTerm = request.SearchTerm?.Trim(),
+            Sort = request.Sort
+        };
+
+        filterRequest.Validate();
+
+        // Get paginated results from Dapper query
+        var pagedUsers = await _userDataQuery.GetPagingUsersAsync(filterRequest, cancellationToken);
+
+        return new GetUsersResponseDto(pagedUsers.Items, pagedUsers.Pagination);
+    }
+
+    public async Task<GetAdminResponseDto> GetAdminsAsync(GetAdminRequestDto request, CancellationToken cancellationToken = default)
+    {
+        var filterRequest = new AdminUserFilterRequest
+        {
+            Page = request.Page,
+            PageSize = request.PageSize,
+            Role = (RoleFilter)request.Role,
+            Status = (StatusFilter)request.Status,
+            SearchTerm = request.SearchTerm?.Trim(),
+            Sort = request.Sort
+        };
+
+        filterRequest.Validate();
+
+        var paged = await _adminDataQuery.GetPagingAdminsAsync(filterRequest, cancellationToken);
+
+        return new GetAdminResponseDto(paged.Items, paged.Pagination);
     }
 }

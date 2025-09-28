@@ -83,12 +83,12 @@ public class UserManager : IDomainService
     {
         // Check email availability first (more likely to be unique)
         if (!await IsEmailAvailableAsync(email, cancellationToken))
-            throw new ConflictException(UserDomainErrorCode.EmailAlreadyExists, nameof(User));
+            throw new ConflictException(UserDomainErrorCode.EmailAlreadyExists, nameof(User.Email));
             
         // Check username availability
         if (!await IsUserNameAvailableAsync(userName, cancellationToken))
-            throw new ConflictException(UserDomainErrorCode.UserNameAlreadyExists, nameof(User));
-            
+            throw new ConflictException(UserDomainErrorCode.UserNameAlreadyExists, nameof(User.UserName));
+
         return true;
     }
 

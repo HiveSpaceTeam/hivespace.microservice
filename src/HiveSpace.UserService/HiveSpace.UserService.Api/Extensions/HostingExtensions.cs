@@ -13,9 +13,7 @@ internal static class HostingExtensions
         // builder.Services.AddMediatRRegistration(configuration);
         builder.Services.AddAppApiControllers();
         builder.Services.AddRazorPages();
-        builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
-
         builder.Services.AddAppInfrastructure();
         builder.Services.AddUserDbContext(configuration);
         builder.Services.AddCoreServices();
@@ -28,7 +26,7 @@ internal static class HostingExtensions
         builder.Services.AddAppApiVersioning();
 
         return builder.Build();
-     }
+    }
 
     public static WebApplication ConfigurePipeline(this WebApplication app)
     {
@@ -37,17 +35,13 @@ internal static class HostingExtensions
         {
             app.UseDeveloperExceptionPage();
         }
-        else
+
         app.UseStaticFiles();
         app.UseRouting();
+
         app.UseIdentityServer();
         app.UseAuthentication();
         app.UseAuthorization();
-        app.UseStaticFiles();
-        app.UseRouting();
-        app.UseAuthentication();
-        app.UseAuthorization();
-        app.UseIdentityServer();
 
         app.MapControllers();
         app.MapRazorPages().RequireAuthorization();

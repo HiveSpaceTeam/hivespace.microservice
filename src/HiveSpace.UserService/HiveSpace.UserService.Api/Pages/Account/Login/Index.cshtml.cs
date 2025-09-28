@@ -21,6 +21,7 @@ public class Index : PageModel
     private readonly IEventService _events;
     private readonly IAuthenticationSchemeProvider _schemeProvider;
     private readonly IIdentityProviderStore _identityProviderStore;
+    private readonly IConfiguration _configuration;
 
     public ViewModel View { get; set; } = default!;
 
@@ -33,7 +34,8 @@ public class Index : PageModel
         IIdentityProviderStore identityProviderStore,
         IEventService events,
         UserManager<ApplicationUser> userManager,
-        SignInManager<ApplicationUser> signInManager)
+        SignInManager<ApplicationUser> signInManager,
+        IConfiguration configuration)
     {
         _userManager = userManager;
         _signInManager = signInManager;
@@ -41,6 +43,7 @@ public class Index : PageModel
         _schemeProvider = schemeProvider;
         _identityProviderStore = identityProviderStore;
         _events = events;
+        _configuration = configuration;
     }
 
     public async Task<IActionResult> OnGet(string? returnUrl)
@@ -61,8 +64,8 @@ public class Index : PageModel
         // check if we are in the context of an authorization request
         var context = await _interaction.GetAuthorizationContextAsync(Input.ReturnUrl);
 
-        // the user clicked the "cancel" button
-        if (Input.Button != "login")
+        // Treat null or empty button as login attempt, only cancel if explicitly set to something else
+        if (!string.IsNullOrEmpty(Input.Button) && Input.Button != "login")
         {
             if (context != null)
             {
@@ -96,9 +99,21 @@ public class Index : PageModel
             // Only remember login if allowed
             var rememberLogin = LoginOptions.AllowRememberLogin && Input.RememberLogin;
 
+            // Find user by email first
+            var user = await _userManager.FindByEmailAsync(Input.Email!);
+            if (user == null)
+            {
+                const string error = "invalid credentials";
+                await _events.RaiseAsync(new UserLoginFailureEvent(Input.Email, error, clientId: context?.Client.ClientId));
+                Telemetry.Metrics.UserLoginFailure(context?.Client.ClientId, IdentityServerConstants.LocalIdentityProvider, error);
+                AddApiError("Invalid username or password, please try again");
+                await BuildModelAsync(Input.ReturnUrl);
+                return Page();
+            }
+
             // attempt login with lockout on failure
             var result = await _signInManager.PasswordSignInAsync(
-                Input.Username!,
+                user.UserName!,
                 Input.Password!,
                 isPersistent: rememberLogin,
                 lockoutOnFailure: true
@@ -108,7 +123,7 @@ public class Index : PageModel
             if (result.IsLockedOut)
             {
                 await _events.RaiseAsync(new UserLoginFailureEvent(
-                    Input.Username,
+                    Input.Email,
                     "locked out",
                     clientId: context?.Client.ClientId
                 ));
@@ -117,10 +132,7 @@ public class Index : PageModel
                     IdentityServerConstants.LocalIdentityProvider,
                     "locked out"
                 );
-                ModelState.AddModelError(
-                    string.Empty,
-                    "This account has been locked out, please try again later."
-                );
+                AddApiError("This account has been locked out, please try again later.");
                 await BuildModelAsync(Input.ReturnUrl);
                 return Page();
             }
@@ -137,10 +149,7 @@ public class Index : PageModel
             // handle disallowed logins (e.g. email not confirmed)
             if (result.IsNotAllowed)
             {
-                ModelState.AddModelError(
-                    string.Empty,
-                    "This account is not allowed to log in."
-                );
+                AddApiError("This account is not allowed to log in.");
                 await BuildModelAsync(Input.ReturnUrl);
                 return Page();
             }
@@ -148,12 +157,10 @@ public class Index : PageModel
             // successful login
             if (result.Succeeded)
             {
-                var user = await _userManager.FindByNameAsync(Input.Username!);
                 await _events.RaiseAsync(new UserLoginSuccessEvent(
-                    user!.UserName,
-                    user.Id.ToString(),
                     user.UserName,
-                    clientId: context?.Client.ClientId
+                    user.Id.ToString(),
+                    user.UserName // Use display name or full name if available
                 ));
                 Telemetry.Metrics.UserLogin(
                     context?.Client.ClientId,
@@ -183,7 +190,13 @@ public class Index : PageModel
                 }
                 else if (string.IsNullOrEmpty(Input.ReturnUrl))
                 {
-                    return Redirect("~/");
+                         // Use a configurable default redirect URL from configuration
+                    var defaultRedirectUrl = _configuration["DefaultRedirectUrl"];
+                    if (string.IsNullOrWhiteSpace(defaultRedirectUrl))
+                    {
+                        defaultRedirectUrl = "/"; // fallback to root if not configured
+                    }
+                    return Redirect(defaultRedirectUrl);
                 }
                 else
                 {
@@ -191,15 +204,46 @@ public class Index : PageModel
                     throw new ArgumentException("invalid return URL");
                 }
             }
-            const string error = "invalid credentials";
-            await _events.RaiseAsync(new UserLoginFailureEvent(Input.Username, error, clientId: context?.Client.ClientId));
-            Telemetry.Metrics.UserLoginFailure(context?.Client.ClientId, IdentityServerConstants.LocalIdentityProvider, error);
-            ModelState.AddModelError(string.Empty, LoginOptions.InvalidCredentialsErrorMessage);
+            const string invalidCredentials = "invalid credentials";
+            await _events.RaiseAsync(new UserLoginFailureEvent(Input.Email, invalidCredentials, clientId: context?.Client.ClientId));
+            Telemetry.Metrics.UserLoginFailure(context?.Client.ClientId, IdentityServerConstants.LocalIdentityProvider, invalidCredentials);
+            AddApiError("Invalid username or password, please try again");
         }
 
         // something went wrong, show form with error
         await BuildModelAsync(Input.ReturnUrl);
         return Page();
+    }
+
+    /// <summary>
+    /// Adds API error messages to ViewData for display in the UI
+    /// </summary>
+    /// <param name="errorMessage">Single error message</param>
+    private void AddApiError(string errorMessage)
+    {
+        var errors = ViewData["ApiErrors"] as List<string> ?? new List<string>();
+        errors.Add(errorMessage);
+        ViewData["ApiErrors"] = errors;
+    }
+
+    /// <summary>
+    /// Adds multiple API error messages to ViewData for display in the UI
+    /// </summary>
+    /// <param name="errorMessages">Multiple error messages</param>
+    private void AddApiErrors(IEnumerable<string> errorMessages)
+    {
+        var errors = ViewData["ApiErrors"] as List<string> ?? new List<string>();
+        errors.AddRange(errorMessages);
+        ViewData["ApiErrors"] = errors;
+    }
+
+    /// <summary>
+    /// Sets a general error message to be displayed in the UI
+    /// </summary>
+    /// <param name="message">Error message</param>
+    private void SetErrorMessage(string message)
+    {
+        ViewData["ErrorMessage"] = message;
     }
 
     private async Task BuildModelAsync(string? returnUrl)
@@ -233,7 +277,7 @@ public class Index : PageModel
                     EnableLocalLogin = local,
                 };
 
-                Input.Username = context.LoginHint;
+                Input.Email = context.LoginHint;
 
                 if (!local)
                 {

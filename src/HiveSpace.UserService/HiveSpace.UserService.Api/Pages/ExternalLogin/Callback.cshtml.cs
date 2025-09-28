@@ -156,7 +156,7 @@ public class Callback : PageModel
             UserName = userName,
             FullName = fullName,
             PhoneNumber = null,
-            Gender = gender?.ToString(),
+            Gender = (int?)gender,
             DateOfBirth = dob
         };
 

@@ -9,7 +9,7 @@ using HiveSpace.UserService.Application.Interfaces;
 namespace HiveSpace.UserService.Api.Controllers;
 
 [ApiController]
-[Route("api/v{version:apiVersion}/admin")]
+[Route("api/v{version:apiVersion}/admins")]
 [ApiVersion("1.0")]
 public class AdminController : ControllerBase
 {
@@ -27,5 +27,33 @@ public class AdminController : ControllerBase
         ValidationHelper.ValidateResult(new CreateAdminValidator().Validate(request));
         var result = await _adminService.CreateAdminAsync(request, cancellationToken);
         return CreatedAtAction(nameof(CreateAdmin), new { id = result.Id }, result);
+    }
+
+    [HttpGet("users")]
+    [Authorize(Policy = "RequireUserFullAccessScope")]
+    public async Task<ActionResult<GetUsersResponseDto>> GetUsers(
+        [FromQuery] GetUsersRequestDto request,
+        CancellationToken cancellationToken)
+    {
+        // Validate request
+        ValidationHelper.ValidateResult(new GetUsersValidator().Validate(request));
+
+        // Call service
+        var result = await _adminService.GetUsersAsync(request, cancellationToken);
+
+        return Ok(result);
+    }
+
+    [HttpGet]
+    [Authorize(Policy = "RequireUserFullAccessScope")]
+    public async Task<ActionResult<GetAdminResponseDto>> GetAdmins(
+        [FromQuery] GetAdminRequestDto request,
+        CancellationToken cancellationToken)
+    {
+        ValidationHelper.ValidateResult(new GetAdminValidator().Validate(request));
+
+        var result = await _adminService.GetAdminsAsync(request, cancellationToken);
+
+        return Ok(result);
     }
 }

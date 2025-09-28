@@ -146,8 +146,8 @@ namespace HiveSpace.UserService.Infrastructure.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("Gender")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int?>("Gender")
+                        .HasColumnType("int");
 
                     b.Property<DateTimeOffset?>("LastLoginAt")
                         .HasColumnType("datetimeoffset");
@@ -179,6 +179,9 @@ namespace HiveSpace.UserService.Infrastructure.Data.Migrations
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
                     b.Property<Guid?>("StoreId")
                         .HasColumnType("uniqueidentifier");
 
@@ -192,10 +195,6 @@ namespace HiveSpace.UserService.Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("UserStatus")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -322,8 +321,6 @@ namespace HiveSpace.UserService.Infrastructure.Data.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("UserId", "RoleId");
-
-                    b.HasIndex("ApplicationUserId");
 
                     b.HasIndex("RoleId");
 

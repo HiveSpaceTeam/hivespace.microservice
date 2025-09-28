@@ -3,7 +3,6 @@ using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Services;
 using Microsoft.AspNetCore.Identity;
 using HiveSpace.UserService.Domain.Repositories;
-using HiveSpace.UserService.Infrastructure.Data;
 using HiveSpace.UserService.Domain.Enums;
 
 namespace HiveSpace.UserService.Infrastructure.Identity;
@@ -75,7 +74,7 @@ public class CustomProfileService : IProfileService
         }
         
         // 3. Add user status information
-        claims.Add(new Claim("user_status", user.UserStatus));
+        claims.Add(new Claim("user_status", user.Status.ToString()));
         
         // 4. Add additional user information if available
         if (user.DateOfBirth.HasValue)
@@ -83,9 +82,10 @@ public class CustomProfileService : IProfileService
             claims.Add(new Claim("birthdate", user.DateOfBirth.Value.ToString("yyyy-MM-dd")));
         }
         
-        if (!string.IsNullOrEmpty(user.Gender))
+        if (user.Gender.HasValue)
         {
-            claims.Add(new Claim("gender", user.Gender));
+            var genderName = ((Gender)user.Gender.Value).ToString().ToLowerInvariant();
+            claims.Add(new Claim("gender", genderName));
         }
 
         // Finally, issue the claims to the token.
@@ -103,6 +103,6 @@ public class CustomProfileService : IProfileService
         
         // A user is considered active if they exist, are not locked out, and have an active status.
         context.IsActive = user is not null 
-            && user.UserStatus == UserStatus.Active.ToString();
+            && user.Status == (int)UserStatus.Active;
     }
 }

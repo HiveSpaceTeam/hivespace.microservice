@@ -7,6 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Dapper" />
+    <PackageReference Include="Microsoft.Data.SqlClient" />
     <PackageReference Include="Duende.IdentityServer.AspNetIdentity" />
     <PackageReference Include="Duende.IdentityServer.EntityFramework" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
@@ -15,8 +17,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\libs\HiveSpace.Infrastructure.Persistence\HiveSpace.Infrastructure.Persistence.csproj" />
+    <ProjectReference
+      Include="..\..\..\libs\HiveSpace.Infrastructure.Persistence\HiveSpace.Infrastructure.Persistence.csproj" />
     <ProjectReference Include="..\HiveSpace.UserService.Domain\HiveSpace.UserService.Domain.csproj" />
+    <ProjectReference
+      Include="..\HiveSpace.UserService.Application\HiveSpace.UserService.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>
