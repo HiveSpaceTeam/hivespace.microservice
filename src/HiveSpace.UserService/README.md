@@ -145,9 +145,9 @@ The service integrates **Duende IdentityServer v7** for OAuth2/OIDC authenticati
   "AllowOfflineAccess": false,
   "RedirectUris": [
     "http://localhost:5173/callback",
-    "http://localhost:5173/callback.html",
-    "http://localhost:5173/silent-renew.html"
+    "http://localhost:5173/callback.html"
   ],
+  // For SPAs prefer Authorization Code + PKCE + refresh tokens (set AllowOfflineAccess=true) instead of iframe silent renew
   "PostLogoutRedirectUris": ["http://localhost:5173/"],
   "AllowedCorsOrigins": ["http://localhost:5173"],
   "AllowedScopes": ["openid", "profile", "user.fullaccess"],
