@@ -13,10 +13,11 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
 
         public Guid ProductId { get; private set; }
 
-        public IReadOnlyCollection<SkuVariant> SkuVariants { get; private set; }
+        private readonly List<SkuVariant> _skuVariants = [];
+        public IReadOnlyCollection<SkuVariant> SkuVariants => _skuVariants.AsReadOnly();
+        private readonly List<SkuImage> _images = [];
+        public IReadOnlyCollection<SkuImage> Images => _images.AsReadOnly();
 
-        //private readonly List<SkuImage> _images = [];
-        //public IReadOnlyCollection<SkuImage> Images { get; private set; }
 
         public int Quantity { get; private set; }
 
@@ -26,19 +27,24 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
         #endregion
 
         #region Constructors
-        [JsonConstructor]
-        public Sku(string skuNo, Guid productId, IReadOnlyCollection<SkuVariant> skuVariants,  int quantity, bool isActive, Money price)
+        public Sku()
+        {
+            
+        }
+
+        public Sku(string skuNo, Guid productId, List<SkuVariant> skuVariants, List<SkuImage> images, int quantity, bool isActive, Money price)
         {
             SkuNo = skuNo;
             ProductId = productId;
-            SkuVariants = skuVariants;
-            //Images = images;
+            _skuVariants = skuVariants;
+            _images = images;
             Quantity = quantity;
             IsActive = isActive;
             Price = price;
         }
 
-        private Sku() { }
+
+
         #endregion
 
         #region Methods

@@ -6,16 +6,13 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
     public class ProductVariant : Entity<Guid>
     {
         public string Name { get; private set; }
-        public IReadOnlyCollection<ProductVariantOption> Options { get; private set; }
+        public IReadOnlyCollection<ProductVariantOption> Options => _options.AsReadOnly();
+        private readonly List<ProductVariantOption> _options = [];
 
-        [JsonConstructor]
-        public ProductVariant(Guid id, string name, IReadOnlyCollection<ProductVariantOption> options)
+        public ProductVariant(string name, List<ProductVariantOption> options)
         {
-            Id = id;
             Name = name;
-            Options = options;
+            _options = options;
         }
-
-        private ProductVariant() { }
     }
 }

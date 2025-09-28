@@ -9,7 +9,6 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
         public Guid OptionId { get; private set; }
         public string Value { get; private set; }
 
-        [JsonConstructor]
         public ProductVariantOption(Guid variantId, Guid optionId, string value)
         {
             VariantId = variantId;
@@ -17,7 +16,6 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
             Value = value;
         }
 
-        private ProductVariantOption() { }
 
         protected override IEnumerable<object> GetEqualityComponents()
         {
