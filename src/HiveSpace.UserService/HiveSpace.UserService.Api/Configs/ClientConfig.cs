@@ -20,4 +20,9 @@ public record ClientConfig
     public List<string> AllowedScopes { get; init; } = [];
     public int AccessTokenLifetime { get; init; }
     public int IdentityTokenLifetime { get; init; }
+    // Refresh token settings
+    public bool? UseRefreshTokens { get; init; }
+    public int? AbsoluteRefreshTokenLifetime { get; init; }
+    public int? SlidingRefreshTokenLifetime { get; init; }
+    public string? RefreshTokenExpiration { get; init; }
 }

@@ -10,6 +10,6 @@ public class Index : PageModel
     public IActionResult OnGet()
     {
         // Redirect to login page
-        return RedirectToPage("/Account/Login/Index");
+        return Page();
     }
 }

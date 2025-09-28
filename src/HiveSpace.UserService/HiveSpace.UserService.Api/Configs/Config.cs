@@ -102,22 +102,115 @@ public static class Config
         }
 
         // API Testing Client (minimal config)
-        var apiTestingConfig = clientsSection.GetSection("apitestingapp").Get<ClientConfig>();
-        if (apiTestingConfig != null)
+        // Seller Center Client
+        var sellerCenterConfig = clientsSection.GetSection("sellercenter").Get<ClientConfig>();
+        if (sellerCenterConfig != null)
         {
-            var apiTestingClient = new Client
+            var sellerCenterClient = new Client
             {
-                ClientId = apiTestingConfig.ClientId,
-                ClientName = apiTestingConfig.ClientName,
-                ClientSecrets = !string.IsNullOrEmpty(apiTestingConfig.ClientSecret)
-                    ? [new Secret(apiTestingConfig.ClientSecret.Sha256())]
+                ClientId = sellerCenterConfig.ClientId,
+                ClientName = sellerCenterConfig.ClientName,
+                ClientUri = sellerCenterConfig.ClientUri,
+                ClientSecrets = !string.IsNullOrEmpty(sellerCenterConfig.ClientSecret)
+                    ? new List<Secret> { new Secret(sellerCenterConfig.ClientSecret.Sha256()) }
                     : new List<Secret>(),
-                RequireClientSecret = apiTestingConfig.RequireClientSecret,
-                AllowedGrantTypes = apiTestingConfig.AllowedGrantTypes ?? ["client_credentials"],
-                AllowedScopes = apiTestingConfig.AllowedScopes ?? [],
-                AlwaysIncludeUserClaimsInIdToken = apiTestingConfig.AlwaysIncludeUserClaimsInIdToken
+                RequireClientSecret = sellerCenterConfig.RequireClientSecret,
+                AllowedGrantTypes = sellerCenterConfig.AllowedGrantTypes ?? new List<string> { "authorization_code" },
+                AllowAccessTokensViaBrowser = sellerCenterConfig.AllowAccessTokensViaBrowser,
+                RequireConsent = sellerCenterConfig.RequireConsent,
+                AllowOfflineAccess = sellerCenterConfig.AllowOfflineAccess,
+                AlwaysIncludeUserClaimsInIdToken = sellerCenterConfig.AlwaysIncludeUserClaimsInIdToken,
+                RequirePkce = sellerCenterConfig.RequirePkce,
+                RedirectUris = sellerCenterConfig.RedirectUris ?? new List<string>(),
+                PostLogoutRedirectUris = sellerCenterConfig.PostLogoutRedirectUris ?? new List<string>(),
+                AllowedCorsOrigins = sellerCenterConfig.AllowedCorsOrigins ?? new List<string>(),
+                AllowedScopes = sellerCenterConfig.AllowedScopes ?? new List<string>(),
+                AccessTokenLifetime = sellerCenterConfig.AccessTokenLifetime,
+                IdentityTokenLifetime = sellerCenterConfig.IdentityTokenLifetime,
             };
-            clients.Add(apiTestingClient);
+
+            var oidcScopesSeller = new[] { "openid", "profile" };
+            sellerCenterClient.AllowedScopes = (sellerCenterClient.AllowedScopes ?? new List<string>())
+                .Concat(oidcScopesSeller)
+                .Distinct()
+                .ToList();
+
+            if (sellerCenterConfig.AllowOfflineAccess)
+            {
+                sellerCenterClient.AllowedScopes ??= new List<string>();
+                var allowedScopes = sellerCenterClient.AllowedScopes.ToList();
+                if (!allowedScopes.Contains("offline_access"))
+                {
+                    allowedScopes.Add("offline_access");
+                    sellerCenterClient.AllowedScopes = allowedScopes;
+                }
+
+                // Configure refresh token behavior for SPA using refresh tokens
+                sellerCenterClient.RefreshTokenUsage = TokenUsage.OneTimeOnly;
+                // default to sliding expiration unless configured
+                sellerCenterClient.RefreshTokenExpiration = TokenExpiration.Sliding;
+                if (sellerCenterConfig.AbsoluteRefreshTokenLifetime.HasValue && sellerCenterConfig.AbsoluteRefreshTokenLifetime.Value > 0)
+                    sellerCenterClient.AbsoluteRefreshTokenLifetime = sellerCenterConfig.AbsoluteRefreshTokenLifetime.Value;
+                if (sellerCenterConfig.SlidingRefreshTokenLifetime.HasValue && sellerCenterConfig.SlidingRefreshTokenLifetime.Value > 0)
+                    sellerCenterClient.SlidingRefreshTokenLifetime = sellerCenterConfig.SlidingRefreshTokenLifetime.Value;
+            }
+
+            clients.Add(sellerCenterClient);
+        }
+
+        // Web UI client
+        var webUiConfig = clientsSection.GetSection("webui").Get<ClientConfig>();
+        if (webUiConfig != null)
+        {
+            var webUiClient = new Client
+            {
+                ClientId = webUiConfig.ClientId,
+                ClientName = webUiConfig.ClientName,
+                ClientUri = webUiConfig.ClientUri,
+                ClientSecrets = !string.IsNullOrEmpty(webUiConfig.ClientSecret)
+                    ? new List<Secret> { new Secret(webUiConfig.ClientSecret.Sha256()) }
+                    : new List<Secret>(),
+                RequireClientSecret = webUiConfig.RequireClientSecret,
+                AllowedGrantTypes = webUiConfig.AllowedGrantTypes ?? new List<string> { "authorization_code" },
+                AllowAccessTokensViaBrowser = webUiConfig.AllowAccessTokensViaBrowser,
+                RequireConsent = webUiConfig.RequireConsent,
+                AllowOfflineAccess = webUiConfig.AllowOfflineAccess,
+                AlwaysIncludeUserClaimsInIdToken = webUiConfig.AlwaysIncludeUserClaimsInIdToken,
+                RequirePkce = webUiConfig.RequirePkce,
+                RedirectUris = webUiConfig.RedirectUris ?? new List<string>(),
+                PostLogoutRedirectUris = webUiConfig.PostLogoutRedirectUris ?? new List<string>(),
+                AllowedCorsOrigins = webUiConfig.AllowedCorsOrigins ?? new List<string>(),
+                AllowedScopes = webUiConfig.AllowedScopes ?? new List<string>(),
+                AccessTokenLifetime = webUiConfig.AccessTokenLifetime,
+                IdentityTokenLifetime = webUiConfig.IdentityTokenLifetime
+            };
+
+            var oidcScopesWeb = new[] { "openid", "profile" };
+            webUiClient.AllowedScopes = (webUiClient.AllowedScopes ?? new List<string>())
+                .Concat(oidcScopesWeb)
+                .Distinct()
+                .ToList();
+
+            if (webUiConfig.AllowOfflineAccess)
+            {
+                webUiClient.AllowedScopes ??= new List<string>();
+                var allowedScopes = webUiClient.AllowedScopes.ToList();
+                if (!allowedScopes.Contains("offline_access"))
+                {
+                    allowedScopes.Add("offline_access");
+                    webUiClient.AllowedScopes = allowedScopes;
+                }
+
+                // Configure refresh token behavior for SPA using refresh tokens
+                webUiClient.RefreshTokenUsage = TokenUsage.OneTimeOnly;
+                webUiClient.RefreshTokenExpiration = TokenExpiration.Sliding;
+                if (webUiConfig.AbsoluteRefreshTokenLifetime.HasValue && webUiConfig.AbsoluteRefreshTokenLifetime.Value > 0)
+                    webUiClient.AbsoluteRefreshTokenLifetime = webUiConfig.AbsoluteRefreshTokenLifetime.Value;
+                if (webUiConfig.SlidingRefreshTokenLifetime.HasValue && webUiConfig.SlidingRefreshTokenLifetime.Value > 0)
+                    webUiClient.SlidingRefreshTokenLifetime = webUiConfig.SlidingRefreshTokenLifetime.Value;
+            }
+
+            clients.Add(webUiClient);
         }
         return clients;
     }
