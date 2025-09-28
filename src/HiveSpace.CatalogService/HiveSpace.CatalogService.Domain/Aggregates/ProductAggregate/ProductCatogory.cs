@@ -2,11 +2,11 @@
 
 namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
 {
-    public class ProductCategory(int productId, int categoryId) : ValueObject
+    public class ProductCategory(Guid productId, Guid categoryId) : ValueObject
     {
-        public int ProductId { get; private set; } = productId;
+        public Guid ProductId { get; private set; } = productId;
 
-        public int CategoryId { get; private set; } = categoryId;
+        public Guid CategoryId { get; private set; } = categoryId;
 
         protected override IEnumerable<object> GetEqualityComponents()
         {

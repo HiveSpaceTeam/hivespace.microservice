@@ -3,21 +3,22 @@ using HiveSpace.Domain.Shared.Entities;
 
 namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
 {
-    public class ProductAttribute : Entity<int>
+    public class ProductAttribute : Entity<Guid>
     {
         #region Properties
-        public int AttributeId { get; set; }
+        public Guid AttributeId { get; set; }
         public string Value { get; set; }
-        public int ProductId { get; set; }
+        public Guid ProductId { get; set; }
         #endregion
 
         #region Constructors
-        public ProductAttribute()
+        // Parameterless constructor for Entity Framework
+        private ProductAttribute()
         {
-
+            Value = string.Empty;
         }
 
-        public ProductAttribute(int attributeId, string value, int productId)
+        public ProductAttribute(Guid attributeId, string value, Guid productId)
         {
             AttributeId = attributeId;
             Value = value;

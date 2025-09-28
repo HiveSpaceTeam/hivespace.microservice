@@ -18,12 +18,133 @@ namespace HiveSpace.CatalogService.Infrastructure.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Product>().ToTable("Products");
-            modelBuilder.Entity<Category>().ToTable("Categories");
-            modelBuilder.Entity<AttributeDefinition>().ToTable("Attributes");
-            modelBuilder.Entity<Sku>().ToTable("Skus");
-            modelBuilder.Entity<ProductAttribute>().ToTable("ProductAttributes");
-            modelBuilder.Entity<AttributeValue>().ToTable("AttributeValues");
+            // Configure Product entity
+            modelBuilder.Entity<Product>(entity =>
+            {
+                entity.ToTable("Products");
+                entity.HasKey(p => p.Id);
+                
+                // Configure owned types (ValueObjects)
+                entity.OwnsMany(p => p.Categories, pc =>
+                {
+                    pc.ToTable("ProductCategories");
+                    pc.WithOwner().HasForeignKey("ProductId");
+                    pc.Property<Guid>("ProductId");
+                    pc.Property<Guid>("CategoryId");
+                });
+                
+                entity.OwnsMany(p => p.Images, pi =>
+                {
+                    pi.ToTable("ProductImages");
+                    pi.WithOwner().HasForeignKey("ProductId");
+                    pi.Property<Guid>("ProductId");
+                    pi.Property<string>("FileId");
+                });
+            });
+
+            // Configure Category entity
+            modelBuilder.Entity<Category>(entity =>
+            {
+                entity.ToTable("Categories");
+                entity.HasKey(c => c.Id);
+            });
+
+            // Configure AttributeDefinition entity
+            modelBuilder.Entity<AttributeDefinition>(entity =>
+            {
+                entity.ToTable("Attributes");
+                entity.HasKey(a => a.Id);
+                
+                // Configure owned type (ValueObject)
+                entity.OwnsOne(a => a.Type, at =>
+                {
+                    at.Property(t => t.ValueType);
+                    at.Property(t => t.InputType);
+                    at.Property(t => t.IsMandatory);
+                    at.Property(t => t.MaxValueCount);
+                });
+            });
+
+            // Configure Sku entity (as standalone entity)
+            modelBuilder.Entity<Sku>(entity =>
+            {
+                entity.ToTable("Skus");
+                entity.HasKey(s => s.Id);
+                entity.Property(s => s.ProductId);
+                entity.HasOne<Product>()
+                    .WithMany(p => p.Skus)
+                    .HasForeignKey(s => s.ProductId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                
+                // Configure owned type (ValueObject)
+                entity.OwnsOne(s => s.Price, p =>
+                {
+                    p.Property(m => m.Amount);
+                    p.Property(m => m.Currency);
+                });
+                
+                // Configure owned type collection (ValueObjects)
+                entity.OwnsMany(s => s.Images, si =>
+                {
+                    si.ToTable("SkuImages");
+                    si.WithOwner().HasForeignKey("SkuId");
+                    si.Property<Guid>("SkuId");
+                    si.Property<string>("FileId");
+                });
+                
+                entity.OwnsMany(s => s.SkuVariants, sv =>
+                {
+                    sv.ToTable("SkuVariants");
+                    sv.WithOwner().HasForeignKey("SkuId");
+                    sv.Property<Guid>("SkuId");
+                    sv.Property<Guid>("VariantId");
+                    sv.Property<Guid>("OptionId");
+                    sv.Property<string>("Value");
+                });
+            });
+
+            // Configure ProductAttribute entity (as standalone entity)
+            modelBuilder.Entity<ProductAttribute>(entity =>
+            {
+                entity.ToTable("ProductAttributes");
+                entity.HasKey(pa => pa.Id);
+                entity.Property(pa => pa.ProductId);
+                entity.Property(pa => pa.AttributeId);
+                entity.HasOne<Product>()
+                    .WithMany(p => p.Attributes)
+                    .HasForeignKey(pa => pa.ProductId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Configure ProductVariant entity (as standalone entity)
+            modelBuilder.Entity<ProductVariant>(entity =>
+            {
+                entity.ToTable("ProductVariants");
+                entity.HasKey(pv => pv.Id);
+                entity.Property<Guid>("ProductId");
+                entity.HasOne<Product>()
+                    .WithMany(p => p.Variants)
+                    .HasForeignKey("ProductId")
+                    .OnDelete(DeleteBehavior.Cascade);
+                
+                // Configure owned type collection (ValueObjects)
+                entity.OwnsMany(pv => pv.Options, pvo =>
+                {
+                    pvo.ToTable("ProductVariantOptions");
+                    pvo.WithOwner().HasForeignKey("ProductVariantId");
+                    pvo.Property<Guid>("ProductVariantId");
+                    pvo.Property<Guid>("VariantId");
+                    pvo.Property<Guid>("OptionId");
+                    pvo.Property<string>("Value");
+                });
+            });
+
+            // Configure AttributeValue entity
+            modelBuilder.Entity<AttributeValue>(entity =>
+            {
+                entity.ToTable("AttributeValues");
+                entity.HasKey(av => av.Id);
+            });
         }
     }
 }

@@ -37,6 +37,14 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
 
         #region Constructors
 
+        // Parameterless constructor for Entity Framework
+        private Product()
+        {
+            Name = string.Empty;
+            Description = string.Empty;
+            CreatedBy = string.Empty;
+        }
+
         public Product(string name, string description, ProductStatus status, List<ProductCategory> categories, List<ProductAttribute> attributes, List<ProductImage> images, List<Sku> skus, List<ProductVariant> variants, DateTimeOffset createdAt, DateTimeOffset? updatedAt, string createdBy, string? updatedBy)
         {
             Name = name;

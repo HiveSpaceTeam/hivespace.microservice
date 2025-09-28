@@ -27,9 +27,11 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
         #endregion
 
         #region Constructors
-        public Sku()
+        // Parameterless constructor for Entity Framework
+        private Sku()
         {
-            
+            SkuNo = string.Empty;
+            Price = new Money(0, Currency.USD);
         }
 
         public Sku(string skuNo, Guid productId, List<SkuVariant> skuVariants, List<SkuImage> images, int quantity, bool isActive, Money price)
