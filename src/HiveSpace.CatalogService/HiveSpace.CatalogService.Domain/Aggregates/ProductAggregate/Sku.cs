@@ -20,21 +20,21 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
 
         public int Quantity { get; private set; }
 
-        public bool InActive { get; private set; }
+        public bool IsActive { get; private set; }
 
         public Money Price { get; private set; }
         #endregion
 
         #region Constructors
         [JsonConstructor]
-        public Sku(string skuNo, Guid productId, IReadOnlyCollection<SkuVariant> skuVariants,  int quantity, bool inActive, Money price)
+        public Sku(string skuNo, Guid productId, IReadOnlyCollection<SkuVariant> skuVariants,  int quantity, bool isActive, Money price)
         {
             SkuNo = skuNo;
             ProductId = productId;
             SkuVariants = skuVariants;
             //Images = images;
             Quantity = quantity;
-            InActive = inActive;
+            IsActive = isActive;
             Price = price;
         }
 

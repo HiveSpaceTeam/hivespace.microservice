@@ -5,7 +5,6 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
 {
     public class ProductVariant : Entity<Guid>
     {
-        public Guid Id { get; private set; }
         public string Name { get; private set; }
         public IReadOnlyCollection<ProductVariantOption> Options { get; private set; }
 
