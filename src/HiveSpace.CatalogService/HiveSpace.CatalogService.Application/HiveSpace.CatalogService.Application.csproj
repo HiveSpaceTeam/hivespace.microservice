@@ -10,8 +10,4 @@
     <ProjectReference Include="..\HiveSpace.CatalogService.Domain\HiveSpace.CatalogService.Domain.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Queries\" />
-  </ItemGroup>
-
 </Project>
