@@ -515,6 +515,22 @@ button:focus-visible {
     border: none !important;
 }
 
+/* If social buttons are anchors, ensure they have no text-decoration */
+.social-button,
+.social-button:link,
+.social-button:visited,
+.social-button:hover,
+.social-button:active,
+.social-button:focus {
+    text-decoration: none !important;
+}
+
+/* Preserve keyboard focus visible outline for anchor social buttons */
+.social-button:focus-visible {
+    outline: 2px solid var(--color-brand-400);
+    outline-offset: 2px;
+}
+
 /* Form validation error styles */
 .form-error-text {
     display: block;
