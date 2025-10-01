@@ -48,6 +48,17 @@ public class Index : PageModel
 
     public async Task<IActionResult> OnGet(string? returnUrl)
     {
+        // If the OAuth middleware redirected here with an error query param (e.g. ?error=...)
+        // move that value to TempData and perform a redirect (PRG) so the error does not
+        // persist on browser refresh. The redirected request will read from TempData.
+        var qError = Request.Query["error"].FirstOrDefault();
+        if (!string.IsNullOrWhiteSpace(qError))
+        {
+            TempData["ExternalError"] = qError;
+            // Preserve returnUrl when redirecting
+            return RedirectToPage(new { returnUrl });
+        }
+
         await BuildModelAsync(returnUrl);
 
         if (View.IsExternalLoginOnly)
@@ -253,7 +264,21 @@ public class Index : PageModel
             ReturnUrl = returnUrl
         };
 
-        var context = await _interaction.GetAuthorizationContextAsync(returnUrl);
+        // If an external provider previously reported an error, surface it in the ViewModel.
+        // Prefer TempData (set by PRG) then query param as a fallback.
+        var externalError = TempData["ExternalError"] as string;
+        if (string.IsNullOrWhiteSpace(externalError))
+        {
+            externalError = Request.Query["error"].FirstOrDefault();
+            if (!string.IsNullOrWhiteSpace(externalError))
+            {
+                // Ensure we don't keep showing this on refresh — move it into TempData and
+                // let the OnGet PRG flow clear the query on the next request.
+                TempData["ExternalError"] = externalError;
+            }
+        }
+
+    var context = await _interaction.GetAuthorizationContextAsync(returnUrl);
         if (context?.IdP != null)
         {
             var scheme = await _schemeProvider.GetSchemeAsync(context.IdP);
@@ -319,13 +344,40 @@ public class Index : PageModel
             {
                 providers = providers.Where(provider => client.IdentityProviderRestrictions.Contains(provider.AuthenticationScheme)).ToList();
             }
+            // Hide external providers for sensitive clients such as the admin portal
+            // so administrators must login using local credentials only.
+            // You can adjust the client id or make this configurable if needed.
+            if (string.Equals(client.ClientId, "adminportal", StringComparison.OrdinalIgnoreCase))
+            {
+                providers = new List<ViewModel.ExternalProvider>();
+            }
         }
 
         View = new ViewModel
         {
             AllowRememberLogin = LoginOptions.AllowRememberLogin,
             EnableLocalLogin = allowLocal && LoginOptions.AllowLocalLogin,
-            ExternalProviders = providers.ToArray()
+            ExternalProviders = providers.ToArray(),
+            // ExternalErrorMessage intentionally omitted; use ApiErrors via ViewData instead
         };
+
+        // If ApiErrors were set by the external auth flow, deserialize them and
+        // put into ViewData for the shared _ApiErrors partial to render.
+        if (TempData.TryGetValue("ApiErrors", out var apiErrorsObj) && apiErrorsObj is string apiErrorsJson)
+        {
+            try
+            {
+                var messages = System.Text.Json.JsonSerializer.Deserialize<List<string>>(apiErrorsJson) ?? new List<string>();
+                ViewData["ApiErrors"] = messages;
+            }
+            catch
+            {
+                // If deserialization fails, fall back to the ExternalError single message
+                if (!string.IsNullOrWhiteSpace(externalError))
+                {
+                    ViewData["ApiErrors"] = new List<string> { externalError };
+                }
+            }
+        }
     }
 }
