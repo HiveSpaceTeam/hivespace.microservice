@@ -103,4 +103,32 @@ public class AdminService : IAdminService
 
         return new GetAdminResponseDto(paged.Items, paged.Pagination);
     }
+
+    public async Task<SetUserStatusResponseDto> SetUserStatusAsync(SetUserStatusRequestDto request, CancellationToken cancellationToken = default)
+    {
+        // Use domain manager to set user status with proper validation
+        var updatedUser = await _domainUserManager.SetUserActiveStatusAsync(
+            request.UserId,
+            request.IsActive,
+            _userContext.UserId,
+            cancellationToken);
+
+        // Save changes
+        await _userRepository.SaveChangesAsync(cancellationToken);
+
+        return new SetUserStatusResponseDto(
+            updatedUser.Id,
+            updatedUser.UserName,
+            updatedUser.FullName,
+            updatedUser.Email.Value,
+            (int)updatedUser.Status,
+            updatedUser.IsSeller,
+            updatedUser.IsAdmin,
+            updatedUser.IsSystemAdmin,
+            updatedUser.CreatedAt,
+            updatedUser.UpdatedAt,
+            updatedUser.LastLoginAt,
+            null // AvatarUrl not available in domain model
+        );
+    }
 }

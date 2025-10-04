@@ -20,6 +20,5 @@ public class CommonErrorCode(int id, string name, string code) : Enumeration(id,
     public static readonly CommonErrorCode InvalidPageSize = new(13, "InvalidPageSize", "APP0011");
     public static readonly CommonErrorCode InvalidRoleFilter = new(14, "InvalidRoleFilter", "APP0012");
     public static readonly CommonErrorCode InvalidStatusFilter = new(15, "InvalidStatusFilter", "APP0013");
-    public static readonly CommonErrorCode InvalidSearchTerm = new(16, "InvalidSearchTerm", "APP0014");
     public static readonly CommonErrorCode InvalidSortFormat = new(17, "InvalidSortFormat", "APP0015");
 }
