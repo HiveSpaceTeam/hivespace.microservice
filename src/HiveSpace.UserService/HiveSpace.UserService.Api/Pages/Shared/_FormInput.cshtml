@@ -1,0 +1,60 @@
+@*
+    Reusable form input component with client-side validation
+    Parameters:
+    - AspFor: Expression for model binding
+    - Label: Display label text
+    - Type: Input type (email, text, etc.)
+    - Placeholder: Optional placeholder text
+    - AutoComplete: Optional autocomplete attribute
+    - AutoFocus: Optional autofocus attribute
+    - Required: Whether field is required (shows asterisk)
+    - ValidationRules: JSON object with validation rules
+    - ErrorMessages: JSON object with custom error messages
+*@
+@model dynamic
+
+@{
+    var propertyName = ViewData["PropertyName"]?.ToString(); // e.g., "Input.Email"
+    var currentValue = ViewData["Value"]?.ToString(); // Current value for display
+    var label = ViewData["Label"]?.ToString();
+    var type = ViewData["Type"]?.ToString() ?? "text";
+    var placeholder = ViewData["Placeholder"]?.ToString();
+    var autoComplete = ViewData["AutoComplete"]?.ToString();
+    var autoFocus = ViewData["AutoFocus"] is bool focus && focus;
+    var required = ViewData["Required"] is bool req && req;
+    var validationRules = ViewData["ValidationRules"]?.ToString();
+    var errorMessages = ViewData["ErrorMessages"]?.ToString();
+    var fieldId = propertyName?.Replace(".", "_") + "-field";
+    var errorId = propertyName?.Replace(".", "_") + "-error";
+}
+
+<div class="form-group">
+    <label for="@fieldId" class="form-label">
+        @label
+        @if (required)
+        {
+            <span class="required-asterisk">*</span>
+        }
+    </label>
+    @if (autoFocus)
+    {
+        <input class="form-input" name="@propertyName" type="@type" id="@fieldId" value="@currentValue"
+            placeholder="@placeholder" autocomplete="@autoComplete" data-validation-rules="@validationRules"
+            data-error-messages="@errorMessages" autofocus>
+    }
+    else
+    {
+        <input class="form-input" name="@propertyName" type="@type" id="@fieldId" value="@currentValue"
+            placeholder="@placeholder" autocomplete="@autoComplete" data-validation-rules="@validationRules"
+            data-error-messages="@errorMessages">
+    }
+    <div class="client-error-text" id="@errorId" style="display: none;"></div>
+    <div class="server-error-text"></div>
+</div>
+
+@* Include form validation script only once per page *@
+@if (!ViewData.ContainsKey("FormValidationScriptLoaded"))
+{
+    ViewData["FormValidationScriptLoaded"] = true;
+    <script src="~/js/form-validation.js"></script>
+}

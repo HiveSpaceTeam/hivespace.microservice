@@ -41,6 +41,8 @@
     --color-gray-950: #0c111d;
     --color-black: #101828;
     --color-white: #fff;
+    --color-error-500: #f04438;
+    --color-error-600: #dc2626;
     --spacing: .25rem;
     --container-xs: 20rem;
     --container-md: 28rem;
@@ -289,4 +291,540 @@
     .auth-right-section {
         display: none;
     }
+}
+
+/* ===== SHARED AUTH LAYOUT STYLES ===== */
+/* These styles are shared across all authentication pages */
+
+/* Main container for all auth pages */
+.auth-container {
+    position: relative;
+    background-color: white;
+    z-index: 1;
+}
+
+.dark .auth-container {
+    background-color: var(--color-gray-900);
+}
+
+/* Two-column flex layout */
+.auth-flex-layout {
+    position: relative;
+    display: flex;
+    width: 100%;
+    height: 100vh;
+    justify-content: center;
+    flex-direction: column;
+}
+
+@media (min-width: 1024px) {
+    .auth-flex-layout {
+        flex-direction: row;
+    }
+}
+
+/* Left side form container */
+.auth-form-container {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+@media (min-width: 1024px) {
+    .auth-form-container {
+        width: 50%;
+    }
+}
+
+/* Form wrapper with centering */
+.auth-form-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1;
+    width: 100%;
+    max-width: 28rem;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* ===== SHARED FORM STYLES ===== */
+/* Form styles shared across all authentication pages */
+
+.font-outfit {
+    font-family: var(--font-outfit);
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.875rem;
+    color: var(--color-gray-500);
+    transition-property: color;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+}
+
+.back-link:hover {
+    color: var(--color-gray-700);
+}
+
+/* Social login buttons */
+.social-buttons {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+    .social-buttons {
+        gap: 1.25rem;
+    }
+}
+
+.social-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.75rem;
+    font-size: 0.875rem;
+    font-weight: normal;
+    color: var(--color-gray-800);
+    background-color: var(--color-gray-100);
+    border-radius: 0.5rem;
+    transition-property: background-color, color;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+}
+
+.social-button:hover {
+    background-color: var(--color-gray-200);
+    color: var(--color-gray-800);
+}
+
+/* Form divider */
+.form-divider {
+    position: relative;
+    padding: 0.75rem 0;
+    margin: 0.75rem 0;
+}
+
+.divider-line {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+}
+
+.divider-line::before {
+    content: "";
+    flex: 1;
+    border-top: 1px solid var(--color-gray-200);
+}
+
+.divider-text {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    font-size: 0.875rem;
+}
+
+.divider-text span {
+    padding: 0.5rem;
+    color: var(--color-gray-400);
+    background-color: white;
+}
+
+/* Form elements */
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-gray-700);
+}
+
+/* Required field asterisk styling */
+.required-asterisk {
+    color: var(--color-red-500, #ef4444);
+    margin-left: 0.125rem;
+    font-weight: 600;
+}
+
+.form-input {
+    height: 2.75rem;
+    width: 100%;
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+    color: var(--color-gray-800);
+    background-color: transparent;
+    border: 1px solid var(--color-gray-300);
+    border-radius: 0.5rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--color-brand-300);
+    box-shadow: 0 0 0 3px rgba(70, 95, 255, 0.1);
+}
+
+/* Password input styles */
+.password-input-wrapper {
+    position: relative;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%) scale(0.75);
+    z-index: 30;
+    color: var(--color-gray-400);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: transparent;
+    border: none;
+    padding: 0.25rem;
+    border-radius: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.password-toggle:hover {
+    color: var(--color-gray-500);
+}
+
+.password-toggle:focus {
+    outline: 2px solid var(--color-brand-200);
+    outline-offset: 2px;
+}
+
+/* Default state: password is hidden, show eye icon to reveal it */
+.show-when-visible {
+    display: none;
+}
+
+.show-when-hidden {
+    display: block;
+}
+
+/* When password is visible, hide eye icon and show eye-off icon */
+.password-visible .show-when-hidden {
+    display: none;
+}
+
+.password-visible .show-when-visible {
+    display: block;
+}
+
+/* Legacy rules for backward compatibility */
+.password-toggle-hide.hidden,
+.password-toggle-show.hidden {
+    display: none;
+}
+
+/* Checkbox styles */
+.checkbox-wrapper {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: normal;
+    color: var(--color-gray-700);
+    cursor: pointer;
+    user-select: none;
+    line-height: 1.5;
+}
+
+/* Hide the default checkbox completely */
+.checkbox-label input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+    margin: 0;
+    padding: 0;
+    border: none;
+    outline: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+/* Remove any focus rings from the hidden input */
+.checkbox-label input[type="checkbox"]:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.checkbox-custom {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    min-width: 1.25rem;
+    min-height: 1.25rem;
+    border: 1.5px solid var(--color-gray-300);
+    border-radius: 0.25rem;
+    background-color: white;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+}
+
+/* Checked state */
+.checkbox-label input[type="checkbox"]:checked ~ .checkbox-custom {
+    background-color: var(--color-brand-500);
+    border-color: var(--color-brand-500);
+}
+
+/* Hover state */
+.checkbox-label:hover .checkbox-custom {
+    border-color: var(--color-brand-400);
+}
+
+/* Focus state - only show when keyboard focused */
+.checkbox-label input[type="checkbox"]:focus-visible ~ .checkbox-custom {
+    box-shadow: 0 0 0 2px var(--color-brand-200);
+}
+
+.checkbox-mark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: scale(0.5);
+    transition: all 0.2s ease;
+    pointer-events: none;
+}
+
+/* Show checkmark when checked */
+.checkbox-label input[type="checkbox"]:checked ~ .checkbox-custom .checkbox-mark {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.checkbox-mark svg {
+    width: 12px;
+    height: 12px;
+    display: block;
+}
+
+/* Submit button */
+.submit-button {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: white;
+    background-color: var(--color-brand-500);
+    border-radius: 0.5rem;
+    transition-property: background-color;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+}
+
+.submit-button:hover {
+    background-color: var(--color-brand-600);
+}
+
+/* Button base styles (scoped to auth pages) */
+.auth-container button:not(.submit-button):not(.social-button) {
+    border: none;
+    border-width: 0;
+    border-style: none;
+    outline: none;
+    font-family: inherit;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+/* Remove all possible borders and outlines except for keyboard focus */
+button:not(:focus-visible),
+.social-button:not(:focus-visible),
+.submit-button:not(:focus-visible) {
+    outline: none !important;
+    box-shadow: none !important;
+    border: 0 !important;
+}
+
+/* Keep focus outline only for keyboard navigation */
+button:focus-visible {
+    outline: 2px solid var(--color-brand-400);
+    outline-offset: 2px;
+    border: none !important;
+}
+
+/* If social buttons are anchors, ensure they have no text-decoration */
+.social-button,
+.social-button:link,
+.social-button:visited,
+.social-button:hover,
+.social-button:active,
+.social-button:focus {
+    text-decoration: none !important;
+}
+
+/* Preserve keyboard focus visible outline for anchor social buttons */
+.social-button:focus-visible {
+    outline: 2px solid var(--color-brand-400);
+    outline-offset: 2px;
+}
+
+/* Form validation and error styles */
+.form-error-text {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: var(--color-error-600);
+    font-weight: 400;
+}
+
+.form-error-text:empty {
+    display: none;
+}
+
+/* Client-side validation error text */
+.client-error-text {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: var(--color-error-600);
+    font-weight: 400;
+}
+
+/* Server-side validation error text (to distinguish from client errors) */
+.server-error-text {
+    margin-top: 0.5rem; /* Add extra margin when both client and server errors might be present */
+}
+
+.form-input:invalid,
+.form-input.input-validation-error,
+.form-input.has-error {
+    border-color: var(--color-error-500);
+    box-shadow: 0 0 0 1px var(--color-error-500);
+}
+
+.form-input.has-success {
+    border-color: #10b981;
+    box-shadow: 0 0 0 1px #10b981;
+}
+
+.form-input:invalid:focus,
+.form-input.input-validation-error:focus,
+.form-input.has-error:focus {
+    border-color: var(--color-error-500);
+    box-shadow: 0 0 0 3px rgba(240, 68, 56, 0.1);
+}
+
+.form-input.has-success:focus {
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* API Error Message Styles */
+.error-container {
+    margin-bottom: 1rem;
+}
+
+.api-error-message {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background-color: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 0.5rem;
+    color: var(--color-error-500);
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.error-icon {
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+    color: var(--color-error-500);
+}
+
+.api-error-message:last-child {
+    margin-bottom: 0;
+}
+
+/* Additional utility classes */
+.required {
+    color: var(--color-error-500);
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* Brand color utilities */
+.border-brand-500 {
+    border-color: var(--color-brand-500);
+}
+
+.bg-brand-500 {
+    background-color: var(--color-brand-500);
+}
+
+/* Spacing utilities */
+.mr-3 {
+    margin-right: 0.75rem;
+}
+
+.h-5 {
+    height: 1.25rem;
+}
+
+.w-5 {
+    width: 1.25rem;
+}
+
+.rounded-md {
+    border-radius: 0.375rem;
+}
+
+.fill-current {
+    fill: currentColor;
 }

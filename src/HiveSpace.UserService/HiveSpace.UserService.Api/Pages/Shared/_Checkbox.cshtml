@@ -1,0 +1,42 @@
+@*
+    Reusable checkbox component with custom styling
+    Parameters:
+    - PropertyName: Property name for model binding (e.g., "Input.RememberLogin")
+    - Value: Current value (true/false or "true"/"false")
+    - Label: Display label text
+*@
+@model dynamic
+
+@{
+    var propertyName = ViewData["PropertyName"]?.ToString();
+    var currentValue = ViewData["Value"];
+    var label = ViewData["Label"]?.ToString();
+    var fieldId = propertyName?.Replace(".", "_") + "-field";
+
+    // Handle boolean values - check if it's checked
+    bool isChecked = false;
+    if (currentValue is bool boolValue)
+    {
+        isChecked = boolValue;
+    }
+    else if (currentValue is string stringValue)
+    {
+        bool.TryParse(stringValue, out isChecked);
+    }
+}
+
+<div class="checkbox-wrapper">
+    <label class="checkbox-label">
+        <input type="checkbox" name="@propertyName" id="@fieldId" value="true" @(isChecked ? "checked" : "")>
+        <input type="hidden" name="@propertyName" value="false">
+        <div class="checkbox-custom">
+            <span class="checkbox-mark">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M11.6666 3.5L5.24992 9.91667L2.33325 7" stroke="white" stroke-width="1.94437"
+                        stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+            </span>
+        </div>
+        <span>@label</span>
+    </label>
+</div>

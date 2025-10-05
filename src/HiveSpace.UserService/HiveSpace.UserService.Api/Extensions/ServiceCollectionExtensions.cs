@@ -32,6 +32,7 @@ internal static class ServiceCollectionExtensions
             options.User.RequireUniqueEmail = true;
         })
         .AddEntityFrameworkStores<UserDbContext>()
+        .AddUserStore<CustomUserStore>() // Use our custom UserStore for direct role storage
         .AddDefaultTokenProviders();
 
         // Configure the application cookie so it's available during OIDC/OAuth redirects
@@ -150,17 +151,7 @@ internal static class ServiceCollectionExtensions
                     };
                 });
         }
-        
-        // Configure the external cookie scheme used by IdentityServer for temporary
-        // storage of external identity information during the external authentication
-        // roundtrip. Make sure SameSite=None so the cookie survives the cross-site
-        // redirect back from the provider.
-        services.Configure<CookieAuthenticationOptions>(IdentityServerConstants.ExternalCookieAuthenticationScheme, options =>
-        {
-            options.Cookie.SameSite = SameSiteMode.None;
-            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-            options.Cookie.Path = "/";
-        });
+    
         // {
         //     services
         //         .AddAuthentication()

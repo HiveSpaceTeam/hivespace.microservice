@@ -1,0 +1,118 @@
+@page
+@model HiveSpace.UserService.Api.Pages.Account.Register.Index
+@section Styles {
+    <link rel="stylesheet" href="~/css/register.css" />
+    <link rel="stylesheet" href="~/css/auth-layout.css" />
+}
+@section Scripts {
+}
+
+@* Start Auth Container *@
+@await Html.PartialAsync("_AuthContainer")
+<div class="register-header">
+    <h1 class="register-title">Create Account</h1>
+    <p class="register-subtitle">Enter your details to create your account!</p>
+</div>
+<partial name="_ValidationSummary" />
+
+@if (Model.View.EnableLocalRegistration)
+{
+    <div>
+        @* Social Login Component *@
+        @{
+            ViewData["Providers"] = Model.View.VisibleExternalProviders;
+            ViewData["ReturnUrl"] = Model.Input?.ReturnUrl;
+        }
+        <partial name="_SocialLogin" />
+
+        <form method="post" class="register-form">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Input.ReturnUrl" />
+
+            <partial name="_ApiErrors" />
+
+            @* Email Input Component *@
+            @{
+                ViewData["AspFor"] = Model.Input?.Email;
+                ViewData["Label"] = "Email";
+                ViewData["Type"] = "email";
+                ViewData["AutoFocus"] = true;
+                ViewData["Required"] = true;
+                ViewData["ValidationRules"] = System.Text.Json.JsonSerializer.Serialize(new { required = true, email = true });
+                ViewData["ErrorMessages"] = System.Text.Json.JsonSerializer.Serialize(new { 
+                    required = "Email is required", 
+                    email = "Please enter a valid email address" 
+                });
+            }
+            <partial name="_FormInput" />
+
+            @* Full Name Input Component *@
+            @{
+                ViewData["AspFor"] = Model.Input?.FullName;
+                ViewData["Label"] = "Full Name";
+                ViewData["Type"] = "text";
+                ViewData["AutoComplete"] = "name";
+                ViewData["AutoFocus"] = false;
+                ViewData["Required"] = true;
+                ViewData["ValidationRules"] = System.Text.Json.JsonSerializer.Serialize(new { required = true, minLength = 2, maxLength = 100 });
+                ViewData["ErrorMessages"] = System.Text.Json.JsonSerializer.Serialize(new { 
+                    required = "Full name is required", 
+                    minLength = "Full name must be at least 2 characters",
+                    maxLength = "Full name cannot exceed 100 characters"
+                });
+            }
+            <partial name="_FormInput" />
+
+            @* Password Input Component *@
+            @{
+                ViewData["AspFor"] = Model.Input?.Password;
+                ViewData["Label"] = "Password";
+                ViewData["AutoComplete"] = "new-password";
+                ViewData["Required"] = true;
+                ViewData["ValidationRules"] = System.Text.Json.JsonSerializer.Serialize(new { required = true, passwordStrength = true });
+                ViewData["ErrorMessages"] = System.Text.Json.JsonSerializer.Serialize(new { 
+                    required = "Password is required",
+                    passwordStrength = "Password must contain at least 8 characters, including uppercase, lowercase, number, and special character"
+                });
+            }
+            <partial name="_PasswordInput" />
+
+            @* Confirm Password Input Component *@
+            @{
+                ViewData["AspFor"] = Model.Input?.ConfirmPassword;
+                ViewData["Label"] = "Confirm Password";
+                ViewData["AutoComplete"] = "new-password";
+                ViewData["Required"] = true;
+                ViewData["ValidationRules"] = System.Text.Json.JsonSerializer.Serialize(new { required = true });
+                ViewData["ErrorMessages"] = System.Text.Json.JsonSerializer.Serialize(new { 
+                    required = "Please confirm your password"
+                });
+            }
+            <partial name="_PasswordInput" />
+
+            @* Submit Button Component *@
+            @{
+                ViewData["AspFor"] = Model.Input?.Button;
+                ViewData["Value"] = "register";
+                ViewData["Text"] = "Create Account";
+            }
+            <partial name="_SubmitButton" />
+        </form>
+
+        <div class="register-footer">
+            <div class="signin-text">
+                Already have an account? <a href="/Account/Login" class="signin-link">Sign In</a>
+            </div>
+        </div>
+    </div>
+}
+@* End Auth Container *@
+@await Html.PartialAsync("_AuthContainerEnd")
+
+@if (!Model.View.EnableLocalRegistration && !Model.View.VisibleExternalProviders.Any())
+{
+    <div class="alert alert-warning">
+        <strong>Invalid registration request</strong>
+        There are no registration methods configured for this request.
+    </div>
+}

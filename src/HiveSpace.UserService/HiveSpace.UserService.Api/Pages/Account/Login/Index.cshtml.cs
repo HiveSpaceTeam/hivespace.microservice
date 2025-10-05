@@ -4,11 +4,13 @@ using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Services;
 using Duende.IdentityServer.Stores;
 using HiveSpace.UserService.Infrastructure.Identity;
+using HiveSpace.UserService.Domain.Enums;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using HiveSpace.UserService.Domain.Aggregates.User;
 
 namespace HiveSpace.UserService.Api.Pages.Account.Login;
 [SecurityHeaders]
@@ -48,6 +50,9 @@ public class Index : PageModel
 
     public async Task<IActionResult> OnGet(string? returnUrl)
     {
+        // Clear all error messages on page refresh/load
+        ClearAllErrors();
+
         // If the OAuth middleware redirected here with an error query param (e.g. ?error=...)
         // move that value to TempData and perform a redirect (PRG) so the error does not
         // persist on browser refresh. The redirected request will read from TempData.
@@ -105,120 +110,203 @@ public class Index : PageModel
             }
         }
 
+
+
+
         if (ModelState.IsValid)
         {
-            // Only remember login if allowed
-            var rememberLogin = LoginOptions.AllowRememberLogin && Input.RememberLogin;
-
-            // Find user by email first
-            var user = await _userManager.FindByEmailAsync(Input.Email!);
-            if (user == null)
+            try
             {
-                const string error = "invalid credentials";
-                await _events.RaiseAsync(new UserLoginFailureEvent(Input.Email, error, clientId: context?.Client.ClientId));
-                Telemetry.Metrics.UserLoginFailure(context?.Client.ClientId, IdentityServerConstants.LocalIdentityProvider, error);
+                // Only remember login if allowed
+                var rememberLogin = LoginOptions.AllowRememberLogin && Input.RememberLogin;
+
+                // Find user by email first
+                var user = await _userManager.FindByEmailAsync(Input.Email!);
+                if (user == null)
+                {
+                    const string error = "invalid credentials";
+                    await _events.RaiseAsync(new UserLoginFailureEvent(Input.Email, error, clientId: context?.Client.ClientId));
+                    Telemetry.Metrics.UserLoginFailure(context?.Client.ClientId, IdentityServerConstants.LocalIdentityProvider, error);
+                    AddApiError("Invalid username or password, please try again");
+                    await BuildModelAsync(Input.ReturnUrl);
+                    return Page();
+                }
+
+                // Check if user is active before attempting login
+                if (user.Status != (int)UserStatus.Active)
+                {
+                    const string error = "user inactive";
+                    await _events.RaiseAsync(new UserLoginFailureEvent(Input.Email, error, clientId: context?.Client.ClientId));
+                    Telemetry.Metrics.UserLoginFailure(context?.Client.ClientId, IdentityServerConstants.LocalIdentityProvider, error);
+                    AddApiError("This account is inactive. Please contact admin to activate it.");
+                    await BuildModelAsync(Input.ReturnUrl);
+                    return Page();
+                }
+
+                // Role-based client restriction: deny sign-in if user not allowed for requesting client
+                try
+                {
+                    var clientId = context?.Client?.ClientId?.ToLowerInvariant();
+                    if (!string.IsNullOrEmpty(clientId))
+                    {
+                        // Admin portal: only SystemAdmin or Admin
+                        if (string.Equals(clientId, "adminportal", StringComparison.OrdinalIgnoreCase))
+                        {
+                            var isSystemAdmin = await _userManager.IsInRoleAsync(user, "SystemAdmin");
+                            var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+                            if (!isSystemAdmin && !isAdmin)
+                            {
+                                const string error = "not authorized for admin portal";
+                                await _events.RaiseAsync(new UserLoginFailureEvent(Input.Email, error, clientId: context?.Client.ClientId));
+                                Telemetry.Metrics.UserLoginFailure(context?.Client.ClientId, IdentityServerConstants.LocalIdentityProvider, error);
+                                AddApiError("You are not authorized to sign in to the Admin Portal.");
+                                await BuildModelAsync(Input.ReturnUrl);
+                                return Page();
+                            }
+                        }
+
+                        // Seller center: only Seller role (or users with StoreId set)
+                        if (string.Equals(clientId, "sellercenter", StringComparison.OrdinalIgnoreCase))
+                        {
+                            var isSeller = await _userManager.IsInRoleAsync(user, Role.RoleNames.Seller);
+                            // Fallback: if your domain marks sellers with StoreId, check that too (safe reflection)
+                            var hasStore = false;
+                            var storeProp = user.GetType().GetProperty("StoreId");
+                            if (storeProp != null)
+                            {
+                                var val = storeProp.GetValue(user);
+                                hasStore = val != null;
+                            }
+                            if (!isSeller && !hasStore)
+                            {
+                                const string error = "not authorized for seller center";
+                                await _events.RaiseAsync(new UserLoginFailureEvent(Input.Email, error, clientId: context?.Client.ClientId));
+                                Telemetry.Metrics.UserLoginFailure(context?.Client.ClientId, IdentityServerConstants.LocalIdentityProvider, error);
+                                AddApiError("You are not authorized to sign in to the Seller Center.");
+                                await BuildModelAsync(Input.ReturnUrl);
+                                return Page();
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    // If role checks fail unexpectedly, don't reveal details; fall through to normal auth failure path
+                }
+
+                // attempt login with lockout on failure
+                var result = await _signInManager.PasswordSignInAsync(
+                    user.UserName!,
+                    Input.Password!,
+                    isPersistent: rememberLogin,
+                    lockoutOnFailure: true
+                );
+
+                // handle locked-out accounts
+                if (result.IsLockedOut)
+                {
+                    await _events.RaiseAsync(new UserLoginFailureEvent(
+                        Input.Email,
+                        "locked out",
+                        clientId: context?.Client.ClientId
+                    ));
+                    Telemetry.Metrics.UserLoginFailure(
+                        context?.Client.ClientId,
+                        IdentityServerConstants.LocalIdentityProvider,
+                        "locked out"
+                    );
+                    AddApiError("This account has been locked out, please try again later.");
+                    await BuildModelAsync(Input.ReturnUrl);
+                    return Page();
+                }
+
+                // handle two-factor authentication requirement
+                if (result.RequiresTwoFactor)
+                {
+                    return RedirectToPage(
+                        "/Account/LoginWith2fa",
+                        new { ReturnUrl = Input.ReturnUrl, RememberMe = Input.RememberLogin }
+                    );
+                }
+
+                // handle disallowed logins (e.g. email not confirmed)
+                if (result.IsNotAllowed)
+                {
+                    AddApiError("This account is not allowed to log in.");
+                    await BuildModelAsync(Input.ReturnUrl);
+                    return Page();
+                }
+
+                // successful login
+                if (result.Succeeded)
+                {
+                    await _events.RaiseAsync(new UserLoginSuccessEvent(
+                        user.UserName,
+                        user.Id.ToString(),
+                        user.UserName // Use display name or full name if available
+                    ));
+                    Telemetry.Metrics.UserLogin(
+                        context?.Client.ClientId,
+                        IdentityServerConstants.LocalIdentityProvider
+                    );
+
+                    if (context != null)
+                    {
+                        // This "can't happen", because if the ReturnUrl was null, then the context would be null
+                        if (Input.ReturnUrl == null)
+                        {
+                            AddApiError("Invalid return URL provided.");
+                            await BuildModelAsync(Input.ReturnUrl);
+                            return Page();
+                        }
+
+                        if (context.IsNativeClient())
+                        {
+                            // The client is native, so this change in how to
+                            // return the response is for better UX for the end user.
+                            return this.LoadingPage(Input.ReturnUrl);
+                        }
+
+                        // we can trust model.ReturnUrl since GetAuthorizationContextAsync returned non-null
+                        return Redirect(Input.ReturnUrl ?? "~/");
+                    }
+
+                    // request for a local page
+                    if (Url.IsLocalUrl(Input.ReturnUrl))
+                    {
+                        return Redirect(Input.ReturnUrl);
+                    }
+                    else if (string.IsNullOrEmpty(Input.ReturnUrl))
+                    {
+                             // Use a configurable default redirect URL from configuration
+                        var defaultRedirectUrl = _configuration["DefaultRedirectUrl"];
+                        if (string.IsNullOrWhiteSpace(defaultRedirectUrl))
+                        {
+                            defaultRedirectUrl = "/"; // fallback to root if not configured
+                        }
+                        return Redirect(defaultRedirectUrl);
+                    }
+                    else
+                    {
+                        // user might have clicked on a malicious link - handle gracefully
+                        AddApiError("Invalid return URL provided.");
+                        await BuildModelAsync(Input.ReturnUrl);
+                        return Page();
+                    }
+                }
+                
+                // If we get here, login failed for some other reason
+                const string invalidCredentials = "invalid credentials";
+                await _events.RaiseAsync(new UserLoginFailureEvent(Input.Email, invalidCredentials, clientId: context?.Client.ClientId));
+                Telemetry.Metrics.UserLoginFailure(context?.Client.ClientId, IdentityServerConstants.LocalIdentityProvider, invalidCredentials);
                 AddApiError("Invalid username or password, please try again");
-                await BuildModelAsync(Input.ReturnUrl);
-                return Page();
             }
-
-            // attempt login with lockout on failure
-            var result = await _signInManager.PasswordSignInAsync(
-                user.UserName!,
-                Input.Password!,
-                isPersistent: rememberLogin,
-                lockoutOnFailure: true
-            );
-
-            // handle locked-out accounts
-            if (result.IsLockedOut)
+            catch (Exception)
             {
-                await _events.RaiseAsync(new UserLoginFailureEvent(
-                    Input.Email,
-                    "locked out",
-                    clientId: context?.Client.ClientId
-                ));
-                Telemetry.Metrics.UserLoginFailure(
-                    context?.Client.ClientId,
-                    IdentityServerConstants.LocalIdentityProvider,
-                    "locked out"
-                );
-                AddApiError("This account has been locked out, please try again later.");
-                await BuildModelAsync(Input.ReturnUrl);
-                return Page();
+                // Log the exception but don't expose internal details to user
+                // You can add logging here if needed
+                AddApiError("An error occurred during login. Please try again.");
             }
-
-            // handle two-factor authentication requirement
-            if (result.RequiresTwoFactor)
-            {
-                return RedirectToPage(
-                    "/Account/LoginWith2fa",
-                    new { ReturnUrl = Input.ReturnUrl, RememberMe = Input.RememberLogin }
-                );
-            }
-
-            // handle disallowed logins (e.g. email not confirmed)
-            if (result.IsNotAllowed)
-            {
-                AddApiError("This account is not allowed to log in.");
-                await BuildModelAsync(Input.ReturnUrl);
-                return Page();
-            }
-
-            // successful login
-            if (result.Succeeded)
-            {
-                await _events.RaiseAsync(new UserLoginSuccessEvent(
-                    user.UserName,
-                    user.Id.ToString(),
-                    user.UserName // Use display name or full name if available
-                ));
-                Telemetry.Metrics.UserLogin(
-                    context?.Client.ClientId,
-                    IdentityServerConstants.LocalIdentityProvider
-                );
-
-                if (context != null)
-                {
-                    // This "can't happen", because if the ReturnUrl was null, then the context would be null
-                    ArgumentNullException.ThrowIfNull(Input.ReturnUrl, nameof(Input.ReturnUrl));
-
-                    if (context.IsNativeClient())
-                    {
-                        // The client is native, so this change in how to
-                        // return the response is for better UX for the end user.
-                        return this.LoadingPage(Input.ReturnUrl);
-                    }
-
-                    // we can trust model.ReturnUrl since GetAuthorizationContextAsync returned non-null
-                    return Redirect(Input.ReturnUrl ?? "~/");
-                }
-
-                // request for a local page
-                if (Url.IsLocalUrl(Input.ReturnUrl))
-                {
-                    return Redirect(Input.ReturnUrl);
-                }
-                else if (string.IsNullOrEmpty(Input.ReturnUrl))
-                {
-                         // Use a configurable default redirect URL from configuration
-                    var defaultRedirectUrl = _configuration["DefaultRedirectUrl"];
-                    if (string.IsNullOrWhiteSpace(defaultRedirectUrl))
-                    {
-                        defaultRedirectUrl = "/"; // fallback to root if not configured
-                    }
-                    return Redirect(defaultRedirectUrl);
-                }
-                else
-                {
-                    // user might have clicked on a malicious link - should be logged
-                    throw new ArgumentException("invalid return URL");
-                }
-            }
-            const string invalidCredentials = "invalid credentials";
-            await _events.RaiseAsync(new UserLoginFailureEvent(Input.Email, invalidCredentials, clientId: context?.Client.ClientId));
-            Telemetry.Metrics.UserLoginFailure(context?.Client.ClientId, IdentityServerConstants.LocalIdentityProvider, invalidCredentials);
-            AddApiError("Invalid username or password, please try again");
         }
 
         // something went wrong, show form with error
@@ -255,6 +343,25 @@ public class Index : PageModel
     private void SetErrorMessage(string message)
     {
         ViewData["ErrorMessage"] = message;
+    }
+
+    /// <summary>
+    /// Clears all error messages from ViewData and ModelState on page refresh
+    /// </summary>
+    private void ClearAllErrors()
+    {
+        // Clear ViewData errors
+        ViewData.Remove("ApiErrors");
+        ViewData.Remove("ErrorMessage");
+        
+        // Clear ModelState errors
+        ModelState.Clear();
+        
+        // DO NOT clear TempData["ApiErrors"] here - it might contain errors from external auth flows
+        // that need to be displayed. The BuildModelAsync method will handle transferring them to ViewData.
+        // Only clear TempData errors that are not from external auth flows
+        if (TempData.ContainsKey("ErrorMessage"))
+            TempData.Remove("ErrorMessage");
     }
 
     private async Task BuildModelAsync(string? returnUrl)
@@ -363,21 +470,28 @@ public class Index : PageModel
 
         // If ApiErrors were set by the external auth flow, deserialize them and
         // put into ViewData for the shared _ApiErrors partial to render.
-        if (TempData.TryGetValue("ApiErrors", out var apiErrorsObj) && apiErrorsObj is string apiErrorsJson)
+        if (TempData.TryGetValue("ApiErrors", out var apiErrorsObj))
         {
-            try
+            if (apiErrorsObj is string apiErrorsJson)
             {
-                var messages = System.Text.Json.JsonSerializer.Deserialize<List<string>>(apiErrorsJson) ?? new List<string>();
-                ViewData["ApiErrors"] = messages;
-            }
-            catch
-            {
-                // If deserialization fails, fall back to the ExternalError single message
-                if (!string.IsNullOrWhiteSpace(externalError))
+                try
                 {
-                    ViewData["ApiErrors"] = new List<string> { externalError };
+                    var messages = System.Text.Json.JsonSerializer.Deserialize<List<string>>(apiErrorsJson) ?? new List<string>();
+                    ViewData["ApiErrors"] = messages;
+                }
+                catch
+                {
+                    // If deserialization fails, fall back to the ExternalError single message
+                    if (!string.IsNullOrWhiteSpace(externalError))
+                    {
+                        ViewData["ApiErrors"] = new List<string> { externalError };
+                    }
                 }
             }
+        }
+        else
+        {
+            // no ApiErrors in TempData
         }
     }
 }

@@ -1,166 +1,267 @@
-// Custom form validation with blur events
+// Client-side form validation for form inputs with data attributes
 document.addEventListener('DOMContentLoaded', function () {
-  const emailInput = document.querySelector('input[name="Input.Email"]');
-  const passwordInput = document.querySelector('input[name="Input.Password"]');
+  // Clear all error messages on page load/refresh
+  clearAllErrors();
 
-  if (emailInput) {
-    setupEmailValidation(emailInput);
-  }
+  // Flag to prevent validation when navigating between auth pages
+  let isNavigating = false;
 
-  if (passwordInput) {
-    setupPasswordValidation(passwordInput);
-  }
-});
+  // Add click listeners to auth navigation links and social login buttons to set the flag
+  const authLinks = document.querySelectorAll('.signup-link, .signin-link, .social-button');
+  authLinks.forEach(function (link) {
+    // Use mousedown instead of click to fire before navigation
+    link.addEventListener('mousedown', function (e) {
+      isNavigating = true;
+    });
 
-function setupEmailValidation(emailInput) {
-  const errorSpan = emailInput.parentElement.querySelector('.form-error-text');
-
-  emailInput.addEventListener('blur', function () {
-    validateEmail(emailInput, errorSpan);
+    // Also add pointerdown for touch devices
+    link.addEventListener('pointerdown', function (e) {
+      isNavigating = true;
+    });
   });
 
-  // Clear error on focus
-  emailInput.addEventListener('focus', function () {
-    clearValidationState(emailInput, errorSpan);
+  // Initialize validation on all form inputs with validation rules
+  document.querySelectorAll('.form-input[data-validation-rules]').forEach(function (input) {
+    input.addEventListener('blur', function () {
+      // Skip validation if user is navigating to another auth page
+      if (isNavigating) {
+        return;
+      }
+      validateField(this);
+    });
+
+    // Clear errors on focus
+    input.addEventListener('focus', function () {
+      clearFieldError(this);
+    });
   });
-}
 
-function setupPasswordValidation(passwordInput) {
-  const errorSpan = passwordInput.parentElement.parentElement.querySelector('.form-error-text');
+  function validateField(input) {
+    try {
+      const rules = JSON.parse(input.getAttribute('data-validation-rules') || '{}');
+      const messages = JSON.parse(input.getAttribute('data-error-messages') || '{}');
+      // Ensure the input has an id we can reference for an error container
+      ensureInputId(input);
+      const errorContainer = getErrorContainer(input);
+      // Don't trim password fields (keep exact value). Trim other inputs for validation convenience.
+      const value = input.type === 'password' ? input.value : input.value.trim();
+      let errorMessage = '';
 
-  passwordInput.addEventListener('blur', function () {
-    validatePassword(passwordInput, errorSpan);
-  });
+      // Clear previous error first
+      clearFieldError(input);
 
-  // Clear error on focus
-  passwordInput.addEventListener('focus', function () {
-    clearValidationState(passwordInput, errorSpan);
-  });
-}
+      // Required validation
+      if (rules.required && !value) {
+        errorMessage = messages.required || 'This field is required.';
+      }
+      // Email validation
+      else if (rules.email && value && !isValidEmail(value)) {
+        errorMessage = messages.email || 'Please enter a valid email address.';
+      }
+      // Min length validation
+      else if (rules.minLength && value && value.length < rules.minLength) {
+        errorMessage = messages.minLength || 'Minimum ' + rules.minLength + ' characters required.';
+      }
+      // Max length validation
+      else if (rules.maxLength && value && value.length > rules.maxLength) {
+        errorMessage = messages.maxLength || 'Maximum ' + rules.maxLength + ' characters allowed.';
+      }
+      // Pattern validation
+      else if (rules.pattern && value && !new RegExp(rules.pattern).test(value)) {
+        errorMessage = messages.pattern || 'Invalid format.';
+      }
+      // Password strength validation
+      else if (rules.passwordStrength && value && !isStrongPassword(value)) {
+        errorMessage = messages.passwordStrength || getPasswordStrengthMessage(value);
+      }
 
-function validateEmail(emailInput, errorSpan) {
-  const email = emailInput.value.trim();
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-  // Check if email is required and not empty
-  if (!email) {
-    showError(emailInput, errorSpan, 'Email is required');
-    return false;
-  }
-
-  // Check email format
-  if (!emailRegex.test(email)) {
-    showError(emailInput, errorSpan, 'Please enter a valid email address');
-    return false;
-  }
-
-  showSuccess(emailInput, errorSpan);
-  return true;
-}
-
-function validatePassword(passwordInput, errorSpan) {
-  const password = passwordInput.value;
-
-  // Check if password is required and not empty
-  if (!password) {
-    showError(passwordInput, errorSpan, 'Password is required');
-    return false;
-  }
-
-  // Password strength validation
-  const hasUpper = /[A-Z]/.test(password);
-  const hasLower = /[a-z]/.test(password);
-  const hasNumber = /[0-9]/.test(password);
-  const hasSpecial = /[^A-Za-z0-9]/.test(password);
-
-  const errors = [];
-
-  if (!hasUpper) {
-    errors.push('uppercase letter');
-  }
-  if (!hasLower) {
-    errors.push('lowercase letter');
-  }
-  if (!hasNumber) {
-    errors.push('number');
-  }
-  if (!hasSpecial) {
-    errors.push('special character');
-  }
-
-  if (password.length < 8) {
-    errors.push('at least 8 characters');
-  }
-
-  if (errors.length > 0) {
-    const errorMessage = `Password must contain: ${errors.join(', ')}`;
-    showError(passwordInput, errorSpan, errorMessage);
-    return false;
-  }
-
-  showSuccess(passwordInput, errorSpan);
-  return true;
-}
-
-function showError(input, errorSpan, message) {
-  input.classList.remove('has-success');
-  input.classList.add('has-error');
-
-  if (errorSpan) {
-    errorSpan.textContent = message;
-    errorSpan.style.display = 'block';
-  }
-}
-
-function showSuccess(input, errorSpan) {
-  input.classList.remove('has-error');
-  input.classList.add('has-success');
-
-  if (errorSpan) {
-    errorSpan.textContent = '';
-    errorSpan.style.display = 'none';
-  }
-}
-
-function clearValidationState(input, errorSpan) {
-  input.classList.remove('has-error', 'has-success');
-
-  if (errorSpan) {
-    errorSpan.textContent = '';
-    errorSpan.style.display = 'none';
-  }
-}
-
-// Form submission validation
-function validateForm() {
-  const emailInput = document.querySelector('input[name="Input.Email"]');
-  const passwordInput = document.querySelector('input[name="Input.Password"]');
-
-  let isValid = true;
-
-  if (emailInput) {
-    const emailErrorSpan = emailInput.parentElement.querySelector('.form-error-text');
-    if (!validateEmail(emailInput, emailErrorSpan)) {
-      isValid = false;
+      // Display error if any
+      if (errorMessage) {
+        showFieldError(input, errorMessage);
+      }
+    } catch (e) {
+      // swallow validation parse errors silently
     }
   }
 
-  if (passwordInput) {
-    const passwordErrorSpan = passwordInput.parentElement.parentElement.querySelector('.form-error-text');
-    if (!validatePassword(passwordInput, passwordErrorSpan)) {
-      isValid = false;
+  function showFieldError(input, message) {
+    const errorContainer = getErrorContainer(input);
+    if (errorContainer) {
+      errorContainer.textContent = message;
+      errorContainer.style.display = 'block';
+      input.classList.add('has-error');
+      // link for accessibility
+      input.setAttribute('aria-invalid', 'true');
+      input.setAttribute('aria-describedby', errorContainer.id);
     }
   }
 
-  return isValid;
-}
+  function clearFieldError(input) {
+    const errorContainer = getErrorContainer(input);
+    if (errorContainer) {
+      errorContainer.style.display = 'none';
+      errorContainer.textContent = '';
+    }
+    input.classList.remove('has-error');
+    input.removeAttribute('aria-invalid');
+    // keep aria-describedby (useful) — do not remove unless you created it and want to remove it here
+  }
 
-// Attach form validation to form submit
-document.addEventListener('DOMContentLoaded', function () {
+  // Ensure input has an id (used to create/find error container). If missing, generate one.
+  function ensureInputId(input) {
+    if (!input.id) {
+      input.id = 'input-' + Math.random().toString(36).slice(2, 9);
+    }
+  }
+
+  // Find or create an error container for an input.
+  // Strategy: prefer element with id `${input.id}-error`, then `[data-error-for="${input.name}"]`, then a sibling with class 'client-error-text'.
+  // If none found, create a span directly after the input and return it.
+  function getErrorContainer(input) {
+    try {
+      const byId = document.getElementById(input.id + '-error');
+      if (byId) return byId;
+
+      if (input.name) {
+        const byData = document.querySelector('[data-error-for="' + CSS.escape(input.name) + '"]');
+        if (byData) return byData;
+      }
+
+      // look for a next sibling with expected class
+      const next = input.nextElementSibling;
+      if (next && (next.classList.contains('client-error-text') || next.classList.contains('server-error-text') || next.classList.contains('form-error-text') || next.id === input.id + '-error')) {
+        return next;
+      }
+
+      // As a last resort, create an inline span for errors and insert after input
+      const span = document.createElement('span');
+      span.id = input.id + '-error';
+      span.className = 'client-error-text';
+      span.style.display = 'none';
+      span.setAttribute('aria-live', 'polite');
+      if (input.parentNode) {
+        if (input.nextSibling) {
+          input.parentNode.insertBefore(span, input.nextSibling);
+        } else {
+          input.parentNode.appendChild(span);
+        }
+      }
+      return span;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function clearAllErrors() {
+    // Clear all client validation errors
+    document.querySelectorAll('.client-error-text').forEach(function (errorElement) {
+      errorElement.style.display = 'none';
+      errorElement.textContent = '';
+    });
+
+    // Clear all server validation errors  
+    document.querySelectorAll('.server-error-text, .form-error-text').forEach(function (errorElement) {
+      errorElement.style.display = 'none';
+      errorElement.textContent = '';
+    });
+
+    // // Clear all API error messages
+    // document.querySelectorAll('.api-error-message').forEach(function (errorElement) {
+    //   errorElement.style.display = 'none';
+    //   errorElement.textContent = '';
+    // });
+
+    // Clear validation summary errors
+    document.querySelectorAll('.alert-danger, .danger').forEach(function (errorElement) {
+      errorElement.style.display = 'none';
+      errorElement.innerHTML = '';
+    });
+
+    // Clear validation summary lists
+    document.querySelectorAll('[data-valmsg-summary="true"]').forEach(function (summary) {
+      summary.style.display = 'none';
+      summary.innerHTML = '';
+    });
+
+    // Remove error classes from all inputs
+    document.querySelectorAll('.form-input').forEach(function (input) {
+      input.classList.remove('has-error', 'input-validation-error', 'has-success');
+    });
+
+    // DO NOT clear .error-container elements - these are for server-side API errors
+    // and should only be cleared by server-side logic, not client-side JavaScript
+
+    // Clear any field validation spans
+    document.querySelectorAll('[data-valmsg-for]').forEach(function (span) {
+      span.style.display = 'none';
+      span.textContent = '';
+    });
+  }
+
+  function isValidEmail(email) {
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailPattern.test(email);
+  }
+
+  function isStrongPassword(password) {
+    const hasUpper = /[A-Z]/.test(password);
+    const hasLower = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecial = /[^A-Za-z0-9]/.test(password);
+    const hasMinLength = password.length >= 8;
+
+    return hasUpper && hasLower && hasNumber && hasSpecial && hasMinLength;
+  }
+
+  function getPasswordStrengthMessage(password) {
+    const hasUpper = /[A-Z]/.test(password);
+    const hasLower = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecial = /[^A-Za-z0-9]/.test(password);
+
+    const errors = [];
+
+    if (!hasUpper) {
+      errors.push('uppercase letter');
+    }
+    if (!hasLower) {
+      errors.push('lowercase letter');
+    }
+    if (!hasNumber) {
+      errors.push('number');
+    }
+    if (!hasSpecial) {
+      errors.push('special character');
+    }
+
+    if (password.length < 8) {
+      errors.push('at least 8 characters');
+    }
+
+    if (errors.length > 0) {
+      return 'Password must contain: ' + errors.join(', ');
+    }
+
+    return 'Password is not strong enough';
+  }
+
+  // Form submission validation (validate all fields with data attributes)
+  function validateAllFields() {
+    let isValid = true;
+    document.querySelectorAll('.form-input[data-validation-rules]').forEach(function (input) {
+      validateField(input);
+      if (input.classList.contains('has-error')) {
+        isValid = false;
+      }
+    });
+    return isValid;
+  }
+
+  // Attach form validation to form submit
   const form = document.querySelector('form');
   if (form) {
     form.addEventListener('submit', function (e) {
-      if (!validateForm()) {
+      if (!validateAllFields()) {
         e.preventDefault();
         return false;
       }

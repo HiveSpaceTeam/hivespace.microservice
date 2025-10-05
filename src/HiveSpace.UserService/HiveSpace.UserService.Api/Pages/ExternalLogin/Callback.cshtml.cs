@@ -88,6 +88,32 @@ public class Callback : PageModel
                 user = await AutoProvisionUserAsync(provider, providerUserId, externalUser.Claims);
             }
 
+            // Check if user is active before allowing login
+            if (user.Status != (int)UserStatus.Active)
+            {
+                const string error = "user inactive";
+                await _events.RaiseAsync(new UserLoginFailureEvent(provider, error, clientId: null));
+                Telemetry.Metrics.UserLoginFailure(null, provider, error);
+                
+                // Store error message for login page display
+                var errorMessages = new List<string> { "This account is inactive. Please contact admin to activate it." };
+                var serializedErrors = System.Text.Json.JsonSerializer.Serialize(errorMessages);
+                TempData["ApiErrors"] = serializedErrors;
+                
+                // Set ApiErrors TempData for display on login page
+                
+                // Delete the external authentication cookie
+                await HttpContext.SignOutAsync(IdentityServerConstants.ExternalCookieAuthenticationScheme);
+                
+                // Redirect back to login with error
+                var returnUrlForError = result.Properties.Items["returnUrl"] ?? "~/";
+                var loginUrl = string.IsNullOrWhiteSpace(returnUrlForError)
+                    ? "/Account/Login"
+                    : $"/Account/Login?returnUrl={System.Uri.EscapeDataString(returnUrlForError)}";
+                
+                return Redirect(loginUrl);
+            }
+
             // this allows us to collect any additional claims or properties
             // for the specific protocols used and store them in the local auth cookie.
             // this is typically used to store data needed for signout from those protocols.
@@ -225,7 +251,8 @@ public class Callback : PageModel
             FullName = fullName,
             PhoneNumber = null,
             Gender = (int?)gender,
-            DateOfBirth = dob
+            DateOfBirth = dob,
+            CreatedAt = DateTimeOffset.UtcNow,
         };
 
         var identityResult = await _userManager.CreateAsync(user);

@@ -52,12 +52,11 @@ public class CustomProfileService : IProfileService
             new Claim("username", user.UserName ?? string.Empty)
         };
 
-        // 1. Get and add standard ASP.NET Core Identity roles.
-        // These are the "technical" roles like "Admin" and "SystemAdmin".
-        var roles = await _userManager.GetRolesAsync(user);
-        foreach (var role in roles)
+        // 1. Get and add role directly from the user's RoleName property.
+        // These are the roles like "Admin", "SystemAdmin", and "Seller".
+        if (!string.IsNullOrEmpty(user.RoleName))
         {
-            claims.Add(new Claim("role", role));
+            claims.Add(new Claim("role", user.RoleName));
         }
         
         // 2. Check for the "Store Owner" business role from the domain layer.
@@ -101,8 +100,22 @@ public class CustomProfileService : IProfileService
     {
         var user = await _userManager.GetUserAsync(context.Subject);
         
-        // A user is considered active if they exist, are not locked out, and have an active status.
-        context.IsActive = user is not null 
-            && user.Status == (int)UserStatus.Active;
+        if (user is null)
+        {
+            context.IsActive = false;
+            return;
+        }
+
+        // Check if user status is active
+        if (user.Status != (int)UserStatus.Active)
+        {
+            // For social login users, we need to indicate they are inactive
+            // IdentityServer will handle this by denying the token request
+            context.IsActive = false;
+            return;
+        }
+
+        // User exists and is active
+        context.IsActive = true;
     }
 }
