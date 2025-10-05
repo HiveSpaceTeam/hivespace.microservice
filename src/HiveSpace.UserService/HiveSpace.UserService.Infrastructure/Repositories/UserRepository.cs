@@ -33,8 +33,7 @@ public class UserRepository : IUserRepository
         if (appUser == null) 
             return null;
 
-        var roleNames = await _userManager.GetRolesAsync(appUser);
-        return appUser.ToDomainUser(roleNames);
+        return appUser.ToDomainUser();
     }
 
     public async Task<User?> GetByEmailAsync(Email email, CancellationToken cancellationToken = default)
@@ -46,8 +45,7 @@ public class UserRepository : IUserRepository
         if (appUser == null)
             return null;
 
-        var roleNames = await _userManager.GetRolesAsync(appUser);
-        return appUser.ToDomainUser(roleNames);
+        return appUser.ToDomainUser();
     }
 
     public async Task<User?> GetByUserNameAsync(string userName, CancellationToken cancellationToken = default)
@@ -59,8 +57,7 @@ public class UserRepository : IUserRepository
         if (appUser == null)
             return null;
 
-        var roleNames = await _userManager.GetRolesAsync(appUser);
-        return appUser.ToDomainUser(roleNames);
+        return appUser.ToDomainUser();
     }
 
     // Creates a new user with the Identity store and maps back to the domain aggregate
@@ -76,26 +73,23 @@ public class UserRepository : IUserRepository
             throw new Core.Exceptions.ApplicationException([error], 500, false);
         }
 
-        if (domainUser.Role != null)
-        {
-            var roleName = RoleMapper.ToRoleName(domainUser.Role);
-            await _userManager.AddToRoleAsync(appUser, roleName);
-        }
-        return appUser.ToDomainUser(await _userManager.GetRolesAsync(appUser));
+        // Role is already set in ToApplicationUser() mapping, no need for AddToRoleAsync
+        // Refresh from database to get the created user with its ID
+        await _context.SaveChangesAsync(cancellationToken);
+        
+        return appUser.ToDomainUser();
     }
 
     public async Task<List<User>> GetAllAsync()
     {
         var users = await _context.Users
             .Include(u => u.Addresses)
-            .Include(u => u.UserRoles) // Include Store navigation property
             .ToListAsync();
 
         var result = new List<User>(users.Count);
         foreach (var appUser in users)
         {
-            var roles = await _userManager.GetRolesAsync(appUser);
-            result.Add(appUser.ToDomainUser(roles));
+            result.Add(appUser.ToDomainUser());
         }
         return result;
     }

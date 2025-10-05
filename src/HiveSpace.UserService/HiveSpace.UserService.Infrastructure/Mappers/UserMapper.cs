@@ -31,6 +31,7 @@ public static class UserMapper
             DateOfBirth = domainUser.DateOfBirth?.Value.DateTime,
             Gender = (int?)domainUser.Gender,
             Status = (int)domainUser.Status,
+            RoleName = domainUser.Role?.Name, // Store role name directly
             CreatedAt = domainUser.CreatedAt,
             UpdatedAt = domainUser.UpdatedAt,
             LastLoginAt = domainUser.LastLoginAt,
@@ -40,23 +41,14 @@ public static class UserMapper
     }
 
     /// <summary>
-    /// Convert ApplicationUser to Domain User using UserManager for reconstruction
+    /// Convert ApplicationUser to Domain User using direct RoleName property
     /// </summary>
-    public static User ToDomainUser(this ApplicationUser applicationUser, IEnumerable<string> roleNames)
+    public static User ToDomainUser(this ApplicationUser applicationUser)
     {
-        if (roleNames == null)
-        {
-            throw new HiveSpace.Core.Exceptions.ApplicationException(
-                [new Error(CommonErrorCode.ArgumentNull, nameof(roleNames))], 
-                400, 
-                false);
-        }
-        // Get the single role (enforces one role only business rule)
-        var userRole = RoleMapper.GetSingleRole(roleNames)
-            ?? throw new HiveSpace.Core.Exceptions.ApplicationException(
-                [new Error(CommonErrorCode.InvalidArgument, nameof(roleNames))], 
-                400, 
-                false);
+        // Get the role directly from RoleName property
+        var userRole = !string.IsNullOrEmpty(applicationUser.RoleName) 
+            ? Role.FromName(applicationUser.RoleName) 
+            : null;
 
         // Parse domain value objects using factory methods
         var email = Email.Create(applicationUser.Email ?? string.Empty);

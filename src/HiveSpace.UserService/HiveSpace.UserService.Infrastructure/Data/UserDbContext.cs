@@ -17,6 +17,9 @@ public class UserDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Gui
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
+        // IMPORTANT: Ignore the IdentityUserRole entity BEFORE calling base to avoid warning
+        builder.Ignore<IdentityUserRole<Guid>>();
+        
         base.OnModelCreating(builder);
 
         // Only apply configurations from Infrastructure assembly (not Domain)
@@ -25,7 +28,6 @@ public class UserDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Gui
         // Configure table names following the Identity Service pattern
         builder.Entity<Address>().ToTable("addresses");
         builder.Entity<IdentityRole<Guid>>().ToTable("roles");
-        builder.Entity<IdentityUserRole<Guid>>().ToTable("user_roles");
         builder.Entity<IdentityUserClaim<Guid>>().ToTable("user_claims");
         builder.Entity<IdentityUserLogin<Guid>>().ToTable("user_logins");
         builder.Entity<IdentityRoleClaim<Guid>>().ToTable("role_claims");

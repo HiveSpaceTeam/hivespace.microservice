@@ -1,0 +1,19 @@
+@*
+    Reusable submit button component
+    Parameters:
+    - AspFor: Expression for model binding
+    - Value: Button value for form submission
+    - Text: Display text on button
+*@
+@model dynamic
+
+@{
+    var aspFor = ViewData["AspFor"];
+    var value = ViewData["Value"]?.ToString();
+    var text = ViewData["Text"]?.ToString();
+}
+
+<div class="form-group">
+    <button type="submit" value="@value" class="submit-button"> @text
+    </button>
+</div>

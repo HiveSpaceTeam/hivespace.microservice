@@ -1,0 +1,34 @@
+@*
+    Reusable social login component
+    Parameters:
+    - Providers: List of external providers
+    - ReturnUrl: Return URL for redirect after login
+*@
+@model dynamic
+
+@{
+    var providers = ViewData["Providers"] as System.Collections.Generic.IEnumerable<dynamic>;
+    var returnUrl = ViewData["ReturnUrl"]?.ToString();
+}
+
+@if (providers != null && providers.Any())
+{
+    <div class="social-buttons">
+        @foreach (var provider in providers)
+        {
+            <a class="social-button" asp-page="/ExternalLogin/Challenge" asp-route-scheme="@provider.AuthenticationScheme"
+                asp-route-returnUrl="@returnUrl">
+                <img src="~/images/brands/@(provider.AuthenticationScheme.ToLower()).svg" alt="@provider.DisplayName"
+                    class="social-icon" />
+                Sign in with @provider.DisplayName
+            </a>
+        }
+    </div>
+
+    <div class="form-divider">
+        <div class="divider-line"></div>
+        <div class="divider-text">
+            <span>Or</span>
+        </div>
+    </div>
+}

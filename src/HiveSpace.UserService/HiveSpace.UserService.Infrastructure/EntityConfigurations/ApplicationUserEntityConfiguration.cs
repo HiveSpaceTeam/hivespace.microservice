@@ -48,17 +48,17 @@ public class ApplicationUserEntityConfiguration : IEntityTypeConfiguration<Appli
         
         builder.Property(u => u.LastLoginAt);
 
+        // Configure the RoleName property
+        builder.Property(u => u.RoleName)
+            .HasMaxLength(50);
+        
+        // Create index on RoleName for better query performance
+        builder.HasIndex(u => u.RoleName);
+
         // Configure the addresses collection
         builder.HasMany(u => u.Addresses)
             .WithOne()
             .HasForeignKey("UserId")
-            .OnDelete(DeleteBehavior.Cascade);
-
-        // Configure the UserRoles collection (Identity relationship)
-        builder.HasMany(u => u.UserRoles)
-            .WithOne() // IdentityUserRole<TKey> has no navigation back to user by default
-            .HasForeignKey(ur => ur.UserId)
-            .IsRequired()
             .OnDelete(DeleteBehavior.Cascade);
 
         // Table name

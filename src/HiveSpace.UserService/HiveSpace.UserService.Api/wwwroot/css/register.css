@@ -1,0 +1,57 @@
+/* ===== REGISTER PAGE SPECIFIC STYLES ===== */
+/* This file should only contain styles specific to the register page */
+/* Shared auth layout styles are in auth-layout.css */
+
+/* Register page header styles */
+.register-header {
+    margin-bottom: 1.25rem;
+}
+
+@media (min-width: 640px) {
+    .register-header {
+        margin-bottom: 2rem;
+    }
+}
+
+.register-title {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+    font-weight: 600;
+    color: var(--color-gray-900);
+    margin-bottom: 0.5rem;
+}
+
+.register-subtitle {
+    color: var(--color-gray-500);
+    font-size: 1rem;
+    line-height: 1.5rem;
+}
+
+/* Register form specific styles */
+.register-form {
+    margin-top: 1rem;
+}
+
+.terms-checkbox {
+    margin: 1rem 0;
+}
+
+.register-footer {
+    margin-top: 1.5rem;
+}
+
+.signin-text {
+    color: var(--color-gray-500);
+    font-size: 0.875rem;
+}
+
+.signin-link {
+    color: var(--color-brand-500);
+    text-decoration: none;
+    transition: color 0.15s ease-in-out;
+}
+
+.signin-link:hover {
+    color: var(--color-brand-600);
+    text-decoration: underline;
+}
