@@ -2,7 +2,6 @@ using FluentValidation;
 using HiveSpace.Core.Exceptions;
 using HiveSpace.Core.Exceptions.Models;
 using HiveSpace.UserService.Application.Models.Requests.Admin;
-using HiveSpace.UserService.Application.Constant.Enum;
 
 namespace HiveSpace.UserService.Application.Validators.Admin;
 
@@ -17,11 +16,6 @@ public class GetAdminValidator : AbstractValidator<GetAdminRequestDto>
         RuleFor(x => x.PageSize)
             .InclusiveBetween(10, 50)
             .WithState(_ => new Error(CommonErrorCode.InvalidPageSize, nameof(GetAdminRequestDto.PageSize)));
-
-        RuleFor(x => x.SearchTerm)
-            .EmailAddress()
-            .When(x => !string.IsNullOrWhiteSpace(x.SearchTerm))
-            .WithState(_ => new Error(CommonErrorCode.InvalidSearchTerm, nameof(GetAdminRequestDto.SearchTerm)));
 
         RuleFor(x => x.Sort)
             .Must(BeValidSortFormat)

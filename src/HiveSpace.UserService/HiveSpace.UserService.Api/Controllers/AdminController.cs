@@ -56,4 +56,26 @@ public class AdminController : ControllerBase
 
         return Ok(result);
     }
+
+    [HttpPost("users/{userId}/activate")]
+    [Authorize(Policy = "RequireUserFullAccessScope")]
+    public async Task<ActionResult<SetUserStatusResponseDto>> ActivateUser(
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        var request = new SetUserStatusRequestDto(userId, true);
+        var result = await _adminService.SetUserStatusAsync(request, cancellationToken);
+        return Ok(result);
+    }
+
+    [HttpPost("users/{userId}/deactivate")]
+    [Authorize(Policy = "RequireUserFullAccessScope")]
+    public async Task<ActionResult<SetUserStatusResponseDto>> DeactivateUser(
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        var request = new SetUserStatusRequestDto(userId, false);
+        var result = await _adminService.SetUserStatusAsync(request, cancellationToken);
+        return Ok(result);
+    }
 }
