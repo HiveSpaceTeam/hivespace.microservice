@@ -1,5 +1,7 @@
 @page
 @model HiveSpace.UserService.Api.Pages.Account.Register.Index
+@using HiveSpace.UserService.Api.Helpers
+@using HiveSpace.UserService.Api.Pages.Account.Register
 @section Styles {
     <link rel="stylesheet" href="~/css/register.css" />
     <link rel="stylesheet" href="~/css/auth-layout.css" />
@@ -33,30 +35,39 @@
 
             @* Email Input Component *@
             @{
-                ViewData["AspFor"] = Model.Input?.Email;
+                ViewData["PropertyName"] = "Input.Email";
+                ViewData["Value"] = Model.Input?.Email;
                 ViewData["Label"] = "Email";
                 ViewData["Type"] = "email";
                 ViewData["AutoFocus"] = true;
                 ViewData["Required"] = true;
                 ViewData["ValidationRules"] = System.Text.Json.JsonSerializer.Serialize(new { required = true, email = true });
-                ViewData["ErrorMessages"] = System.Text.Json.JsonSerializer.Serialize(new { 
-                    required = "Email is required", 
-                    email = "Please enter a valid email address" 
+                ViewData["ErrorMessages"] = System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    required = "Email is required",
+                    email = "Please enter a valid email address"
                 });
             }
             <partial name="_FormInput" />
 
             @* Full Name Input Component *@
             @{
-                ViewData["AspFor"] = Model.Input?.FullName;
+                ViewData["PropertyName"] = "Input.FullName";
+                ViewData["Value"] = Model.Input?.FullName;
                 ViewData["Label"] = "Full Name";
                 ViewData["Type"] = "text";
                 ViewData["AutoComplete"] = "name";
                 ViewData["AutoFocus"] = false;
                 ViewData["Required"] = true;
-                ViewData["ValidationRules"] = System.Text.Json.JsonSerializer.Serialize(new { required = true, minLength = 2, maxLength = 100 });
-                ViewData["ErrorMessages"] = System.Text.Json.JsonSerializer.Serialize(new { 
-                    required = "Full name is required", 
+                ViewData["ValidationRules"] = System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    required = true,
+                    minLength = 2,
+                    maxLength = 100
+                });
+                ViewData["ErrorMessages"] = System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    required = "Full name is required",
                     minLength = "Full name must be at least 2 characters",
                     maxLength = "Full name cannot exceed 100 characters"
                 });
@@ -65,27 +76,37 @@
 
             @* Password Input Component *@
             @{
-                ViewData["AspFor"] = Model.Input?.Password;
+                var passwordValidation =
+                HiveSpace.UserService.Api.Helpers.ValidationRuleGenerator.GenerateClientRules<InputModel>(m => m.Password);
+                ViewData["PropertyName"] = "Input.Password";
+                ViewData["Value"] = Model.Input?.Password;
                 ViewData["Label"] = "Password";
+                ViewData["Placeholder"] = "Enter your password";
                 ViewData["AutoComplete"] = "new-password";
                 ViewData["Required"] = true;
-                ViewData["ValidationRules"] = System.Text.Json.JsonSerializer.Serialize(new { required = true, passwordStrength = true });
-                ViewData["ErrorMessages"] = System.Text.Json.JsonSerializer.Serialize(new { 
-                    required = "Password is required",
-                    passwordStrength = "Password must contain at least 8 characters, including uppercase, lowercase, number, and special character"
-                });
+                ViewData["ValidationRules"] = System.Text.Json.JsonSerializer.Serialize(passwordValidation.Rules);
+                ViewData["ErrorMessages"] = System.Text.Json.JsonSerializer.Serialize(passwordValidation.Messages);
             }
             <partial name="_PasswordInput" />
 
             @* Confirm Password Input Component *@
             @{
-                ViewData["AspFor"] = Model.Input?.ConfirmPassword;
+                ViewData["PropertyName"] = "Input.ConfirmPassword";
+                ViewData["Value"] = Model.Input?.ConfirmPassword;
                 ViewData["Label"] = "Confirm Password";
+                ViewData["Placeholder"] = "Confirm your password";
                 ViewData["AutoComplete"] = "new-password";
                 ViewData["Required"] = true;
-                ViewData["ValidationRules"] = System.Text.Json.JsonSerializer.Serialize(new { required = true });
-                ViewData["ErrorMessages"] = System.Text.Json.JsonSerializer.Serialize(new { 
-                    required = "Please confirm your password"
+                ViewData["ValidationRules"] = System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    required = true,
+                    compare =
+                "Input.Password"
+                });
+                ViewData["ErrorMessages"] = System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    required = "Please confirm your password",
+                    compare = "Password and confirmation password do not match"
                 });
             }
             <partial name="_PasswordInput" />
@@ -101,7 +122,7 @@
 
         <div class="register-footer">
             <div class="signin-text">
-                Already have an account? <a href="/Account/Login" class="signin-link">Sign In</a>
+                Already have an account? <a href="/Account/Login@(Request.QueryString)" class="signin-link">Sign In</a>
             </div>
         </div>
     </div>

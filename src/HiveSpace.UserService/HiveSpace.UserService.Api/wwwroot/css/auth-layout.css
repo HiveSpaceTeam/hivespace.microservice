@@ -41,8 +41,6 @@
     --color-gray-950: #0c111d;
     --color-black: #101828;
     --color-white: #fff;
-    --color-error-500: #f04438;
-    --color-error-600: #dc2626;
     --spacing: .25rem;
     --container-xs: 20rem;
     --container-md: 28rem;
@@ -433,9 +431,8 @@
 .divider-text span {
     padding: 0.5rem;
     color: var(--color-gray-400);
-    background-color: white;
+    background-color: inherit;
 }
-
 /* Form elements */
 .form-group {
     margin-bottom: 1.25rem;
@@ -670,14 +667,21 @@
 
 /* Remove all possible borders and outlines except for keyboard focus */
 button:not(:focus-visible),
-.social-button:not(:focus-visible),
-.submit-button:not(:focus-visible) {
+/* Remove all possible borders and outlines except for keyboard focus */
+.auth-container button:not(:focus-visible),
+.auth-container .social-button:not(:focus-visible),
+.auth-container .submit-button:not(:focus-visible) {
     outline: none !important;
     box-shadow: none !important;
     border: 0 !important;
 }
 
 /* Keep focus outline only for keyboard navigation */
+.auth-container button:focus-visible {
+    outline: 2px solid var(--color-brand-400);
+    outline-offset: 2px;
+    border: none !important;
+}/* Keep focus outline only for keyboard navigation */
 button:focus-visible {
     outline: 2px solid var(--color-brand-400);
     outline-offset: 2px;

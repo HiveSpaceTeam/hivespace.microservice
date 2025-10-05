@@ -114,25 +114,35 @@ public class Index : PageModel
 
         if (ModelState.IsValid)
         {
+            var user = await _userManager.FindByEmailAsync(Input.Email!);
+            if (user is not null)
+            {
+                const string error = "invalid credentials";
+                await _events.RaiseAsync(new UserLoginFailureEvent(Input.Email, error, clientId: context?.Client.ClientId));
+                Telemetry.Metrics.UserLoginFailure(context?.Client.ClientId, IdentityServerConstants.LocalIdentityProvider, error);
+                AddApiError("Email is already registered, please use a different email");
+                await BuildModelAsync(Input.ReturnUrl);
+                return Page();
+            }
             // Create the user
-            var user = new ApplicationUser 
+            var newUser = new ApplicationUser 
             { 
                 UserName = Input.Email, 
                 Email = Input.Email,
                 FullName = Input.FullName ?? string.Empty
             };
 
-            var result = await _userManager.CreateAsync(user, Input.Password!);
+            var result = await _userManager.CreateAsync(newUser, Input.Password!);
 
             if (result.Succeeded)
             {
                 _logger.LogInformation("User created a new account with password.");
 
                 // Automatically sign in the user after registration
-                await _signInManager.SignInAsync(user, isPersistent: false);
+                await _signInManager.SignInAsync(newUser, isPersistent: false);
 
                 // Raise successful registration event
-                await _events.RaiseAsync(new UserLoginSuccessEvent(user.UserName, user.Id.ToString(), user.UserName, clientId: context?.Client?.ClientId));
+                await _events.RaiseAsync(new UserLoginSuccessEvent(newUser.UserName, newUser.Id.ToString(), newUser.UserName, clientId: context?.Client?.ClientId));
 
                 if (context != null)
                 {
@@ -161,6 +171,8 @@ public class Index : PageModel
                 else
                 {
                     // user might have clicked on a malicious link - should be logged
+                    // user might have clicked on a malicious link - should be logged
+                    _logger.LogWarning("Invalid return URL detected during registration: {ReturnUrl}", Input.ReturnUrl);
                     throw new ArgumentException("invalid return URL");
                 }
             }
@@ -173,8 +185,44 @@ public class Index : PageModel
         }
 
         // something went wrong, show form with error
+        TransferModelStateErrorsToApiErrors();
         await BuildModelAsync(Input.ReturnUrl);
         return Page();
+    }
+    
+    /// <summary>
+    /// Adds a single API error message for display in _ApiErrors partial
+    /// </summary>
+    private void AddApiError(string message)
+    {
+        var errors = ViewData["ApiErrors"] as List<string> ?? new List<string>();
+        errors.Add(message);
+        ViewData["ApiErrors"] = errors;
+    }
+    
+    /// <summary>
+    /// Transfers ModelState errors to ViewData["ApiErrors"] for display in _ApiErrors partial
+    /// </summary>
+    private void TransferModelStateErrorsToApiErrors()
+    {
+        if (!ModelState.IsValid)
+        {
+            var errors = new List<string>();
+            
+            // Add all ModelState errors
+            foreach (var modelError in ModelState.Values.SelectMany(v => v.Errors))
+            {
+                if (!string.IsNullOrWhiteSpace(modelError.ErrorMessage))
+                {
+                    errors.Add(modelError.ErrorMessage);
+                }
+            }
+            
+            if (errors.Count > 0)
+            {
+                ViewData["ApiErrors"] = errors;
+            }
+        }
     }
 
     /// <summary>

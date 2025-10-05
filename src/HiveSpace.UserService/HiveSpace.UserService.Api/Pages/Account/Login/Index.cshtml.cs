@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using HiveSpace.UserService.Domain.Aggregates.User;
 
 namespace HiveSpace.UserService.Api.Pages.Account.Login;
 [SecurityHeaders]
@@ -168,7 +167,7 @@ public class Index : PageModel
                         // Seller center: only Seller role (or users with StoreId set)
                         if (string.Equals(clientId, "sellercenter", StringComparison.OrdinalIgnoreCase))
                         {
-                            var isSeller = await _userManager.IsInRoleAsync(user, Role.RoleNames.Seller);
+                            var isSeller = await _userManager.IsInRoleAsync(user, "Seller");
                             // Fallback: if your domain marks sellers with StoreId, check that too (safe reflection)
                             var hasStore = false;
                             var storeProp = user.GetType().GetProperty("StoreId");
@@ -407,6 +406,7 @@ public class Index : PageModel
                 View = new ViewModel
                 {
                     EnableLocalLogin = local,
+                    ClientId = context?.Client?.ClientId,
                 };
 
                 Input.Email = context.LoginHint;
@@ -465,6 +465,7 @@ public class Index : PageModel
             AllowRememberLogin = LoginOptions.AllowRememberLogin,
             EnableLocalLogin = allowLocal && LoginOptions.AllowLocalLogin,
             ExternalProviders = providers.ToArray(),
+            ClientId = context?.Client?.ClientId,
             // ExternalErrorMessage intentionally omitted; use ApiErrors via ViewData instead
         };
 

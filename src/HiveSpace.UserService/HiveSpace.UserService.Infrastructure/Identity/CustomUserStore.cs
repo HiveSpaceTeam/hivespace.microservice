@@ -92,9 +92,10 @@ public class CustomUserStore : UserStore<ApplicationUser, IdentityRole<Guid>, Us
         ThrowIfDisposed();
         ArgumentException.ThrowIfNullOrEmpty(roleName);
 
-        return await Users.Where(u => u.RoleName == roleName).ToListAsync(cancellationToken);
+        return await Users
+            .Where(u => u.RoleName != null && u.RoleName.Equals(roleName, StringComparison.OrdinalIgnoreCase))
+            .ToListAsync(cancellationToken);
     }
-
     /// <summary>
     /// Helper method to find a role by name
     /// </summary>

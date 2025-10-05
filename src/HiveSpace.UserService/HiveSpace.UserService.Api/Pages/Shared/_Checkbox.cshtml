@@ -8,10 +8,18 @@
 @model dynamic
 
 @{
+
     var propertyName = ViewData["PropertyName"]?.ToString();
     var currentValue = ViewData["Value"];
     var label = ViewData["Label"]?.ToString();
+
+    if (string.IsNullOrEmpty(propertyName))
+    {
+        throw new ArgumentException("PropertyName is required for checkbox component");
+    }
+
     var fieldId = propertyName?.Replace(".", "_") + "-field";
+    // …rest of the code…
 
     // Handle boolean values - check if it's checked
     bool isChecked = false;

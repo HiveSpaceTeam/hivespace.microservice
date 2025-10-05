@@ -12,11 +12,19 @@ document.addEventListener('DOMContentLoaded', function () {
     // Use mousedown instead of click to fire before navigation
     link.addEventListener('mousedown', function (e) {
       isNavigating = true;
+      // Reset flag after a short delay (navigation should complete by then)
+      setTimeout(function () {
+        isNavigating = false;
+      }, 100);
     });
 
     // Also add pointerdown for touch devices
     link.addEventListener('pointerdown', function (e) {
       isNavigating = true;
+      // Reset flag after a short delay (navigation should complete by then)
+      setTimeout(function () {
+        isNavigating = false;
+      }, 100);
     });
   });
 
@@ -74,6 +82,13 @@ document.addEventListener('DOMContentLoaded', function () {
       else if (rules.passwordStrength && value && !isStrongPassword(value)) {
         errorMessage = messages.passwordStrength || getPasswordStrengthMessage(value);
       }
+      // Compare validation (for ConfirmPassword)
+      else if (rules.compare && value) {
+        const compareInput = document.querySelector(`[name="${rules.compare}"]`);
+        if (compareInput && value !== compareInput.value) {
+          errorMessage = messages.compare || 'Password and confirmation password do not match.';
+        }
+      }
 
       // Display error if any
       if (errorMessage) {
@@ -101,10 +116,20 @@ document.addEventListener('DOMContentLoaded', function () {
     if (errorContainer) {
       errorContainer.style.display = 'none';
       errorContainer.textContent = '';
+
+      // Remove error container ID from aria-describedby
+      const ariaDescribedBy = input.getAttribute('aria-describedby');
+      if (ariaDescribedBy) {
+        const ids = ariaDescribedBy.split(' ').filter(id => id !== errorContainer.id);
+        if (ids.length === 0) {
+          input.removeAttribute('aria-describedby');
+        } else {
+          input.setAttribute('aria-describedby', ids.join(' '));
+        }
+      }
     }
     input.classList.remove('has-error');
     input.removeAttribute('aria-invalid');
-    // keep aria-describedby (useful) — do not remove unless you created it and want to remove it here
   }
 
   // Ensure input has an id (used to create/find error container). If missing, generate one.
@@ -131,6 +156,13 @@ document.addEventListener('DOMContentLoaded', function () {
       const next = input.nextElementSibling;
       if (next && (next.classList.contains('client-error-text') || next.classList.contains('server-error-text') || next.classList.contains('form-error-text') || next.id === input.id + '-error')) {
         return next;
+      }
+
+      // Look within the parent form group for error containers (for password inputs and other wrapped inputs)
+      const formGroup = input.closest('.form-group');
+      if (formGroup) {
+        const errorInGroup = formGroup.querySelector('.client-error-text, .server-error-text, .form-error-text, #' + CSS.escape(input.id + '-error'));
+        if (errorInGroup) return errorInGroup;
       }
 
       // As a last resort, create an inline span for errors and insert after input
@@ -204,23 +236,30 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function isStrongPassword(password) {
+    // Match server-side regex: ^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$
+    // And minimum 12 characters as per Register InputModel validation
     const hasUpper = /[A-Z]/.test(password);
     const hasLower = /[a-z]/.test(password);
-    const hasNumber = /[0-9]/.test(password);
-    const hasSpecial = /[^A-Za-z0-9]/.test(password);
-    const hasMinLength = password.length >= 8;
+    const hasNumber = /\d/.test(password);
+    const hasSpecial = /[@$!%*?&]/.test(password);
+    const hasMinLength = password.length >= 12;
+    const onlyAllowedChars = /^[A-Za-z\d@$!%*?&]+$/.test(password);
 
-    return hasUpper && hasLower && hasNumber && hasSpecial && hasMinLength;
+    return hasUpper && hasLower && hasNumber && hasSpecial && hasMinLength && onlyAllowedChars;
   }
 
   function getPasswordStrengthMessage(password) {
     const hasUpper = /[A-Z]/.test(password);
     const hasLower = /[a-z]/.test(password);
-    const hasNumber = /[0-9]/.test(password);
-    const hasSpecial = /[^A-Za-z0-9]/.test(password);
+    const hasNumber = /\d/.test(password);
+    const hasSpecial = /[@$!%*?&]/.test(password);
+    const onlyAllowedChars = /^[A-Za-z\d@$!%*?&]+$/.test(password);
 
     const errors = [];
 
+    if (password.length < 12) {
+      errors.push('at least 12 characters');
+    }
     if (!hasUpper) {
       errors.push('uppercase letter');
     }
@@ -231,11 +270,10 @@ document.addEventListener('DOMContentLoaded', function () {
       errors.push('number');
     }
     if (!hasSpecial) {
-      errors.push('special character');
+      errors.push('special character (@$!%*?&)');
     }
-
-    if (password.length < 8) {
-      errors.push('at least 8 characters');
+    if (!onlyAllowedChars) {
+      errors.push('only letters, numbers, and special characters (@$!%*?&)');
     }
 
     if (errors.length > 0) {

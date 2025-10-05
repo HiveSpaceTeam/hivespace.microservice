@@ -1,3 +1,5 @@
+using System;
+
 namespace HiveSpace.UserService.Api.Pages.Account.Login;
 
 public class ViewModel
@@ -13,6 +15,9 @@ public class ViewModel
 
     public bool IsExternalLoginOnly => EnableLocalLogin == false && ExternalProviders?.Count() == 1;
     public string? ExternalLoginScheme => IsExternalLoginOnly ? ExternalProviders?.SingleOrDefault()?.AuthenticationScheme : null;
+    
+    public string? ClientId { get; set; }
+    public bool IsAdminPortalClient => string.Equals(ClientId, "adminportal", StringComparison.OrdinalIgnoreCase);
 
     public class ExternalProvider
     {
