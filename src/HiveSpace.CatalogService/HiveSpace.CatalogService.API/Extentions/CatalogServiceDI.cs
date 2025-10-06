@@ -13,6 +13,7 @@ namespace HiveSpace.CatalogService.API.Extentions
         private static IServiceCollection ConfigureApplicationService(this IServiceCollection services)
         {
             services.AddScoped<IProductService, ProductService>();
+            services.AddScoped<ICategoryService, CategoryService>();
             return services;
         }
 

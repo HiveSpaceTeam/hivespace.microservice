@@ -4,7 +4,7 @@ using System.Net;
 
 namespace HiveSpace.CatalogService.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/v1/[controller]")]
     [ApiController]
     public class CategoriesController : ControllerBase
     {
@@ -19,6 +19,14 @@ namespace HiveSpace.CatalogService.API.Controllers
         public async Task<IActionResult> GetCategory()
         {
             var result = await _categoryService.GetCategoryAsync();
+            return Ok(result);
+        }
+
+        [HttpGet("{categoryId}/attributes")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetAttributeByCategoryId(Guid categoryId)
+        {
+            var result = await _categoryService.GetAttributesByCategoryIdAsync(categoryId);
             return Ok(result);
         }
     }

@@ -1,10 +1,13 @@
 using HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate;
 using HiveSpace.CatalogService.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
+
+using HiveSpace.CatalogService.Application.Interfaces.Repositories;
 
 namespace HiveSpace.CatalogService.Infrastructure.Repositories
 {
-    public class ProductRepository
+    public class ProductRepository : IProductRepository
     {
         private readonly CatalogDbContext _context;
         public ProductRepository(CatalogDbContext context)
@@ -22,22 +25,73 @@ namespace HiveSpace.CatalogService.Infrastructure.Repositories
             return await _context.Products.ToListAsync();
         }
 
-        public async Task AddAsync(Product product)
+        public async Task AddAsync(Product product, CancellationToken cancellationToken = default)
         {
-            await _context.Products.AddAsync(product);
-            await _context.SaveChangesAsync();
+            await _context.Products.AddAsync(product, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task UpdateAsync(Product product)
+        public async Task UpdateAsync(Product product, CancellationToken cancellationToken = default)
         {
             _context.Products.Update(product);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task DeleteAsync(Product product)
+        public async Task DeleteAsync(Product product, CancellationToken cancellationToken = default)
         {
             _context.Products.Remove(product);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+
+        public async Task<Product?> GetDetailByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        {
+            return await _context.Products
+                .Where(p => p.Id == id)
+                .Include(p => p.Categories)
+                .Include(p => p.Images)
+                .Include(p => p.Attributes)
+                .Include(p => p.Variants)
+                    .ThenInclude(v => v.Options)
+                .Include(p => p.Skus)
+                    .ThenInclude(s => s.Images)
+                .Include(p => p.Skus)
+                    .ThenInclude(s => s.SkuVariants)
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+
+        public async Task<(IReadOnlyList<Product> Items, int Total)> GetPagedAsync(string keyword, int pageIndex, int pageSize, string sort, CancellationToken cancellationToken = default)
+        {
+            if (pageIndex < 1) pageIndex = 1;
+            if (pageSize <= 0) pageSize = 10;
+
+            var baseQuery = _context.Products.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                baseQuery = baseQuery.Where(p => p.Name.Contains(keyword));
+            }
+
+            baseQuery = (sort?.ToUpperInvariant() == "DESC")
+                ? baseQuery.OrderByDescending(p => p.CreatedAt)
+                : baseQuery.OrderBy(p => p.CreatedAt);
+
+            var total = await baseQuery.CountAsync(cancellationToken);
+
+            var pagedQuery = baseQuery
+                .Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
+                .Include(p => p.Categories)
+                .Include(p => p.Images)
+                .Include(p => p.Attributes)
+                .Include(p => p.Variants)
+                    .ThenInclude(v => v.Options)
+                .Include(p => p.Skus)
+                    .ThenInclude(s => s.Images)
+                .Include(p => p.Skus)
+                    .ThenInclude(s => s.SkuVariants);
+
+            var items = await pagedQuery.ToListAsync(cancellationToken);
+            return (items, total);
         }
     }
 }

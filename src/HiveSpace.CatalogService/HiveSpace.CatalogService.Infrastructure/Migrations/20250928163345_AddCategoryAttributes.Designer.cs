@@ -4,6 +4,7 @@ using HiveSpace.CatalogService.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HiveSpace.CatalogService.Infrastructure.Migrations
 {
     [DbContext(typeof(CatalogDbContext))]
-    partial class CatalogDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250928163345_AddCategoryAttributes")]
+    partial class AddCategoryAttributes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -147,16 +150,12 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                     b.Property<Guid>("AttributeId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("FreeTextValue")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<Guid>("ProductId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("_selectedValueIds")
+                    b.Property<string>("Value")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("SelectedValueIds");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 

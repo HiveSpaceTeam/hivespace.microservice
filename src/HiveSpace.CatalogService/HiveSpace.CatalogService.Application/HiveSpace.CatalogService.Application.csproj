@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\HiveSpace.CatalogService.Domain\HiveSpace.CatalogService.Domain.csproj" />
+	  
   </ItemGroup>
 
 </Project>

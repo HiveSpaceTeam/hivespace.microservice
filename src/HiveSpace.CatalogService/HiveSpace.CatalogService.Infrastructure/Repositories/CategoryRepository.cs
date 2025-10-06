@@ -1,10 +1,11 @@
 using HiveSpace.CatalogService.Domain.Aggregates.CategoryAggregate;
 using HiveSpace.CatalogService.Infrastructure.Data;
+using HiveSpace.CatalogService.Application.Interfaces.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace HiveSpace.CatalogService.Infrastructure.Repositories
 {
-    public class CategoryRepository
+    public class CategoryRepository : ICategoryRepository
     {
         private readonly CatalogDbContext _context;
         public CategoryRepository(CatalogDbContext context)

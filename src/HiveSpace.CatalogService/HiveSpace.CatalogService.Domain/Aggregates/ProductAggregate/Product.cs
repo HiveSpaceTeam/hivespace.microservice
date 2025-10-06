@@ -61,6 +61,23 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
             UpdatedBy = updatedBy;
         }
 
+        public Product(Guid id, string name, string description, ProductStatus status, List<ProductCategory> categories, List<ProductAttribute> attributes, List<ProductImage> images, List<Sku> skus, List<ProductVariant> variants, DateTimeOffset createdAt, DateTimeOffset? updatedAt, string createdBy, string? updatedBy)
+        {
+            Id = id;
+            Name = name;
+            Description = description;
+            Status = status;
+            _categories = categories;
+            _attributes = attributes;
+            _images = images;
+            _skus = skus;
+            _variants = variants;
+            CreatedAt = createdAt;
+            UpdatedAt = updatedAt;
+            CreatedBy = createdBy;
+            UpdatedBy = updatedBy;
+        }
+
         #endregion
 
 

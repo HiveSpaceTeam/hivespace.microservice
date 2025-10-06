@@ -1,10 +1,11 @@
 using HiveSpace.CatalogService.Domain.Aggregates.AttributeAggregate;
 using HiveSpace.CatalogService.Infrastructure.Data;
+using HiveSpace.CatalogService.Application.Interfaces.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace HiveSpace.CatalogService.Infrastructure.Repositories
 {
-    public class AttributeRepository
+    public class AttributeRepository : IAttributeRepository
     {
         private readonly CatalogDbContext _context;
         public AttributeRepository(CatalogDbContext context)

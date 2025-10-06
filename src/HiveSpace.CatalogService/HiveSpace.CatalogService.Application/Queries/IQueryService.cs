@@ -5,5 +5,6 @@ namespace HiveSpace.CatalogService.Application.Queries
     public interface IQueryService
     {
         Task<List<CategoryViewModel>> GetCategoryViewModelsAsync();
+        Task<List<AttributeViewModel>> GetAttributesByCategoryIdAsync(Guid categoryId);
     }
 }

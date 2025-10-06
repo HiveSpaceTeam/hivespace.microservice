@@ -26,7 +26,7 @@ namespace HiveSpace.CatalogService.Domain.Common
 
         private bool IsInvalid()
         {
-            return Amount <= 0;
+            return Amount < 0;
         }
 
         protected override IEnumerable<object> GetEqualityComponents()

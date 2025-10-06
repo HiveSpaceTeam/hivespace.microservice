@@ -20,6 +20,42 @@ namespace HiveSpace.CatalogService.Infrastructure.Queries
                 })
                 .ToListAsync();
         }
+
+        public async Task<List<AttributeViewModel>> GetAttributesByCategoryIdAsync(Guid categoryId)
+        {
+            return await _dbContext.Categories
+                .Where(c => c.Id == categoryId)
+                .SelectMany(c => c.CategoryAttributes)
+                .Join(_dbContext.Attributes,
+                    ca => ca.AttributeId,
+                    a => a.Id,
+                    (ca, a) => new AttributeViewModel
+                    {
+                        Id = a.Id,
+                        Name = a.Name,
+                        ValueType = a.Type.ValueType,
+                        InputType = a.Type.InputType,
+                        IsMandatory = a.Type.IsMandatory,
+                        MaxValueCount = a.Type.MaxValueCount,
+                        IsActive = a.IsActive,
+                        CreatedAt = a.CreatedAt,
+                        UpdatedAt = a.UpdatedAt,
+                        Values = _dbContext.AttributeValues
+                            .Where(v => v.AttributeId == a.Id)
+                            .OrderBy(v => v.SortOrder)
+                            .Select(v => new AttributeValueViewModel
+                            {
+                                Id = v.Id,
+                                AttributeId = v.AttributeId,
+                                Name = v.Name,
+                                DisplayName = v.DisplayName,
+                                ParentValueId = v.ParentValueId,
+                                IsActive = v.IsActive,
+                                SortOrder = v.SortOrder
+                            }).ToList()
+                    })
+                .ToListAsync();
+        }
     }
 
 }
