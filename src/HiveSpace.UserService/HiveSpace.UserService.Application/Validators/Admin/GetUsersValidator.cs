@@ -17,11 +17,6 @@ public class GetUsersValidator : AbstractValidator<GetUsersRequestDto>
             .InclusiveBetween(10, 50)
             .WithState(_ => new Error(CommonErrorCode.InvalidPageSize, nameof(GetUsersRequestDto.PageSize)));
 
-        RuleFor(x => x.SearchTerm)
-            .EmailAddress()
-            .When(x => !string.IsNullOrWhiteSpace(x.SearchTerm))
-            .WithState(_ => new Error(CommonErrorCode.InvalidSearchTerm, nameof(GetUsersRequestDto.SearchTerm)));
-
         RuleFor(x => x.Sort)
             .Must(BeValidSortFormat)
             .When(x => !string.IsNullOrWhiteSpace(x.Sort))

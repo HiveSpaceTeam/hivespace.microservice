@@ -6,6 +6,8 @@ using HiveSpace.UserService.Infrastructure.Identity;
 using HiveSpace.UserService.Domain.Services;
 using HiveSpace.UserService.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
 using HiveSpace.UserService.Application.Services;
 using HiveSpace.UserService.Application.Interfaces;
 
@@ -30,7 +32,19 @@ internal static class ServiceCollectionExtensions
             options.User.RequireUniqueEmail = true;
         })
         .AddEntityFrameworkStores<UserDbContext>()
+        .AddUserStore<CustomUserStore>() // Use our custom UserStore for direct role storage
         .AddDefaultTokenProviders();
+
+        // Configure the application cookie so it's available during OIDC/OAuth redirects
+        // (cross-site) from external providers like Google. Setting SameSite=None and
+        // SecurePolicy=Always ensures browsers will send the cookie on the redirect back
+        // to our site. Adjust paths and other options as needed for your environment.
+        services.ConfigureApplicationCookie(options =>
+        {
+            options.Cookie.Path = "/";
+            options.Cookie.SameSite = SameSiteMode.None;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        });
     }
 
     // Split AddAppDependencies into two methods for better separation of concerns
@@ -99,8 +113,45 @@ internal static class ServiceCollectionExtensions
                     options.ClientId = googleClientId;
                     options.ClientSecret = googleClientSecret;
                     options.CallbackPath = "/signin-google";
+                    // Ensure the correlation cookie used by the Google handler is sent on the
+                    // cross-site callback. Without this, some browsers will drop the cookie
+                    // causing "Correlation failed." errors.
+                    options.CorrelationCookie.SameSite = SameSiteMode.None;
+                    options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
+                    // Handle remote failures (for example when correlation cookie is missing)
+                    // and redirect back to the login page with a friendly error so the UI
+                    // can render it instead of throwing an unhandled exception.
+                    options.Events = new Microsoft.AspNetCore.Authentication.OAuth.OAuthEvents
+                    {
+                        OnRemoteFailure = ctx =>
+                        {
+                            try
+                            {
+                                var failure = ctx.Failure?.Message ?? "External authentication failed";
+                                string? returnUrl = null;
+                                if (ctx.Properties?.Items != null && ctx.Properties.Items.TryGetValue("returnUrl", out var ru))
+                                    returnUrl = ru;
+
+                                var redirect = "/Account/Login?error=" + System.Uri.EscapeDataString(failure);
+                                if (!string.IsNullOrEmpty(returnUrl))
+                                {
+                                    redirect += "&returnUrl=" + System.Uri.EscapeDataString(returnUrl);
+                                }
+
+                                ctx.Response.Redirect(redirect);
+                                ctx.HandleResponse();
+                            }
+                            catch
+                            {
+                                // If anything goes wrong here, just let the default behavior run.
+                            }
+
+                            return System.Threading.Tasks.Task.CompletedTask;
+                        }
+                    };
                 });
         }
+    
         // {
         //     services
         //         .AddAuthentication()

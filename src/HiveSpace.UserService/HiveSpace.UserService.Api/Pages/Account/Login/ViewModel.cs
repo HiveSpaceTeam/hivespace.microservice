@@ -1,3 +1,5 @@
+using System;
+
 namespace HiveSpace.UserService.Api.Pages.Account.Login;
 
 public class ViewModel
@@ -8,8 +10,14 @@ public class ViewModel
     public IEnumerable<ExternalProvider> ExternalProviders { get; set; } = Enumerable.Empty<ExternalProvider>();
     public IEnumerable<ExternalProvider> VisibleExternalProviders => ExternalProviders.Where(x => !string.IsNullOrWhiteSpace(x.DisplayName));
 
+    // Holds a single external provider error message (e.g. failed Google login)
+    public string? ExternalErrorMessage { get; set; }
+
     public bool IsExternalLoginOnly => EnableLocalLogin == false && ExternalProviders?.Count() == 1;
     public string? ExternalLoginScheme => IsExternalLoginOnly ? ExternalProviders?.SingleOrDefault()?.AuthenticationScheme : null;
+    
+    public string? ClientId { get; set; }
+    public bool IsAdminPortalClient => string.Equals(ClientId, "adminportal", StringComparison.OrdinalIgnoreCase);
 
     public class ExternalProvider
     {

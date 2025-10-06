@@ -30,15 +30,13 @@ public class AdminDataQuery : IAdminDataQuery
                     u.FullName,
                     u.Email,
                     u.Status,
-                    CAST(CASE WHEN EXISTS (SELECT 1 FROM user_roles ur2 JOIN roles r2 ON ur2.RoleId = r2.Id WHERE ur2.UserId = u.Id AND r2.Name = 'SystemAdmin') THEN 1 ELSE 0 END AS BIT) AS IsSystemAdmin,
+                    CAST(CASE WHEN u.RoleName = 'SystemAdmin' THEN 1 ELSE 0 END AS BIT) AS IsSystemAdmin,
                     CAST(u.CreatedAt AT TIME ZONE 'UTC' AS DATETIMEOFFSET) AS CreatedAt,
                     CAST(u.UpdatedAt AT TIME ZONE 'UTC' AS DATETIMEOFFSET) AS UpdatedAt,
                     CAST(u.LastLoginAt AT TIME ZONE 'UTC' AS DATETIMEOFFSET) AS LastLoginAt,
                     '' AS AvatarUrl
                 FROM users u
-                WHERE EXISTS (
-                    SELECT 1 FROM user_roles ur2 JOIN roles r2 ON ur2.RoleId = r2.Id WHERE ur2.UserId = u.Id AND r2.Name IN ('Admin','SystemAdmin')
-                )
+                WHERE u.RoleName IN ('Admin', 'SystemAdmin')
                 {whereConditions}
             )
             SELECT * FROM FilteredAdmins
@@ -48,9 +46,7 @@ public class AdminDataQuery : IAdminDataQuery
         var countQuery = $@"
             SELECT COUNT(DISTINCT u.Id)
             FROM users u
-            WHERE EXISTS (
-                SELECT 1 FROM user_roles ur2 JOIN roles r2 ON ur2.RoleId = r2.Id WHERE ur2.UserId = u.Id AND r2.Name IN ('Admin','SystemAdmin')
-            )
+            WHERE u.RoleName IN ('Admin', 'SystemAdmin')
             {whereConditions}";
 
         var parameters = BuildParameters(request);
@@ -72,9 +68,7 @@ public class AdminDataQuery : IAdminDataQuery
         var countQuery = $@"
             SELECT COUNT(DISTINCT u.Id)
             FROM users u
-            WHERE EXISTS (
-                SELECT 1 FROM user_roles ur2 JOIN roles r2 ON ur2.RoleId = r2.Id WHERE ur2.UserId = u.Id AND r2.Name IN ('Admin','SystemAdmin')
-            )
+            WHERE u.RoleName IN ('Admin', 'SystemAdmin')
             {whereConditions}";
 
         var parameters = BuildParameters(request);
@@ -97,11 +91,11 @@ public class AdminDataQuery : IAdminDataQuery
         {            
             if (request.Role == RoleFilter.RegularAdmin)
             {
-                conditions.Add("EXISTS (SELECT 1 FROM user_roles ur3 JOIN roles r3 ON ur3.RoleId = r3.Id WHERE ur3.UserId = u.Id AND r3.Name IN ('Admin'))");
+                conditions.Add("u.RoleName = 'Admin'");
             }
             else if (request.Role == RoleFilter.SystemAdmin)
             {
-                conditions.Add("EXISTS (SELECT 1 FROM user_roles ur3 JOIN roles r3 ON ur3.RoleId = r3.Id WHERE ur3.UserId = u.Id AND r3.Name = 'SystemAdmin')");
+                conditions.Add("u.RoleName = 'SystemAdmin'");
             }
         }
 

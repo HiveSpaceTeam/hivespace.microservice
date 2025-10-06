@@ -1,6 +1,8 @@
 @{
     var hasApiErrors = ViewData["ApiErrors"] != null;
     var hasGeneralErrors = !string.IsNullOrEmpty(ViewData["ErrorMessage"] as string);
+
+    // Render API errors and general errors if present
 }
 
 @if (hasApiErrors || hasGeneralErrors)

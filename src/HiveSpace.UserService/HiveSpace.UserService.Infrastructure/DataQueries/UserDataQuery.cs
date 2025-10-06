@@ -38,13 +38,7 @@ public class UserDataQuery : IUserDataQuery
                     CAST(u.LastLoginAt AT TIME ZONE 'UTC' AS DATETIMEOFFSET) AS LastLoginAt,
                     '' AS AvatarUrl
                 FROM users u
-                WHERE NOT EXISTS (
-                    SELECT 1 
-                    FROM user_roles ur2 
-                    JOIN roles r2 ON ur2.RoleId = r2.Id 
-                    WHERE ur2.UserId = u.Id 
-                    AND r2.Name IN ('SystemAdmin', 'Admin')
-                )
+                WHERE u.RoleName NOT IN ('SystemAdmin', 'Admin') OR u.RoleName IS NULL
                 {whereConditions}
             )
             SELECT *
@@ -57,13 +51,7 @@ public class UserDataQuery : IUserDataQuery
         var countQuery = $@"
             SELECT COUNT(DISTINCT u.Id)
             FROM users u
-            WHERE NOT EXISTS (
-                SELECT 1 
-                FROM user_roles ur2 
-                JOIN roles r2 ON ur2.RoleId = r2.Id 
-                WHERE ur2.UserId = u.Id 
-                AND r2.Name IN ('SystemAdmin', 'Admin')
-            )
+            WHERE u.RoleName NOT IN ('SystemAdmin', 'Admin') OR u.RoleName IS NULL
             {whereConditions}";
 
         var parameters = BuildParameters(request);
@@ -91,13 +79,7 @@ public class UserDataQuery : IUserDataQuery
         var countQuery = $@"  
             SELECT COUNT(DISTINCT u.Id)  
             FROM users u  
-            WHERE NOT EXISTS (  
-                SELECT 1 
-                FROM user_roles ur2 
-                JOIN roles r2 ON ur2.RoleId = r2.Id 
-                WHERE ur2.UserId = u.Id 
-                AND r2.Name IN ('SystemAdmin', 'Admin')  
-            )  
+            WHERE u.RoleName NOT IN ('SystemAdmin', 'Admin') OR u.RoleName IS NULL
             {whereConditions}";  
 
         var parameters = BuildParameters(request);  
@@ -123,11 +105,11 @@ public class UserDataQuery : IUserDataQuery
             // Safety: if enum value is not defined, treat as All (ignore)
             if (request.Role == RoleFilter.Seller)
             {
-                conditions.Add("EXISTS (SELECT 1 FROM user_roles ur3 JOIN roles r3 ON ur3.RoleId = r3.Id WHERE ur3.UserId = u.Id AND r3.Name = 'Seller')");
+                conditions.Add("u.RoleName = 'Seller'");
             }
             else if (request.Role == RoleFilter.Customer)
             {
-                conditions.Add("NOT EXISTS (SELECT 1 FROM user_roles ur3 JOIN roles r3 ON ur3.RoleId = r3.Id WHERE ur3.UserId = u.Id AND r3.Name = 'Seller')");
+                conditions.Add("(u.RoleName IS NULL OR u.RoleName NOT IN ('Seller', 'Admin', 'SystemAdmin'))");
             }
             // If RegularAdmin or SystemAdmin is provided, ignore here (no additional condition)
         }
