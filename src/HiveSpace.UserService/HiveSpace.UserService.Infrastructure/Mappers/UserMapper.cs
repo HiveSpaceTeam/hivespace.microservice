@@ -81,4 +81,24 @@ public static class UserMapper
             lastLoginAt: applicationUser.LastLoginAt,
             addresses: applicationUser.Addresses);
     }
+
+    /// <summary>
+    /// Update ApplicationUser with changes from Domain User
+    /// Preserves EF Core change tracking
+    /// </summary>
+    public static void UpdateApplicationUser(this ApplicationUser applicationUser, User domainUser)
+    {
+        applicationUser.UserName = domainUser.UserName;
+        applicationUser.Email = domainUser.Email.Value;
+        applicationUser.PhoneNumber = domainUser.PhoneNumber?.Value;
+        applicationUser.FullName = domainUser.FullName;
+        applicationUser.StoreId = domainUser.StoreId;
+        applicationUser.DateOfBirth = domainUser.DateOfBirth?.Value.DateTime;
+        applicationUser.Gender = (int?)domainUser.Gender;
+        applicationUser.Status = (int)domainUser.Status;
+        applicationUser.UpdatedAt = DateTimeOffset.UtcNow;
+        applicationUser.LastLoginAt = domainUser.LastLoginAt;
+        applicationUser.RoleName = domainUser.Role?.Name; // Update role name directly
+        // Note: Addresses are updated separately via EF Core change tracking
+    }
 }

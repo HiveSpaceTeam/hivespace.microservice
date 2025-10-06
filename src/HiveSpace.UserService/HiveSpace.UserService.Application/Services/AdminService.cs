@@ -114,7 +114,7 @@ public class AdminService : IAdminService
             cancellationToken);
 
         // Save changes
-        await _userRepository.SaveChangesAsync(cancellationToken);
+        await _userRepository.UpdateUserAsync(updatedUser, cancellationToken);
 
         return new SetUserStatusResponseDto(
             updatedUser.Id,
