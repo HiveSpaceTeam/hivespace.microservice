@@ -1,12 +1,13 @@
+using HiveSpace.Core.Exceptions.Models;
+using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.UserService.Domain.Aggregates.User;
+using HiveSpace.UserService.Domain.Exceptions;
 using HiveSpace.UserService.Domain.Repositories;
 using HiveSpace.UserService.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
 using HiveSpace.UserService.Infrastructure.Identity;
 using HiveSpace.UserService.Infrastructure.Mappers;
-using HiveSpace.Core.Exceptions.Models;
-using HiveSpace.UserService.Domain.Exceptions;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace HiveSpace.UserService.Infrastructure.Repositories;
 
@@ -96,4 +97,20 @@ public class UserRepository : IUserRepository
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         => await _context.SaveChangesAsync(cancellationToken);
+
+    public async Task<User> UpdateUserAsync(User domainUser, CancellationToken cancellationToken = default)
+    {
+
+        var appUser = await _context.Users
+            .Include(u => u.Addresses)
+            .FirstOrDefaultAsync(u => u.Id == domainUser.Id, cancellationToken) 
+            ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
+
+        var updatedUser = domainUser.ToApplicationUser();
+
+        appUser.UpdateApplicationUser(domainUser);
+
+        var result = await _context.SaveChangesAsync(cancellationToken);
+        return domainUser; 
+    }
 }
