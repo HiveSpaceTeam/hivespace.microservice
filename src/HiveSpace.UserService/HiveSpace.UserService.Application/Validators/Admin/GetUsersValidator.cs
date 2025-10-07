@@ -7,6 +7,11 @@ namespace HiveSpace.UserService.Application.Validators.Admin;
 
 public class GetUsersValidator : AbstractValidator<GetUsersRequestDto>
 {
+    private static readonly string[] ValidUserSortFields = 
+    {
+        "username", "fullname", "email", "status", "createdat", "updatedat", "lastloginat"
+    };
+
     public GetUsersValidator()
     {
         RuleFor(x => x.Page)
@@ -18,22 +23,8 @@ public class GetUsersValidator : AbstractValidator<GetUsersRequestDto>
             .WithState(_ => new Error(CommonErrorCode.InvalidPageSize, nameof(GetUsersRequestDto.PageSize)));
 
         RuleFor(x => x.Sort)
-            .Must(BeValidSortFormat)
+            .Must(sort => GetUsersValidationHelper.BeValidSortFormat(sort, ValidUserSortFields))
             .When(x => !string.IsNullOrWhiteSpace(x.Sort))
             .WithState(_ => new Error(CommonErrorCode.InvalidSortFormat, nameof(GetUsersRequestDto.Sort)));
-    }
-
-    private static bool BeValidSortFormat(string sort)
-    {
-        if (string.IsNullOrWhiteSpace(sort)) return false;
-
-        var parts = sort.Split('.');
-        if (parts.Length != 2) return false;
-
-    var validFields = new[] { "username", "fullname", "email", "status", "createdat", "updatedat", "lastloginat" };
-        var validDirections = new[] { "asc", "desc" };
-
-        return validFields.Contains(parts[0].ToLowerInvariant()) &&
-               validDirections.Contains(parts[1].ToLowerInvariant());
     }
 }

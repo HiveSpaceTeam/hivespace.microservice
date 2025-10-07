@@ -1,13 +1,14 @@
 using HiveSpace.Core.Contexts;
 using HiveSpace.UserService.Application.Models.Requests.Admin;
 using HiveSpace.UserService.Application.Models.Responses.Admin;
-using HiveSpace.UserService.Application.Interfaces;
 using HiveSpace.UserService.Domain.Aggregates.User;
 using HiveSpace.UserService.Domain.Services;
 using HiveSpace.UserService.Domain.Repositories;
 using HiveSpace.UserService.Application.Models.Queries;
+using HiveSpace.UserService.Application.Interfaces.Services;
 using HiveSpace.UserService.Application.Interfaces.DataQueries;
 using HiveSpace.UserService.Application.Constant.Enum;
+using HiveSpace.UserService.Application.Extensions;
 
 namespace HiveSpace.UserService.Application.Services;
 
@@ -16,21 +17,18 @@ public class AdminService : IAdminService
     private readonly IUserContext _userContext;
     private readonly UserManager _domainUserManager;
     private readonly IUserRepository _userRepository;
-    private readonly IUserDataQuery _userDataQuery;
-    private readonly IAdminDataQuery _adminDataQuery;
+    private readonly IUnifiedUserDataQuery _unifiedUserDataQuery;
 
     public AdminService(
         IUserContext userContext,
         UserManager domainUserManager,
         IUserRepository userRepository,
-        IUserDataQuery userDataQuery,
-        IAdminDataQuery adminDataQuery)
+        IUnifiedUserDataQuery unifiedUserDataQuery)
     {
         _userContext = userContext;
         _domainUserManager = domainUserManager;
         _userRepository = userRepository;
-        _userDataQuery = userDataQuery;
-        _adminDataQuery = adminDataQuery;
+        _unifiedUserDataQuery = unifiedUserDataQuery;
     }
 
     public async Task<CreateAdminResponseDto> CreateAdminAsync(CreateAdminRequestDto request, CancellationToken cancellationToken = default)
@@ -66,6 +64,24 @@ public class AdminService : IAdminService
 
     public async Task<GetUsersResponseDto> GetUsersAsync(GetUsersRequestDto request, CancellationToken cancellationToken = default)
     {
+        // Use the unified method
+        var baseRequest = new GetUsersBaseRequestDto(request.Page, request.PageSize, request.Role, request.Status, request.SearchTerm, request.Sort);
+        var unifiedResult = await GetUnifiedUsersAsync<UserDto>(baseRequest, UserQueryType.Users, cancellationToken);
+        
+        return unifiedResult.ToUsersResponse();
+    }
+
+    public async Task<GetAdminResponseDto> GetAdminsAsync(GetAdminRequestDto request, CancellationToken cancellationToken = default)
+    {
+        // Use the unified method
+        var baseRequest = new GetUsersBaseRequestDto(request.Page, request.PageSize, request.Role, request.Status, request.SearchTerm, request.Sort);
+        var unifiedResult = await GetUnifiedUsersAsync<AdminDto>(baseRequest, UserQueryType.Admins, cancellationToken);
+        
+        return unifiedResult.ToAdminsResponse();
+    }
+
+    public async Task<GetUnifiedUsersResponseDto<T>> GetUnifiedUsersAsync<T>(GetUsersBaseRequestDto request, UserQueryType queryType, CancellationToken cancellationToken = default) where T : class
+    {
         // Map to domain filter
         var filterRequest = new AdminUserFilterRequest
         {
@@ -79,32 +95,21 @@ public class AdminService : IAdminService
 
         filterRequest.Validate();
 
-        // Get paginated results from Dapper query
-        var pagedUsers = await _userDataQuery.GetPagingUsersAsync(filterRequest, cancellationToken);
+        // Get paginated results from unified query
+        var pagedUsers = await _unifiedUserDataQuery.GetPagingUsersAsync(filterRequest, queryType, cancellationToken);
 
-        return new GetUsersResponseDto(pagedUsers.Items, pagedUsers.Pagination);
-    }
-
-    public async Task<GetAdminResponseDto> GetAdminsAsync(GetAdminRequestDto request, CancellationToken cancellationToken = default)
-    {
-        var filterRequest = new AdminUserFilterRequest
+        // Convert to specific DTO types based on query type
+        IReadOnlyList<T> items = queryType switch
         {
-            Page = request.Page,
-            PageSize = request.PageSize,
-            Role = (RoleFilter)request.Role,
-            Status = (StatusFilter)request.Status,
-            SearchTerm = request.SearchTerm?.Trim(),
-            Sort = request.Sort
+            UserQueryType.Users => pagedUsers.Items.Select(x => x.ToUserDto()).ToList() as IReadOnlyList<T> ?? throw new InvalidOperationException("Type conversion failed"),
+            UserQueryType.Admins => pagedUsers.Items.Select(x => x.ToAdminDto()).ToList() as IReadOnlyList<T> ?? throw new InvalidOperationException("Type conversion failed"),
+            _ => throw new ArgumentOutOfRangeException(nameof(queryType), queryType, "Invalid query type")
         };
 
-        filterRequest.Validate();
-
-        var paged = await _adminDataQuery.GetPagingAdminsAsync(filterRequest, cancellationToken);
-
-        return new GetAdminResponseDto(paged.Items, paged.Pagination);
+        return new GetUnifiedUsersResponseDto<T>(items, pagedUsers.Pagination);
     }
 
-    public async Task<SetUserStatusResponseDto> SetUserStatusAsync(SetUserStatusRequestDto request, CancellationToken cancellationToken = default)
+    public async Task<object> SetUserStatusAsync(SetUserStatusRequestDto request, CancellationToken cancellationToken = default)
     {
         // Use domain manager to set user status with proper validation
         var updatedUser = await _domainUserManager.SetUserActiveStatusAsync(
@@ -116,19 +121,12 @@ public class AdminService : IAdminService
         // Save changes
         await _userRepository.UpdateUserAsync(updatedUser, cancellationToken);
 
-        return new SetUserStatusResponseDto(
-            updatedUser.Id,
-            updatedUser.UserName,
-            updatedUser.FullName,
-            updatedUser.Email.Value,
-            (int)updatedUser.Status,
-            updatedUser.IsSeller,
-            updatedUser.IsAdmin,
-            updatedUser.IsSystemAdmin,
-            updatedUser.CreatedAt,
-            updatedUser.UpdatedAt,
-            updatedUser.LastLoginAt,
-            null // AvatarUrl not available in domain model
-        );
+        // Return appropriate DTO based on ResponseType using extension methods
+        return request.ResponseType switch
+        {
+            UserQueryType.Users => updatedUser.ToUserDto(),
+            UserQueryType.Admins => updatedUser.ToAdminDto(),
+            _ => throw new ArgumentOutOfRangeException(nameof(request.ResponseType), request.ResponseType, "Invalid response type")
+        };
     }
 }

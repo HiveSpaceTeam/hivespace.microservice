@@ -1,10 +1,11 @@
 using HiveSpace.Core.Helpers;
+using HiveSpace.UserService.Application.Interfaces.Services;
 using HiveSpace.UserService.Application.Models.Requests.Admin;
 using HiveSpace.UserService.Application.Models.Responses.Admin;
 using HiveSpace.UserService.Application.Validators.Admin;
+using HiveSpace.UserService.Application.Constant.Enum;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using HiveSpace.UserService.Application.Interfaces;
 
 namespace HiveSpace.UserService.Api.Controllers;
 
@@ -57,25 +58,18 @@ public class AdminController : ControllerBase
         return Ok(result);
     }
 
-    [HttpPost("users/{userId}/activate")]
+    [HttpPut("users/status")]
     [Authorize(Policy = "RequireUserFullAccessScope")]
-    public async Task<ActionResult<SetUserStatusResponseDto>> ActivateUser(
-        Guid userId,
+    public async Task<ActionResult<object>> SetUserStatus(
+        [FromBody] SetUserStatusRequestDto request,
         CancellationToken cancellationToken)
     {
-        var request = new SetUserStatusRequestDto(userId, true);
-        var result = await _adminService.SetUserStatusAsync(request, cancellationToken);
-        return Ok(result);
-    }
+        // Validate request
+        ValidationHelper.ValidateResult(new SetUserStatusValidator().Validate(request));
 
-    [HttpPost("users/{userId}/deactivate")]
-    [Authorize(Policy = "RequireUserFullAccessScope")]
-    public async Task<ActionResult<SetUserStatusResponseDto>> DeactivateUser(
-        Guid userId,
-        CancellationToken cancellationToken)
-    {
-        var request = new SetUserStatusRequestDto(userId, false);
+        // Call service method - returns UserDto or AdminDto based on ResponseType
         var result = await _adminService.SetUserStatusAsync(request, cancellationToken);
+
         return Ok(result);
     }
 }

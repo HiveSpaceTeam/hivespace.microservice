@@ -65,7 +65,6 @@ public static class UserInfrastructureExtension
     public static void AddUserServiceQueries(this IServiceCollection services, string connectionString)
     {
         // Register Dapper Query services with connection string
-        services.AddScoped<IUserDataQuery>(provider => new UserDataQuery(connectionString));
-        services.AddScoped<IAdminDataQuery>(provider => new AdminDataQuery(connectionString));
+        services.AddScoped<IUnifiedUserDataQuery>(provider => new UnifiedUserDataQuery(connectionString));
     }
 }
