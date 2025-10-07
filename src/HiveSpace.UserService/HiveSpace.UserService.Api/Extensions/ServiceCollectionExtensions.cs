@@ -6,10 +6,8 @@ using HiveSpace.UserService.Infrastructure.Identity;
 using HiveSpace.UserService.Domain.Services;
 using HiveSpace.UserService.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Http;
 using HiveSpace.UserService.Application.Services;
-using HiveSpace.UserService.Application.Interfaces;
+using HiveSpace.UserService.Application.Interfaces.Services;
 
 namespace HiveSpace.UserService.Api.Extensions;
 

@@ -7,6 +7,11 @@ namespace HiveSpace.UserService.Application.Validators.Admin;
 
 public class GetAdminValidator : AbstractValidator<GetAdminRequestDto>
 {
+    private static readonly string[] ValidAdminSortFields = 
+    {
+        "fullname", "email", "status", "createdat", "lastupdatedat", "lastloginat"
+    };
+
     public GetAdminValidator()
     {
         RuleFor(x => x.Page)
@@ -18,22 +23,8 @@ public class GetAdminValidator : AbstractValidator<GetAdminRequestDto>
             .WithState(_ => new Error(CommonErrorCode.InvalidPageSize, nameof(GetAdminRequestDto.PageSize)));
 
         RuleFor(x => x.Sort)
-            .Must(BeValidSortFormat)
+            .Must(sort => GetUsersValidationHelper.BeValidSortFormat(sort, ValidAdminSortFields))
             .When(x => !string.IsNullOrWhiteSpace(x.Sort))
             .WithState(_ => new Error(CommonErrorCode.InvalidSortFormat, nameof(GetAdminRequestDto.Sort)));
-    }
-
-    private static bool BeValidSortFormat(string sort)
-    {
-        if (string.IsNullOrWhiteSpace(sort)) return false;
-
-        var parts = sort.Split('.');
-        if (parts.Length != 2) return false;
-
-    var validFields = new[] { "fullname", "email", "status", "createdat", "lastupdatedat", "lastloginat" };
-        var validDirections = new[] { "asc", "desc" };
-
-        return validFields.Contains(parts[0].ToLowerInvariant()) &&
-               validDirections.Contains(parts[1].ToLowerInvariant());
     }
 }
