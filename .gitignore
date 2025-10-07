@@ -17,9 +17,9 @@
 
 # Build artifacts
 src/**/obj/
-src/**/bin/Debug/net8.0/
+src/**/bin/
 libs/**/obj/
-libs/**/bin/Debug/net8.0/
+libs/**/bin/
 test/**/obj/
 test/**/bin/
 

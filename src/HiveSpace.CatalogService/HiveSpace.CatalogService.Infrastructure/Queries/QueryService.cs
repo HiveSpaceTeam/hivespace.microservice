@@ -23,39 +23,58 @@ namespace HiveSpace.CatalogService.Infrastructure.Queries
 
         public async Task<List<AttributeViewModel>> GetAttributesByCategoryIdAsync(Guid categoryId)
         {
-            return await _dbContext.Categories
+            // Step 1: Get all attribute IDs linked to the category
+            var attributeIds = await _dbContext.Categories
                 .Where(c => c.Id == categoryId)
-                .SelectMany(c => c.CategoryAttributes)
-                .Join(_dbContext.Attributes,
-                    ca => ca.AttributeId,
-                    a => a.Id,
-                    (ca, a) => new AttributeViewModel
-                    {
-                        Id = a.Id,
-                        Name = a.Name,
-                        ValueType = a.Type.ValueType,
-                        InputType = a.Type.InputType,
-                        IsMandatory = a.Type.IsMandatory,
-                        MaxValueCount = a.Type.MaxValueCount,
-                        IsActive = a.IsActive,
-                        CreatedAt = a.CreatedAt,
-                        UpdatedAt = a.UpdatedAt,
-                        Values = _dbContext.AttributeValues
-                            .Where(v => v.AttributeId == a.Id)
-                            .OrderBy(v => v.SortOrder)
-                            .Select(v => new AttributeValueViewModel
-                            {
-                                Id = v.Id,
-                                AttributeId = v.AttributeId,
-                                Name = v.Name,
-                                DisplayName = v.DisplayName,
-                                ParentValueId = v.ParentValueId,
-                                IsActive = v.IsActive,
-                                SortOrder = v.SortOrder
-                            }).ToList()
-                    })
+                .SelectMany(c => c.CategoryAttributes.Select(ca => ca.AttributeId))
+                .Distinct()
                 .ToListAsync();
+
+            if (attributeIds.Count == 0)
+                return [];
+
+            var attributes = await _dbContext.Attributes
+                .Where(a => attributeIds.Contains(a.Id))
+                .Select(a => new AttributeViewModel
+                {
+                    Id = a.Id,
+                    Name = a.Name,
+                    ValueType = a.Type.ValueType,
+                    InputType = a.Type.InputType,
+                    IsMandatory = a.Type.IsMandatory,
+                    MaxValueCount = a.Type.MaxValueCount,
+                    IsActive = a.IsActive,
+                    CreatedAt = a.CreatedAt,
+                    UpdatedAt = a.UpdatedAt,
+                    Values = new List<AttributeValueViewModel>()
+                })
+                .ToListAsync();
+
+            var attributeValues = await _dbContext.AttributeValues
+                .Where(v => attributeIds.Contains(v.AttributeId))
+                .OrderBy(v => v.SortOrder)
+                .Select(v => new AttributeValueViewModel
+                {
+                    Id = v.Id,
+                    AttributeId = v.AttributeId,
+                    Name = v.Name,
+                    DisplayName = v.DisplayName,
+                    ParentValueId = v.ParentValueId,
+                    IsActive = v.IsActive,
+                    SortOrder = v.SortOrder
+                })
+                .ToListAsync();
+
+            var attributeDict = attributes.ToDictionary(a => a.Id);
+            foreach (var value in attributeValues)
+            {
+                if (attributeDict.TryGetValue(value.AttributeId, out var attribute))
+                    attribute.Values.Add(value);
+            }
+
+            return attributes;
         }
+
     }
 
 }

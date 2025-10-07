@@ -281,7 +281,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
 
             modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.Product", b =>
                 {
-                    b.OwnsMany("HiveSpace.CatalogService.Domain.AggergateModels.ProductAggregate.ProductImage", "Images", b1 =>
+                    b.OwnsMany("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.ProductImage", "Images", b1 =>
                         {
                             b1.Property<Guid>("ProductId")
                                 .HasColumnType("uniqueidentifier");
@@ -445,8 +445,8 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                             b1.Property<Guid>("SkuId")
                                 .HasColumnType("uniqueidentifier");
 
-                            b1.Property<double>("Amount")
-                                .HasColumnType("float");
+                            b1.Property<decimal>("Amount")
+                                .HasColumnType("decimal(18,2)");
 
                             b1.Property<int>("Currency")
                                 .HasColumnType("int");

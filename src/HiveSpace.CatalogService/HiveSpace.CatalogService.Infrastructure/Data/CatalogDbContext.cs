@@ -93,7 +93,8 @@ namespace HiveSpace.CatalogService.Infrastructure.Data
                 // Configure owned type (ValueObject)
                 entity.OwnsOne(s => s.Price, p =>
                 {
-                    p.Property(m => m.Amount);
+                    p.Property(m => m.Amount)
+                        .HasColumnType("decimal(18,2)");
                     p.Property(m => m.Currency);
                 });
                 

@@ -1,11 +1,6 @@
 ﻿using HiveSpace.CatalogService.Application.Interfaces;
 using HiveSpace.CatalogService.Application.Models.ViewModels;
 using HiveSpace.CatalogService.Application.Queries;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HiveSpace.CatalogService.Application.Services
 {
