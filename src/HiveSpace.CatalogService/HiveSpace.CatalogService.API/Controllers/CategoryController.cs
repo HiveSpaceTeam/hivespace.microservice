@@ -4,12 +4,12 @@ using System.Net;
 
 namespace HiveSpace.CatalogService.API.Controllers
 {
-    [Route("api/v1/[controller]")]
+    [Route("api/v1/categories")]
     [ApiController]
-    public class CategoriesController : ControllerBase
+    public class CategoryController : ControllerBase
     {
         private readonly ICategoryService _categoryService;
-        public CategoriesController(ICategoryService categoryService)
+        public CategoryController(ICategoryService categoryService)
         {
             _categoryService = categoryService;
         }

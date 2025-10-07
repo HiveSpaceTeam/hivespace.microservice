@@ -2,6 +2,7 @@ using HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate;
 using HiveSpace.CatalogService.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using System.Threading;
 
 using HiveSpace.CatalogService.Application.Interfaces.Repositories;
 
@@ -15,14 +16,14 @@ namespace HiveSpace.CatalogService.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<Product?> GetByIdAsync(Guid id)
+        public async Task<Product?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            return await _context.Products.FindAsync(id);
+            return await _context.Products.FindAsync(new object?[] { id }, cancellationToken);
         }
 
-        public async Task<List<Product>> GetAllAsync()
+        public async Task<List<Product>> GetAllAsync(CancellationToken cancellationToken = default)
         {
-            return await _context.Products.ToListAsync();
+            return await _context.Products.ToListAsync(cancellationToken);
         }
 
         public async Task AddAsync(Product product, CancellationToken cancellationToken = default)

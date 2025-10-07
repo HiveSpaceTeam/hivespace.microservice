@@ -82,11 +82,11 @@ namespace HiveSpace.CatalogService.Application.Services
             return product;
         }
 
-        public async Task UpdateProductAsync(Guid id, ProductUpsertRequest request, CancellationToken cancellationToken = default)
+        public async Task<bool> UpdateProductAsync(Guid id, ProductUpsertRequest request, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var existing = await _productRepository.GetDetailByIdAsync(id, cancellationToken);
-            if (existing == null) return;
+            if (existing == null) return false;
 
             existing.UpdateName(request.Name ?? existing.Name);
             existing.UpdateDescription(request.Description ?? existing.Description);
@@ -95,6 +95,7 @@ namespace HiveSpace.CatalogService.Application.Services
             // depending on your rules you might replace or merge collections here
 
             await _productRepository.UpdateAsync(existing, cancellationToken);
+            return true;
         }
     }
 }

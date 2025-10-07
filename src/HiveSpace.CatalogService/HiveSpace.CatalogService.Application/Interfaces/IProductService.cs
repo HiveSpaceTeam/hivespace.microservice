@@ -9,5 +9,5 @@ public interface IProductService
 	Task<Guid> SaveProductAsync(ProductUpsertRequest request, CancellationToken cancellationToken = default);
     Task<PagingData> GetProductsAsync(ProductSearchRequestDto request, CancellationToken cancellationToken = default);
     Task<object?> GetProductDetailAsync(Guid id, CancellationToken cancellationToken = default);
-    Task UpdateProductAsync(Guid id, ProductUpsertRequest request, CancellationToken cancellationToken = default);
+    Task<bool> UpdateProductAsync(Guid id, ProductUpsertRequest request, CancellationToken cancellationToken = default);
 }
