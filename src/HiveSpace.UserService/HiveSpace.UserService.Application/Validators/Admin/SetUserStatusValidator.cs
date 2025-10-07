@@ -16,6 +16,5 @@ public class SetUserStatusValidator : AbstractValidator<SetUserStatusRequestDto>
 
         RuleFor(x => x.ResponseType)
             .IsInEnum()
-            .WithState(_ => new Error(CommonErrorCode.Required, nameof(SetUserStatusRequestDto.ResponseType)));
-    }
+            .WithState(_ => new Error(CommonErrorCode.InvalidArgument, nameof(SetUserStatusRequestDto.ResponseType)));    }
 }

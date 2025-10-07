@@ -60,14 +60,14 @@ public class AdminController : ControllerBase
 
     [HttpPut("users/status")]
     [Authorize(Policy = "RequireUserFullAccessScope")]
-    public async Task<ActionResult<object>> SetUserStatus(
+    public async Task<ActionResult<SetStatusResponseDto>> SetUserStatus(
         [FromBody] SetUserStatusRequestDto request,
         CancellationToken cancellationToken)
     {
         // Validate request
         ValidationHelper.ValidateResult(new SetUserStatusValidator().Validate(request));
 
-        // Call service method - returns UserDto or AdminDto based on ResponseType
+        // Call service method - returns strongly-typed DTO based on ResponseType
         var result = await _adminService.SetUserStatusAsync(request, cancellationToken);
 
         return Ok(result);

@@ -9,8 +9,11 @@ public record GetUnifiedUsersResponseDto<T>(
 {
     // Convenience method to convert to specific response types
     public GetUsersResponseDto ToUsersResponse() =>
-        new(Items as IReadOnlyList<UserDto> ?? throw new InvalidOperationException("Invalid type conversion"), Pagination);
-
+        new(Items as IReadOnlyList<UserDto> 
+            ?? throw new InvalidOperationException($"Cannot convert {typeof(T).Name} to UserDto"), 
+            Pagination);
     public GetAdminResponseDto ToAdminsResponse() =>
-        new(Items as IEnumerable<AdminDto> ?? throw new InvalidOperationException("Invalid type conversion"), Pagination);
+        new(Items as IReadOnlyList<AdminDto> 
+            ?? throw new InvalidOperationException($"Cannot convert {typeof(T).Name} to AdminDto"), 
+            Pagination);
 };

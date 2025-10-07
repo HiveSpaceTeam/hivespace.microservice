@@ -109,7 +109,7 @@ public class AdminService : IAdminService
         return new GetUnifiedUsersResponseDto<T>(items, pagedUsers.Pagination);
     }
 
-    public async Task<object> SetUserStatusAsync(SetUserStatusRequestDto request, CancellationToken cancellationToken = default)
+    public async Task<SetStatusResponseDto> SetUserStatusAsync(SetUserStatusRequestDto request, CancellationToken cancellationToken = default)
     {
         // Use domain manager to set user status with proper validation
         var updatedUser = await _domainUserManager.SetUserActiveStatusAsync(
@@ -121,11 +121,11 @@ public class AdminService : IAdminService
         // Save changes
         await _userRepository.UpdateUserAsync(updatedUser, cancellationToken);
 
-        // Return appropriate DTO based on ResponseType using extension methods
+        // Return appropriate strongly-typed DTO based on ResponseType
         return request.ResponseType switch
         {
-            UserQueryType.Users => updatedUser.ToUserDto(),
-            UserQueryType.Admins => updatedUser.ToAdminDto(),
+            UserQueryType.Users => updatedUser.ToSetUserStatusResponseDto(),
+            UserQueryType.Admins => updatedUser.ToSetAdminStatusResponseDto(),
             _ => throw new ArgumentOutOfRangeException(nameof(request.ResponseType), request.ResponseType, "Invalid response type")
         };
     }

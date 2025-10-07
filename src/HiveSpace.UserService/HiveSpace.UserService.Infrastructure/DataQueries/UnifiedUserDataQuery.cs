@@ -54,9 +54,8 @@ public class UnifiedUserDataQuery : IUnifiedUserDataQuery
         var batchSql = mainQuery + ";" + countQuery + ";";
 
         using var connection = new SqlConnection(_connectionString);
-        var cmd = new CommandDefinition(batchSql, parameters, cancellationToken: cancellationToken);
-        using var grid = await connection.QueryMultipleAsync(cmd);
-        var items = (await grid.ReadAsync<UnifiedUserDto>()).AsList();
+        var cmd = new CommandDefinition(batchSql, parameters, commandTimeout: 30, cancellationToken: cancellationToken);
+        using var grid = await connection.QueryMultipleAsync(cmd);        var items = (await grid.ReadAsync<UnifiedUserDto>()).AsList();
         var total = await grid.ReadSingleAsync<int>();
 
         return new PagedResult<UnifiedUserDto>(items, request.Page, request.PageSize, total);
@@ -73,10 +72,9 @@ public class UnifiedUserDataQuery : IUnifiedUserDataQuery
             {whereConditions}";
 
         var parameters = BuildParameters(request);
-        var cmd = new CommandDefinition(countQuery, parameters, cancellationToken: cancellationToken);
+        var cmd = new CommandDefinition(countQuery, parameters, commandTimeout: 30, cancellationToken: cancellationToken);
         return await connection.QuerySingleAsync<int>(cmd);
     }
-
     private static string GetRoleFilter(UserQueryType queryType)
     {
         return queryType switch

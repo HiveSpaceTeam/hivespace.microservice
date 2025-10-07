@@ -10,8 +10,8 @@ public interface IAdminService
     Task<GetUsersResponseDto> GetUsersAsync(GetUsersRequestDto request, CancellationToken cancellationToken = default);
     Task<GetAdminResponseDto> GetAdminsAsync(GetAdminRequestDto request, CancellationToken cancellationToken = default);
     
-    // Method that returns correct user/admin DTO type based on ResponseType
-    Task<object> SetUserStatusAsync(SetUserStatusRequestDto request, CancellationToken cancellationToken = default);
+    // Method that returns strongly-typed user/admin DTO based on ResponseType
+    Task<SetStatusResponseDto> SetUserStatusAsync(SetUserStatusRequestDto request, CancellationToken cancellationToken = default);
     
     // New unified method
     Task<GetUnifiedUsersResponseDto<T>> GetUnifiedUsersAsync<T>(GetUsersBaseRequestDto request, UserQueryType queryType, CancellationToken cancellationToken = default) where T : class;
