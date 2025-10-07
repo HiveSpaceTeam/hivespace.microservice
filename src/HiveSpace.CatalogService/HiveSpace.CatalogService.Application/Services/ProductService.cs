@@ -1,12 +1,11 @@
 ﻿using HiveSpace.CatalogService.Application.Interfaces;
-using HiveSpace.CatalogService.Application.Models.Requests;
-using HiveSpace.CatalogService.Domain.AggergateModels.ProductAggregate;
-using HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate;
-using HiveSpace.CatalogService.Domain.Common;
-using HiveSpace.CatalogService.Domain.Common.Enums;
 using HiveSpace.CatalogService.Application.Interfaces.Repositories;
 using HiveSpace.CatalogService.Application.Models.Dtos.Crud;
 using HiveSpace.CatalogService.Application.Models.Dtos.Request.Product;
+using HiveSpace.CatalogService.Application.Models.Requests;
+using HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate;
+using HiveSpace.CatalogService.Domain.Common;
+using HiveSpace.CatalogService.Domain.Common.Enums;
 
 namespace HiveSpace.CatalogService.Application.Services
 {
@@ -34,8 +33,8 @@ namespace HiveSpace.CatalogService.Application.Services
 
             var skus = request.Skus?.Select(s =>
             {
-                var skuId = s.Id == Guid.Empty ? Guid.NewGuid() : s.Id;
-                var parsed = double.TryParse(s.Price, out var amount) ? amount : 0d;
+                var skuId = Guid.Empty;
+                var parsed = decimal.TryParse(s.Price, out var amount) ? amount : 0m;
                 var money = new Money(parsed, Currency.VND);
                 var skuVariants = s.SkuVariants?.Select(sv => new SkuVariant(skuId, sv.VariantId, sv.OptionId, sv.Value ?? string.Empty)).ToList() ?? new List<SkuVariant>();
                 return new Sku(s.SkuNo ?? string.Empty, productId, skuVariants, new List<SkuImage>(), int.TryParse(s.Quantity, out var q) ? q : 0, true, money);

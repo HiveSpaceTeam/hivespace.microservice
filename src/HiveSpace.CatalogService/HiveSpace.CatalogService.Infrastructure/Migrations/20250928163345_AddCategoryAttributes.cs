@@ -29,6 +29,12 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                         principalTable: "Categories",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CategoryAttributes_Attributes_AttributeId",
+                        column: x => x.AttributeId,
+                        principalTable: "Attributes",
+                        principalColumn: "Id", 
+                        onDelete: ReferentialAction.Cascade);
                 });
         }
 

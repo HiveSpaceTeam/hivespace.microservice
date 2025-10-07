@@ -31,7 +31,7 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
         private Sku()
         {
             SkuNo = string.Empty;
-            Price = new Money(0, Currency.USD);
+            Price = new Money(0m, Currency.USD);
         }
 
         public Sku(string skuNo, Guid productId, List<SkuVariant> skuVariants, List<SkuImage> images, int quantity, bool isActive, Money price)

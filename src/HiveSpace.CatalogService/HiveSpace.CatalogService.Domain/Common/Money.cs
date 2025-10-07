@@ -8,11 +8,11 @@ namespace HiveSpace.CatalogService.Domain.Common
 {
     public class Money : ValueObject
     {
-        public double Amount { get; private set; }
+        public decimal Amount { get; private set; }
         public Currency Currency { get; private set; }
 
         [JsonConstructor]
-        public Money(double amount, Currency currency)
+        public Money(decimal amount, Currency currency)
         {
             Amount = amount;
             Currency = currency;
@@ -26,7 +26,7 @@ namespace HiveSpace.CatalogService.Domain.Common
 
         private bool IsInvalid()
         {
-            return Amount < 0;
+            return Amount < 0m;
         }
 
         protected override IEnumerable<object> GetEqualityComponents()

@@ -1,5 +1,4 @@
-﻿using HiveSpace.CatalogService.Domain.AggergateModels.ProductAggregate;
-using HiveSpace.Domain.Shared.Entities;
+﻿using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.Domain.Shared.Interfaces;
 using System.Text.Json.Serialization;
 
@@ -12,20 +11,20 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
         public string Description { get; private set; }
         public ProductStatus Status { get; private set; }
 
-        private readonly List<ProductCategory> _categories = [];
+        private readonly List<ProductCategory> _categories;
         public IReadOnlyCollection<ProductCategory> Categories => _categories.AsReadOnly();
 
-        private readonly List<ProductAttribute> _attributes = [];
+        private readonly List<ProductAttribute> _attributes;
         public IReadOnlyCollection<ProductAttribute> Attributes => _attributes.AsReadOnly();
 
-        private readonly List<ProductImage> _images = [];
+        private readonly List<ProductImage> _images;
         public IReadOnlyCollection<ProductImage> Images => _images.AsReadOnly();
 
         public IReadOnlyCollection<Sku> Skus => _skus.AsReadOnly();
-        private readonly List<Sku> _skus = [];
+        private readonly List<Sku> _skus;
 
         public IReadOnlyCollection<ProductVariant> Variants => _variants.AsReadOnly();
-        private readonly List<ProductVariant> _variants = [];
+        private readonly List<ProductVariant> _variants;
 
         public DateTimeOffset CreatedAt { get; private set; } = default!;
         public DateTimeOffset? UpdatedAt { get; private set; }

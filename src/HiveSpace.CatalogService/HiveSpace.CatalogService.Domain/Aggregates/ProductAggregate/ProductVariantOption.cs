@@ -19,6 +19,8 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
 
         protected override IEnumerable<object> GetEqualityComponents()
         {
+            yield return VariantId; 
+            yield return OptionId;
             yield return Value;
         }
     }

@@ -173,7 +173,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                     ProductId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    Price_Amount = table.Column<double>(type: "float", nullable: false),
+                    Price_Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Price_Currency = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>

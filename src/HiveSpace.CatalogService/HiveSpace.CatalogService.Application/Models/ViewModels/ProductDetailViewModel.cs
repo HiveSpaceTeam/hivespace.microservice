@@ -20,8 +20,8 @@ namespace HiveSpace.CatalogService.Application.Models.ViewModels
 
     public class ProductCategoryViewModel
     {
-        public int CategoryId { get; set; }
+        public Guid CategoryId { get; set; }
         public string CategoryName { get; set; }
-        public int? ParentId { get; set; }
+        public Guid? ParentId { get; set; }
     }
 }

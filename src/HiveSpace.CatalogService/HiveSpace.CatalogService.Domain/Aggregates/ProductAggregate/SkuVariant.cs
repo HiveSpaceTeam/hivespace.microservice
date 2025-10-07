@@ -23,6 +23,7 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
         {
             yield return SkuId;
             yield return VariantId;
+            yield return OptionId;
             yield return Value;
         }
     }
