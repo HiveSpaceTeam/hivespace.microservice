@@ -34,10 +34,9 @@ namespace HiveSpace.CatalogService.Application.Services
             var skus = request.Skus?.Select(s =>
             {
                 var skuId = Guid.Empty;
-                var parsed = decimal.TryParse(s.Price, out var amount) ? amount : 0m;
-                var money = new Money(parsed, Currency.VND);
+                var money = s.Price;
                 var skuVariants = s.SkuVariants?.Select(sv => new SkuVariant(skuId, sv.VariantId, sv.OptionId, sv.Value ?? string.Empty)).ToList() ?? new List<SkuVariant>();
-                return new Sku(s.SkuNo ?? string.Empty, productId, skuVariants, new List<SkuImage>(), int.TryParse(s.Quantity, out var q) ? q : 0, true, money);
+                return new Sku(s.SkuNo ?? string.Empty, productId, skuVariants, new List<SkuImage>(), s.Quantity, true, money);
 
             }).ToList() ?? new List<Sku>();
 
@@ -87,11 +86,58 @@ namespace HiveSpace.CatalogService.Application.Services
             var existing = await _productRepository.GetDetailByIdAsync(id, cancellationToken);
             if (existing == null) return false;
 
-            existing.UpdateName(request.Name ?? existing.Name);
-            existing.UpdateDescription(request.Description ?? existing.Description);
+            // Update basic properties
+            if (!string.IsNullOrEmpty(request.Name))
+            {
+                existing.UpdateName(request.Name);
+            }
 
-            // For brevity: skip deep merge of categories/attributes/variants/skus
-            // depending on your rules you might replace or merge collections here
+            if (!string.IsNullOrEmpty(request.Description))
+            {
+                existing.UpdateDescription(request.Description);
+            }
+
+            // Update categories
+            if (request.Category != Guid.Empty)
+            {
+                var categories = new List<ProductCategory>
+                {
+                    new ProductCategory(id, request.Category)
+                };
+                existing.UpdateCategories(categories);
+            }
+
+            // Update variants
+            if (request.Variants != null && request.Variants.Any())
+            {
+                var variants = request.Variants.Select(v =>
+                    new ProductVariant(v.Name, v.Options?.Select(o => new ProductVariantOption(v.Id, o.OptionId, o.Value ?? string.Empty)).ToList() ?? new List<ProductVariantOption>())
+                ).ToList();
+                existing.UpdateVariants(variants);
+            }
+
+            // Update SKUs
+            if (request.Skus != null && request.Skus.Any())
+            {
+                var skus = request.Skus.Select(s =>
+                {
+                    var skuId = s.Id != Guid.Empty ? s.Id : Guid.NewGuid();
+                    var money = s.Price;
+                    var skuVariants = s.SkuVariants?.Select(sv => new SkuVariant(skuId, sv.VariantId, sv.OptionId, sv.Value ?? string.Empty)).ToList() ?? new List<SkuVariant>();
+                    return new Sku(s.SkuNo ?? string.Empty, id, skuVariants, new List<SkuImage>(), s.Quantity, true, money);
+                }).ToList();
+                existing.UpdateSkus(skus);
+            }
+
+            // Update attributes
+            if (request.Attributes != null && request.Attributes.Any())
+            {
+                var attributes = request.Attributes.Select(a => new ProductAttribute(a.AttributeId, id, a.SelectedValueIds, a.FreeTextValue)).ToList();
+                existing.UpdateAttributes(attributes);
+            }
+
+            // Update audit information
+            existing.UpdateAuditInfo("system");
 
             await _productRepository.UpdateAsync(existing, cancellationToken);
             return true;

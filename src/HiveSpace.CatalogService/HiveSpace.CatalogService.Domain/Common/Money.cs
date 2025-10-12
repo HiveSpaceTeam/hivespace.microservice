@@ -11,7 +11,6 @@ namespace HiveSpace.CatalogService.Domain.Common
         public decimal Amount { get; private set; }
         public Currency Currency { get; private set; }
 
-        [JsonConstructor]
         public Money(decimal amount, Currency currency)
         {
             Amount = amount;

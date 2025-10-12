@@ -91,7 +91,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Repositories
                 .Include(p => p.Skus)
                     .ThenInclude(s => s.SkuVariants);
 
-            var items = await pagedQuery.ToListAsync(cancellationToken);
+           var items = await pagedQuery.ToListAsync(cancellationToken);
             return (items, total);
         }
     }

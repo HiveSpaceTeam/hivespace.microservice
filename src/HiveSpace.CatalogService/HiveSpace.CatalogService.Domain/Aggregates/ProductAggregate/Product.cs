@@ -108,6 +108,40 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
             if (category == null) throw new ArgumentNullException(nameof(category));
             _categories.Remove(category);
         }
+
+        public void UpdateCategories(List<ProductCategory> categories)
+        {
+            if (categories == null) throw new ArgumentNullException(nameof(categories));
+            _categories.Clear();
+            _categories.AddRange(categories);
+        }
+
+        public void UpdateAttributes(List<ProductAttribute> attributes)
+        {
+            if (attributes == null) throw new ArgumentNullException(nameof(attributes));
+            _attributes.Clear();
+            _attributes.AddRange(attributes);
+        }
+
+        public void UpdateVariants(List<ProductVariant> variants)
+        {
+            if (variants == null) throw new ArgumentNullException(nameof(variants));
+            _variants.Clear();
+            _variants.AddRange(variants);
+        }
+
+        public void UpdateSkus(List<Sku> skus)
+        {
+            if (skus == null) throw new ArgumentNullException(nameof(skus));
+            _skus.Clear();
+            _skus.AddRange(skus);
+        }
+
+        public void UpdateAuditInfo(string updatedBy)
+        {
+            UpdatedAt = DateTimeOffset.UtcNow;
+            UpdatedBy = updatedBy;
+        }
         #endregion
     }
 }

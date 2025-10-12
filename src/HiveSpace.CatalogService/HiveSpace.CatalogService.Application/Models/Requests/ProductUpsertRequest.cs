@@ -1,3 +1,5 @@
+using HiveSpace.CatalogService.Domain.Common;
+
 namespace HiveSpace.CatalogService.Application.Models.Requests;
 
 public class ProductUpsertRequest
@@ -27,8 +29,8 @@ public class ProductSkuRequest
 {
 	public Guid Id { get; set; }
 	public List<ProductSkuVariantRequest>? SkuVariants { get; set; }
-	public string? Price { get; set; }
-	public string? Quantity { get; set; }
+	public Money Price { get; set; }
+	public int Quantity { get; set; }
 	public string? SkuNo { get; set; }
 }
 

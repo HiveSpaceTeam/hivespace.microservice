@@ -69,13 +69,13 @@ namespace HiveSpace.CatalogService.Infrastructure.Data
                 entity.ToTable("Attributes");
                 entity.HasKey(a => a.Id);
                 
-                // Configure owned type (ValueObject)
+                // Configure owned type (ValueObject) with explicit column names
                 entity.OwnsOne(a => a.Type, at =>
                 {
-                    at.Property(t => t.ValueType);
-                    at.Property(t => t.InputType);
-                    at.Property(t => t.IsMandatory);
-                    at.Property(t => t.MaxValueCount);
+                    at.Property(t => t.ValueType).HasColumnName("ValueType");
+                    at.Property(t => t.InputType).HasColumnName("InputType");
+                    at.Property(t => t.IsMandatory).HasColumnName("IsMandatory");
+                    at.Property(t => t.MaxValueCount).HasColumnName("MaxValueCount");
                 });
             });
 

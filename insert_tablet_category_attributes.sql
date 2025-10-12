@@ -1,0 +1,172 @@
+-- SQL Script to insert attributes for Category ID: 4C9ED454-D0DD-4AFD-B15E-1353F418E335
+-- Based on the HTML attributes shown in the tablet product specification panel
+
+-- Declare variables for the category ID
+DECLARE @CategoryId UNIQUEIDENTIFIER = '4C9ED454-D0DD-4AFD-B15E-1353F418E335';
+
+-- Insert Attributes
+-- 1. Thương hiệu (Brand) - Mandatory Single Select
+INSERT INTO Attributes (Id, Name, Type_ValueType, Type_InputType, Type_IsMandatory, Type_MaxValueCount, ParentId, IsActive, CreatedAt, UpdatedAt)
+VALUES 
+('55555555-5555-5555-5555-555555555001', N'Thương hiệu', 2, 2, 1, 1, NULL, 1, GETDATE(), NULL);
+
+-- 2. Model máy tính bảng (Tablet Model) - Text Input
+INSERT INTO Attributes (Id, Name, Type_ValueType, Type_InputType, Type_IsMandatory, Type_MaxValueCount, ParentId, IsActive, CreatedAt, UpdatedAt)
+VALUES 
+('55555555-5555-5555-5555-555555555002', N'Model máy tính bảng', 1, 1, 0, 1, NULL, 1, GETDATE(), NULL);
+
+-- 3. Dung lượng lưu trữ (Storage Capacity) - Single Select
+INSERT INTO Attributes (Id, Name, Type_ValueType, Type_InputType, Type_IsMandatory, Type_MaxValueCount, ParentId, IsActive, CreatedAt, UpdatedAt)
+VALUES 
+('55555555-5555-5555-5555-555555555003', N'Dung lượng lưu trữ', 2, 2, 0, 1, NULL, 1, GETDATE(), NULL);
+
+-- 4. Độ phân giải camera chính (Main Camera Resolution) - Single Select
+INSERT INTO Attributes (Id, Name, Type_ValueType, Type_InputType, Type_IsMandatory, Type_MaxValueCount, ParentId, IsActive, CreatedAt, UpdatedAt)
+VALUES 
+('55555555-5555-5555-5555-555555555004', N'Độ phân giải camera chính', 2, 2, 0, 1, NULL, 1, GETDATE(), NULL);
+
+-- 5. Hạn bảo hành (Warranty Period) - Single Select
+INSERT INTO Attributes (Id, Name, Type_ValueType, Type_InputType, Type_IsMandatory, Type_MaxValueCount, ParentId, IsActive, CreatedAt, UpdatedAt)
+VALUES 
+('55555555-5555-5555-5555-555555555005', N'Hạn bảo hành', 2, 2, 0, 1, NULL, 1, GETDATE(), NULL);
+
+-- 6. Thiết bị đọc sách điện tử (E-reader Device) - Single Select
+INSERT INTO Attributes (Id, Name, Type_ValueType, Type_InputType, Type_IsMandatory, Type_MaxValueCount, ParentId, IsActive, CreatedAt, UpdatedAt)
+VALUES 
+('55555555-5555-5555-5555-555555555006', N'Thiết bị đọc sách điện tử', 2, 2, 0, 1, NULL, 1, GETDATE(), NULL);
+
+-- 7. Dung lượng pin (Battery Capacity) - Multi Select (0/5)
+INSERT INTO Attributes (Id, Name, Type_ValueType, Type_InputType, Type_IsMandatory, Type_MaxValueCount, ParentId, IsActive, CreatedAt, UpdatedAt)
+VALUES 
+('55555555-5555-5555-5555-555555555007', N'Dung lượng pin', 5, 2, 0, 5, NULL, 1, GETDATE(), NULL);
+
+-- 8. Kích thước màn hình (Screen Size) - Single Select
+INSERT INTO Attributes (Id, Name, Type_ValueType, Type_InputType, Type_IsMandatory, Type_MaxValueCount, ParentId, IsActive, CreatedAt, UpdatedAt)
+VALUES 
+('55555555-5555-5555-5555-555555555008', N'Kích thước màn hình', 2, 2, 0, 1, NULL, 1, GETDATE(), NULL);
+
+-- 9. Loại bảo hành (Warranty Type) - Single Select
+INSERT INTO Attributes (Id, Name, Type_ValueType, Type_InputType, Type_IsMandatory, Type_MaxValueCount, ParentId, IsActive, CreatedAt, UpdatedAt)
+VALUES 
+('55555555-5555-5555-5555-555555555009', N'Loại bảo hành', 2, 2, 0, 1, NULL, 1, GETDATE(), NULL);
+
+-- 10. Loại cáp điện thoại (Phone Cable Type) - Multi Select (0/5)
+INSERT INTO Attributes (Id, Name, Type_ValueType, Type_InputType, Type_IsMandatory, Type_MaxValueCount, ParentId, IsActive, CreatedAt, UpdatedAt)
+VALUES 
+('55555555-5555-5555-5555-555555555010', N'Loại cáp điện thoại', 5, 2, 0, 5, NULL, 1, GETDATE(), NULL);
+
+-- Insert CategoryAttributes (linking attributes to the category)
+INSERT INTO CategoryAttributes (CategoryId, AttributeId)
+VALUES 
+(@CategoryId, '55555555-5555-5555-5555-555555555001'), -- Thương hiệu
+(@CategoryId, '55555555-5555-5555-5555-555555555002'), -- Model máy tính bảng
+(@CategoryId, '55555555-5555-5555-5555-555555555003'), -- Dung lượng lưu trữ
+(@CategoryId, '55555555-5555-5555-5555-555555555004'), -- Độ phân giải camera chính
+(@CategoryId, '55555555-5555-5555-5555-555555555005'), -- Hạn bảo hành
+(@CategoryId, '55555555-5555-5555-5555-555555555006'), -- Thiết bị đọc sách điện tử
+(@CategoryId, '55555555-5555-5555-5555-555555555007'), -- Dung lượng pin
+(@CategoryId, '55555555-5555-5555-5555-555555555008'), -- Kích thước màn hình
+(@CategoryId, '55555555-5555-5555-5555-555555555009'), -- Loại bảo hành
+(@CategoryId, '55555555-5555-5555-5555-555555555010'); -- Loại cáp điện thoại
+
+-- Insert AttributeValues for each attribute
+-- 1. Thương hiệu (Brand) values
+INSERT INTO AttributeValues (Id, AttributeId, Name, DisplayName, ParentValueId, IsActive, SortOrder, AttributeDefinitionId)
+VALUES 
+('66666666-6666-6666-6666-666666666001', '55555555-5555-5555-5555-555555555001', 'Apple', N'Apple', NULL, 1, 1, '55555555-5555-5555-5555-555555555001'),
+('66666666-6666-6666-6666-666666666002', '55555555-5555-5555-5555-555555555001', 'Samsung', N'Samsung', NULL, 1, 2, '55555555-5555-5555-5555-555555555001'),
+('66666666-6666-6666-6666-666666666003', '55555555-5555-5555-5555-555555555001', 'Huawei', N'Huawei', NULL, 1, 3, '55555555-5555-5555-5555-555555555001'),
+('66666666-6666-6666-6666-666666666004', '55555555-5555-5555-5555-555555555001', 'Lenovo', N'Lenovo', NULL, 1, 4, '55555555-5555-5555-5555-555555555001'),
+('66666666-6666-6666-6666-666666666005', '55555555-5555-5555-5555-555555555001', 'Xiaomi', N'Xiaomi', NULL, 1, 5, '55555555-5555-5555-5555-555555555001'),
+('66666666-6666-6666-6666-666666666006', '55555555-5555-5555-5555-555555555001', 'No brand', N'Không có thương hiệu', NULL, 1, 6, '55555555-5555-5555-5555-555555555001');
+
+-- 2. Model máy tính bảng (Tablet Model) - No predefined values as it's a text input
+
+-- 3. Dung lượng lưu trữ (Storage Capacity) values
+INSERT INTO AttributeValues (Id, AttributeId, Name, DisplayName, ParentValueId, IsActive, SortOrder, AttributeDefinitionId)
+VALUES 
+('66666666-6666-6666-6666-666666666007', '55555555-5555-5555-5555-555555555003', '32GB', N'32GB', NULL, 1, 1, '55555555-5555-5555-5555-555555555003'),
+('66666666-6666-6666-6666-666666666008', '55555555-5555-5555-5555-555555555003', '64GB', N'64GB', NULL, 1, 2, '55555555-5555-5555-5555-555555555003'),
+('66666666-6666-6666-6666-666666666009', '55555555-5555-5555-5555-555555555003', '128GB', N'128GB', NULL, 1, 3, '55555555-5555-5555-5555-555555555003'),
+('66666666-6666-6666-6666-666666666010', '55555555-5555-5555-5555-555555555003', '256GB', N'256GB', NULL, 1, 4, '55555555-5555-5555-5555-555555555003'),
+('66666666-6666-6666-6666-666666666011', '55555555-5555-5555-5555-555555555003', '512GB', N'512GB', NULL, 1, 5, '55555555-5555-5555-5555-555555555003'),
+('66666666-6666-6666-6666-666666666012', '55555555-5555-5555-5555-555555555003', '1TB', N'1TB', NULL, 1, 6, '55555555-5555-5555-5555-555555555003');
+
+-- 4. Độ phân giải camera chính (Main Camera Resolution) values
+INSERT INTO AttributeValues (Id, AttributeId, Name, DisplayName, ParentValueId, IsActive, SortOrder, AttributeDefinitionId)
+VALUES 
+('66666666-6666-6666-6666-666666666013', '55555555-5555-5555-5555-555555555004', '8MP', N'8MP', NULL, 1, 1, '55555555-5555-5555-5555-555555555004'),
+('66666666-6666-6666-6666-666666666014', '55555555-5555-5555-5555-555555555004', '12MP', N'12MP', NULL, 1, 2, '55555555-5555-5555-5555-555555555004'),
+('66666666-6666-6666-6666-666666666015', '55555555-5555-5555-5555-555555555004', '13MP', N'13MP', NULL, 1, 3, '55555555-5555-5555-5555-555555555004'),
+('66666666-6666-6666-6666-666666666016', '55555555-5555-5555-5555-555555555004', '16MP', N'16MP', NULL, 1, 4, '55555555-5555-5555-5555-555555555004'),
+('66666666-6666-6666-6666-666666666017', '55555555-5555-5555-5555-555555555004', '20MP', N'20MP', NULL, 1, 5, '55555555-5555-5555-5555-555555555004'),
+('66666666-6666-6666-6666-666666666018', '55555555-5555-5555-5555-555555555004', '48MP', N'48MP', NULL, 1, 6, '55555555-5555-5555-5555-555555555004');
+
+-- 5. Hạn bảo hành (Warranty Period) values
+INSERT INTO AttributeValues (Id, AttributeId, Name, DisplayName, ParentValueId, IsActive, SortOrder, AttributeDefinitionId)
+VALUES 
+('66666666-6666-6666-6666-666666666019', '55555555-5555-5555-5555-555555555005', '6 months', N'6 tháng', NULL, 1, 1, '55555555-5555-5555-5555-555555555005'),
+('66666666-6666-6666-6666-666666666020', '55555555-5555-5555-5555-555555555005', '12 months', N'12 tháng', NULL, 1, 2, '55555555-5555-5555-5555-555555555005'),
+('66666666-6666-6666-6666-666666666021', '55555555-5555-5555-5555-555555555005', '18 months', N'18 tháng', NULL, 1, 3, '55555555-5555-5555-5555-555555555005'),
+('66666666-6666-6666-6666-666666666022', '55555555-5555-5555-5555-555555555005', '24 months', N'24 tháng', NULL, 1, 4, '55555555-5555-5555-5555-555555555005'),
+('66666666-6666-6666-6666-666666666023', '55555555-5555-5555-5555-555555555005', '36 months', N'36 tháng', NULL, 1, 5, '55555555-5555-5555-5555-555555555005');
+
+-- 6. Thiết bị đọc sách điện tử (E-reader Device) values
+INSERT INTO AttributeValues (Id, AttributeId, Name, DisplayName, ParentValueId, IsActive, SortOrder, AttributeDefinitionId)
+VALUES 
+('66666666-6666-6666-6666-666666666024', '55555555-5555-5555-5555-555555555006', 'Yes', N'Có', NULL, 1, 1, '55555555-5555-5555-5555-555555555006'),
+('66666666-6666-6666-6666-666666666025', '55555555-5555-5555-5555-555555555006', 'No', N'Không', NULL, 1, 2, '55555555-5555-5555-5555-555555555006');
+
+-- 7. Dung lượng pin (Battery Capacity) values
+INSERT INTO AttributeValues (Id, AttributeId, Name, DisplayName, ParentValueId, IsActive, SortOrder, AttributeDefinitionId)
+VALUES 
+('66666666-6666-6666-6666-666666666026', '55555555-5555-5555-5555-555555555007', '3000mAh', N'3000mAh', NULL, 1, 1, '55555555-5555-5555-5555-555555555007'),
+('66666666-6666-6666-6666-666666666027', '55555555-5555-5555-5555-555555555007', '4000mAh', N'4000mAh', NULL, 1, 2, '55555555-5555-5555-5555-555555555007'),
+('66666666-6666-6666-6666-666666666028', '55555555-5555-5555-5555-555555555007', '5000mAh', N'5000mAh', NULL, 1, 3, '55555555-5555-5555-5555-555555555007'),
+('66666666-6666-6666-6666-666666666029', '55555555-5555-5555-5555-555555555007', '6000mAh', N'6000mAh', NULL, 1, 4, '55555555-5555-5555-5555-555555555007'),
+('66666666-6666-6666-6666-666666666030', '55555555-5555-5555-5555-555555555007', '8000mAh', N'8000mAh', NULL, 1, 5, '55555555-5555-5555-5555-555555555007'),
+('66666666-6666-6666-6666-666666666031', '55555555-5555-5555-5555-555555555007', '10000mAh', N'10000mAh', NULL, 1, 6, '55555555-5555-5555-5555-555555555007');
+
+-- 8. Kích thước màn hình (Screen Size) values
+INSERT INTO AttributeValues (Id, AttributeId, Name, DisplayName, ParentValueId, IsActive, SortOrder, AttributeDefinitionId)
+VALUES 
+('66666666-6666-6666-6666-666666666032', '55555555-5555-5555-5555-555555555008', '7 inch', N'7 inch', NULL, 1, 1, '55555555-5555-5555-5555-555555555008'),
+('66666666-6666-6666-6666-666666666033', '55555555-5555-5555-5555-555555555008', '8 inch', N'8 inch', NULL, 1, 2, '55555555-5555-5555-5555-555555555008'),
+('66666666-6666-6666-6666-666666666034', '55555555-5555-5555-5555-555555555008', '9 inch', N'9 inch', NULL, 1, 3, '55555555-5555-5555-5555-555555555008'),
+('66666666-6666-6666-6666-666666666035', '55555555-5555-5555-5555-555555555008', '10 inch', N'10 inch', NULL, 1, 4, '55555555-5555-5555-5555-555555555008'),
+('66666666-6666-6666-6666-666666666036', '55555555-5555-5555-5555-555555555008', '11 inch', N'11 inch', NULL, 1, 5, '55555555-5555-5555-5555-555555555008'),
+('66666666-6666-6666-6666-666666666037', '55555555-5555-5555-5555-555555555008', '12 inch', N'12 inch', NULL, 1, 6, '55555555-5555-5555-5555-555555555008');
+
+-- 9. Loại bảo hành (Warranty Type) values
+INSERT INTO AttributeValues (Id, AttributeId, Name, DisplayName, ParentValueId, IsActive, SortOrder, AttributeDefinitionId)
+VALUES 
+('66666666-6666-6666-6666-666666666038', '55555555-5555-5555-5555-555555555009', 'Official', N'Chính hãng', NULL, 1, 1, '55555555-5555-5555-5555-555555555009'),
+('66666666-6666-6666-6666-666666666039', '55555555-5555-5555-5555-555555555009', 'Seller', N'Nhà bán', NULL, 1, 2, '55555555-5555-5555-5555-555555555009'),
+('66666666-6666-6666-6666-666666666040', '55555555-5555-5555-5555-555555555009', 'International', N'Quốc tế', NULL, 1, 3, '55555555-5555-5555-5555-555555555009'),
+('66666666-6666-6666-6666-666666666041', '55555555-5555-5555-5555-555555555009', 'No warranty', N'Không bảo hành', NULL, 1, 4, '55555555-5555-5555-5555-555555555009');
+
+-- 10. Loại cáp điện thoại (Phone Cable Type) values
+INSERT INTO AttributeValues (Id, AttributeId, Name, DisplayName, ParentValueId, IsActive, SortOrder, AttributeDefinitionId)
+VALUES 
+('66666666-6666-6666-6666-666666666042', '55555555-5555-5555-5555-555555555010', 'USB-C', N'USB-C', NULL, 1, 1, '55555555-5555-5555-5555-555555555010'),
+('66666666-6666-6666-6666-666666666043', '55555555-5555-5555-5555-555555555010', 'Lightning', N'Lightning', NULL, 1, 2, '55555555-5555-5555-5555-555555555010'),
+('66666666-6666-6666-6666-666666666044', '55555555-5555-5555-5555-555555555010', 'Micro USB', N'Micro USB', NULL, 1, 3, '55555555-5555-5555-5555-555555555010'),
+('66666666-6666-6666-6666-666666666045', '55555555-5555-5555-5555-555555555010', 'USB-A', N'USB-A', NULL, 1, 4, '55555555-5555-5555-5555-555555555010'),
+('66666666-6666-6666-6666-666666666046', '55555555-5555-5555-5555-555555555010', 'Wireless', N'Không dây', NULL, 1, 5, '55555555-5555-5555-5555-555555555010');
+
+-- Verification queries
+SELECT 'Attributes inserted:' as Status, COUNT(*) as Count FROM Attributes WHERE Id LIKE '55555555-5555-5555-5555-555555555%';
+SELECT 'CategoryAttributes inserted:' as Status, COUNT(*) as Count FROM CategoryAttributes WHERE CategoryId = @CategoryId;
+SELECT 'AttributeValues inserted:' as Status, COUNT(*) as Count FROM AttributeValues WHERE Id LIKE '66666666-6666-6666-6666-666666666%';
+
+-- Display the inserted data
+SELECT 
+    a.Name as AttributeName,
+    a.Type_ValueType as ValueType,
+    a.Type_InputType as InputType,
+    a.Type_IsMandatory as IsMandatory,
+    a.Type_MaxValueCount as MaxValueCount
+FROM Attributes a
+INNER JOIN CategoryAttributes ca ON a.Id = ca.AttributeId
+WHERE ca.CategoryId = @CategoryId
+ORDER BY a.Name;
