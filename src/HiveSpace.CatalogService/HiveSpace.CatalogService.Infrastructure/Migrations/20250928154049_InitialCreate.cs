@@ -98,6 +98,12 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_ProductAttributes", x => x.Id);
                     table.ForeignKey(
+                        name: "FK_ProductAttributes_Attributes_AttributeId",
+                        column: x => x.AttributeId,
+                        principalTable: "Attributes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
                         name: "FK_ProductAttributes_Products_ProductId",
                         column: x => x.ProductId,
                         principalTable: "Products",
@@ -117,6 +123,12 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ProductCategories", x => new { x.ProductId, x.Id });
+                    table.ForeignKey(
+                        name: "FK_ProductCategories_Categories_CategoryId",
+                        column: x => x.CategoryId,
+                        principalTable: "Categories",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_ProductCategories_Products_ProductId",
                         column: x => x.ProductId,
@@ -257,9 +269,19 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                 column: "AttributeDefinitionId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ProductAttributes_AttributeId",
+                table: "ProductAttributes",
+                column: "AttributeId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ProductAttributes_ProductId",
                 table: "ProductAttributes",
                 column: "ProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProductCategories_CategoryId",
+                table: "ProductCategories",
+                column: "CategoryId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ProductVariants_ProductId",
@@ -277,9 +299,6 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
         {
             migrationBuilder.DropTable(
                 name: "AttributeValues");
-
-            migrationBuilder.DropTable(
-                name: "Categories");
 
             migrationBuilder.DropTable(
                 name: "ProductAttributes");
@@ -301,6 +320,9 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "Attributes");
+
+            migrationBuilder.DropTable(
+                name: "Categories");
 
             migrationBuilder.DropTable(
                 name: "ProductVariants");

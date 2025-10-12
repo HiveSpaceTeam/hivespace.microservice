@@ -11,20 +11,20 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
         public string Description { get; private set; }
         public ProductStatus Status { get; private set; }
 
-        private readonly List<ProductCategory> _categories;
+        private readonly List<ProductCategory> _categories = new();
         public IReadOnlyCollection<ProductCategory> Categories => _categories.AsReadOnly();
 
-        private readonly List<ProductAttribute> _attributes;
+        private readonly List<ProductAttribute> _attributes = new();
         public IReadOnlyCollection<ProductAttribute> Attributes => _attributes.AsReadOnly();
 
-        private readonly List<ProductImage> _images;
+        private readonly List<ProductImage> _images = new();
         public IReadOnlyCollection<ProductImage> Images => _images.AsReadOnly();
 
         public IReadOnlyCollection<Sku> Skus => _skus.AsReadOnly();
-        private readonly List<Sku> _skus;
+        private readonly List<Sku> _skus = new();
 
         public IReadOnlyCollection<ProductVariant> Variants => _variants.AsReadOnly();
-        private readonly List<ProductVariant> _variants;
+        private readonly List<ProductVariant> _variants = new();
 
         public DateTimeOffset CreatedAt { get; private set; } = default!;
         public DateTimeOffset? UpdatedAt { get; private set; }
@@ -49,11 +49,11 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
             Name = name;
             Description = description;
             Status = status;
-            _categories = categories;
-            _attributes = attributes;
-            _images = images;
-            _skus = skus;
-            _variants = variants;
+            if (categories is not null) _categories.AddRange(categories);
+            if (attributes is not null) _attributes.AddRange(attributes);
+            if (images is not null) _images.AddRange(images);
+            if (skus is not null) _skus.AddRange(skus);
+            if (variants is not null) _variants.AddRange(variants);
             CreatedAt = createdAt;
             UpdatedAt = updatedAt;
             CreatedBy = createdBy;
@@ -66,11 +66,11 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
             Name = name;
             Description = description;
             Status = status;
-            _categories = categories;
-            _attributes = attributes;
-            _images = images;
-            _skus = skus;
-            _variants = variants;
+            if (categories is not null) _categories.AddRange(categories);
+            if (attributes is not null) _attributes.AddRange(attributes);
+            if (images is not null) _images.AddRange(images);
+            if (skus is not null) _skus.AddRange(skus);
+            if (variants is not null) _variants.AddRange(variants);
             CreatedAt = createdAt;
             UpdatedAt = updatedAt;
             CreatedBy = createdBy;
