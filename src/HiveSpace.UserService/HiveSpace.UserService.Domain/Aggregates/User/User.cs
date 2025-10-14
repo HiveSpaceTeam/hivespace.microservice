@@ -155,7 +155,10 @@ public class User : AggregateRoot<Guid>, IAuditable
     
     public void AssignStore(Guid storeId)
     {
+        if (Role == Role.FromName(Role.RoleNames.Seller) && StoreId != null)
+            throw new UserStoreExistsException();
         StoreId = storeId;
+        Role = Role.FromName(Role.RoleNames.Seller);
     }
     
     public void RemoveStore()
@@ -226,12 +229,12 @@ public class User : AggregateRoot<Guid>, IAuditable
     {
         LastLoginAt = DateTimeOffset.UtcNow;
     }
-    
+
     internal void SetRole(Role role)
     {
         Role = role;
     }
-
+    
     public bool IsSeller => Role?.Name == Role.RoleNames.Seller;
     public bool IsAdmin => Role?.Name == Role.RoleNames.Admin;
     public bool IsSystemAdmin => Role?.Name == Role.RoleNames.SystemAdmin;
