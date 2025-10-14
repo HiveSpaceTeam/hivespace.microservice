@@ -31,6 +31,7 @@ public static class UserInfrastructureExtension
         // Register interceptors manually
         services.AddScoped<ISaveChangesInterceptor, AuditableInterceptor>();
         services.AddScoped<ISaveChangesInterceptor, SoftDeleteInterceptor>();
+        services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventInterceptor>();
 
         // Add persistence infrastructure to register other services
         services.AddPersistenceInfrastructure<UserDbContext>();

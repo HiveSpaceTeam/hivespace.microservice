@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc.Filters;
 using HiveSpace.Core.Exceptions.Models;
 using HiveSpace.Domain.Shared.Exceptions;
-using System.Text.Json;
+using HiveSpace.Core.Helpers;
 using HiveSpace.Core.Exceptions;
 
 namespace HiveSpace.Core.Filters
@@ -29,7 +29,7 @@ namespace HiveSpace.Core.Filters
                     var errorDto = new ErrorCodeDto(
                         error.ErrorCode.Code,
                         error.ErrorCode.Name,
-                        ToCamelCase(error.Source)
+                        StringHelper.ToCamelCase(error.Source)
                     );
                     errorList.Add(errorDto);
                 }
@@ -42,7 +42,7 @@ namespace HiveSpace.Core.Filters
                 var errorDto = new ErrorCodeDto(
                     domainException.ErrorCode.Code,
                     domainException.ErrorCode.Name,
-                    ToCamelCase(domainException.Source)
+                    StringHelper.ToCamelCase(domainException.Source)
                 );
                 errorResponse.Errors = [errorDto];
                 errorResponse.Status = domainException.HttpCode.ToString();
@@ -64,15 +64,6 @@ namespace HiveSpace.Core.Filters
             {
                 StatusCode = int.Parse(errorResponse.Status),
             };
-        }
-
-        private static string? ToCamelCase(string? source)
-        {
-            if (string.IsNullOrEmpty(source))
-                return source;
-
-            // Use JsonNamingPolicy.CamelCase for consistent camelCase conversion
-            return JsonNamingPolicy.CamelCase.ConvertName(source);
         }
     }
 }

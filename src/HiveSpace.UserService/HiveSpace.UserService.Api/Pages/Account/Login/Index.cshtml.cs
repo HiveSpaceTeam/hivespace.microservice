@@ -164,24 +164,17 @@ public class Index : PageModel
                             }
                         }
 
-                        // Seller center: only Seller role (or users with StoreId set)
+                        // Seller center: deny access to Admin and SystemAdmin roles
                         if (string.Equals(clientId, "sellercenter", StringComparison.OrdinalIgnoreCase))
                         {
-                            var isSeller = await _userManager.IsInRoleAsync(user, "Seller");
-                            // Fallback: if your domain marks sellers with StoreId, check that too (safe reflection)
-                            var hasStore = false;
-                            var storeProp = user.GetType().GetProperty("StoreId");
-                            if (storeProp != null)
+                            var isSystemAdmin = await _userManager.IsInRoleAsync(user, "SystemAdmin");
+                            var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+                            if (isSystemAdmin || isAdmin)
                             {
-                                var val = storeProp.GetValue(user);
-                                hasStore = val != null;
-                            }
-                            if (!isSeller && !hasStore)
-                            {
-                                const string error = "not authorized for seller center";
+                                const string error = "admin not allowed in seller center";
                                 await _events.RaiseAsync(new UserLoginFailureEvent(Input.Email, error, clientId: context?.Client.ClientId));
                                 Telemetry.Metrics.UserLoginFailure(context?.Client.ClientId, IdentityServerConstants.LocalIdentityProvider, error);
-                                AddApiError("You are not authorized to sign in to the Seller Center.");
+                                AddApiError("Administrators are not allowed to sign in to the Seller Center.");
                                 await BuildModelAsync(Input.ReturnUrl);
                                 return Page();
                             }

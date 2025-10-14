@@ -4,6 +4,7 @@ using Duende.IdentityServer.Services;
 using Microsoft.AspNetCore.Identity;
 using HiveSpace.UserService.Domain.Repositories;
 using HiveSpace.UserService.Domain.Enums;
+using HiveSpace.Core.Helpers;
 
 namespace HiveSpace.UserService.Infrastructure.Identity;
 
@@ -56,7 +57,7 @@ public class CustomProfileService : IProfileService
         // These are the roles like "Admin", "SystemAdmin", and "Seller".
         if (!string.IsNullOrEmpty(user.RoleName))
         {
-            claims.Add(new Claim("role", user.RoleName));
+            claims.Add(new Claim("role", StringHelper.ToCamelCase(user.RoleName) ?? user.RoleName));
         }
         
         // 2. Check for the "Store Owner" business role from the domain layer.
@@ -66,14 +67,14 @@ public class CustomProfileService : IProfileService
             var store = await _storeRepository.GetByOwnerIdAsync(user.Id);
             if (store is not null)
             {
-                claims.Add(new Claim("role", "store_owner"));
-                claims.Add(new Claim("store_id", store.Id.ToString()));
-                claims.Add(new Claim("store_name", store.StoreName));
+                claims.Add(new Claim("role", "storeOwner"));
+                claims.Add(new Claim("storeId", store.Id.ToString()));
+                claims.Add(new Claim("storeName", store.StoreName));
             }
         }
         
         // 3. Add user status information
-        claims.Add(new Claim("user_status", user.Status.ToString()));
+        claims.Add(new Claim("userStatus", user.Status.ToString()));
         
         // 4. Add additional user information if available
         if (user.DateOfBirth.HasValue)

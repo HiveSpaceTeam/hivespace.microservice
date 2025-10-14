@@ -563,6 +563,7 @@ public async Task<ActionResult<GetUsersResponseDto>> GetUsers(
 6. **Follow naming**: Use consistent naming patterns (RequestDto, ResponseDto, Validator, Handler)
 7. **Async/Await**: Use async patterns throughout for I/O operations
 8. **Error handling**: Let domain exceptions bubble up, handle infrastructure exceptions appropriately
+9. **File Organization**: Each class/record should be in a separate file, unless explicitly specified to have multiple classes/records in the same file. For DTOs and validators, follow the naming convention: `{ActionName}{RequestDto|ResponseDto|Validator}` (e.g., `CreateAdminRequestDto`, `CreateAdminResponseDto`, `CreateAdminValidator`)
 
 ### Future: Simple Services with Vertical Slice
 

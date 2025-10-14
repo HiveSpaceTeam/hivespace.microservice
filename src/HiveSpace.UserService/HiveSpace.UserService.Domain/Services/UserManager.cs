@@ -196,7 +196,7 @@ public class UserManager : IDomainService
     /// <returns>The updated user</returns>
     /// <exception cref="NotFoundException">Thrown when either user is not found</exception>
     /// <exception cref="ForbiddenException">Thrown when the actor lacks privileges or when a non-system admin tries to assign system admin role</exception>
-    public async Task<User> SetUserRoleAsync(
+    public async Task<User> PromoteAdminRoleAsync(
         Guid targetUserId,
         Role newRole,
         Guid actorUserId,
@@ -206,7 +206,7 @@ public class UserManager : IDomainService
         bool requireSystemAdmin = newRole.Name == RoleNames.SystemAdmin;
         var actorUser = await ValidateAdminUserAsync(actorUserId, requireSystemAdmin, cancellationToken);
 
-        var targetUser = await _userRepository.GetByIdAsync(targetUserId) 
+        var targetUser = await _userRepository.GetByIdAsync(targetUserId)
             ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
 
         // Prevent regular admins from modifying SystemAdmin accounts

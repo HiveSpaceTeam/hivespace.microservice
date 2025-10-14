@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace HiveSpace.Infrastructure.Persistence.Interceptors;
 
-internal class DispatchDomainEventInterceptor : ISaveChangesInterceptor
+public class DispatchDomainEventInterceptor : ISaveChangesInterceptor
 {
     private readonly IPublisher _publisher;
 
