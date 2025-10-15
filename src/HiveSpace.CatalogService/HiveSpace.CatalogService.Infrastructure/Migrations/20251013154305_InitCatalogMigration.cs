@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace HiveSpace.CatalogService.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitCatalogMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -86,23 +86,36 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "CategoryAttributes",
+                columns: table => new
+                {
+                    AttributeId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CategoryId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CategoryAttributes", x => new { x.AttributeId, x.CategoryId });
+                    table.ForeignKey(
+                        name: "FK_CategoryAttributes_Categories_CategoryId",
+                        column: x => x.CategoryId,
+                        principalTable: "Categories",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ProductAttributes",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     AttributeId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Value = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ProductId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    ProductId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    FreeTextValue = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    SelectedValueIds = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ProductAttributes", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_ProductAttributes_Attributes_AttributeId",
-                        column: x => x.AttributeId,
-                        principalTable: "Attributes",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_ProductAttributes_Products_ProductId",
                         column: x => x.ProductId,
@@ -116,19 +129,11 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                 columns: table => new
                 {
                     ProductId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
                     CategoryId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ProductCategories", x => new { x.ProductId, x.Id });
-                    table.ForeignKey(
-                        name: "FK_ProductCategories_Categories_CategoryId",
-                        column: x => x.CategoryId,
-                        principalTable: "Categories",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                    table.PrimaryKey("PK_ProductCategories", x => new { x.CategoryId, x.ProductId });
                     table.ForeignKey(
                         name: "FK_ProductCategories_Products_ProductId",
                         column: x => x.ProductId,
@@ -163,7 +168,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ProductId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    ProductId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -204,15 +209,12 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                 columns: table => new
                 {
                     ProductVariantId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    VariantId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     OptionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Value = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ProductVariantOptions", x => new { x.ProductVariantId, x.Id });
+                    table.PrimaryKey("PK_ProductVariantOptions", x => new { x.OptionId, x.ProductVariantId });
                     table.ForeignKey(
                         name: "FK_ProductVariantOptions_ProductVariants_ProductVariantId",
                         column: x => x.ProductVariantId,
@@ -226,13 +228,11 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                 columns: table => new
                 {
                     SkuId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    FileId = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    FileId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SkuImages", x => new { x.SkuId, x.Id });
+                    table.PrimaryKey("PK_SkuImages", x => new { x.FileId, x.SkuId });
                     table.ForeignKey(
                         name: "FK_SkuImages_Skus_SkuId",
                         column: x => x.SkuId,
@@ -246,15 +246,13 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                 columns: table => new
                 {
                     SkuId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
                     VariantId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     OptionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Value = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SkuVariants", x => new { x.SkuId, x.Id });
+                    table.PrimaryKey("PK_SkuVariants", x => new { x.SkuId, x.VariantId, x.OptionId });
                     table.ForeignKey(
                         name: "FK_SkuVariants_Skus_SkuId",
                         column: x => x.SkuId,
@@ -269,9 +267,9 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                 column: "AttributeDefinitionId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ProductAttributes_AttributeId",
-                table: "ProductAttributes",
-                column: "AttributeId");
+                name: "IX_CategoryAttributes_CategoryId",
+                table: "CategoryAttributes",
+                column: "CategoryId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ProductAttributes_ProductId",
@@ -279,14 +277,24 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                 column: "ProductId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ProductCategories_CategoryId",
+                name: "IX_ProductCategories_ProductId",
                 table: "ProductCategories",
-                column: "CategoryId");
+                column: "ProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProductVariantOptions_ProductVariantId",
+                table: "ProductVariantOptions",
+                column: "ProductVariantId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ProductVariants_ProductId",
                 table: "ProductVariants",
                 column: "ProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SkuImages_SkuId",
+                table: "SkuImages",
+                column: "SkuId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Skus_ProductId",
@@ -299,6 +307,9 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
         {
             migrationBuilder.DropTable(
                 name: "AttributeValues");
+
+            migrationBuilder.DropTable(
+                name: "CategoryAttributes");
 
             migrationBuilder.DropTable(
                 name: "ProductAttributes");

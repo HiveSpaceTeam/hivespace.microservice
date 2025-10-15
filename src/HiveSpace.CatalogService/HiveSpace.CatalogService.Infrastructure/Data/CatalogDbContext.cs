@@ -28,22 +28,19 @@ namespace HiveSpace.CatalogService.Infrastructure.Data
             {
                 entity.ToTable("Products");
                 entity.HasKey(p => p.Id);
-                
+
                 // Configure owned types (ValueObjects)
                 entity.OwnsMany(p => p.Categories, pc =>
                 {
+                    pc.HasKey(x => new { x.CategoryId, x.ProductId });
                     pc.ToTable("ProductCategories");
-                    pc.WithOwner().HasForeignKey("ProductId");
-                    pc.Property<Guid>("ProductId");
-                    pc.Property<Guid>("CategoryId");
+                    pc.WithOwner().HasForeignKey(x => x.ProductId);
                 });
-                
+
                 entity.OwnsMany(p => p.Images, pi =>
                 {
                     pi.ToTable("ProductImages");
-                    pi.WithOwner().HasForeignKey("ProductId");
-                    pi.Property<Guid>("ProductId");
-                    pi.Property<string>("FileId");
+                    pi.WithOwner().HasForeignKey(x => x.ProductId);
                 });
             });
 
@@ -52,14 +49,14 @@ namespace HiveSpace.CatalogService.Infrastructure.Data
             {
                 entity.ToTable("Categories");
                 entity.HasKey(c => c.Id);
-                
+
                 // Configure owned type collection (ValueObjects)
                 entity.OwnsMany(c => c.CategoryAttributes, ca =>
                 {
+                    ca.HasKey(c => new { c.AttributeId, c.CategoryId });
                     ca.ToTable("CategoryAttributes");
-                    ca.WithOwner().HasForeignKey("CategoryId");
-                    ca.Property<Guid>("CategoryId");
-                    ca.Property<Guid>("AttributeId");
+                    ca.WithOwner().HasForeignKey(x => x.CategoryId);
+
                 });
             });
 
@@ -68,7 +65,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Data
             {
                 entity.ToTable("Attributes");
                 entity.HasKey(a => a.Id);
-                
+
                 // Configure owned type (ValueObject) with explicit column names
                 entity.OwnsOne(a => a.Type, at =>
                 {
@@ -89,7 +86,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Data
                     .WithMany(p => p.Skus)
                     .HasForeignKey(s => s.ProductId)
                     .OnDelete(DeleteBehavior.Cascade);
-                
+
                 // Configure owned type (ValueObject)
                 entity.OwnsOne(s => s.Price, p =>
                 {
@@ -97,24 +94,25 @@ namespace HiveSpace.CatalogService.Infrastructure.Data
                         .HasColumnType("decimal(18,2)");
                     p.Property(m => m.Currency);
                 });
-                
+
                 // Configure owned type collection (ValueObjects)
                 entity.OwnsMany(s => s.Images, si =>
                 {
+                    si.HasKey(x => new { x.FileId, x.SkuId });
                     si.ToTable("SkuImages");
-                    si.WithOwner().HasForeignKey("SkuId");
-                    si.Property<Guid>("SkuId");
-                    si.Property<string>("FileId");
+                    si.WithOwner().HasForeignKey(x => x.SkuId);
                 });
-                
+
                 entity.OwnsMany(s => s.SkuVariants, sv =>
                 {
                     sv.ToTable("SkuVariants");
-                    sv.WithOwner().HasForeignKey("SkuId");
-                    sv.Property<Guid>("SkuId");
-                    sv.Property<Guid>("VariantId");
-                    sv.Property<Guid>("OptionId");
-                    sv.Property<string>("Value");
+                    sv.WithOwner().HasForeignKey(x => x.SkuId);
+                    sv.HasKey(x => new { x.SkuId, x.VariantId, x.OptionId });
+                    // Establish FK from SkuVariant.VariantId to ProductVariant.Id
+                    sv.HasOne<ProductVariant>()
+                        .WithMany()
+                        .HasForeignKey(x => x.VariantId)
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
             });
 
@@ -150,21 +148,17 @@ namespace HiveSpace.CatalogService.Infrastructure.Data
             {
                 entity.ToTable("ProductVariants");
                 entity.HasKey(pv => pv.Id);
-                entity.Property<Guid>("ProductId");
                 entity.HasOne<Product>()
                     .WithMany(p => p.Variants)
                     .HasForeignKey("ProductId")
                     .OnDelete(DeleteBehavior.Cascade);
-                
+
                 // Configure owned type collection (ValueObjects)
                 entity.OwnsMany(pv => pv.Options, pvo =>
                 {
                     pvo.ToTable("ProductVariantOptions");
-                    pvo.WithOwner().HasForeignKey("ProductVariantId");
-                    pvo.Property<Guid>("ProductVariantId");
-                    pvo.Property<Guid>("VariantId");
-                    pvo.Property<Guid>("OptionId");
-                    pvo.Property<string>("Value");
+                    pvo.WithOwner().HasForeignKey(x => x.ProductVariantId);
+                    pvo.HasKey(x => new { x.OptionId, x.ProductVariantId });
                 });
             });
 

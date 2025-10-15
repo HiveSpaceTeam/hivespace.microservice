@@ -15,8 +15,9 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
             Name = string.Empty;
         }
 
-        public ProductVariant(string name, List<ProductVariantOption> options)
+        public ProductVariant(Guid id, string name, List<ProductVariantOption> options)
         {
+            Id = id;
             Name = name;
             _options = options;
         }

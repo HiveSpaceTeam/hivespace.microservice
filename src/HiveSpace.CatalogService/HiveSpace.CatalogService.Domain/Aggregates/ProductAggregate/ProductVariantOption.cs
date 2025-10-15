@@ -5,13 +5,13 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
 {
     public class ProductVariantOption : ValueObject
     {
-        public Guid VariantId { get; private set; }
+        public Guid ProductVariantId { get; private set; }
         public Guid OptionId { get; private set; }
         public string Value { get; private set; }
 
-        public ProductVariantOption(Guid variantId, Guid optionId, string value)
+        public ProductVariantOption(Guid productVariantId, Guid optionId, string value)
         {
-            VariantId = variantId;
+            ProductVariantId = productVariantId;
             OptionId = optionId;
             Value = value;
         }
@@ -19,7 +19,7 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
 
         protected override IEnumerable<object> GetEqualityComponents()
         {
-            yield return VariantId; 
+            yield return ProductVariantId; 
             yield return OptionId;
             yield return Value;
         }

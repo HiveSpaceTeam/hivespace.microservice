@@ -27,9 +27,9 @@ namespace HiveSpace.CatalogService.Application.Services
                 new ProductCategory(productId, request.Category)
             };
 
-            var variants = request.Variants?.Select(v =>
-                new ProductVariant(v.Name, v.Options?.Select(o => new ProductVariantOption(v.Id, o.OptionId, o.Value ?? string.Empty)).ToList() ?? new List<ProductVariantOption>())
-            ).ToList() ?? new List<ProductVariant>();
+			var variants = request.Variants?.Select(v =>
+				new ProductVariant(v.Id != Guid.Empty ? v.Id : Guid.NewGuid(), v.Name, v.Options?.Select(o => new ProductVariantOption(v.Id, o.OptionId, o.Value ?? string.Empty)).ToList() ?? new List<ProductVariantOption>())
+			).ToList() ?? new List<ProductVariant>();
 
             var skus = request.Skus?.Select(s =>
             {
@@ -110,9 +110,9 @@ namespace HiveSpace.CatalogService.Application.Services
             // Update variants
             if (request.Variants != null && request.Variants.Any())
             {
-                var variants = request.Variants.Select(v =>
-                    new ProductVariant(v.Name, v.Options?.Select(o => new ProductVariantOption(v.Id, o.OptionId, o.Value ?? string.Empty)).ToList() ?? new List<ProductVariantOption>())
-                ).ToList();
+				var variants = request.Variants.Select(v =>
+					new ProductVariant(v.Id != Guid.Empty ? v.Id : Guid.NewGuid(), v.Name, v.Options?.Select(o => new ProductVariantOption(v.Id, o.OptionId, o.Value ?? string.Empty)).ToList() ?? new List<ProductVariantOption>())
+				).ToList();
                 existing.UpdateVariants(variants);
             }
 
