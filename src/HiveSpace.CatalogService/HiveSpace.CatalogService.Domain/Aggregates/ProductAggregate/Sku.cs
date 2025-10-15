@@ -45,6 +45,18 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
             Price = price;
         }
 
+        public Sku(Guid id, string skuNo, Guid productId, List<SkuVariant> skuVariants, List<SkuImage> images, int quantity, bool isActive, Money price)
+        {
+            Id = id;
+            SkuNo = skuNo;
+            ProductId = productId;
+            _skuVariants = skuVariants;
+            _images = images;
+            Quantity = quantity;
+            IsActive = isActive;
+            Price = price;
+        }
+
 
 
         #endregion

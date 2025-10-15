@@ -33,10 +33,10 @@ namespace HiveSpace.CatalogService.Application.Services
 
             var skus = request.Skus?.Select(s =>
             {
-                var skuId = Guid.Empty;
+                var skuId = s.Id != Guid.Empty ? s.Id : Guid.NewGuid();
                 var money = s.Price;
                 var skuVariants = s.SkuVariants?.Select(sv => new SkuVariant(skuId, sv.VariantId, sv.OptionId, sv.Value ?? string.Empty)).ToList() ?? new List<SkuVariant>();
-                return new Sku(s.SkuNo ?? string.Empty, productId, skuVariants, new List<SkuImage>(), s.Quantity, true, money);
+                return new Sku(skuId, s.SkuNo ?? string.Empty, productId, skuVariants, new List<SkuImage>(), s.Quantity, true, money);
 
             }).ToList() ?? new List<Sku>();
 
@@ -124,7 +124,7 @@ namespace HiveSpace.CatalogService.Application.Services
                     var skuId = s.Id != Guid.Empty ? s.Id : Guid.NewGuid();
                     var money = s.Price;
                     var skuVariants = s.SkuVariants?.Select(sv => new SkuVariant(skuId, sv.VariantId, sv.OptionId, sv.Value ?? string.Empty)).ToList() ?? new List<SkuVariant>();
-                    return new Sku(s.SkuNo ?? string.Empty, id, skuVariants, new List<SkuImage>(), s.Quantity, true, money);
+                    return new Sku(skuId, s.SkuNo ?? string.Empty, id, skuVariants, new List<SkuImage>(), s.Quantity, true, money);
                 }).ToList();
                 existing.UpdateSkus(skus);
             }

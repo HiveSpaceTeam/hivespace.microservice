@@ -47,6 +47,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Repositories
         public async Task<Product?> GetDetailByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
             return await _context.Products
+                .AsNoTracking()
                 .Where(p => p.Id == id)
                 .Include(p => p.Categories)
                 .Include(p => p.Images)
