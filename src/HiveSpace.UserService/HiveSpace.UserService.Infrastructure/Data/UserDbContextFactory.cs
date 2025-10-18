@@ -25,7 +25,7 @@ public class UserDbContextFactory : IDesignTimeDbContextFactory<UserDbContext>
         }
 
         var optionsBuilder = new DbContextOptionsBuilder<UserDbContext>();
-        optionsBuilder.UseSqlServer(connectionString);
+        optionsBuilder.UseSqlServer(connectionString, b => b.MigrationsAssembly("HiveSpace.UserService.Api"));
 
         return new UserDbContext(optionsBuilder.Options);
     }

@@ -21,4 +21,8 @@ public class ApplicationUser : IdentityUser<Guid>
     
     // Navigation properties - using domain Address entity
     public virtual ICollection<Address> Addresses { get; set; } = new List<Address>();
+
+    // ISoftDeletable
+    public bool IsDeleted { get; set; }
+    public DateTimeOffset? DeletedAt { get; set; }
 }

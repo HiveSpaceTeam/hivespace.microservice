@@ -28,4 +28,8 @@ public class UserDomainErrorCode : DomainErrorCode
     public static readonly UserDomainErrorCode InsufficientPrivileges = new(24, "InsufficientPrivileges", "USR0024");
     public static readonly UserDomainErrorCode PasswordMismatch = new(27, "PasswordMismatch", "USR0027");
     public static readonly UserDomainErrorCode UserCreationFailed = new(28, "UserCreationFailed", "USR0028");
+    public static readonly UserDomainErrorCode UserAlreadyDeleted = new(29, "UserAlreadyDeleted", "USR0029");
+    public static readonly UserDomainErrorCode CannotDeleteOwnAccount = new(30, "CannotDeleteOwnAccount", "USR0030");
+    public static readonly UserDomainErrorCode CannotDeleteSystemAdmin = new(31, "CannotDeleteSystemAdmin", "USR0031");
+    public static readonly UserDomainErrorCode CannotDeleteAdminAccount = new(32, "CannotDeleteAdminAccount", "USR0032");
 }

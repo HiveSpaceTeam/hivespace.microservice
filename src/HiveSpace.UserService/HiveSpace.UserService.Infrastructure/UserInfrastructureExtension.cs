@@ -48,7 +48,7 @@ public static class UserInfrastructureExtension
         services.AddDbContext<UserDbContext>((serviceProvider, options) =>
         {
             var interceptors = serviceProvider.GetServices<ISaveChangesInterceptor>();
-            options.UseSqlServer(connectionString)
+            options.UseSqlServer(connectionString, b => b.MigrationsAssembly("HiveSpace.UserService.Api"))
                 .AddInterceptors(interceptors);
         });
 
