@@ -44,8 +44,8 @@ namespace HiveSpace.CatalogService.Application.Services
 
             var product = new Product(
                 productId,
-                request.Name ?? string.Empty,
-                request.Description ?? string.Empty,
+                request.Name,
+                request.Description,
                 ProductStatus.Available,
                 categories,
                 attributes,
@@ -54,7 +54,7 @@ namespace HiveSpace.CatalogService.Application.Services
                 variants,
                 DateTimeOffset.UtcNow,
                 null,
-                "system",
+                "",
                 null
             );
 
@@ -140,6 +140,16 @@ namespace HiveSpace.CatalogService.Application.Services
             existing.UpdateAuditInfo("system");
 
             await _productRepository.UpdateAsync(existing, cancellationToken);
+            return true;
+        }
+
+        public async Task<bool> DeleteProductAsync(Guid id, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var product = await _productRepository.GetByIdAsync(id, cancellationToken);
+            if (product == null) return false;
+
+            await _productRepository.DeleteAsync(product, cancellationToken);
             return true;
         }
     }

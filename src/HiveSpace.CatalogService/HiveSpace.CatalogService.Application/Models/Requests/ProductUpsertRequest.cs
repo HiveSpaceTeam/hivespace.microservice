@@ -4,9 +4,9 @@ namespace HiveSpace.CatalogService.Application.Models.Requests;
 
 public class ProductUpsertRequest
 {
-	public string? Name { get; set; }
+	public string Name { get; set; }
 	public Guid Category { get; set; }
-	public string? Description { get; set; }
+	public string Description { get; set; }
 	public List<ProductVariantRequest>? Variants { get; set; }
 	public List<ProductSkuRequest>? Skus { get; set; }
 	public List<ProductAttributeRequest>? Attributes { get; set; }

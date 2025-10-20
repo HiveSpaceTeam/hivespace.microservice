@@ -51,4 +51,14 @@ public class ProductsController : ControllerBase
         if (product == null) return NotFound();
         return Ok(product);
     }
+
+    [HttpDelete("{id}")]
+    [ProducesResponseType((int)HttpStatusCode.NoContent)]
+    [ProducesResponseType((int)HttpStatusCode.NotFound)]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    {
+        var deleted = await _service.DeleteProductAsync(id, cancellationToken);
+        if (!deleted) return NotFound();
+        return NoContent();
+    }
 }
