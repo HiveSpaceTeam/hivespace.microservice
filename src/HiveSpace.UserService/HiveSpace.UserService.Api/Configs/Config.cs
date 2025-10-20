@@ -40,11 +40,6 @@ public static class Config
                 Scopes = { "catalog.fullaccess" },
                 UserClaims = { "sub", "name", "email" }
             },
-            new ApiResource("hivespace-backend", "HiveSpace Backend API")
-            {
-                Scopes = { "hivespace-backend.fullaccess" },
-                UserClaims = { "sub", "name", "email", "phone_number" }
-            }
         ];
 
     public static IEnumerable<Client> GetClients(IConfiguration configuration)
@@ -212,6 +207,7 @@ public static class Config
 
             clients.Add(webUiClient);
         }
+
         return clients;
     }
 }

@@ -21,16 +21,26 @@ public class SeedData
         using (var scope = app.Services.GetRequiredService<IServiceScopeFactory>().CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<UserDbContext>();
-            context.Database.Migrate();
+            
+            // Check for pending migrations before applying them
+            var pendingMigrations = context.Database.GetPendingMigrations();
+            if (pendingMigrations.Any())
+            {
+                Log.Information("Found {Count} pending migrations: {Migrations}", 
+                    pendingMigrations.Count(), 
+                    string.Join(", ", pendingMigrations));
+                
+                Log.Information("Applying pending migrations...");
+                context.Database.Migrate();
+                Log.Information("Migrations applied successfully");
+            }
+            else
+            {
+                Log.Information("No pending migrations found. Database is up to date.");
+            }
 
             var userMgr = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-            var roleMgr = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
             var storeManager = scope.ServiceProvider.GetRequiredService<StoreManager>();
-
-            // Create roles if they don't exist
-            EnsureRole(roleMgr, "SystemAdmin");
-            EnsureRole(roleMgr, "Admin");
-            EnsureRole(roleMgr, "Seller");
 
             // Seed Alice
             var alice = userMgr.FindByNameAsync("alice").Result;
@@ -40,7 +50,7 @@ public class SeedData
                 {
                     UserName = "alice",
                     Email = "AliceSmith@example.com",
-                    EmailConfirmed = true,
+                    EmailConfirmed = false,
                     FullName = "Alice Smith",
                     PhoneNumber = "+1234567890",
                     DateOfBirth = new DateTime(1990, 1, 15),
@@ -106,7 +116,7 @@ public class SeedData
                 {
                     UserName = "bob",
                     Email = "BobSmith@example.com",
-                    EmailConfirmed = true,
+                    EmailConfirmed = false,
                     FullName = "Bob Smith",
                     PhoneNumber = "+0987654321",
                     DateOfBirth = new DateTime(1985, 6, 20),
@@ -291,7 +301,7 @@ public class SeedData
                 {
                     UserName = "seller",
                     Email = "seller@example.com",
-                    EmailConfirmed = true,
+                    EmailConfirmed = false,
                     FullName = "John Seller",
                     PhoneNumber = "+3333333333",
                     DateOfBirth = new DateTime(1988, 12, 5),
@@ -386,22 +396,6 @@ public class SeedData
             {
                 Log.Debug("seller already exists");
             }
-        }
-    }
-
-    private static void EnsureRole(RoleManager<IdentityRole<Guid>> roleMgr, string roleName)
-    {
-        var role = roleMgr.FindByNameAsync(roleName).Result;
-        if (role == null)
-        {
-            role = new IdentityRole<Guid>(roleName);
-            var result = roleMgr.CreateAsync(role).Result;
-            if (!result.Succeeded)
-            {
-                Log.Error("Failed to create role {RoleName}: {Error}", roleName, result.Errors.First().Description);
-                throw new Exception(result.Errors.First().Description);
-            }
-            Log.Debug("Role {RoleName} created", roleName);
         }
     }
 }

@@ -1,5 +1,6 @@
 using HiveSpace.Core;
 using HiveSpace.Core.Helpers;
+using HiveSpace.Infrastructure.Authorization;
 using HiveSpace.UserService.Application.Interfaces.Services;
 using HiveSpace.UserService.Application.Models.Requests.Store;
 using HiveSpace.UserService.Application.Models.Responses.Store;
@@ -22,7 +23,7 @@ public class StoreController : ControllerBase
     }
     
     [HttpPost]
-    [Authorize(Policy = "RequireUserFullAccessScope")]
+    [RequireUser]
     public async Task<ActionResult<CreateStoreResponseDto>> CreateStore(
         [FromBody] CreateStoreRequestDto request,
         CancellationToken cancellationToken)

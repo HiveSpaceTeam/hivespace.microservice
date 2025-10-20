@@ -14,6 +14,7 @@ public class User : AggregateRoot<Guid>, IAuditable
     public string PasswordHash { get; private set; }
     public UserStatus Status { get; private set; }
     public Role? Role { get; private set; }
+    public bool EmailConfirmed { get; private set; }
     
     // Store relationship
     public Guid? StoreId { get; private set; }
@@ -42,11 +43,12 @@ public class User : AggregateRoot<Guid>, IAuditable
         PasswordHash = null!;
         FullName = string.Empty;
         Role = null!;
+        EmailConfirmed = false;
     }
 
     internal User(Email email, string userName, string passwordHash, string fullName, Role? role = null, 
         PhoneNumber? phoneNumber = null, DateOfBirth? dateOfBirth = null, Gender? gender = null, 
-        Guid? storeId = null, UserStatus status = UserStatus.Active, 
+        Guid? storeId = null, UserStatus status = UserStatus.Active, bool emailConfirmed = false,
         DateTimeOffset? createdAt = null, DateTimeOffset? updatedAt = null, DateTimeOffset? lastLoginAt = null)
     {
         _addresses = new List<Address>();
@@ -60,6 +62,7 @@ public class User : AggregateRoot<Guid>, IAuditable
         PhoneNumber = phoneNumber;
         DateOfBirth = dateOfBirth;
         Gender = gender;
+        EmailConfirmed = emailConfirmed;
         CreatedAt = createdAt ?? DateTimeOffset.UtcNow;
         UpdatedAt = updatedAt;
         LastLoginAt = lastLoginAt;
@@ -80,12 +83,13 @@ public class User : AggregateRoot<Guid>, IAuditable
         Gender? gender,
         Guid? storeId,
         UserStatus status,
+        bool emailConfirmed,
         DateTimeOffset createdAt,
         DateTimeOffset? updatedAt,
         DateTimeOffset? lastLoginAt,
         IEnumerable<Address>? addresses = null)
     {
-        var user = new User(email, userName, passwordHash, fullName, role, phoneNumber, dateOfBirth, gender, storeId, status, createdAt, updatedAt, lastLoginAt);
+        var user = new User(email, userName, passwordHash, fullName, role, phoneNumber, dateOfBirth, gender, storeId, status, emailConfirmed, createdAt, updatedAt, lastLoginAt);
         user.Id = id; // protected setter available within the assembly
 
         if (addresses != null)
@@ -105,8 +109,12 @@ public class User : AggregateRoot<Guid>, IAuditable
         DateTimeOffset? createdAt = null, DateTimeOffset? updatedAt = null, DateTimeOffset? lastLoginAt = null)
     {
         ValidateAndThrow(email, userName, passwordHash, fullName);
+        
+        // Business rule: Admin and SystemAdmin users should have EmailConfirmed = true, others = false
+        var emailConfirmed = role?.Name == Role.RoleNames.Admin || role?.Name == Role.RoleNames.SystemAdmin;
+        
         return new User(email, userName, passwordHash, fullName, role, phoneNumber, dateOfBirth, gender, 
-            storeId, status, createdAt, updatedAt, lastLoginAt);
+            storeId, status, emailConfirmed, createdAt, updatedAt, lastLoginAt);
     }
     
     private static void ValidateAndThrow(Email? email, string? userName, string? passwordHash, string? fullName)
@@ -228,6 +236,11 @@ public class User : AggregateRoot<Guid>, IAuditable
     public void UpdateLastLogin()
     {
         LastLoginAt = DateTimeOffset.UtcNow;
+    }
+    
+    public void ConfirmEmail()
+    {
+        EmailConfirmed = true;
     }
 
     internal void SetRole(Role role)
