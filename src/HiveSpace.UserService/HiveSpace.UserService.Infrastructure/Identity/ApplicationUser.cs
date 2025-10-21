@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Identity;
 using HiveSpace.UserService.Domain.Aggregates.User;
 using HiveSpace.UserService.Domain.Enums;
+using HiveSpace.Domain.Shared.Interfaces;
 
 namespace HiveSpace.UserService.Infrastructure.Identity;
 
-public class ApplicationUser : IdentityUser<Guid>
+public class ApplicationUser : IdentityUser<Guid>, ISoftDeletable
 {
     // Additional fields from User domain entity that are not in IdentityUser
     public string FullName { get; set; } = string.Empty;

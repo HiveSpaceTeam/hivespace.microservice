@@ -130,6 +130,8 @@ public class UnifiedUserDataQuery : IUnifiedUserDataQuery
             conditions.Add("u.Email LIKE @SearchTerm");
         }
 
+        conditions.Add("u.IsDeleted = 0");
+
         return conditions.Count > 0 ? $"AND {string.Join(" AND ", conditions)}" : string.Empty;
     }
 
