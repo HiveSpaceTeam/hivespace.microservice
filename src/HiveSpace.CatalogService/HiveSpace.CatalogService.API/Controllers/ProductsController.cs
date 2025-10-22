@@ -3,6 +3,7 @@ using HiveSpace.CatalogService.Application.Models.Dtos.Request.Product;
 using HiveSpace.CatalogService.Application.Models.Requests;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
+using System.Threading.Channels;
 
 namespace HiveSpace.CatalogService.API.Controllers;
 

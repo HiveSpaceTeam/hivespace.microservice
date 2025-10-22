@@ -2,6 +2,7 @@
 using HiveSpace.CatalogService.Domain.Common.Enums;
 using HiveSpace.CatalogService.Domain.Exceptions;
 using HiveSpace.Domain.Shared.Entities;
+using HiveSpace.Domain.Shared.Exceptions;
 using System.Text.Json.Serialization;
 
 namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
@@ -38,8 +39,8 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
         {
             SkuNo = skuNo;
             ProductId = productId;
-            _skuVariants = skuVariants;
-            _images = images;
+            _skuVariants = new List<SkuVariant>(skuVariants);
+            _images = new List<SkuImage>(images);
             Quantity = quantity;
             IsActive = isActive;
             Price = price;
@@ -50,8 +51,8 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
             Id = id;
             SkuNo = skuNo;
             ProductId = productId;
-            _skuVariants = skuVariants;
-            _images = images;
+            _skuVariants = new List<SkuVariant>(skuVariants);
+            _images = new List<SkuImage>(images);
             Quantity = quantity;
             IsActive = isActive;
             Price = price;
@@ -64,11 +65,10 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
         #region Methods
         public void UpdateQuantity(int quantity)
         {
+            if (quantity < 0) { 
+                throw new InvalidQuantityException();
+            }
             Quantity = quantity;
-        }
-        private bool IsInvalid()
-        {
-            return Quantity < 0;
         }
         #endregion
     }

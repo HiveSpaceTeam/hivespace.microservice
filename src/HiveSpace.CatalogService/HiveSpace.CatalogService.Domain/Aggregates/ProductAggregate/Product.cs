@@ -82,11 +82,7 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
 
 
         #region Methods
-        private bool IsInvalid()
-        {
-            return _attributes is not null && _attributes.Count > 0 || _categories is not null && _categories.Count > 0;
-        }
-
+     
         public void UpdateName(string name)
         {
             Name = name;

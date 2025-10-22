@@ -22,7 +22,7 @@ public class ProductVariantRequest
 public class ProductVariantOptionRequest
 {
 	public Guid OptionId { get; set; }
-	public string? Value { get; set; }
+	public string Value { get; set; }
 }
 
 public class ProductSkuRequest
@@ -31,14 +31,14 @@ public class ProductSkuRequest
 	public List<ProductSkuVariantRequest>? SkuVariants { get; set; }
 	public Money Price { get; set; }
 	public int Quantity { get; set; }
-	public string? SkuNo { get; set; }
+	public string SkuNo { get; set; }
 }
 
 public class ProductSkuVariantRequest
 {
 	public Guid VariantId { get; set; }
 	public Guid OptionId { get; set; }
-	public string? Value { get; set; }
+	public string Value { get; set; }
 }
 
 public class ProductAttributeRequest

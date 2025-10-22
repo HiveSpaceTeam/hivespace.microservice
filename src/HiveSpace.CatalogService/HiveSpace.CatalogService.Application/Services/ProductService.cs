@@ -27,9 +27,12 @@ namespace HiveSpace.CatalogService.Application.Services
                 new ProductCategory(productId, request.Category)
             };
 
-			var variants = request.Variants?.Select(v =>
-				new ProductVariant(v.Id != Guid.Empty ? v.Id : Guid.NewGuid(), v.Name, v.Options?.Select(o => new ProductVariantOption(v.Id, o.OptionId, o.Value ?? string.Empty)).ToList() ?? new List<ProductVariantOption>())
-			).ToList() ?? new List<ProductVariant>();
+            var variants = request.Variants?.Select(v =>
+            {
+                var variantId = v.Id != Guid.Empty ? v.Id : Guid.NewGuid();
+                var options = v.Options?.Select(o => new ProductVariantOption(variantId, o.OptionId, o.Value ?? string.Empty)).ToList() ?? new List<ProductVariantOption>();
+                return new ProductVariant(variantId, v.Name, options);
+            }).ToList() ?? new List<ProductVariant>();
 
             var skus = request.Skus?.Select(s =>
             {
@@ -54,7 +57,7 @@ namespace HiveSpace.CatalogService.Application.Services
                 variants,
                 DateTimeOffset.UtcNow,
                 null,
-                "",
+                null,
                 null
             );
 
@@ -110,9 +113,12 @@ namespace HiveSpace.CatalogService.Application.Services
             // Update variants
             if (request.Variants != null && request.Variants.Any())
             {
-				var variants = request.Variants.Select(v =>
-					new ProductVariant(v.Id != Guid.Empty ? v.Id : Guid.NewGuid(), v.Name, v.Options?.Select(o => new ProductVariantOption(v.Id, o.OptionId, o.Value ?? string.Empty)).ToList() ?? new List<ProductVariantOption>())
-				).ToList();
+                var variants = request.Variants.Select(v =>
+                {
+                    var variantId = v.Id != Guid.Empty ? v.Id : Guid.NewGuid();
+                    var options = v.Options?.Select(o => new ProductVariantOption(variantId, o.OptionId, o.Value ?? string.Empty)).ToList() ?? new List<ProductVariantOption>();
+                    return new ProductVariant(variantId, v.Name, options);
+                }).ToList();
                 existing.UpdateVariants(variants);
             }
 
@@ -136,8 +142,6 @@ namespace HiveSpace.CatalogService.Application.Services
                 existing.UpdateAttributes(attributes);
             }
 
-            // Update audit information
-            existing.UpdateAuditInfo("system");
 
             await _productRepository.UpdateAsync(existing, cancellationToken);
             return true;
