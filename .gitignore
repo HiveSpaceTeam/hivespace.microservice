@@ -27,3 +27,12 @@ test/**/bin/
 /preview
 .idx
 docker
+
+# Security - JWT Signing Keys and Certificates
+**/keys/
+**/keys/*.json
+*.pem
+*.key
+*.crt
+*.pfx
+*.p12

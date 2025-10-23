@@ -6,7 +6,7 @@ using System.Data;
 
 namespace HiveSpace.CatalogService.Infrastructure.Queries
 {
-    public class QueryService(CatalogDbContext dbContext) : IQueryService
+    public class CategoryDataQuery(CatalogDbContext dbContext) : ICategoryDataQuery
     {
         private readonly CatalogDbContext _dbContext = dbContext;
 

@@ -6,8 +6,8 @@ namespace HiveSpace.CatalogService.Application.Services
 {
     public class CategoryService : ICategoryService
     {
-        private readonly IQueryService _queryService;
-        public CategoryService(IQueryService queryService)
+        private readonly ICategoryDataQuery _queryService;
+        public CategoryService(ICategoryDataQuery queryService)
         {
             _queryService = queryService;
         }

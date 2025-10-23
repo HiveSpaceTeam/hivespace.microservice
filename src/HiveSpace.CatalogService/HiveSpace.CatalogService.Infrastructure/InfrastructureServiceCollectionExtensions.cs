@@ -35,7 +35,7 @@ namespace HiveSpace.CatalogService.Infrastructure
             services.AddScoped<IProductRepository, ProductRepository>();
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IAttributeRepository, AttributeRepository>();
-            services.AddScoped<IQueryService, QueryService>();
+            services.AddScoped<ICategoryDataQuery, CategoryDataQuery>();
         }
 
     }

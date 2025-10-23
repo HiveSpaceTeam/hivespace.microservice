@@ -17,7 +17,7 @@ namespace HiveSpace.CatalogService.Application.Services
             _productRepository = productRepository;
         }
 
-        public async Task<Guid> SaveProductAsync(ProductUpsertRequest request, CancellationToken cancellationToken = default)
+        public async Task<Guid> SaveProductAsync(ProductUpsertRequestDto request, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var productId = Guid.NewGuid();
@@ -83,7 +83,7 @@ namespace HiveSpace.CatalogService.Application.Services
             return product;
         }
 
-        public async Task<bool> UpdateProductAsync(Guid id, ProductUpsertRequest request, CancellationToken cancellationToken = default)
+        public async Task<bool> UpdateProductAsync(Guid id, ProductUpsertRequestDto request, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var existing = await _productRepository.GetDetailByIdAsync(id, cancellationToken);

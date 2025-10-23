@@ -6,9 +6,9 @@ using HiveSpace.CatalogService.Application.Models.Dtos.Request.Product;
 
 public interface IProductService
 {
-	Task<Guid> SaveProductAsync(ProductUpsertRequest request, CancellationToken cancellationToken = default);
+	Task<Guid> SaveProductAsync(ProductUpsertRequestDto request, CancellationToken cancellationToken = default);
     Task<PagingData> GetProductsAsync(ProductSearchRequestDto request, CancellationToken cancellationToken = default);
     Task<object?> GetProductDetailAsync(Guid id, CancellationToken cancellationToken = default);
-    Task<bool> UpdateProductAsync(Guid id, ProductUpsertRequest request, CancellationToken cancellationToken = default);
+    Task<bool> UpdateProductAsync(Guid id, ProductUpsertRequestDto request, CancellationToken cancellationToken = default);
     Task<bool> DeleteProductAsync(Guid id, CancellationToken cancellationToken = default);
 }

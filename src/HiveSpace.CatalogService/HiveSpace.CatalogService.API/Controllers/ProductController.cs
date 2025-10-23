@@ -7,19 +7,19 @@ using System.Threading.Channels;
 
 namespace HiveSpace.CatalogService.API.Controllers;
 
-[Route("api/v1/[controller]")]
+[Route("api/v1/products")]
 [ApiController]
-public class ProductsController : ControllerBase
+public class ProductController : ControllerBase
 {
     private readonly IProductService _service;
-    public ProductsController(IProductService service) 
+    public ProductController(IProductService service) 
     {
         _service = service;
     }
 
     [HttpPost]
     [ProducesResponseType(typeof(Guid), (int)HttpStatusCode.Created)]
-    public async Task<IActionResult> Create([FromBody] ProductUpsertRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Create([FromBody] ProductUpsertRequestDto request, CancellationToken cancellationToken)
     {
         var id = await _service.SaveProductAsync(request, cancellationToken);
         return StatusCode((int)HttpStatusCode.Created, id);
@@ -28,7 +28,7 @@ public class ProductsController : ControllerBase
     [HttpPut("{id}")]
     [ProducesResponseType((int)HttpStatusCode.NoContent)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public async Task<IActionResult> Update(Guid id, [FromBody] ProductUpsertRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Update(Guid id, [FromBody] ProductUpsertRequestDto request, CancellationToken cancellationToken)
     {
         var updated = await _service.UpdateProductAsync(id, request, cancellationToken);
         if (!updated) return NotFound();
