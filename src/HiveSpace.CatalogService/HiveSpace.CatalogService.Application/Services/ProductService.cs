@@ -76,7 +76,7 @@ namespace HiveSpace.CatalogService.Application.Services
             };
         }
 
-        public async Task<object?> GetProductDetailAsync(Guid id, CancellationToken cancellationToken = default)
+        public async Task<Product?> GetProductDetailAsync(Guid id, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var product = await _productRepository.GetDetailByIdAsync(id, cancellationToken);
