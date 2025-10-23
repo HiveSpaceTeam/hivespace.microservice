@@ -14,22 +14,19 @@ public class StoreEntityConfiguration : IEntityTypeConfiguration<Store>
             .HasMaxLength(100)
             .IsRequired();
 
-        builder.Property(s => s.StoreDescription)
+        builder.Property(s => s.Description)
             .HasMaxLength(500);
 
         builder.Property(s => s.LogoUrl)
-            .HasMaxLength(500);
+            .HasMaxLength(500)
+            .IsRequired();
+
+        builder.Property(s => s.Address)
+            .HasMaxLength(500)
+            .IsRequired();  
 
         builder.Property(s => s.OwnerId)
             .IsRequired();
-
-        // Phone number owned type configuration
-        builder.OwnsOne(s => s.ContactPhone, phoneBuilder =>
-        {
-            phoneBuilder.Property(p => p.Value)
-                .HasColumnName("ContactPhone")
-                .HasMaxLength(20);
-        });
 
         builder.Property(s => s.Status)
             .HasConversion<string>()

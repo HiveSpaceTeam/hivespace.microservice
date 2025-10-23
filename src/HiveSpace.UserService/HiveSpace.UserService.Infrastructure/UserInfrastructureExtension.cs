@@ -31,6 +31,7 @@ public static class UserInfrastructureExtension
         // Register interceptors manually
         services.AddScoped<ISaveChangesInterceptor, AuditableInterceptor>();
         services.AddScoped<ISaveChangesInterceptor, SoftDeleteInterceptor>();
+        services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventInterceptor>();
 
         // Add persistence infrastructure to register other services
         services.AddPersistenceInfrastructure<UserDbContext>();
@@ -65,7 +66,6 @@ public static class UserInfrastructureExtension
     public static void AddUserServiceQueries(this IServiceCollection services, string connectionString)
     {
         // Register Dapper Query services with connection string
-        services.AddScoped<IUserDataQuery>(provider => new UserDataQuery(connectionString));
-        services.AddScoped<IAdminDataQuery>(provider => new AdminDataQuery(connectionString));
+        services.AddScoped<IUnifiedUserDataQuery>(provider => new UnifiedUserDataQuery(connectionString));
     }
 }

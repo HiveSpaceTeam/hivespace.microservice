@@ -308,15 +308,14 @@ public class SeedData
                     throw new Exception(sellerResult.Errors.First().Description);
                 }
 
-                // Create a store for the seller using StoreManager domain service
-                var phoneNumber = new PhoneNumber("+3333333333");
                 try
                 {
                     var sampleStore = storeManager.RegisterStoreAsync(
                         name: "John's Electronics Store",
                         description: "Quality electronics and gadgets",
-                        ownerId: seller.Id,
-                        phoneNumber: phoneNumber
+                        logoUrl: "http://example.com/logos/johns-electronics.png",
+                        storeAddress: "555 Commerce Street, Market District, Florida, USA, 33101",
+                        ownerId: seller.Id
                     ).Result;
                     
                     // Set the store ID on the seller

@@ -2,14 +2,13 @@ using Duende.IdentityServer;
 using HiveSpace.Core.Contexts;
 using HiveSpace.Core.Filters;
 using HiveSpace.UserService.Api.Configs;
+using HiveSpace.UserService.Application;
 using HiveSpace.UserService.Infrastructure.Identity;
 using HiveSpace.UserService.Domain.Services;
 using HiveSpace.UserService.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Http;
 using HiveSpace.UserService.Application.Services;
-using HiveSpace.UserService.Application.Interfaces;
+using HiveSpace.UserService.Application.Interfaces.Services;
 
 namespace HiveSpace.UserService.Api.Extensions;
 
@@ -55,8 +54,13 @@ internal static class ServiceCollectionExtensions
 
     public static void AddAppApplicationServices(this IServiceCollection services)
     {
+        // Add MediatR and register handlers
+        services.AddApplication();
+
+        // Register application services
         services.AddScoped<IUserContext, UserContext>();
         services.AddScoped<IAdminService, AdminService>();
+        services.AddScoped<IStoreService, StoreService>();
     }
 
     public static void AddAppDomainServices(this IServiceCollection services)

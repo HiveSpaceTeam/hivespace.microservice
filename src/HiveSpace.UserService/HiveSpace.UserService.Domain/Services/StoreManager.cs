@@ -2,6 +2,7 @@ using HiveSpace.Domain.Shared.Interfaces;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.UserService.Domain.Aggregates.Store;
 using HiveSpace.UserService.Domain.Aggregates.User;
+using HiveSpace.UserService.Domain.DomainEvents;
 using HiveSpace.UserService.Domain.Enums;
 using HiveSpace.UserService.Domain.Exceptions;
 using HiveSpace.UserService.Domain.Repositories;
@@ -42,9 +43,10 @@ public class StoreManager : IDomainService
 
     public async Task<Store> RegisterStoreAsync(
         string name,
-        string description,
+        string? description,
+        string logoUrl,
+        string storeAddress,
         Guid ownerId,
-        PhoneNumber phoneNumber,
         CancellationToken cancellationToken = default)
     {
         // Validate owner exists and is active
@@ -63,7 +65,10 @@ public class StoreManager : IDomainService
             throw new InvalidStoreInformationException();
         
         // Create new store using internal factory method (includes validation)
-        var store = Store.Create(name, description, phoneNumber, ownerId);
+        var store = Store.Create(name, description, logoUrl, storeAddress, ownerId);
+        
+        // Raise domain event for store creation
+        store.AddDomainEvent(new StoreCreatedDomainEvent(store.Id, ownerId));
         
         return store;
     }

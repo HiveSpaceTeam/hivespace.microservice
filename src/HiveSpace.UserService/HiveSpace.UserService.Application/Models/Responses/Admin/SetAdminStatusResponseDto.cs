@@ -1,10 +1,10 @@
 namespace HiveSpace.UserService.Application.Models.Responses.Admin;
 
 /// <summary>
-/// Response DTO for user status update operations
-/// Extends the base response with user-specific properties
+/// Response DTO for admin status update operations
+/// Extends the base response with admin-specific properties
 /// </summary>
-public record SetUserStatusResponseDto(
+public record SetAdminStatusResponseDto(
     Guid Id,
     string Username,
     string FullName,
@@ -14,6 +14,6 @@ public record SetUserStatusResponseDto(
     DateTimeOffset? UpdatedAt,
     DateTimeOffset? LastLoginAt,
     string? AvatarUrl,
-    // User-specific properties
-    bool IsSeller
+    // Admin-specific properties
+    bool IsSystemAdmin
 ) : SetStatusResponseDto(Id, Username, FullName, Email, Status, CreatedAt, UpdatedAt, LastLoginAt, AvatarUrl);
