@@ -34,11 +34,14 @@ Add the package reference to your service project:
 // In Program.cs or ServiceCollectionExtensions.cs
 using HiveSpace.Infrastructure.Authorization.Extensions;
 
-// For services with JWT Bearer tokens
+// For JWT consumer services (Order, Catalog, Basket, etc.)
 services.AddHiveSpaceAuthorization("order.fullaccess");
 
-// For the User Service (which hosts IdentityServer)
-services.AddHiveSpaceAuthorization("user.fullaccess", useLocalApi: true);
+// For IdentityServer host service (User Service) - LocalApi only
+services.AddHiveSpaceAuthorizationForLocalApi("user.fullaccess");
+
+// For hybrid services (if needed) - both JWT Bearer and LocalApi
+services.AddHiveSpaceAuthorization("hybrid.fullaccess", useLocalApi: true, useJwtBearer: true);
 ```
 
 ### 2. Use Authorization Attributes

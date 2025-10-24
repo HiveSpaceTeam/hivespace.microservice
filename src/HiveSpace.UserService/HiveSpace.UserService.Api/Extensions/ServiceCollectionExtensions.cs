@@ -196,8 +196,8 @@ internal static class ServiceCollectionExtensions
 
     public static void AddAppAuthorization(this IServiceCollection services)
     {
-        // Use shared HiveSpace authorization with user.fullaccess scope and LocalApi support
-        services.AddHiveSpaceAuthorization("user.fullaccess", useLocalApi: true);
+        // Use shared HiveSpace authorization with LocalApi only (User Service hosts IdentityServer)
+        services.AddHiveSpaceAuthorizationForLocalApi("user.fullaccess");
     }
 
     public static void AddAppApiVersioning(this IServiceCollection services)

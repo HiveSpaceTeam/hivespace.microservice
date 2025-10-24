@@ -58,7 +58,7 @@ internal static class HostingExtensions
         app.UseAuthorization();
 
         // Map all controllers under /user prefix using built-in .NET support
-        app.MapGroup("/user").MapControllers();
+        app.MapControllers();
         
         app.MapRazorPages().RequireAuthorization();
 

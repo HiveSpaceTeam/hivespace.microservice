@@ -85,14 +85,14 @@ public async Task<IActionResult> GetProfile() { ... }
 
 ## Available Authorization Attributes
 
-| Attribute              | Required Roles                                 | Use Case                                         |
-| ---------------------- | ---------------------------------------------- | ------------------------------------------------ |
-| `[RequireSystemAdmin]` | SystemAdmin only                               | System-wide operations, critical admin functions |
-| `[RequireAdmin]`       | Admin + SystemAdmin                            | Administrative operations                        |
-| `[RequireSeller]`      | Seller + Admin + SystemAdmin                   | Seller-specific operations                       |
-| `[RequireCustomer]`    | Customer + Admin + SystemAdmin                 | Customer-specific operations                     |
-| `[RequireUser]`        | All authenticated users                        | General user operations                          |
-| `[RequireAdminOrUser]` | Admin + SystemAdmin (excludes Seller/Customer) | Admin and system functions                       |
+| Attribute              | Required Roles                                                    | Use Case                                         |
+| ---------------------- | ----------------------------------------------------------------- | ------------------------------------------------ |
+| `[RequireSystemAdmin]` | SystemAdmin only                                                  | System-wide operations, critical admin functions |
+| `[RequireAdmin]`       | Admin + SystemAdmin                                               | Administrative operations                        |
+| `[RequireSeller]`      | Seller + Admin + SystemAdmin                                      | Seller-specific operations                       |
+| `[RequireCustomer]`    | Customer + Admin + SystemAdmin                                    | Customer-specific operations                     |
+| `[RequireUser]`        | All authenticated users                                           | General user operations                          |
+| `[RequireAdminOrUser]` | All authenticated users (Admin + SystemAdmin + Seller + Customer) | General authenticated access                     |
 
 ## Service-Specific Examples
 

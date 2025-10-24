@@ -15,14 +15,27 @@ public static class AuthorizationServiceCollectionExtensions
     /// <param name="services">Service collection</param>
     /// <param name="serviceScope">The expected scope for this service (e.g., "user.fullaccess", "order.fullaccess")</param>
     /// <param name="useLocalApi">Whether to include LocalApi authentication scheme (for services that host IdentityServer)</param>
-    public static void AddHiveSpaceAuthorization(this IServiceCollection services, string serviceScope, bool useLocalApi = false)
+    /// <param name="useJwtBearer">Whether to include JWT Bearer authentication scheme (for services that consume JWT tokens)</param>
+    public static void AddHiveSpaceAuthorization(this IServiceCollection services, string serviceScope, bool useLocalApi = false, bool useJwtBearer = true)
     {
         services.AddAuthorization(options =>
         {
-            var authSchemes = new List<string> { "Bearer" };
+            var authSchemes = new List<string>();
+            
+            if (useJwtBearer)
+            {
+                authSchemes.Add("Bearer");
+            }
+            
             if (useLocalApi)
             {
                 authSchemes.Add(IdentityServerConstants.LocalApi.AuthenticationScheme);
+            }
+
+            // If no schemes specified, default to Bearer for backward compatibility
+            if (authSchemes.Count == 0)
+            {
+                authSchemes.Add("Bearer");
             }
 
             // Base policy - requires valid service scope
@@ -90,7 +103,7 @@ public static class AuthorizationServiceCollectionExtensions
                 }
             });
 
-            // Admin + User - both administrative and user access
+            // All authenticated users - any role (Admin, SystemAdmin, Seller, Customer)
             options.AddPolicy("RequireAdminOrUser", policy =>
             {
                 policy.RequireAuthenticatedUser();
@@ -123,6 +136,17 @@ public static class AuthorizationServiceCollectionExtensions
                 }
             });
         });
+    }
+
+    /// <summary>
+    /// Adds HiveSpace authorization policies for services that only use LocalApi authentication (like User Service that hosts IdentityServer).
+    /// This is a convenience method that sets useJwtBearer=false and useLocalApi=true.
+    /// </summary>
+    /// <param name="services">Service collection</param>
+    /// <param name="serviceScope">The expected scope for this service (e.g., "user.fullaccess")</param>
+    public static void AddHiveSpaceAuthorizationForLocalApi(this IServiceCollection services, string serviceScope)
+    {
+        services.AddHiveSpaceAuthorization(serviceScope, useLocalApi: true, useJwtBearer: false);
     }
 
     /// <summary>

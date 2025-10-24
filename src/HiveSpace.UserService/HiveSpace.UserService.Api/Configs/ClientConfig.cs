@@ -23,4 +23,5 @@ public record ClientConfig
     public int? AbsoluteRefreshTokenLifetime { get; init; }
     public int? SlidingRefreshTokenLifetime { get; init; }
     public string? RefreshTokenExpiration { get; init; }
+    public string? RefreshTokenUsage { get; init; } // "OneTimeOnly" or "ReUse"
 }
