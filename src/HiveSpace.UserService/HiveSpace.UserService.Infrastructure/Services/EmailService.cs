@@ -1,10 +1,8 @@
 using FluentEmail.Core;
-using FluentEmail.Core.Models;
 using HiveSpace.UserService.Application.Interfaces.Services;
 using HiveSpace.UserService.Domain.Models;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
-using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using HiveSpace.UserService.Infrastructure.Settings;
 
