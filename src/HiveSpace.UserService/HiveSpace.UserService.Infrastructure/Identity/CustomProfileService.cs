@@ -47,10 +47,11 @@ public class CustomProfileService : IProfileService
         var claims = new List<Claim>
         {
             // Standard claims that every user gets.
-            new Claim("sub", user.Id.ToString()),
-            new Claim("email", user.Email ?? string.Empty),
-            new Claim("name", user.FullName),
-            new Claim("username", user.UserName ?? string.Empty)
+            new("sub", user.Id.ToString()),
+            new("email", user.Email ?? string.Empty),
+            new("name", user.FullName),
+            new("username", user.UserName ?? string.Empty),
+            new("email_verified", user.EmailConfirmed.ToString().ToLower(), ClaimValueTypes.Boolean)
         };
 
         // 1. Get and add role directly from the user's RoleName property.
@@ -68,8 +69,8 @@ public class CustomProfileService : IProfileService
             if (store is not null)
             {
                 claims.Add(new Claim("role", "storeOwner"));
-                claims.Add(new Claim("storeId", store.Id.ToString()));
-                claims.Add(new Claim("storeName", store.StoreName));
+                claims.Add(new Claim("store_id", store.Id.ToString()));
+                claims.Add(new Claim("store_name", store.StoreName));
             }
         }
         

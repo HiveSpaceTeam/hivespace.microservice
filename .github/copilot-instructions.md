@@ -13,18 +13,19 @@ This repository contains the HiveSpace microservices platform built with .NET 8.
 ## Build Instructions
 
 ### Prerequisites
+
 - .NET 8.0 SDK (minimum version 8.0.119)
 - SQL Server (for User Service database)
 - Visual Studio 2022 or VS Code with C# extension
 
 ### Bootstrap Commands
+
 **ALWAYS run these commands in order from the repository root:**
 
 1. **Restore packages** (required before any build):
    ```bash
    dotnet restore
    ```
-   
 2. **Build solution** (builds all projects):
    ```bash
    dotnet build
@@ -33,33 +34,41 @@ This repository contains the HiveSpace microservices platform built with .NET 8.
 ### Running the Services
 
 **API Gateway** (no database dependencies):
+
 ```bash
 cd src/HiveSpace.ApiGateway/HiveSpace.YarpApiGateway
 dotnet run
 ```
+
 - Starts on: https://localhost:5000
 - No external dependencies
 
 **User Service API** (requires SQL Server):
+
 ```bash
 cd src/HiveSpace.UserService/HiveSpace.UserService.Api
 dotnet run
 ```
+
 - Starts on: https://localhost:5001
 - **CRITICAL**: Requires SQL Server running on localhost:1433
 - Database: UserDb
 - Default connection string: `Server=localhost,1433;Database=UserDb;User Id=sa;Encrypt=False;TrustServerCertificate=True`
 
 ### Testing
+
 - No test projects currently exist in the solution
 - `dotnet test` returns immediately with no tests to run
 
 ### Build Warnings (Expected)
+
 The build produces 6 warnings related to nullability annotations in shared domain entities. These are non-blocking:
+
 - Nullability warnings in `HiveSpace.Domain.Shared` library
 - Non-nullable property warning in `Store.cs` constructor
 
 ### Build Time
+
 - Clean restore: ~30-45 seconds
 - Build: ~15-20 seconds
 - No tests to run
@@ -67,6 +76,7 @@ The build produces 6 warnings related to nullability annotations in shared domai
 ## Project Architecture & Layout
 
 ### Solution Structure
+
 ```
 hivespace.microservice.sln         # Main solution file
 Directory.Packages.props           # Centralized package management
@@ -87,12 +97,14 @@ Directory.Packages.props           # Centralized package management
 ```
 
 ### Key Configuration Files
+
 - **`src/HiveSpace.UserService/HiveSpace.UserService.Api/appsettings.json`**: Main API configuration including database connection strings, IdentityServer clients, OAuth providers
 - **`src/HiveSpace.ApiGateway/HiveSpace.YarpApiGateway/appsettings.json`**: YARP reverse proxy routing configuration
 - **`Directory.Packages.props`**: Centralized NuGet package version management
 - **`*.csproj`**: Individual project configurations with PackageReference elements
 
 ### Domain Services & Architecture
+
 - **Clean Architecture**: Each service follows Domain > Application > Infrastructure > API layers
 - **DDD Patterns**: Aggregates, Value Objects, Domain Services, Domain Events
 - **Identity Management**: Duende IdentityServer with ASP.NET Core Identity
@@ -100,6 +112,7 @@ Directory.Packages.props           # Centralized package management
 - **API Gateway**: YARP reverse proxy with health checks and CORS support
 
 ### Key Dependencies (Pinned Versions)
+
 - **Microsoft packages**: ASP.NET Core 8.0.11, EF Core 8.0.11, Identity 8.0.11
 - **Duende IdentityServer**: 7.2.4 (requires license for production)
 - **YARP**: 2.3.0
@@ -108,17 +121,21 @@ Directory.Packages.props           # Centralized package management
 - **MediatR**: 13.0.0 (license required)
 
 ### Database & Seeding
+
 - User Service uses Entity Framework migrations
 - Automatic database seeding in development environment
 - SeedData creates default users and roles on startup
 - Migration files located in `src/HiveSpace.UserService/HiveSpace.UserService.Infrastructure/Data/Migrations/`
 
 ### Launch Profiles
+
 Both services have multiple launch profiles in their `Properties/launchSettings.json`:
+
 - **SelfHost**: Standard development profile
 - **WSL**: WSL2 development profile
 
 ### Authentication Flow
+
 - User Service acts as OAuth2/OIDC authorization server
 - API Gateway routes requests to appropriate services
 - Configured clients: Admin Portal (SPA) and API Testing Client (machine-to-machine)
@@ -126,40 +143,51 @@ Both services have multiple launch profiles in their `Properties/launchSettings.
 ## Common Development Issues & Workarounds
 
 ### Database Connection Issues
+
 If User Service fails to start with SQL connection errors:
+
 - Ensure SQL Server is running on localhost:1433
 - Update connection string in `appsettings.json` for your environment
 - In development, the service will attempt to create/migrate the database automatically
 
 ### License Warnings
+
 Expected warnings during startup:
+
 - Duende IdentityServer license warning (development use is allowed)
 - MediatR license reminder
 - These do not prevent development work
 
 ### SSL/HTTPS Warnings
+
 Expected warnings:
+
 - ASP.NET Core developer certificate trust warnings
 - Use `dotnet dev-certs https --trust` to resolve in development
 
 ### Known TODOs in Codebase
+
 Limited technical debt exists:
+
 - License usage summary functionality (Program.cs)
 - Message broker publishing in OutboxMessageProcessor
 
 ## Validation & CI/CD
 
 ### Manual Validation Steps
+
 1. Build solution: `dotnet build` (should complete with 6 warnings)
 2. Start API Gateway: Verify it listens on https://localhost:5000
 3. If SQL Server available: Start User Service and verify IdentityServer endpoints
 4. Check logs for expected license warnings only
 
 ### GitHub Workflows
+
 - No automated CI/CD pipelines currently configured
 - No `.github/workflows/` directory exists
 
 ### Code Quality
+
 - Nullable reference types enabled across all projects
 - Central package management enforced
 - Clean Architecture boundaries maintained
@@ -169,6 +197,7 @@ Limited technical debt exists:
 ## Instructions for Coding Agents
 
 **Trust these instructions** - they are validated and current. Only search for additional information if:
+
 - These instructions appear outdated or incorrect
 - You need specific implementation details not covered here
 - You encounter unexpected build or runtime errors
@@ -188,6 +217,7 @@ Limited technical debt exists:
 When implementing **write operations** or **simple read operations** that require domain validation, follow this sequence:
 
 #### 1. **Domain Layer** (Start Here)
+
 ```csharp
 // Example from User aggregate - Domain entity with business logic
 public class User : AggregateRoot<Guid>, IAuditable
@@ -195,7 +225,7 @@ public class User : AggregateRoot<Guid>, IAuditable
     public Email Email { get; private set; }
     public string FullName { get; private set; }
     public PhoneNumber? PhoneNumber { get; private set; }
-    
+
     // Business method with domain validation
     public void UpdateProfile(string fullName, PhoneNumber? phoneNumber)
     {
@@ -210,8 +240,8 @@ public class User : AggregateRoot<Guid>, IAuditable
 public class UserManager : IDomainService
 {
     private readonly IUserRepository _userRepository;
-    
-    public async Task<User> RegisterUserAsync(Email email, string userName, string fullName, 
+
+    public async Task<User> RegisterUserAsync(Email email, string userName, string fullName,
         CancellationToken cancellationToken = default)
     {
         // Domain validation and business rules
@@ -219,7 +249,7 @@ public class UserManager : IDomainService
         var user = User.Create(email, userName?.Trim() ?? string.Empty, PasswordPlaceholder, fullName);
         return user;
     }
-    
+
     private async Task<bool> CanUserBeRegisteredAsync(Email email, string userName, CancellationToken cancellationToken)
     {
         if (!await IsEmailAvailableAsync(email, cancellationToken))
@@ -240,6 +270,7 @@ public interface IUserRepository
 ```
 
 #### 2. **Application Layer**
+
 ```csharp
 // Example from CreateAdminRequestDto - Request DTO
 public record CreateAdminRequestDto(
@@ -291,7 +322,7 @@ public class AdminService : IAdminService
     private readonly UserManager _domainUserManager;
     private readonly IUserRepository _userRepository;
 
-    public async Task<CreateAdminResponseDto> CreateAdminAsync(CreateAdminRequestDto request, 
+    public async Task<CreateAdminResponseDto> CreateAdminAsync(CreateAdminRequestDto request,
         CancellationToken cancellationToken = default)
     {
         // Build domain value objects
@@ -307,13 +338,14 @@ public class AdminService : IAdminService
 
         // Map to response DTO
         return new CreateAdminResponseDto(
-            created.Id, created.Email.Value, created.FullName, 
+            created.Id, created.Email.Value, created.FullName,
             created.Role?.Name == Role.RoleNames.SystemAdmin, created.CreatedAt);
     }
 }
 ```
 
 #### 3. **Register in DI Container**
+
 ```csharp
 // Example from ServiceCollectionExtensions.cs - Actual DI registration
 public static void AddAppApplicationServices(this IServiceCollection services)
@@ -330,6 +362,7 @@ public static void AddAppDomainServices(this IServiceCollection services)
 ```
 
 #### 4. **Infrastructure Layer**
+
 ```csharp
 // Example from UserRepository - Repository implementation
 public class UserRepository : IUserRepository
@@ -341,7 +374,7 @@ public class UserRepository : IUserRepository
     {
         var appUser = domainUser.ToApplicationUser();
         var result = await _userManager.CreateAsync(appUser, password);
-        
+
         if (!result.Succeeded)
             throw new InvalidOperationException($"Failed to create user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
 
@@ -350,7 +383,7 @@ public class UserRepository : IUserRepository
             await _userManager.AddToRoleAsync(appUser, domainUser.Role.Name);
 
         await _context.SaveChangesAsync(cancellationToken);
-        
+
         // Convert back to domain entity
         var roleNames = await _userManager.GetRolesAsync(appUser);
         return appUser.ToDomainUser(roleNames);
@@ -370,6 +403,7 @@ public class UserConfiguration : IEntityTypeConfiguration<ApplicationUser>
 ```
 
 #### 5. **API Layer**
+
 ```csharp
 // Example from AdminController - Actual controller implementation
 [ApiController]
@@ -388,10 +422,10 @@ public class AdminController : ControllerBase
     {
         // Validate request using FluentValidation
         ValidationHelper.ValidateResult(new CreateAdminValidator().Validate(request));
-        
+
         // Call application service
         var result = await _adminService.CreateAdminAsync(request, cancellationToken);
-        
+
         return CreatedAtAction(nameof(CreateAdmin), new { id = result.Id }, result);
     }
 }
@@ -402,6 +436,7 @@ public class AdminController : ControllerBase
 When implementing **complex read operations** that don't require domain validation and need performance optimization:
 
 #### 1. **Application Layer**
+
 ```csharp
 // Example request DTO for complex queries
 public record GetUsersRequestDto(
@@ -445,7 +480,7 @@ public class AdminService : IAdminService
 {
     private readonly IUserDataQuery _userDataQuery;
 
-    public async Task<GetUsersResponseDto> GetUsersAsync(GetUsersRequestDto request, 
+    public async Task<GetUsersResponseDto> GetUsersAsync(GetUsersRequestDto request,
         CancellationToken cancellationToken = default)
     {
         // Convert to internal query model
@@ -461,34 +496,36 @@ public class AdminService : IAdminService
 
         // Execute direct query bypassing domain
         var result = await _userDataQuery.GetPagingUsersAsync(filterRequest, cancellationToken);
-        
+
         return new GetUsersResponseDto(result);
     }
 }
 ```
 
 #### 2. **Data Query Interface**
+
 ```csharp
 // Example from IUserDataQuery - Query interface in Application layer
 public interface IUserDataQuery
 {
-    Task<PagedResult<UserListItemDto>> GetPagingUsersAsync(AdminUserFilterRequest request, 
+    Task<PagedResult<UserListItemDto>> GetPagingUsersAsync(AdminUserFilterRequest request,
         CancellationToken cancellationToken = default);
     Task<UserListItemDto?> GetUserByIdAsync(Guid userId, CancellationToken cancellationToken = default);
 }
 ```
 
 #### 3. **Infrastructure Layer (DataQueries)**
+
 ```csharp
 // Example from UserDataQuery - Direct SQL implementation
 public class UserDataQuery : IUserDataQuery
 {
     private readonly string _connectionString;
 
-    public UserDataQuery(string connectionString) => 
+    public UserDataQuery(string connectionString) =>
         _connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
 
-    public async Task<PagedResult<UserListItemDto>> GetPagingUsersAsync(AdminUserFilterRequest request, 
+    public async Task<PagedResult<UserListItemDto>> GetPagingUsersAsync(AdminUserFilterRequest request,
         CancellationToken cancellationToken = default)
     {
         var whereConditions = BuildWhereConditions(request);
@@ -509,7 +546,7 @@ public class UserDataQuery : IUserDataQuery
                     '' AS Avatar
                 FROM users u
                 WHERE NOT EXISTS (
-                    SELECT 1 FROM user_roles ur2 JOIN roles r2 ON ur2.RoleId = r2.Id 
+                    SELECT 1 FROM user_roles ur2 JOIN roles r2 ON ur2.RoleId = r2.Id
                     WHERE ur2.UserId = u.Id AND r2.Name IN ('SystemAdmin', 'Admin')
                 )
                 {whereConditions}
@@ -518,7 +555,7 @@ public class UserDataQuery : IUserDataQuery
             OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
         using var connection = new SqlConnection(_connectionString);
-        
+
         var parameters = new
         {
             SearchTerm = request.SearchTerm,
@@ -536,6 +573,7 @@ public class UserDataQuery : IUserDataQuery
 ```
 
 #### 4. **API Layer**
+
 ```csharp
 // Example from AdminController - Query endpoint
 [HttpGet("users")]
@@ -564,6 +602,7 @@ public async Task<ActionResult<GetUsersResponseDto>> GetUsers(
 7. **Async/Await**: Use async patterns throughout for I/O operations
 8. **Error handling**: Let domain exceptions bubble up, handle infrastructure exceptions appropriately
 9. **File Organization**: Each class/record should be in a separate file, unless explicitly specified to have multiple classes/records in the same file. For DTOs and validators, follow the naming convention: `{ActionName}{RequestDto|ResponseDto|Validator}` (e.g., `CreateAdminRequestDto`, `CreateAdminResponseDto`, `CreateAdminValidator`)
+10. **Using Statements**: Prefer using fully qualified namespaces in using statements and use short type names in code. Instead of `Microsoft.OpenApi.Models.OpenApiInfo` in code, add `using Microsoft.OpenApi.Models;` and use `OpenApiInfo` directly
 
 ### Future: Simple Services with Vertical Slice
 

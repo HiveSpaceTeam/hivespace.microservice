@@ -6,6 +6,6 @@ public record CreateStoreResponseDto(
     Guid StoreId,
     string StoreName,
     string? StoreDescription,
-    string StoreLogo,
+    string StoreLogoFileId,
     string StoreAddress
 );

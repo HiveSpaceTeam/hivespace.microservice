@@ -40,11 +40,6 @@ public static class Config
                 Scopes = { "catalog.fullaccess" },
                 UserClaims = { "sub", "name", "email" }
             },
-            new ApiResource("hivespace-backend", "HiveSpace Backend API")
-            {
-                Scopes = { "hivespace-backend.fullaccess" },
-                UserClaims = { "sub", "name", "email", "phone_number" }
-            }
         ];
 
     public static IEnumerable<Client> GetClients(IConfiguration configuration)
@@ -146,7 +141,12 @@ public static class Config
                 }
 
                 // Configure refresh token behavior for SPA using refresh tokens
-                sellerCenterClient.RefreshTokenUsage = TokenUsage.OneTimeOnly;
+                sellerCenterClient.RefreshTokenUsage = sellerCenterConfig.RefreshTokenUsage?.ToLower() switch
+                {
+                    "reuse" => TokenUsage.ReUse,
+                    "onetimeonly" => TokenUsage.OneTimeOnly,
+                    _ => TokenUsage.OneTimeOnly // Default to OneTimeOnly for security
+                };
                 // default to sliding expiration unless configured
                 sellerCenterClient.RefreshTokenExpiration = TokenExpiration.Sliding;
                 if (sellerCenterConfig.AbsoluteRefreshTokenLifetime.HasValue && sellerCenterConfig.AbsoluteRefreshTokenLifetime.Value > 0)
@@ -202,7 +202,12 @@ public static class Config
                 }
 
                 // Configure refresh token behavior for SPA using refresh tokens
-                webUiClient.RefreshTokenUsage = TokenUsage.OneTimeOnly;
+                webUiClient.RefreshTokenUsage = webUiConfig.RefreshTokenUsage?.ToLower() switch
+                {
+                    "reuse" => TokenUsage.ReUse,
+                    "onetimeonly" => TokenUsage.OneTimeOnly,
+                    _ => TokenUsage.OneTimeOnly // Default to OneTimeOnly for security
+                };
                 webUiClient.RefreshTokenExpiration = TokenExpiration.Sliding;
                 if (webUiConfig.AbsoluteRefreshTokenLifetime.HasValue && webUiConfig.AbsoluteRefreshTokenLifetime.Value > 0)
                     webUiClient.AbsoluteRefreshTokenLifetime = webUiConfig.AbsoluteRefreshTokenLifetime.Value;
@@ -212,6 +217,7 @@ public static class Config
 
             clients.Add(webUiClient);
         }
+
         return clients;
     }
 }
