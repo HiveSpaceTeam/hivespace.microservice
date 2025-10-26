@@ -80,6 +80,7 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
         // Simplified constructor for creating new products without collections
         public Product(string name, string description, ProductStatus status, DateTimeOffset createdAt, string createdBy)
         {
+            Id = Guid.NewGuid();
             Name = name;
             Description = description;
             Status = status;
