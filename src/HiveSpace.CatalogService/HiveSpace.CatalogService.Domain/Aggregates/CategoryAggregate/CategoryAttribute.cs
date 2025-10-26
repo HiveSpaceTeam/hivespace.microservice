@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace HiveSpace.CatalogService.Domain.Aggregates.CategoryAggregate
 {
-    public class CategoryAttribute(Guid attributeId, Guid categoryId) : ValueObject
+    public class CategoryAttribute(int attributeId, int categoryId) : ValueObject
     {
-        public Guid AttributeId { get; private set; } = attributeId;
+        public int AttributeId { get; private set; } = attributeId;
 
-        public Guid CategoryId { get; private set; } = categoryId;
+        public int CategoryId { get; private set; } = categoryId;
 
         protected override IEnumerable<object> GetEqualityComponents()
         {

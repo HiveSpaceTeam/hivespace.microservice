@@ -13,15 +13,16 @@ namespace HiveSpace.CatalogService.Infrastructure.Queries
         public async Task<List<CategoryViewModel>> GetCategoryViewModelsAsync()
         {
             return await _dbContext.Categories
-                .Select(c => new CategoryViewModel
-                {
-                    Id = c.Id,
-                    Name = c.Name
-                })
+                .Select(c => new CategoryViewModel(
+                    c.Id,
+                    c.Name,
+                    c.Name, // DisplayName - using Name for now
+                    string.Empty // FileImageId - default empty for now
+                ))
                 .ToListAsync();
         }
 
-        public async Task<List<AttributeViewModel>> GetAttributesByCategoryIdAsync(Guid categoryId)
+        public async Task<List<AttributeViewModel>> GetAttributesByCategoryIdAsync(int categoryId)
         {
             // Step 1: Get all attribute IDs linked to the category
             var attributeIds = await _dbContext.Categories
@@ -33,44 +34,38 @@ namespace HiveSpace.CatalogService.Infrastructure.Queries
             if (attributeIds.Count == 0)
                 return [];
 
-            var attributes = await _dbContext.Attributes
-                .Where(a => attributeIds.Contains(a.Id))
-                .Select(a => new AttributeViewModel
-                {
-                    Id = a.Id,
-                    Name = a.Name,
-                    ValueType = a.Type.ValueType,
-                    InputType = a.Type.InputType,
-                    IsMandatory = a.Type.IsMandatory,
-                    MaxValueCount = a.Type.MaxValueCount,
-                    IsActive = a.IsActive,
-                    CreatedAt = a.CreatedAt,
-                    UpdatedAt = a.UpdatedAt,
-                    Values = new List<AttributeValueViewModel>()
-                })
-                .ToListAsync();
-
-            var attributeValues = await _dbContext.AttributeValues
+            // Step 2: Get attribute values grouped by attribute ID
+            var attributeValuesDict = await _dbContext.AttributeValues
                 .Where(v => attributeIds.Contains(v.AttributeId))
                 .OrderBy(v => v.SortOrder)
-                .Select(v => new AttributeValueViewModel
-                {
-                    Id = v.Id,
-                    AttributeId = v.AttributeId,
-                    Name = v.Name,
-                    DisplayName = v.DisplayName,
-                    ParentValueId = v.ParentValueId,
-                    IsActive = v.IsActive,
-                    SortOrder = v.SortOrder
-                })
-                .ToListAsync();
+                .Select(v => new AttributeValueViewModel(
+                    v.Id,
+                    v.AttributeId,
+                    v.Name,
+                    v.DisplayName,
+                    v.ParentValueId,
+                    v.IsActive,
+                    v.SortOrder
+                ))
+                .GroupBy(v => v.AttributeId)
+                .ToDictionaryAsync(g => g.Key, g => g.ToList());
 
-            var attributeDict = attributes.ToDictionary(a => a.Id);
-            foreach (var value in attributeValues)
-            {
-                if (attributeDict.TryGetValue(value.AttributeId, out var attribute))
-                    attribute.Values.Add(value);
-            }
+            // Step 3: Get attributes with their values
+            var attributes = await _dbContext.Attributes
+                .Where(a => attributeIds.Contains(a.Id))
+                .Select(a => new AttributeViewModel(
+                    a.Id,
+                    a.Name,
+                    a.Type.ValueType,
+                    a.Type.InputType,
+                    a.Type.IsMandatory,
+                    a.Type.MaxValueCount,
+                    a.IsActive,
+                    a.CreatedAt,
+                    a.UpdatedAt,
+                    attributeValuesDict.ContainsKey(a.Id) ? attributeValuesDict[a.Id] : new List<AttributeValueViewModel>()
+                ))
+                .ToListAsync();
 
             return attributes;
         }

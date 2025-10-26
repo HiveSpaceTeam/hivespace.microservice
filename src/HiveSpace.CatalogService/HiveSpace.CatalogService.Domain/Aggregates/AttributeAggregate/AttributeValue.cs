@@ -7,16 +7,16 @@ using System.Threading.Tasks;
 
 namespace HiveSpace.CatalogService.Domain.Aggregates.AttributeAggregate
 {
-    public  class AttributeValue : Entity<Guid>
+    public  class AttributeValue : Entity<int>
     {
-        public Guid AttributeId { get; private set; }
+        public int AttributeId { get; private set; }
         public string Name { get; private set; }
         public string DisplayName { get; private set; }
-        public Guid? ParentValueId { get; private set; }
+        public int? ParentValueId { get; private set; }
         public bool IsActive { get; private set; }
         public int SortOrder { get; private set; }
 
-        public AttributeValue(Guid attributeId, string name, string displayName, Guid? parentValueId, bool isActive, int sortOrder)
+        public AttributeValue(int attributeId, string name, string displayName, int? parentValueId, bool isActive, int sortOrder)
         {
             AttributeId = attributeId;
             Name = name;

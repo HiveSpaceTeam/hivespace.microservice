@@ -7,4 +7,5 @@ public class CatalogErrorCode(int id, string name, string code) : DomainErrorCod
     public static readonly CatalogErrorCode InvalidMoney = new(2, "InvalidMoney", "CTL0002");
     public static readonly CatalogErrorCode InvalidAttribute = new(3, "InvalidAttribute", "CTL0003");
     public static readonly CatalogErrorCode InvalidQuantity = new(4, "InvalidQuantity", "CTL0004");
+    public static readonly CatalogErrorCode ProductNotFound = new(5, "ProductNotFound", "CTL0005");
 }

@@ -25,8 +25,9 @@ namespace HiveSpace.CatalogService.Infrastructure
             services.AddDbContext<CatalogDbContext>(options =>
                 options.UseSqlServer(connectionString));
 
-            // Register UserService repositories
+            // Register CatalogService repositories
             services.AddCatalogServiceRepositories();
+            
             return services;
         }
 

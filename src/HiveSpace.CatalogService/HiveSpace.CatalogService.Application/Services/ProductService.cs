@@ -4,157 +4,196 @@ using HiveSpace.CatalogService.Application.Models.Dtos.Crud;
 using HiveSpace.CatalogService.Application.Models.Dtos.Request.Product;
 using HiveSpace.CatalogService.Application.Models.Requests;
 using HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate;
-using HiveSpace.CatalogService.Domain.Common;
-using HiveSpace.CatalogService.Domain.Common.Enums;
+using HiveSpace.CatalogService.Domain.Exceptions;
+using HiveSpace.Domain.Shared.Exceptions;
+using HiveSpace.Core.Contexts;
+using HiveSpace.Infrastructure.Persistence.Transaction;
 
 namespace HiveSpace.CatalogService.Application.Services
 {
     public class ProductService : IProductService
     {
         private readonly IProductRepository _productRepository;
-        public ProductService(IProductRepository productRepository)
+        private readonly ITransactionService _transactionService;
+        private readonly IUserContext _userContext;
+
+        public ProductService(
+            IProductRepository productRepository,
+            ITransactionService transactionService,
+            IUserContext userContext)
         {
             _productRepository = productRepository;
+            _transactionService = transactionService;
+            _userContext = userContext;
         }
 
         public async Task<Guid> SaveProductAsync(ProductUpsertRequestDto request, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var productId = Guid.NewGuid();
+            
+            var currentUserId = GetCurrentUserId();
 
-            var categories = new List<ProductCategory>
-            {
-                new ProductCategory(productId, request.Category)
-            };
-
-            var variants = request.Variants?.Select(v =>
-            {
-                var variantId = v.Id != Guid.Empty ? v.Id : Guid.NewGuid();
-                var options = v.Options?.Select(o => new ProductVariantOption(variantId, o.OptionId, o.Value ?? string.Empty)).ToList() ?? new List<ProductVariantOption>();
-                return new ProductVariant(variantId, v.Name, options);
-            }).ToList() ?? new List<ProductVariant>();
-
-            var skus = request.Skus?.Select(s =>
-            {
-                var skuId = s.Id != Guid.Empty ? s.Id : Guid.NewGuid();
-                var money = s.Price;
-                var skuVariants = s.SkuVariants?.Select(sv => new SkuVariant(skuId, sv.VariantId, sv.OptionId, sv.Value ?? string.Empty)).ToList() ?? new List<SkuVariant>();
-                return new Sku(skuId, s.SkuNo ?? string.Empty, productId, skuVariants, new List<SkuImage>(), s.Quantity, true, money);
-
-            }).ToList() ?? new List<Sku>();
-
-            var attributes = request.Attributes?.Select(a => new ProductAttribute(a.AttributeId, productId, a.SelectedValueIds, a.FreeTextValue)).ToList() ?? new List<ProductAttribute>();
-
+            // Create product first to get the generated ID (synchronous operation)
             var product = new Product(
-                productId,
                 request.Name,
                 request.Description,
                 ProductStatus.Available,
-                categories,
-                attributes,
-                new List<ProductImage>(),
-                skus,
-                variants,
                 DateTimeOffset.UtcNow,
-                null,
-                null,
-                null
+                currentUserId
             );
 
-            await _productRepository.AddAsync(product, cancellationToken);
-            return productId;
+            // Build related entities using shared factory methods (synchronous operations)
+            var categories = CreateProductCategories(product.Id, request.Category);
+            var variants = CreateProductVariants(request.Variants);
+            var skus = CreateProductSkus(product.Id, request.Skus);
+            var attributes = CreateProductAttributes(product.Id, request.Attributes);
+
+            // Update product with related entities
+            product.UpdateCategories(categories);
+            product.UpdateVariants(variants);
+            product.UpdateSkus(skus);
+            product.UpdateAttributes(attributes);
+
+            // Only wrap the actual repository operation in transaction
+            await _transactionService.InTransactionScopeAsync(async transaction =>
+            {
+                await _productRepository.AddAsync(product, cancellationToken);
+            }, performIdempotenceCheck: true, actionName: nameof(SaveProductAsync));
+
+            return product.Id;
         }
 
         public async Task<PagingData> GetProductsAsync(ProductSearchRequestDto request, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var (items, total) = await _productRepository.GetPagedAsync(request.Keyword ?? string.Empty, request.PageIndex, request.PageSize, request.Sort, cancellationToken);
-            return new PagingData
-            {
-                Total = total,
-                Data = items
-            };
+            return new PagingData(total, items);
         }
 
-        public async Task<Product?> GetProductDetailAsync(Guid id, CancellationToken cancellationToken = default)
+        public async Task<Product> GetProductDetailAsync(Guid id, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var product = await _productRepository.GetDetailByIdAsync(id, cancellationToken);
+            var product = await _productRepository.GetDetailByIdAsync(id, cancellationToken)
+                ?? throw new NotFoundException(CatalogErrorCode.ProductNotFound, nameof(Product));
             return product;
         }
 
         public async Task<bool> UpdateProductAsync(Guid id, ProductUpsertRequestDto request, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var existing = await _productRepository.GetDetailByIdAsync(id, cancellationToken);
-            if (existing == null) return false;
+            
+            var currentUserId = GetCurrentUserId();
+            var wasUpdated = false;
 
-            // Update basic properties
-            if (!string.IsNullOrEmpty(request.Name))
+            await _transactionService.InTransactionScopeAsync(async transaction =>
             {
-                existing.UpdateName(request.Name);
-            }
+                // Get the existing product within the transaction
+                var product = await _productRepository.GetDetailByIdAsync(id, cancellationToken);
+                if (product is null) return;
 
-            if (!string.IsNullOrEmpty(request.Description))
-            {
-                existing.UpdateDescription(request.Description);
-            }
+                var isUpdated = false;
 
-            // Update categories
-            if (request.Category != Guid.Empty)
-            {
-                var categories = new List<ProductCategory>
+                // Update basic properties (synchronous operations)
+                if (!string.IsNullOrWhiteSpace(request.Name))
                 {
-                    new ProductCategory(id, request.Category)
-                };
-                existing.UpdateCategories(categories);
-            }
+                    product.UpdateName(request.Name);
+                    isUpdated = true;
+                }
 
-            // Update variants
-            if (request.Variants != null && request.Variants.Any())
-            {
-                var variants = request.Variants.Select(v =>
+                if (!string.IsNullOrWhiteSpace(request.Description))
                 {
-                    var variantId = v.Id != Guid.Empty ? v.Id : Guid.NewGuid();
-                    var options = v.Options?.Select(o => new ProductVariantOption(variantId, o.OptionId, o.Value ?? string.Empty)).ToList() ?? new List<ProductVariantOption>();
-                    return new ProductVariant(variantId, v.Name, options);
-                }).ToList();
-                existing.UpdateVariants(variants);
-            }
+                    product.UpdateDescription(request.Description);
+                    isUpdated = true;
+                }
 
-            // Update SKUs
-            if (request.Skus != null && request.Skus.Any())
-            {
-                var skus = request.Skus.Select(s =>
+                // Update categories using shared factory method (synchronous operations)
+                if (request.Category > 0)
                 {
-                    var skuId = s.Id != Guid.Empty ? s.Id : Guid.NewGuid();
-                    var money = s.Price;
-                    var skuVariants = s.SkuVariants?.Select(sv => new SkuVariant(skuId, sv.VariantId, sv.OptionId, sv.Value ?? string.Empty)).ToList() ?? new List<SkuVariant>();
-                    return new Sku(skuId, s.SkuNo ?? string.Empty, id, skuVariants, new List<SkuImage>(), s.Quantity, true, money);
-                }).ToList();
-                existing.UpdateSkus(skus);
-            }
+                    var categories = CreateProductCategories(product.Id, request.Category);
+                    product.UpdateCategories(categories);
+                    isUpdated = true;
+                }
 
-            // Update attributes
-            if (request.Attributes != null && request.Attributes.Any())
-            {
-                var attributes = request.Attributes.Select(a => new ProductAttribute(a.AttributeId, id, a.SelectedValueIds, a.FreeTextValue)).ToList();
-                existing.UpdateAttributes(attributes);
-            }
+                // Build and update variants, SKUs, and attributes using shared factory methods
+                var variants = CreateProductVariants(request.Variants);
+                var skus = CreateProductSkus(product.Id, request.Skus);
+                var attributes = CreateProductAttributes(product.Id, request.Attributes);
 
+                // Update collections if they have items
+                isUpdated |= UpdateIfNotEmpty(variants, () => product.UpdateVariants(variants));
+                isUpdated |= UpdateIfNotEmpty(skus, () => product.UpdateSkus(skus));
+                isUpdated |= UpdateIfNotEmpty(attributes, () => product.UpdateAttributes(attributes));
 
-            await _productRepository.UpdateAsync(existing, cancellationToken);
-            return true;
+                // Update audit information and persist if any changes were made
+                if (isUpdated)
+                {
+                    product.UpdateAuditInfo(currentUserId);
+                    await _productRepository.UpdateAsync(product, cancellationToken);
+                    wasUpdated = true;
+                }
+            }, performIdempotenceCheck: true, actionName: nameof(UpdateProductAsync));
+
+            return wasUpdated;
         }
 
         public async Task<bool> DeleteProductAsync(Guid id, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var product = await _productRepository.GetByIdAsync(id, cancellationToken);
-            if (product == null) return false;
+            if (product is null) return false;
 
             await _productRepository.DeleteAsync(product, cancellationToken);
             return true;
         }
+
+        #region Shared Factory Methods
+
+        private static List<ProductCategory> CreateProductCategories(Guid productId, int categoryId)
+        {
+            return categoryId > 0 ? [new ProductCategory(productId, categoryId)] : [];
+        }
+
+        private static bool UpdateIfNotEmpty<T>(ICollection<T> items, Action updateAction)
+        {
+            if (items.Count > 0)
+            {
+                updateAction();
+                return true;
+            }
+            return false;
+        }
+
+        private string GetCurrentUserId() => _userContext.UserId.ToString();
+
+        private static List<ProductVariant> CreateProductVariants(ICollection<ProductVariantRequestDto>? variantRequests)
+        {
+            return variantRequests?.Select(CreateProductVariant).ToList() ?? [];
+        }
+
+        private static ProductVariant CreateProductVariant(ProductVariantRequestDto v)
+        {
+            var variantId = v.Id != Guid.Empty ? v.Id : Guid.NewGuid();
+            var options = v.Options?.Select(o => new ProductVariantOption(variantId, o.OptionId, o.Value ?? string.Empty)).ToList() ?? [];
+            return new ProductVariant(variantId, v.Name, options);
+        }
+
+        private static List<Sku> CreateProductSkus(Guid productId, ICollection<ProductSkuRequestDto>? skuRequests)
+        {
+            if (skuRequests is null) return [];
+
+            return [.. skuRequests.Select(s =>
+            {
+                var skuId = s.Id != Guid.Empty ? s.Id : Guid.NewGuid();
+                var skuVariants = s.SkuVariants?.Select(sv => new SkuVariant(skuId, sv.VariantId, sv.OptionId, sv.Value ?? string.Empty)).ToList() ?? [];
+                return new Sku(skuId, s.SkuNo ?? string.Empty, productId, skuVariants, [], s.Quantity, true, s.Price);
+            })];
+        }
+
+        private static List<ProductAttribute> CreateProductAttributes(Guid productId, ICollection<ProductAttributeRequestDto>? attributeRequests)
+        {
+            return attributeRequests?.Select(a => new ProductAttribute(a.AttributeId, productId, a.SelectedValueIds, a.FreeTextValue)).ToList() ?? [];
+        }
+
+        #endregion
     }
 }

@@ -24,7 +24,7 @@ namespace HiveSpace.CatalogService.API.Controllers
 
         [HttpGet("{categoryId}/attributes")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetAttributeByCategoryId(Guid categoryId)
+        public async Task<IActionResult> GetAttributeByCategoryId(int categoryId)
         {
             var result = await _categoryService.GetAttributesByCategoryIdAsync(categoryId);
             return Ok(result);

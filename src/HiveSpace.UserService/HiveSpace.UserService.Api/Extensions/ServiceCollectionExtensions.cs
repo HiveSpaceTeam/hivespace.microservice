@@ -57,12 +57,6 @@ internal static class ServiceCollectionExtensions
         });
     }
 
-    // Split AddAppDependencies into two methods for better separation of concerns
-    public static void AddAppInfrastructure(this IServiceCollection services)
-    {
-        services.AddHttpContextAccessor();
-    }
-
     public static void AddAppApplicationServices(this IServiceCollection services)
     {
         // Add MediatR and register handlers

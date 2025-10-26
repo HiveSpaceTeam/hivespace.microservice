@@ -2,7 +2,6 @@ using Duende.IdentityModel;
 using HiveSpace.UserService.Infrastructure.Data;
 using HiveSpace.UserService.Infrastructure.Identity;
 using HiveSpace.UserService.Domain.Aggregates.User;
-using HiveSpace.UserService.Domain.Aggregates.Store;
 using HiveSpace.UserService.Domain.Services;
 using HiveSpace.UserService.Domain.Enums;
 using Microsoft.AspNetCore.Identity;

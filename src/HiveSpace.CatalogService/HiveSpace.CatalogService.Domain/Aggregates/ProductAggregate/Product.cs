@@ -77,6 +77,17 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
             UpdatedBy = updatedBy;
         }
 
+        // Simplified constructor for creating new products without collections
+        public Product(string name, string description, ProductStatus status, DateTimeOffset createdAt, string createdBy)
+        {
+            Name = name;
+            Description = description;
+            Status = status;
+            CreatedAt = createdAt;
+            CreatedBy = createdBy;
+            // Collections are already initialized as empty lists in field declarations
+        }
+
         #endregion
 
 

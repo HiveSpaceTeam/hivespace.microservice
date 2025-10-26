@@ -5,14 +5,14 @@ using System.Collections.Generic;
 
 namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
 {
-    public class ProductAttribute : Entity<Guid>
+    public class ProductAttribute : Entity<int>
     {
         #region Properties
-        public Guid AttributeId { get; private set; }
+        public int AttributeId { get; private set; }
         public Guid ProductId { get; private set; }
 
-        private readonly List<Guid> _selectedValueIds = [];
-        public IReadOnlyCollection<Guid> SelectedValueIds => _selectedValueIds.AsReadOnly();
+        private readonly List<int> _selectedValueIds = [];
+        public IReadOnlyCollection<int> SelectedValueIds => _selectedValueIds.AsReadOnly();
 
         public string? FreeTextValue { get; private set; }
         #endregion
@@ -23,7 +23,7 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
         {
         }
 
-        public ProductAttribute(Guid attributeId, Guid productId, IEnumerable<Guid>? selectedValueIds = null, string? freeTextValue = null)
+        public ProductAttribute(int attributeId, Guid productId, IEnumerable<int>? selectedValueIds = null, string? freeTextValue = null)
         {
             AttributeId = attributeId;
             ProductId = productId;
@@ -41,12 +41,12 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
         #region Methods
         private bool IsInvalid()
         {
-            return AttributeId == Guid.Empty
+            return AttributeId == 0
                 || ProductId == Guid.Empty
                 || (_selectedValueIds.Count == 0 && string.IsNullOrWhiteSpace(FreeTextValue));
         }
 
-        public void SetSelectedValues(IEnumerable<Guid> selectedValueIds)
+        public void SetSelectedValues(IEnumerable<int> selectedValueIds)
         {
             _selectedValueIds.Clear();
             if (selectedValueIds is not null)
@@ -59,18 +59,18 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
             }
         }
 
-        public void AddSelectedValue(Guid valueId)
+        public void AddSelectedValue(int valueId)
         {
-            if (valueId == Guid.Empty) return;
+            if (valueId == 0) return;
             if (!_selectedValueIds.Contains(valueId))
             {
                 _selectedValueIds.Add(valueId);
             }
         }
 
-        public void RemoveSelectedValue(Guid valueId)
+        public void RemoveSelectedValue(int valueId)
         {
-            if (valueId == Guid.Empty) return;
+            if (valueId == 0) return;
             _selectedValueIds.Remove(valueId);
             if (IsInvalid())
             {

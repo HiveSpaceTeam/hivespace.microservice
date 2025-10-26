@@ -15,7 +15,6 @@ internal static class HostingExtensions
         builder.Services.AddAppApiControllers();
         builder.Services.AddRazorPages();
         builder.Services.AddAppSwagger();
-        builder.Services.AddAppInfrastructure();
         builder.Services.AddUserDbContext(configuration);
         builder.Services.AddCoreServices();
         builder.Services.AddAppDomainServices();
