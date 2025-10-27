@@ -19,18 +19,18 @@ namespace HiveSpace.CatalogService.Infrastructure.Data.Configurations
             entity.Property(pa => pa.AttributeId);
             entity.Property<string>(nameof(ProductAttribute.FreeTextValue));
 
-            var comparer = new ValueComparer<List<Guid>>(
+            var comparer = new ValueComparer<List<int>>(
                 (c1, c2) => (c1 == null && c2 == null) || (c1 != null && c2 != null && c1.SequenceEqual(c2)),
                 c => c == null ? 0 : c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
-                c => c == null ? new List<Guid>() : c.ToList());
+                c => c == null ? new List<int>() : c.ToList());
 
-            entity.Property<List<Guid>>("_selectedValueIds")
+            entity.Property<List<int>>("_selectedValueIds")
                 .HasColumnName("SelectedValueIds")
                 .HasConversion(
-                    v => JsonSerializer.Serialize(v ?? new List<Guid>(), (JsonSerializerOptions?)null),
-                    v => JsonSerializer.Deserialize<List<Guid>>(v ?? "[]", (JsonSerializerOptions?)null) ?? new List<Guid>())
+                    v => JsonSerializer.Serialize(v ?? new List<int>(), (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<List<int>>(v ?? "[]", (JsonSerializerOptions?)null) ?? new List<int>())
                 .Metadata.SetValueComparer(comparer);
-
+    
             entity.HasOne<Product>()
                 .WithMany(p => p.Attributes)
                 .HasForeignKey(pa => pa.ProductId)

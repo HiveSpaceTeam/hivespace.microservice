@@ -17,7 +17,7 @@ namespace HiveSpace.CatalogService.Application.Services
             return _queryService.GetCategoryViewModelsAsync();
         }
 
-        public Task<List<AttributeViewModel>> GetAttributesByCategoryIdAsync(Guid categoryId)
+        public Task<List<AttributeViewModel>> GetAttributesByCategoryIdAsync(int categoryId)
         {
             return _queryService.GetAttributesByCategoryIdAsync(categoryId);
         }

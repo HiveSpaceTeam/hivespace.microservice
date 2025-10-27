@@ -1,8 +1,6 @@
-﻿namespace HiveSpace.CatalogService.Application.Models.Dtos.Crud
-{
-    public class PagingData
-    {
-        public int Total { get; set; }
-        public object Data { get; set; }
-    }
-}
+﻿namespace HiveSpace.CatalogService.Application.Models.Dtos.Crud;
+
+public record PagingData(
+    int Total,
+    object Data
+);

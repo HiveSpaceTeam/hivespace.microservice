@@ -16,6 +16,9 @@ public static class CoreServiceCollectionExtensions
     /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddCoreServices(this IServiceCollection services)
     {
+        // Register HTTP context accessor (required for UserContext)
+        services.AddHttpContextAccessor();
+        
         // Register contexts
         services.AddScoped<IRequestContext, RequestContext>();
         services.AddScoped<IUserContext, UserContext>();

@@ -1,5 +1,7 @@
 using HiveSpace.CatalogService.Infrastructure;
+using HiveSpace.CatalogService.Infrastructure.Data;
 using HiveSpace.Core;
+using HiveSpace.Infrastructure.Persistence;
 
 namespace HiveSpace.CatalogService.API.Extentions
 {
@@ -11,6 +13,12 @@ namespace HiveSpace.CatalogService.API.Extentions
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddAppApplicationServices();
             builder.Services.AddCatalogDbContext(configuration);
+            
+            // Add Core services for UserContext and other core functionality
+            builder.Services.AddCoreServices();
+            
+            // Add Persistence services for TransactionService
+            builder.Services.AddPersistenceInfrastructure<CatalogDbContext>();
 
             return builder.Build();
         }

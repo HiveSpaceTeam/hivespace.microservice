@@ -49,7 +49,6 @@ public class ProductController : ControllerBase
     public async Task<IActionResult> GetDetail(Guid id, CancellationToken cancellationToken)
     {
         var product = await _service.GetProductDetailAsync(id, cancellationToken);
-        if (product == null) return NotFound();
         return Ok(product);
     }
 
