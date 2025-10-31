@@ -12,7 +12,7 @@ var app = builder
 // in production you will likely want a different approach.
 if (app.Environment.IsDevelopment())
 {
-    SeedData.EnsureSeedData(app);
+     await SeedData.EnsureSeedDataAsync(app);
 }
 
 app.Run();
