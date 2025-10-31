@@ -6,7 +6,7 @@ using HiveSpace.UserService.Domain.Exceptions;
 
 namespace HiveSpace.UserService.Domain.Aggregates.User;
 
-public class User : AggregateRoot<Guid>, IAuditable
+public class User : AggregateRoot<Guid>, IAuditable, ISoftDeletable
 {
     // Identity
     public Email Email { get; private set; }
@@ -33,7 +33,10 @@ public class User : AggregateRoot<Guid>, IAuditable
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset? UpdatedAt { get; private set; }
     public DateTimeOffset? LastLoginAt { get; private set; }
-    
+
+    // ISoftDeletable
+    public bool IsDeleted { get; set; }
+    public DateTimeOffset? DeletedAt { get; set; }
 
     private User()
     {
@@ -87,6 +90,8 @@ public class User : AggregateRoot<Guid>, IAuditable
         DateTimeOffset createdAt,
         DateTimeOffset? updatedAt,
         DateTimeOffset? lastLoginAt,
+        bool isDeleted = false,
+        DateTimeOffset? deletedAt = null,
         IEnumerable<Address>? addresses = null)
     {
         var user = new User(email, userName, passwordHash, fullName, role, phoneNumber, dateOfBirth, gender, storeId, status, emailConfirmed, createdAt, updatedAt, lastLoginAt);
@@ -251,4 +256,5 @@ public class User : AggregateRoot<Guid>, IAuditable
     public bool IsSeller => Role?.Name == Role.RoleNames.Seller;
     public bool IsAdmin => Role?.Name == Role.RoleNames.Admin;
     public bool IsSystemAdmin => Role?.Name == Role.RoleNames.SystemAdmin;
+
 }

@@ -11,4 +11,5 @@ public interface IUserRepository
     Task<User?> GetByUserNameAsync(string userName, CancellationToken cancellationToken = default);
     Task<User> CreateUserAsync(User domainUser, string password, CancellationToken cancellationToken = default);
     Task<User> UpdateUserAsync(User domainUser, CancellationToken cancellationToken = default);
+    Task<User> RemoveUserAsync(Guid userId, CancellationToken cancellationToken = default);
 }

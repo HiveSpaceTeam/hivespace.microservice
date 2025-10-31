@@ -37,7 +37,9 @@ public static class UserMapper
             UpdatedAt = domainUser.UpdatedAt,
             LastLoginAt = domainUser.LastLoginAt,
             // Addresses collection will be mapped separately via EF Core navigation
-            Addresses = domainUser.Addresses.ToList()
+            Addresses = [.. domainUser.Addresses],
+            IsDeleted = domainUser.IsDeleted,
+            DeletedAt = domainUser.DeletedAt
         };
     }
 
@@ -81,7 +83,9 @@ public static class UserMapper
             createdAt: applicationUser.CreatedAt,
             updatedAt: applicationUser.UpdatedAt,
             lastLoginAt: applicationUser.LastLoginAt,
-            addresses: applicationUser.Addresses);
+            addresses: applicationUser.Addresses,
+            isDeleted: applicationUser.IsDeleted,
+            deletedAt: applicationUser.DeletedAt);
     }
 
     /// <summary>

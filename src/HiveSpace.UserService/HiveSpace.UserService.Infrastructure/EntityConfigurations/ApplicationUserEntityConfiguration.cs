@@ -14,44 +14,51 @@ public class ApplicationUserEntityConfiguration : IEntityTypeConfiguration<Appli
         builder.Property(u => u.UserName)
             .IsRequired()
             .HasMaxLength(50);
-        
+
         builder.HasIndex(u => u.UserName)
             .IsUnique();
-        
+
         builder.Property(u => u.Email)
             .IsRequired()
             .HasMaxLength(255);
-        
+
         builder.HasIndex(u => u.Email)
             .IsUnique();
-        
+
         builder.Property(u => u.FullName)
             .IsRequired()
             .HasMaxLength(100);
-        
+
         builder.Property(u => u.PhoneNumber)
             .HasMaxLength(20);
-        
+
         builder.Property(u => u.DateOfBirth);
-        
+
         builder.Property(u => u.Gender);
-        
+
         builder.Property(u => u.Status)
             .IsRequired();
-        
+
         builder.Property(u => u.StoreId);
 
         builder.Property(u => u.CreatedAt)
             .IsRequired();
 
         builder.Property(u => u.UpdatedAt);
-        
+
         builder.Property(u => u.LastLoginAt);
+
+        // Configure ISoftDeletable properties
+        builder.Property(u => u.IsDeleted)
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        builder.Property(u => u.DeletedAt);
 
         // Configure the RoleName property
         builder.Property(u => u.RoleName)
             .HasMaxLength(50);
-        
+
         // Create index on RoleName for better query performance
         builder.HasIndex(u => u.RoleName);
 

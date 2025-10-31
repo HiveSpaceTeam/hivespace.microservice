@@ -31,7 +31,7 @@ public class UserRepository : IUserRepository
             query = query.Include(u => u.Addresses);
 
         var appUser = await query.FirstOrDefaultAsync(u => u.Id == id);
-        if (appUser == null) 
+        if (appUser == null)
             return null;
 
         return appUser.ToDomainUser();
@@ -77,7 +77,7 @@ public class UserRepository : IUserRepository
         // Role is already set in ToApplicationUser() mapping, no need for AddToRoleAsync
         // Refresh from database to get the created user with its ID
         await _context.SaveChangesAsync(cancellationToken);
-        
+
         return appUser.ToDomainUser();
     }
 
@@ -103,7 +103,7 @@ public class UserRepository : IUserRepository
 
         var appUser = await _context.Users
             .Include(u => u.Addresses)
-            .FirstOrDefaultAsync(u => u.Id == domainUser.Id, cancellationToken) 
+            .FirstOrDefaultAsync(u => u.Id == domainUser.Id, cancellationToken)
             ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
 
         var updatedUser = domainUser.ToApplicationUser();
@@ -111,6 +111,33 @@ public class UserRepository : IUserRepository
         appUser.UpdateApplicationUser(domainUser);
 
         var result = await _context.SaveChangesAsync(cancellationToken);
-        return domainUser; 
+        return domainUser;
+    }
+
+    /// <summary>
+    /// Removes a user using EF Core Remove() - SoftDeleteInterceptor handles soft delete automatically
+    /// </summary>
+    /// <param name="userId">ID of the user to remove</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The removed user</returns>
+    public async Task<User> RemoveUserAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var appUser = await _context.Users
+            .Include(u => u.Addresses)
+            .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken)
+            ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
+
+        // Check if already deleted
+        if (appUser.IsDeleted)
+            throw new ConflictException(UserDomainErrorCode.UserAlreadyDeleted, nameof(User));
+
+        // Use EF Core Remove() - SoftDeleteInterceptor will automatically:
+        // 1. Set IsDeleted = true
+        // 2. Set DeletedAt = DateTime.UtcNow
+        // 3. Change state from Deleted to Modified
+        _context.Users.Remove(appUser);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return appUser.ToDomainUser();
     }
 }

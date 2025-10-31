@@ -83,4 +83,25 @@ public static class UserMappingExtensions
             domainUser.IsSystemAdmin
         );
     }
+
+    /// <summary>
+    /// Convert Domain User to DeleteUserResponseDto for user deletion responses
+    /// </summary>
+    public static DeleteUserResponseDto ToDeleteUserResponseDto(this User domainUser, string deletedBy)
+    {
+        return new DeleteUserResponseDto(
+            domainUser.Id,
+            domainUser.UserName,
+            domainUser.FullName,
+            domainUser.Email.Value,
+            (int)domainUser.Status,
+            domainUser.CreatedAt,
+            domainUser.UpdatedAt,
+            domainUser.LastLoginAt,
+            domainUser.DeletedAt,
+            null, // AvatarUrl not available in domain model
+            domainUser.IsSeller,
+            deletedBy
+        );
+    }
 }

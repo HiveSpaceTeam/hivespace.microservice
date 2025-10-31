@@ -98,4 +98,16 @@ public class AdminController : ControllerBase
 
         return Ok(result);
     }
+
+    [HttpDelete("users/{userId}")]
+    [RequireAdmin]
+    public async Task<ActionResult<DeleteUserResponseDto>> DeleteUser(
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        // Call service method
+        var result = await _adminService.DeleteUserAsync(userId, cancellationToken);
+
+        return Ok(result);
+    }
 }

@@ -17,12 +17,12 @@ public class UserManager : IDomainService
     private readonly IUserRepository _userRepository;
     // Placeholder used during creation; Infrastructure sets the real password via Identity
     private const string PasswordPlaceholder = "__TO_BE_SET_BY_IDENTITY__";
-    
+
     public UserManager(IUserRepository userRepository)
     {
         _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
     }
-    
+
     /// <summary>
     /// Registers a new user with the provided details.
     /// </summary>
@@ -40,11 +40,11 @@ public class UserManager : IDomainService
     {
         // Check availability (will throw specific exceptions if not available)
         await CanUserBeRegisteredAsync(email, userName?.Trim() ?? string.Empty, cancellationToken);
-        
+
         // Create new user - validation handled in User.Create
-        var user = User.Create(email, userName?.Trim() ?? string.Empty, PasswordPlaceholder, fullName);        return user;
+        var user = User.Create(email, userName?.Trim() ?? string.Empty, PasswordPlaceholder, fullName); return user;
     }
-    
+
     /// <summary>
     /// Checks if an email is available for user registration.
     /// </summary>
@@ -55,7 +55,7 @@ public class UserManager : IDomainService
         var existingUser = await _userRepository.GetByEmailAsync(email, cancellationToken);
         return existingUser is null;
     }
-    
+
     /// <summary>
     /// Checks if a username is available for user registration.
     /// </summary>
@@ -66,11 +66,11 @@ public class UserManager : IDomainService
         var trimmedUserName = userName?.Trim() ?? string.Empty;
         if (string.IsNullOrEmpty(trimmedUserName))
             return false;
-            
+
         var existingUser = await _userRepository.GetByUserNameAsync(trimmedUserName, cancellationToken);
         return existingUser is null;
     }
-    
+
     /// <summary>
     /// Validates if a user can be registered by checking email and username availability.
     /// </summary>
@@ -84,7 +84,7 @@ public class UserManager : IDomainService
         // Check email availability first (more likely to be unique)
         if (!await IsEmailAvailableAsync(email, cancellationToken))
             throw new ConflictException(UserDomainErrorCode.EmailAlreadyExists, nameof(User.Email));
-            
+
         // Check username availability
         if (!await IsUserNameAvailableAsync(userName, cancellationToken))
             throw new ConflictException(UserDomainErrorCode.UserNameAlreadyExists, nameof(User.UserName));
@@ -106,24 +106,24 @@ public class UserManager : IDomainService
         bool requireSystemAdmin = false,
         CancellationToken cancellationToken = default)
     {
-        var actorUser = await _userRepository.GetByIdAsync(actorUserId) 
+        var actorUser = await _userRepository.GetByIdAsync(actorUserId)
             ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
-        
+
         if (actorUser.Status != UserStatus.Active)
         {
             throw new ForbiddenException(UserDomainErrorCode.UserInactive, nameof(User));
         }
-        
+
         if (requireSystemAdmin && !actorUser.IsSystemAdmin)
         {
             throw new ForbiddenException(UserDomainErrorCode.InsufficientPrivileges, nameof(User));
         }
-        
+
         if (!requireSystemAdmin && !actorUser.IsAdmin && !actorUser.IsSystemAdmin)
         {
             throw new ForbiddenException(UserDomainErrorCode.InsufficientPrivileges, nameof(User));
         }
-        
+
         return actorUser;
     }
 
@@ -154,10 +154,10 @@ public class UserManager : IDomainService
 
         // Check availability (will throw specific exceptions if not available)
         await CanUserBeRegisteredAsync(email, userName?.Trim() ?? string.Empty, cancellationToken);
-        
+
         // Create new admin user
         var user = User.Create(email, userName ?? string.Empty, PasswordPlaceholder, fullName, role);
-        
+
         return user;
     }
 
@@ -237,16 +237,16 @@ public class UserManager : IDomainService
     {
         // Validate actor has admin privileges
         var actorUser = await ValidateAdminUserAsync(actorUserId, requireSystemAdmin: false, cancellationToken);
-        
-        var targetUser = await _userRepository.GetByIdAsync(targetUserId) 
+
+        var targetUser = await _userRepository.GetByIdAsync(targetUserId)
             ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
-        
+
         // System admins cannot be modified by regular admins
         if (targetUser.IsSystemAdmin && !actorUser.IsSystemAdmin)
         {
             throw new ForbiddenException(UserDomainErrorCode.InsufficientPrivileges, nameof(User));
         }
-        
+
         // Update the active status if it's different
         if (targetUser.Status == UserStatus.Active != isActive)
         {
@@ -259,8 +259,42 @@ public class UserManager : IDomainService
                 targetUser.Deactivate();
             }
         }
-        
+
         return targetUser;
+    }
+
+    /// <summary>
+    /// Validates if the current admin can delete the target user based on hierarchical permissions
+    /// </summary>
+    /// <param name="currentAdmin">The admin attempting the deletion</param>
+    /// <param name="targetUser">The user to be deleted</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <exception cref="ForbiddenException">Thrown when deletion is not allowed</exception>
+    public async Task ValidateUserDeletionAsync(User currentAdmin, User targetUser, CancellationToken cancellationToken = default)
+    {
+        // Validate admin is active
+        if (currentAdmin.Status != UserStatus.Active)
+            throw new ForbiddenException(UserDomainErrorCode.UserInactive, nameof(User));
+
+        // Prevent self-deletion
+        if (currentAdmin.Id == targetUser.Id)
+            throw new ForbiddenException(UserDomainErrorCode.CannotDeleteOwnAccount, nameof(User));
+
+        // Check if target user is already deleted
+        if (targetUser.IsDeleted)
+            throw new ConflictException(UserDomainErrorCode.UserAlreadyDeleted, nameof(User));
+
+        // Validate hierarchical permissions
+        if (targetUser.IsAdmin || targetUser.IsSystemAdmin)
+        {
+            // Only System Admins can delete Admin accounts
+            if (!currentAdmin.IsSystemAdmin)
+                throw new ForbiddenException(UserDomainErrorCode.CannotDeleteAdminAccount, nameof(User));
+
+            // System Admins cannot delete other System Admins
+            if (targetUser.IsSystemAdmin && currentAdmin.IsSystemAdmin)
+                throw new ForbiddenException(UserDomainErrorCode.CannotDeleteSystemAdmin, nameof(User));
+        }
     }
 
     /// <summary>

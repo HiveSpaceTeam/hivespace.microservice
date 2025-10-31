@@ -1,14 +1,16 @@
 using HiveSpace.Core.Contexts;
+using HiveSpace.Domain.Shared.Exceptions;
+using HiveSpace.UserService.Application.Constant.Enum;
+using HiveSpace.UserService.Application.Extensions;
+using HiveSpace.UserService.Application.Interfaces.DataQueries;
+using HiveSpace.UserService.Application.Interfaces.Services;
+using HiveSpace.UserService.Application.Models.Queries;
 using HiveSpace.UserService.Application.Models.Requests.Admin;
 using HiveSpace.UserService.Application.Models.Responses.Admin;
 using HiveSpace.UserService.Domain.Aggregates.User;
-using HiveSpace.UserService.Domain.Services;
+using HiveSpace.UserService.Domain.Exceptions;
 using HiveSpace.UserService.Domain.Repositories;
-using HiveSpace.UserService.Application.Models.Queries;
-using HiveSpace.UserService.Application.Interfaces.Services;
-using HiveSpace.UserService.Application.Interfaces.DataQueries;
-using HiveSpace.UserService.Application.Constant.Enum;
-using HiveSpace.UserService.Application.Extensions;
+using HiveSpace.UserService.Domain.Services;
 
 namespace HiveSpace.UserService.Application.Services;
 
@@ -67,7 +69,7 @@ public class AdminService : IAdminService
         // Use the unified method
         var baseRequest = new GetUsersBaseRequestDto(request.Page, request.PageSize, request.Role, request.Status, request.SearchTerm, request.Sort);
         var unifiedResult = await GetUnifiedUsersAsync<UserDto>(baseRequest, UserQueryType.Users, cancellationToken);
-        
+
         return unifiedResult.ToUsersResponse();
     }
 
@@ -76,7 +78,7 @@ public class AdminService : IAdminService
         // Use the unified method
         var baseRequest = new GetUsersBaseRequestDto(request.Page, request.PageSize, request.Role, request.Status, request.SearchTerm, request.Sort);
         var unifiedResult = await GetUnifiedUsersAsync<AdminDto>(baseRequest, UserQueryType.Admins, cancellationToken);
-        
+
         return unifiedResult.ToAdminsResponse();
     }
 
@@ -128,5 +130,26 @@ public class AdminService : IAdminService
             UserQueryType.Admins => updatedUser.ToSetAdminStatusResponseDto(),
             _ => throw new ArgumentOutOfRangeException(nameof(request.ResponseType), request.ResponseType, "Invalid response type")
         };
+    }
+
+    public async Task<DeleteUserResponseDto> DeleteUserAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        // Get current admin context
+        var currentAdminId = _userContext.UserId;
+        var currentAdmin = await _userRepository.GetByIdAsync(currentAdminId)
+            ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
+
+        // Get target user
+        var targetUser = await _userRepository.GetByIdAsync(userId)
+            ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
+
+        // Validate deletion permissions using domain service
+        await _domainUserManager.ValidateUserDeletionAsync(currentAdmin, targetUser, cancellationToken);
+
+        // Use EF Core Remove() - SoftDeleteInterceptor will handle soft delete automatically
+        var deletedUser = await _userRepository.RemoveUserAsync(userId, cancellationToken);
+
+        // Map to response DTO from the updated aggregate
+        return deletedUser.ToDeleteUserResponseDto(currentAdmin.UserName);
     }
 }
