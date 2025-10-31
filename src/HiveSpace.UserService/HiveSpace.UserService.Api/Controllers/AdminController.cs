@@ -100,7 +100,7 @@ public class AdminController : ControllerBase
     }
 
     [HttpDelete("users/{userId}")]
-    [Authorize(Policy = "RequireUserFullAccessScope")]
+    [RequireAdmin]
     public async Task<ActionResult<DeleteUserResponseDto>> DeleteUser(
         Guid userId,
         CancellationToken cancellationToken)

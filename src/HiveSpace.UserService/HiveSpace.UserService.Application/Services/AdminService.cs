@@ -147,9 +147,9 @@ public class AdminService : IAdminService
         await _domainUserManager.ValidateUserDeletionAsync(currentAdmin, targetUser, cancellationToken);
 
         // Use EF Core Remove() - SoftDeleteInterceptor will handle soft delete automatically
-        await _userRepository.RemoveUserAsync(userId, cancellationToken);
+        var deletedUser = await _userRepository.RemoveUserAsync(userId, cancellationToken);
 
-        // Map to response DTO
-        return targetUser.ToDeleteUserResponseDto(currentAdmin.UserName);
+        // Map to response DTO from the updated aggregate
+        return deletedUser.ToDeleteUserResponseDto(currentAdmin.UserName);
     }
 }

@@ -90,6 +90,8 @@ public class User : AggregateRoot<Guid>, IAuditable, ISoftDeletable
         DateTimeOffset createdAt,
         DateTimeOffset? updatedAt,
         DateTimeOffset? lastLoginAt,
+        bool isDeleted = false,
+        DateTimeOffset? deletedAt = null,
         IEnumerable<Address>? addresses = null)
     {
         var user = new User(email, userName, passwordHash, fullName, role, phoneNumber, dateOfBirth, gender, storeId, status, emailConfirmed, createdAt, updatedAt, lastLoginAt);
