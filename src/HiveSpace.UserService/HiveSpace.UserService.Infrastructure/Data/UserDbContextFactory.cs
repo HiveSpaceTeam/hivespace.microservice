@@ -25,7 +25,8 @@ public class UserDbContextFactory : IDesignTimeDbContextFactory<UserDbContext>
         }
 
         var optionsBuilder = new DbContextOptionsBuilder<UserDbContext>();
-        optionsBuilder.UseSqlServer(connectionString, b => b.MigrationsAssembly("HiveSpace.UserService.Api"));
+        // Migrations are stored in the Infrastructure project migrations folder
+        optionsBuilder.UseSqlServer(connectionString);
 
         return new UserDbContext(optionsBuilder.Options);
     }
