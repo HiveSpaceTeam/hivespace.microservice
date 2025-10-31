@@ -1,6 +1,7 @@
 using Duende.IdentityServer;
 using HiveSpace.Core.Contexts;
 using HiveSpace.Core.Filters;
+using HiveSpace.Infrastructure.Authorization.Extensions;
 using HiveSpace.UserService.Api.Configs;
 using HiveSpace.UserService.Application;
 using HiveSpace.UserService.Infrastructure.Identity;
@@ -9,6 +10,9 @@ using HiveSpace.UserService.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using HiveSpace.UserService.Application.Services;
 using HiveSpace.UserService.Application.Interfaces.Services;
+using HiveSpace.UserService.Infrastructure.Settings;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.OpenApi.Models;
 
 namespace HiveSpace.UserService.Api.Extensions;
 
@@ -21,6 +25,13 @@ internal static class ServiceCollectionExtensions
         services.AddControllers(options =>
         {
             options.Filters.Add<CustomExceptionFilter>();
+        });
+        
+        // Configure global route prefix using built-in .NET support
+        services.Configure<RouteOptions>(options =>
+        {
+            options.LowercaseUrls = true;
+            options.LowercaseQueryStrings = true;
         });
     }
 
@@ -46,12 +57,6 @@ internal static class ServiceCollectionExtensions
         });
     }
 
-    // Split AddAppDependencies into two methods for better separation of concerns
-    public static void AddAppInfrastructure(this IServiceCollection services)
-    {
-        services.AddHttpContextAccessor();
-    }
-
     public static void AddAppApplicationServices(this IServiceCollection services)
     {
         // Add MediatR and register handlers
@@ -70,7 +75,21 @@ internal static class ServiceCollectionExtensions
         services.AddScoped<UserManager>();
     }
 
-
+    public static void AddEmailConfig(this IServiceCollection services, IConfiguration configuration)
+    {
+        // Configure EmailSettings
+        services.Configure<EmailSettings>(configuration.GetSection(EmailSettings.SectionName));
+        
+        // Configure FluentEmail with SMTP
+        services.AddFluentEmail(configuration["EmailSettings:FromEmail"], configuration["EmailSettings:FromName"])
+            .AddRazorRenderer()
+            .AddSmtpSender(
+                configuration["EmailSettings:SmtpServer"], 
+                int.Parse(configuration["EmailSettings:SmtpPort"] ?? "587"),
+                configuration["EmailSettings:SmtpUser"],
+                configuration["EmailSettings:SmtpPassword"]
+            );
+    }
 
     public static void AddAppIdentityServer(this IServiceCollection services, IConfiguration configuration)
     {
@@ -171,15 +190,8 @@ internal static class ServiceCollectionExtensions
 
     public static void AddAppAuthorization(this IServiceCollection services)
     {
-        services.AddAuthorization(options =>
-        {
-            options.AddPolicy("RequireUserFullAccessScope", policy =>
-            {
-                policy.RequireAuthenticatedUser();
-                policy.RequireClaim("scope", "user.fullaccess");
-                policy.AuthenticationSchemes.Add(IdentityServerConstants.LocalApi.AuthenticationScheme);
-            });
-        });
+        // Use shared HiveSpace authorization with LocalApi only (User Service hosts IdentityServer)
+        services.AddHiveSpaceAuthorizationForLocalApi("user.fullaccess");
     }
 
     public static void AddAppApiVersioning(this IServiceCollection services)
@@ -189,6 +201,61 @@ internal static class ServiceCollectionExtensions
             options.DefaultApiVersion = new Microsoft.AspNetCore.Mvc.ApiVersion(1, 0);
             options.AssumeDefaultVersionWhenUnspecified = true;
             options.ReportApiVersions = true;
+        });
+    }
+
+    public static void AddAppSwagger(this IServiceCollection services)
+    {
+        services.AddEndpointsApiExplorer();
+        services.AddSwaggerGen(options =>
+        {
+            // Basic API Info
+            options.SwaggerDoc("v1", new OpenApiInfo
+            {
+                Title = "HiveSpace User Service API",
+                Version = "v1.0",
+                Description = "API for managing users, authentication, and authorization in the HiveSpace platform",
+                Contact = new OpenApiContact
+                {
+                    Name = "HiveSpace Team",
+                    Email = "support@hivespace.com"
+                }
+            });
+
+            // JWT Bearer Authentication
+            options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            {
+                Name = "Authorization",
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer",
+                BearerFormat = "JWT",
+                In = ParameterLocation.Header,
+                Description = "Enter your JWT token in the format: Bearer {your token}"
+            });
+
+            // Apply security requirements globally
+            options.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    },
+                    Array.Empty<string>()
+                }
+            });
+
+            // Include XML documentation (if available)
+            var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+            var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+            if (File.Exists(xmlPath))
+            {
+                options.IncludeXmlComments(xmlPath);
+            }
         });
     }
 }

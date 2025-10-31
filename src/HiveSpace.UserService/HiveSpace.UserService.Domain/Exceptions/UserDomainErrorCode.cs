@@ -32,4 +32,6 @@ public class UserDomainErrorCode : DomainErrorCode
     public static readonly UserDomainErrorCode CannotDeleteOwnAccount = new(30, "CannotDeleteOwnAccount", "USR0030");
     public static readonly UserDomainErrorCode CannotDeleteSystemAdmin = new(31, "CannotDeleteSystemAdmin", "USR0031");
     public static readonly UserDomainErrorCode CannotDeleteAdminAccount = new(32, "CannotDeleteAdminAccount", "USR0032");
+    public static readonly UserDomainErrorCode EmailAlreadyVerified = new(29, "EmailAlreadyVerified", "USR0029");
+    public static readonly UserDomainErrorCode EmailVerificationFailed = new(30, "EmailVerificationFailed", "USR0030");
 }

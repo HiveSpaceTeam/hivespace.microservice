@@ -13,6 +13,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using HiveSpace.Core.Exceptions;
 using HiveSpace.Core.Exceptions.Models;
+using HiveSpace.UserService.Application.Interfaces.Services;
+using HiveSpace.UserService.Infrastructure.Services;
 
 namespace HiveSpace.UserService.Infrastructure;
 
@@ -42,6 +44,9 @@ public static class UserInfrastructureExtension
         // Register UserService repositories
         services.AddUserServiceRepositories();
 
+        // Register Infrastructure services
+        services.AddInfrastructureServices();
+
         // Register UserService queries with connection string
         services.AddUserServiceQueries(connectionString);
 
@@ -61,6 +66,13 @@ public static class UserInfrastructureExtension
     {
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IStoreRepository, StoreRepository>();
+    }
+
+    public static void AddInfrastructureServices(this IServiceCollection services)
+    {
+        // Register Infrastructure services here
+        services.AddScoped<IEmailService, EmailService>();
+        services.AddScoped<IAccountService, AccountService>();
     }
 
     public static void AddUserServiceQueries(this IServiceCollection services, string connectionString)
