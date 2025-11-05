@@ -15,9 +15,22 @@ internal static class HostingExtensions
         builder.Services.AddAppApiControllers();
         builder.Services.AddRazorPages();
         builder.Services.AddAppSwagger();
+        
+        // Add Session support
+        builder.Services.AddDistributedMemoryCache();
+        builder.Services.AddSession(options =>
+        {
+            options.IdleTimeout = TimeSpan.FromMinutes(30);
+            options.Cookie.HttpOnly = true;
+            options.Cookie.IsEssential = true;
+            options.Cookie.SameSite = SameSiteMode.Lax;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        });
+        
         builder.Services.AddUserDbContext(configuration);
         builder.Services.AddCoreServices();
         builder.Services.AddAppDomainServices();
+        builder.Services.AddLocalizationServices(); // Add localization support
         builder.Services.AddAppIdentity();
         builder.Services.AddAppApplicationServices();
         builder.Services.AddEmailConfig(configuration);
@@ -51,6 +64,12 @@ internal static class HostingExtensions
 
         app.UseStaticFiles();
         app.UseRouting();
+
+        // Add session middleware before culture middleware
+        app.UseSession();
+
+        // Add culture middleware before authentication to ensure language is set correctly
+        app.UseMiddleware<HiveSpace.UserService.Api.Middleware.CultureMiddleware>();
 
         app.UseIdentityServer();
         app.UseAuthentication();

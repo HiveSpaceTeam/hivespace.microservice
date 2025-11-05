@@ -29,6 +29,9 @@ public class User : AggregateRoot<Guid>, IAuditable, ISoftDeletable
     private readonly List<Address> _addresses;
     public IReadOnlyCollection<Address> Addresses => _addresses.AsReadOnly();
     
+    // Settings
+    public UserSettings Settings { get; private set; }
+    
     // Audit
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset? UpdatedAt { get; private set; }
@@ -69,6 +72,9 @@ public class User : AggregateRoot<Guid>, IAuditable, ISoftDeletable
         CreatedAt = createdAt ?? DateTimeOffset.UtcNow;
         UpdatedAt = updatedAt;
         LastLoginAt = lastLoginAt;
+
+        // Initialize settings with defaults
+        Settings = new UserSettings(Theme.Light, Culture.En);
     }
 
     /// <summary>
@@ -92,10 +98,15 @@ public class User : AggregateRoot<Guid>, IAuditable, ISoftDeletable
         DateTimeOffset? lastLoginAt,
         bool isDeleted = false,
         DateTimeOffset? deletedAt = null,
-        IEnumerable<Address>? addresses = null)
+        IEnumerable<Address>? addresses = null,
+        Theme theme = Theme.Light,
+        Culture culture = Culture.Vi)
     {
         var user = new User(email, userName, passwordHash, fullName, role, phoneNumber, dateOfBirth, gender, storeId, status, emailConfirmed, createdAt, updatedAt, lastLoginAt);
         user.Id = id; // protected setter available within the assembly
+
+        // Initialize settings
+        user.Settings = new UserSettings(theme, culture);
 
         if (addresses != null)
         {
@@ -251,6 +262,18 @@ public class User : AggregateRoot<Guid>, IAuditable, ISoftDeletable
     internal void SetRole(Role role)
     {
         Role = role;
+    }
+
+    public void UpdateTheme(Theme theme)
+    {
+        Settings = Settings.WithTheme(theme);
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void UpdateCulture(Culture culture)
+    {
+        Settings = Settings.WithCulture(culture);
+        UpdatedAt = DateTimeOffset.UtcNow;
     }
     
     public bool IsSeller => Role?.Name == Role.RoleNames.Seller;

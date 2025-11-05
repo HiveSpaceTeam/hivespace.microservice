@@ -1,0 +1,67 @@
+@using HiveSpace.UserService.Api.Services.Localization
+@inject ILocalizationService Localizer
+
+@{
+    var currentCulture = Localizer.GetCurrentCulture();
+    var isVietnamese = currentCulture == "vi";
+}
+
+<link rel="stylesheet" href="~/css/language-toggle.css" />
+<script src="~/js/language-toggle.js"></script>
+
+<div class="language-toggle relative">
+    <button type="button" id="languageToggle"
+        class="language-toggle-button flex items-center gap-2 p-2 text-gray-700 text-sm font-medium">
+        <!-- Current Language Flag -->
+        @if (isVietnamese)
+        {
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect y="3" width="24" height="18" rx="3.67347" fill="#DA251D" />
+                <path d="M12 6L13.5 10.5H18L14.25 13.5L15.75 18L12 15L8.25 18L9.75 13.5L6 10.5H10.5L12 6Z" fill="#FFFF00" />
+            </svg>
+        }
+        else
+        {
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect y="3" width="24" height="18" rx="3.42857" fill="#012169" />
+                <path d="M0 0L24 24M24 0L0 24" stroke="#FFFFFF" stroke-width="3" />
+                <path d="M0 0L24 24M24 0L0 24" stroke="#C8102E" stroke-width="2" />
+                <path d="M12 0V24M0 12H24" stroke="#FFFFFF" stroke-width="5" />
+                <path d="M12 0V24M0 12H24" stroke="#C8102E" stroke-width="3" />
+            </svg>
+        }
+
+        <span class="text-sm font-medium">@(isVietnamese ? "VI" : "EN")</span>
+        <svg class="w-4 h-4 transition-transform duration-200" id="dropdownArrow" fill="none" stroke="currentColor"
+            viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+    </button>
+
+    <!-- Language Menu -->
+    <div id="languageMenu"
+        class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 language-menu">
+        <div class="py-1">
+            <a href="#" data-culture="vi"
+                class="language-option flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 @(isVietnamese ? "bg-gray-50" : "")">
+                <svg class="w-5 h-5 mr-3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect y="3" width="24" height="18" rx="3.67347" fill="#DA251D" />
+                    <path d="M12 6L13.5 10.5H18L14.25 13.5L15.75 18L12 15L8.25 18L9.75 13.5L6 10.5H10.5L12 6Z"
+                        fill="#FFFF00" />
+                </svg>
+                Tiếng Việt
+            </a>
+            <a href="#" data-culture="en"
+                class="language-option flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 @(!isVietnamese ? "bg-gray-50" : "")">
+                <svg class="w-5 h-5 mr-3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect y="3" width="24" height="18" rx="3.42857" fill="#012169" />
+                    <path d="M0 0L24 24M24 0L0 24" stroke="#FFFFFF" stroke-width="3" />
+                    <path d="M0 0L24 24M24 0L0 24" stroke="#C8102E" stroke-width="2" />
+                    <path d="M12 0V24M0 12H24" stroke="#FFFFFF" stroke-width="5" />
+                    <path d="M12 0V24M0 12H24" stroke="#C8102E" stroke-width="3" />
+                </svg>
+                English
+            </a>
+        </div>
+    </div>
+</div>

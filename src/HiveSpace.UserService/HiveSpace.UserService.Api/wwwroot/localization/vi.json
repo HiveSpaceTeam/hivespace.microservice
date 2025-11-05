@@ -1,0 +1,64 @@
+{
+  "pages": {
+    "login": {
+      "title": "Đăng nhập",
+      "subtitle": "Nhập email và mật khẩu để đăng nhập!",
+      "emailLabel": "Email",
+      "emailPlaceholder": "Nhập email của bạn",
+      "passwordLabel": "Mật khẩu",
+      "passwordPlaceholder": "Nhập mật khẩu",
+      "rememberMeLabel": "Giữ tôi đăng nhập",
+      "forgotPasswordLink": "Quên mật khẩu?",
+      "signInButton": "Đăng nhập",
+      "signUpText": "Chưa có tài khoản?",
+      "signUpLink": "Đăng ký",
+      "invalidLoginMessage": "Yêu cầu đăng nhập không hợp lệ",
+      "noLoginSchemesMessage": "Không có phương thức đăng nhập nào được cấu hình cho yêu cầu này."
+    },
+    "register": {
+      "title": "Tạo tài khoản",
+      "subtitle": "Nhập thông tin của bạn để tạo tài khoản!",
+      "emailLabel": "Email",
+      "emailPlaceholder": "Nhập email của bạn",
+      "fullNameLabel": "Họ và tên",
+      "fullNamePlaceholder": "Nhập họ và tên",
+      "passwordLabel": "Mật khẩu",
+      "passwordPlaceholder": "Nhập mật khẩu",
+      "confirmPasswordLabel": "Xác nhận mật khẩu",
+      "confirmPasswordPlaceholder": "Xác nhận mật khẩu",
+      "createAccountButton": "Tạo tài khoản",
+      "signInText": "Đã có tài khoản?",
+      "signInLink": "Đăng nhập",
+      "invalidRegistrationMessage": "Yêu cầu đăng ký không hợp lệ",
+      "noRegistrationMethodsMessage": "Không có phương thức đăng ký nào được cấu hình cho yêu cầu này."
+    },
+    "shared": {
+      "or": "Hoặc"
+    }
+  },
+  "validation": {
+    "emailRequired": "Email là bắt buộc",
+    "email": "Vui lòng nhập địa chỉ email hợp lệ",
+    "passwordRequired": "Mật khẩu là bắt buộc",
+    "passwordMinLength": "Mật khẩu phải có ít nhất {0} ký tự",
+    "passwordComplexity": "Mật khẩu phải chứa ít nhất một chữ hoa, một chữ thường, một số và một ký tự đặc biệt",
+    "fullNameRequired": "Họ và tên là bắt buộc",
+    "fullNameMinLength": "Họ và tên phải có ít nhất {0} ký tự",
+    "fullNameMaxLength": "Họ và tên không được vượt quá {0} ký tự",
+    "confirmPasswordRequired": "Vui lòng xác nhận mật khẩu",
+    "passwordsDoNotMatch": "Mật khẩu và xác nhận mật khẩu không khớp"
+  },
+  "errors": {
+    "invalidCredentials": "Email hoặc mật khẩu không đúng, vui lòng thử lại",
+    "accountInactive": "Tài khoản này đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên để kích hoạt.",
+    "notAuthorizedAdminPortal": "Bạn không được phép đăng nhập vào Cổng quản trị.",
+    "adminNotAllowedSellerCenter": "Quản trị viên không được phép đăng nhập vào Trung tâm người bán.",
+    "accountLockedOut": "Tài khoản này đã bị khóa, vui lòng thử lại sau.",
+    "accountNotAllowed": "Tài khoản này không được phép đăng nhập.",
+    "invalidReturnUrl": "URL trả về không hợp lệ.",
+    "loginError": "Đã xảy ra lỗi trong quá trình đăng nhập. Vui lòng thử lại."
+  },
+  "social": {
+    "continueWith": "Tiếp tục với"
+  }
+}

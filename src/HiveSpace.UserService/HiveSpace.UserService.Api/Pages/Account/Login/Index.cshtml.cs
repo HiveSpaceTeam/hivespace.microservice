@@ -5,11 +5,13 @@ using Duende.IdentityServer.Services;
 using Duende.IdentityServer.Stores;
 using HiveSpace.UserService.Infrastructure.Identity;
 using HiveSpace.UserService.Domain.Enums;
+using HiveSpace.UserService.Api.Services.Localization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Web;
 
 namespace HiveSpace.UserService.Api.Pages.Account.Login;
 [SecurityHeaders]
@@ -23,6 +25,7 @@ public class Index : PageModel
     private readonly IAuthenticationSchemeProvider _schemeProvider;
     private readonly IIdentityProviderStore _identityProviderStore;
     private readonly IConfiguration _configuration;
+    private readonly ILocalizationService _localizer;
 
     public ViewModel View { get; set; } = default!;
 
@@ -36,7 +39,8 @@ public class Index : PageModel
         IEventService events,
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        ILocalizationService localizer)
     {
         _userManager = userManager;
         _signInManager = signInManager;
@@ -45,6 +49,7 @@ public class Index : PageModel
         _identityProviderStore = identityProviderStore;
         _events = events;
         _configuration = configuration;
+        _localizer = localizer;
     }
 
     public async Task<IActionResult> OnGet(string? returnUrl)
@@ -126,7 +131,7 @@ public class Index : PageModel
                     const string error = "invalid credentials";
                     await _events.RaiseAsync(new UserLoginFailureEvent(Input.Email, error, clientId: context?.Client.ClientId));
                     Telemetry.Metrics.UserLoginFailure(context?.Client.ClientId, IdentityServerConstants.LocalIdentityProvider, error);
-                    AddApiError("Invalid username or password, please try again");
+                    AddApiError(_localizer.GetString("errors.invalidCredentials"));
                     await BuildModelAsync(Input.ReturnUrl);
                     return Page();
                 }
@@ -137,7 +142,7 @@ public class Index : PageModel
                     const string error = "user inactive";
                     await _events.RaiseAsync(new UserLoginFailureEvent(Input.Email, error, clientId: context?.Client.ClientId));
                     Telemetry.Metrics.UserLoginFailure(context?.Client.ClientId, IdentityServerConstants.LocalIdentityProvider, error);
-                    AddApiError("This account is inactive. Please contact admin to activate it.");
+                    AddApiError(_localizer.GetString("errors.accountInactive"));
                     await BuildModelAsync(Input.ReturnUrl);
                     return Page();
                 }
@@ -158,7 +163,7 @@ public class Index : PageModel
                                 const string error = "not authorized for admin portal";
                                 await _events.RaiseAsync(new UserLoginFailureEvent(Input.Email, error, clientId: context?.Client.ClientId));
                                 Telemetry.Metrics.UserLoginFailure(context?.Client.ClientId, IdentityServerConstants.LocalIdentityProvider, error);
-                                AddApiError("You are not authorized to sign in to the Admin Portal.");
+                                AddApiError(_localizer.GetString("errors.notAuthorizedAdminPortal"));
                                 await BuildModelAsync(Input.ReturnUrl);
                                 return Page();
                             }
@@ -174,7 +179,7 @@ public class Index : PageModel
                                 const string error = "admin not allowed in seller center";
                                 await _events.RaiseAsync(new UserLoginFailureEvent(Input.Email, error, clientId: context?.Client.ClientId));
                                 Telemetry.Metrics.UserLoginFailure(context?.Client.ClientId, IdentityServerConstants.LocalIdentityProvider, error);
-                                AddApiError("Administrators are not allowed to sign in to the Seller Center.");
+                                AddApiError(_localizer.GetString("errors.adminNotAllowedSellerCenter"));
                                 await BuildModelAsync(Input.ReturnUrl);
                                 return Page();
                             }
@@ -207,7 +212,7 @@ public class Index : PageModel
                         IdentityServerConstants.LocalIdentityProvider,
                         "locked out"
                     );
-                    AddApiError("This account has been locked out, please try again later.");
+                    AddApiError(_localizer.GetString("errors.accountLockedOut"));
                     await BuildModelAsync(Input.ReturnUrl);
                     return Page();
                 }
@@ -224,7 +229,7 @@ public class Index : PageModel
                 // handle disallowed logins (e.g. email not confirmed)
                 if (result.IsNotAllowed)
                 {
-                    AddApiError("This account is not allowed to log in.");
+                    AddApiError(_localizer.GetString("errors.accountNotAllowed"));
                     await BuildModelAsync(Input.ReturnUrl);
                     return Page();
                 }
@@ -247,7 +252,7 @@ public class Index : PageModel
                         // This "can't happen", because if the ReturnUrl was null, then the context would be null
                         if (Input.ReturnUrl == null)
                         {
-                            AddApiError("Invalid return URL provided.");
+                            AddApiError(_localizer.GetString("errors.invalidReturnUrl"));
                             await BuildModelAsync(Input.ReturnUrl);
                             return Page();
                         }
@@ -281,7 +286,7 @@ public class Index : PageModel
                     else
                     {
                         // user might have clicked on a malicious link - handle gracefully
-                        AddApiError("Invalid return URL provided.");
+                        AddApiError(_localizer.GetString("errors.invalidReturnUrl"));
                         await BuildModelAsync(Input.ReturnUrl);
                         return Page();
                     }
@@ -291,13 +296,13 @@ public class Index : PageModel
                 const string invalidCredentials = "invalid credentials";
                 await _events.RaiseAsync(new UserLoginFailureEvent(Input.Email, invalidCredentials, clientId: context?.Client.ClientId));
                 Telemetry.Metrics.UserLoginFailure(context?.Client.ClientId, IdentityServerConstants.LocalIdentityProvider, invalidCredentials);
-                AddApiError("Invalid username or password, please try again");
+                AddApiError(_localizer.GetString("errors.invalidCredentials"));
             }
             catch (Exception)
             {
                 // Log the exception but don't expose internal details to user
                 // You can add logging here if needed
-                AddApiError("An error occurred during login. Please try again.");
+                AddApiError(_localizer.GetString("errors.loginError"));
             }
         }
 
@@ -402,9 +407,9 @@ public class Index : PageModel
                     ClientId = context?.Client?.ClientId,
                 };
 
-                Input.Email = context.LoginHint;
+                Input.Email = context?.LoginHint;
 
-                if (!local)
+                if (!local && scheme != null && context?.IdP != null)
                 {
                     View.ExternalProviders = [new ViewModel.ExternalProvider(authenticationScheme: context.IdP, displayName: scheme.DisplayName)];
                 }

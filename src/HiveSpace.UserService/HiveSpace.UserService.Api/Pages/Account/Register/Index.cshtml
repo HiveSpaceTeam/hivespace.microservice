@@ -2,6 +2,8 @@
 @model HiveSpace.UserService.Api.Pages.Account.Register.Index
 @using HiveSpace.UserService.Api.Helpers
 @using HiveSpace.UserService.Api.Pages.Account.Register
+@using HiveSpace.UserService.Api.Services.Localization
+@inject ILocalizationService Localizer
 @section Styles {
     <link rel="stylesheet" href="~/css/register.css" />
     <link rel="stylesheet" href="~/css/auth-layout.css" />
@@ -11,9 +13,13 @@
 
 @* Start Auth Container *@
 @await Html.PartialAsync("_AuthContainer")
+
+@* Language Toggle *@
+<partial name="_LanguageToggle" />
+
 <div class="register-header">
-    <h1 class="register-title">Create Account</h1>
-    <p class="register-subtitle">Enter your details to create your account!</p>
+    <h1 class="register-title">@Localizer.GetString("pages.register.title")</h1>
+    <p class="register-subtitle">@Localizer.GetString("pages.register.subtitle")</p>
 </div>
 <partial name="_ValidationSummary" />
 
@@ -37,15 +43,16 @@
             @{
                 ViewData["PropertyName"] = "Input.Email";
                 ViewData["Value"] = Model.Input?.Email;
-                ViewData["Label"] = "Email";
+                ViewData["Label"] = Localizer.GetString("pages.register.emailLabel");
+                ViewData["Placeholder"] = Localizer.GetString("pages.register.emailPlaceholder");
                 ViewData["Type"] = "email";
                 ViewData["AutoFocus"] = true;
                 ViewData["Required"] = true;
                 ViewData["ValidationRules"] = System.Text.Json.JsonSerializer.Serialize(new { required = true, email = true });
                 ViewData["ErrorMessages"] = System.Text.Json.JsonSerializer.Serialize(new
                 {
-                    required = "Email is required",
-                    email = "Please enter a valid email address"
+                    required = Localizer.GetString("validation.emailRequired"),
+                    email = Localizer.GetString("validation.email")
                 });
             }
             <partial name="_FormInput" />
@@ -54,7 +61,8 @@
             @{
                 ViewData["PropertyName"] = "Input.FullName";
                 ViewData["Value"] = Model.Input?.FullName;
-                ViewData["Label"] = "Full Name";
+                ViewData["Label"] = Localizer.GetString("pages.register.fullNameLabel");
+                ViewData["Placeholder"] = Localizer.GetString("pages.register.fullNamePlaceholder");
                 ViewData["Type"] = "text";
                 ViewData["AutoComplete"] = "name";
                 ViewData["AutoFocus"] = false;
@@ -67,25 +75,33 @@
                 });
                 ViewData["ErrorMessages"] = System.Text.Json.JsonSerializer.Serialize(new
                 {
-                    required = "Full name is required",
-                    minLength = "Full name must be at least 2 characters",
-                    maxLength = "Full name cannot exceed 100 characters"
+                    required = Localizer.GetString("validation.fullNameRequired"),
+                    minLength = Localizer.GetString("validation.fullNameMinLength", 2),
+                    maxLength = Localizer.GetString("validation.fullNameMaxLength", 100)
                 });
             }
             <partial name="_FormInput" />
 
             @* Password Input Component *@
             @{
-                var passwordValidation =
-                HiveSpace.UserService.Api.Helpers.ValidationRuleGenerator.GenerateClientRules<InputModel>(m => m.Password);
                 ViewData["PropertyName"] = "Input.Password";
                 ViewData["Value"] = Model.Input?.Password;
-                ViewData["Label"] = "Password";
-                ViewData["Placeholder"] = "Enter your password";
+                ViewData["Label"] = Localizer.GetString("pages.register.passwordLabel");
+                ViewData["Placeholder"] = Localizer.GetString("pages.register.passwordPlaceholder");
                 ViewData["AutoComplete"] = "new-password";
                 ViewData["Required"] = true;
-                ViewData["ValidationRules"] = System.Text.Json.JsonSerializer.Serialize(passwordValidation.Rules);
-                ViewData["ErrorMessages"] = System.Text.Json.JsonSerializer.Serialize(passwordValidation.Messages);
+                ViewData["ValidationRules"] = System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, object>
+                {
+                { "required", true },
+                { "minlength", 12 },
+                { "pattern", @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$" }
+                });
+                ViewData["ErrorMessages"] = System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    required = Localizer.GetString("validation.passwordRequired"),
+                    minlength = Localizer.GetString("validation.passwordMinLength", 12),
+                    pattern = Localizer.GetString("validation.passwordComplexity")
+                });
             }
             <partial name="_PasswordInput" />
 
@@ -93,20 +109,19 @@
             @{
                 ViewData["PropertyName"] = "Input.ConfirmPassword";
                 ViewData["Value"] = Model.Input?.ConfirmPassword;
-                ViewData["Label"] = "Confirm Password";
-                ViewData["Placeholder"] = "Confirm your password";
+                ViewData["Label"] = Localizer.GetString("pages.register.confirmPasswordLabel");
+                ViewData["Placeholder"] = Localizer.GetString("pages.register.confirmPasswordPlaceholder");
                 ViewData["AutoComplete"] = "new-password";
                 ViewData["Required"] = true;
                 ViewData["ValidationRules"] = System.Text.Json.JsonSerializer.Serialize(new
                 {
                     required = true,
-                    compare =
-                "Input.Password"
+                    compare = "Input.Password"
                 });
                 ViewData["ErrorMessages"] = System.Text.Json.JsonSerializer.Serialize(new
                 {
-                    required = "Please confirm your password",
-                    compare = "Password and confirmation password do not match"
+                    required = Localizer.GetString("validation.confirmPasswordRequired"),
+                    compare = Localizer.GetString("validation.passwordsDoNotMatch")
                 });
             }
             <partial name="_PasswordInput" />
@@ -115,14 +130,15 @@
             @{
                 ViewData["AspFor"] = Model.Input?.Button;
                 ViewData["Value"] = "register";
-                ViewData["Text"] = "Create Account";
+                ViewData["Text"] = Localizer.GetString("pages.register.createAccountButton");
             }
             <partial name="_SubmitButton" />
         </form>
 
         <div class="register-footer">
             <div class="signin-text">
-                Already have an account? <a href="/Account/Login@(Request.QueryString)" class="signin-link">Sign In</a>
+                @Localizer.GetString("pages.register.signInText") <a href="/Account/Login@(Request.QueryString)"
+                    class="signin-link">@Localizer.GetString("pages.register.signInLink")</a>
             </div>
         </div>
     </div>
@@ -133,7 +149,7 @@
 @if (!Model.View.EnableLocalRegistration && !Model.View.VisibleExternalProviders.Any())
 {
     <div class="alert alert-warning">
-        <strong>Invalid registration request</strong>
-        There are no registration methods configured for this request.
+        <strong>@Localizer.GetString("pages.register.invalidRegistrationMessage")</strong>
+        @Localizer.GetString("pages.register.noRegistrationMethodsMessage")
     </div>
 }

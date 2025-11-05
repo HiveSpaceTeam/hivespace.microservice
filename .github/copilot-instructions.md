@@ -390,16 +390,29 @@ public class UserRepository : IUserRepository
     }
 }
 
-// Entity configuration example
+// Entity configuration example - MUST be placed in Infrastructure/EntityConfigurations/
 public class UserConfiguration : IEntityTypeConfiguration<ApplicationUser>
 {
     public void Configure(EntityTypeBuilder<ApplicationUser> builder)
     {
+        // Table name should follow snake_case convention
+        builder.ToTable("users");
+
+        // Configure properties
         builder.Property(x => x.FullName).HasMaxLength(200).IsRequired();
         builder.Property(x => x.Email).HasMaxLength(256).IsRequired();
         builder.HasIndex(x => x.Email).IsUnique();
     }
 }
+
+/*
+Entity Configuration Rules:
+1. Place configurations in [ServiceName].Infrastructure/EntityConfigurations/
+2. Name pattern: [EntityName]EntityConfiguration
+3. Table names: Use snake_case (e.g., user_settings, not UserSettings)
+4. Each entity type gets its own configuration class
+5. Apply configurations using builder.ApplyConfigurationsFromAssembly()
+*/
 ```
 
 #### 5. **API Layer**
@@ -594,15 +607,291 @@ public async Task<ActionResult<GetUsersResponseDto>> GetUsers(
 ### Key Principles to Follow
 
 1. **Commands/Writes**: Always go through domain layer for business rule validation
-2. **Simple Queries**: Go through domain if business logic is needed, otherwise use DataQueries
-3. **Complex Queries**: Bypass domain layer and use direct SQL via DataQueries for performance
-4. **Always validate**: Use FluentValidation for input validation at application boundary, using withState and error codes
-5. **Register DI**: Don't forget to register new services and interfaces in dependency injection
-6. **Follow naming**: Use consistent naming patterns (RequestDto, ResponseDto, Validator, Handler)
-7. **Async/Await**: Use async patterns throughout for I/O operations
-8. **Error handling**: Let domain exceptions bubble up, handle infrastructure exceptions appropriately
-9. **File Organization**: Each class/record should be in a separate file, unless explicitly specified to have multiple classes/records in the same file. For DTOs and validators, follow the naming convention: `{ActionName}{RequestDto|ResponseDto|Validator}` (e.g., `CreateAdminRequestDto`, `CreateAdminResponseDto`, `CreateAdminValidator`)
-10. **Using Statements**: Prefer using fully qualified namespaces in using statements and use short type names in code. Instead of `Microsoft.OpenApi.Models.OpenApiInfo` in code, add `using Microsoft.OpenApi.Models;` and use `OpenApiInfo` directly
+
+   ```csharp
+   // ✅ DO: Use domain entities and validation
+   public async Task<UpdateUserResponseDto> UpdateUserAsync(UpdateUserRequestDto request)
+   {
+       var user = await _userRepository.GetByIdAsync(request.UserId)
+           ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound);
+       user.UpdateProfile(request.Name, request.PhoneNumber);  // Domain validation happens here
+       await _userRepository.SaveChangesAsync();
+       return new UpdateUserResponseDto(user.Id, user.Name);
+   }
+
+   // ❌ DON'T: Direct database updates
+   public async Task<UpdateUserResponseDto> UpdateUserAsync(UpdateUserRequestDto request)
+   {
+       await _dbContext.Users
+           .Where(u => u.Id == request.UserId)
+           .ExecuteUpdateAsync(s => s
+               .SetProperty(u => u.Name, request.Name)); // Bypasses domain validation
+   }
+   ```
+
+2. **API Layer Structure**: Follow consistent controller patterns
+
+   ```csharp
+   [ApiController]
+   [Route("api/v{version:apiVersion}/[controller]")]
+   [ApiVersion("1.0")]
+   public class UsersController : ControllerBase
+   {
+       // ✅ DO: Use consistent response patterns
+       [HttpGet("{id}")]
+       [ProducesResponseType(typeof(GetUserResponseDto), StatusCodes.Status200OK)]
+       [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+       public async Task<ActionResult<GetUserResponseDto>> GetUser(Guid id)
+       {
+           var result = await _userService.GetUserAsync(id);
+           return Ok(result);
+       }
+   }
+   ```
+
+3. **DTOs and Validation**: Use records for DTOs and FluentValidation
+
+   ```csharp
+   // ✅ DO: Immutable records for DTOs
+   public record UpdateUserRequestDto(
+       Guid UserId,
+       string Name,
+       string? PhoneNumber
+   );
+
+   // ✅ DO: Validation with domain error codes
+   public class UpdateUserValidator : AbstractValidator<UpdateUserRequestDto>
+   {
+       public UpdateUserValidator()
+       {
+           RuleFor(x => x.Name)
+               .NotEmpty()
+               .WithState(_ => new Error(UserDomainErrorCode.Required))
+               .MaximumLength(100)
+               .WithState(_ => new Error(UserDomainErrorCode.InvalidLength));
+       }
+   }
+   ```
+
+4. **Query Operations**: Choose repository vs DataQuery based on needs
+
+   ```csharp
+   // ✅ DO: Use DataQuery for complex reads without domain logic
+   public class UserDataQuery : IUserDataQuery
+   {
+       public async Task<PagedResult<UserListDto>> GetUsersAsync(UserFilterRequest request)
+       {
+           var sql = @"SELECT u.Id, u.Name, u.Email
+                      FROM Users u
+                      WHERE u.Status = @Status
+                      ORDER BY u.CreatedAt DESC
+                      OFFSET @Offset ROWS
+                      FETCH NEXT @PageSize ROWS ONLY";
+           // Direct database access for performance
+       }
+   }
+
+   // ✅ DO: Use Repository for domain-driven reads
+   public async Task<User> GetUserAsync(Guid id)
+   {
+       var user = await _userRepository.GetByIdAsync(id)
+           ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound);
+       // Domain entity with business rules intact
+       return user;
+   }
+   ```
+
+5. **Error Handling**: Multi-layered exception strategy
+
+   a. **Domain Exceptions**: For business rule violations
+
+   ```csharp
+   // ✅ DO: Create specific domain exceptions with error codes
+   public class InvalidEmailException : DomainException
+   {
+       public InvalidEmailException()
+           : base(400, UserDomainErrorCode.InvalidEmail, nameof(Email))
+       {
+       }
+   }
+
+   // ✅ DO: Define domain error codes with unique identifiers
+   public class UserDomainErrorCode : DomainErrorCode
+   {
+       private UserDomainErrorCode(int id, string name, string code)
+           : base(id, name, code) { }
+
+       public static readonly UserDomainErrorCode UserNotFound =
+           new(1, "UserNotFound", "USR0001");
+       public static readonly UserDomainErrorCode InvalidEmail =
+           new(4, "InvalidEmail", "USR0004");
+   }
+   ```
+
+   b. **Application Layer Validation**
+
+   ```csharp
+   // ✅ DO: Use FluentValidation with error codes
+   using FluentValidation;
+   using HiveSpace.Core.Exceptions;
+   using HiveSpace.Core.Exceptions.Models;
+
+   public class CreateAdminValidator : AbstractValidator<CreateAdminRequestDto>
+   {
+       public CreateAdminValidator()
+       {
+           RuleFor(x => x.Email)
+               .NotEmpty()
+               .WithState(_ => new Error(CommonErrorCode.Required,
+                   nameof(CreateAdminRequestDto.Email)))
+               .EmailAddress()
+               .WithState(_ => new Error(UserDomainErrorCode.InvalidEmail,
+                   nameof(CreateAdminRequestDto.Email)));
+       }
+   }
+   ```
+
+   c. **Error Code Organization**
+
+   ```csharp
+   // ✅ DO: Organize error codes by domain
+   namespace HiveSpace.Core.Exceptions
+   {
+       public class CommonErrorCode  // Common/shared error codes
+       {
+           public static readonly CommonErrorCode Required =
+               new(4, "Required", "APP0004");
+           public static readonly CommonErrorCode InvalidOperation =
+               new(5, "InvalidOperation", "APP0005");
+       }
+   }
+
+   namespace HiveSpace.UserService.Domain.Exceptions
+   {
+       public class UserDomainErrorCode  // Domain-specific error codes
+       {
+           public static readonly UserDomainErrorCode UserNotFound =
+               new(1, "UserNotFound", "USR0001");
+           public static readonly UserDomainErrorCode InvalidEmail =
+               new(4, "InvalidEmail", "USR0004");
+       }
+   }
+   ```
+
+   d. **Best Practices**
+
+   - Always use error codes instead of hardcoded messages (supports localization)
+   - Domain exceptions for business rule violations
+   - Validation exceptions for input validation failures
+   - Common error codes for cross-cutting concerns
+   - Domain-specific error codes for domain rules
+   - Consistent HTTP status codes across the application
+   - Include source/field information in error responses
+   - Add trace IDs for error tracking
+   - Return standardized error response structure
+
+   ```
+
+   ```
+
+6. **Using Statements and Type References**: Organize imports correctly
+
+   ```csharp
+   // ✅ DO: Use fully qualified using statements
+   using Microsoft.AspNetCore.Mvc;
+   using HiveSpace.UserService.Domain.Aggregates.User;
+
+   public class UserController
+   {
+       private readonly IUserRepository _repository;  // Clean type usage
+   }
+   ```
+
+7. **File Organization**: One main type per file with consistent naming
+
+   ```plaintext
+   Services/
+     ├── UserService.cs              // Main service implementation
+     ├── Interfaces/
+     │   └── IUserService.cs         // Service interface
+     ├── Models/
+     │   ├── Requests/
+     │   │   └── UpdateUserRequestDto.cs
+     │   └── Responses/
+     │       └── UpdateUserResponseDto.cs
+     └── Validators/
+         └── UpdateUserValidator.cs
+   ```
+
+8. **Dependency Injection**: Register services with correct lifetime
+
+   ```csharp
+   // ✅ DO: Group related registrations
+   services.AddScoped<IUserService, UserService>();
+   services.AddScoped<IUserRepository, UserRepository>();
+   services.AddScoped<IUserDataQuery, UserDataQuery>();
+
+   // ❌ DON'T: Mix scopes without clear reason
+   services.AddSingleton<IUserService, UserService>();  // Wrong scope
+   ```
+
+9. **Async Operations**: Use async/await consistently
+
+   ```csharp
+   // ✅ DO: Proper async patterns
+   public async Task<User> GetUserAsync(Guid id)
+   {
+       return await _repository.GetByIdAsync(id);
+   }
+
+   // ❌ DON'T: Block on async code
+   public User GetUser(Guid id)
+   {
+       return _repository.GetByIdAsync(id).Result;  // Blocking call
+   }
+   ```
+
+10. **API Versioning**: Consistent version handling
+
+    ```csharp
+    // ✅ DO: Version at controller level
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/[controller]")]
+    public class UsersController : ControllerBase
+    {
+        // Controller implementation
+    }
+
+    // ✅ DO: Version at DTO level if needed
+    namespace HiveSpace.UserService.Application.Models.V1.Responses
+    {
+        public record GetUserResponseDto(/*...*/);
+    }
+    ```
+
+    - Add fully qualified namespaces in using statements at the top of the file
+    - Use short type names in the actual code
+    - ✅ DO:
+
+      ```csharp
+      using Microsoft.OpenApi.Models;
+      using HiveSpace.UserService.Domain.Aggregates.User;
+
+      public class MyClass
+      {
+          public OpenApiInfo Info { get; set; }
+          public User CurrentUser { get; set; }
+      }
+      ```
+
+    - ❌ DON'T:
+      ```csharp
+      public class MyClass
+      {
+          public Microsoft.OpenApi.Models.OpenApiInfo Info { get; set; }
+          public HiveSpace.UserService.Domain.Aggregates.User.User CurrentUser { get; set; }
+      }
+      ```
 
 ### Future: Simple Services with Vertical Slice
 

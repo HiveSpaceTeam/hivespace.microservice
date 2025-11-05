@@ -1,5 +1,7 @@
 @page
 @model HiveSpace.UserService.Api.Pages.Account.Login.Index
+@using HiveSpace.UserService.Api.Services.Localization
+@inject ILocalizationService Localizer
 @section Styles {
     <link rel="stylesheet" href="~/css/login.css" />
     <link rel="stylesheet" href="~/css/auth-layout.css" />
@@ -9,9 +11,15 @@
 
 @* Start Auth Container *@
 @await Html.PartialAsync("_AuthContainer")
+
+<div class="language-toggle-container">
+    @* Language Toggle *@
+    <partial name="_LanguageToggle" />
+</div>
+
 <div class="login-header">
-    <h1 class="login-title">Sign In</h1>
-    <p class="login-subtitle">Enter your email and password to sign in!</p>
+    <h1 class="login-title">@Localizer.GetString("pages.login.title")</h1>
+    <p class="login-subtitle">@Localizer.GetString("pages.login.subtitle")</p>
 </div>
 <partial name="_ValidationSummary" />
 
@@ -35,17 +43,17 @@
             @{
                 ViewData["PropertyName"] = "Input.Email";
                 ViewData["Value"] = Model.Input?.Email;
-                ViewData["Label"] = "Email";
+                ViewData["Label"] = Localizer.GetString("pages.login.emailLabel");
                 ViewData["Type"] = "email";
-                ViewData["Placeholder"] = "Enter your email";
+                ViewData["Placeholder"] = Localizer.GetString("pages.login.emailPlaceholder");
                 ViewData["AutoComplete"] = "username";
                 ViewData["AutoFocus"] = true;
                 ViewData["Required"] = true;
                 ViewData["ValidationRules"] = System.Text.Json.JsonSerializer.Serialize(new { required = true, email = true });
                 ViewData["ErrorMessages"] = System.Text.Json.JsonSerializer.Serialize(new
                 {
-                    required = "Email is required",
-                    email = "Please enter a valid email address"
+                    required = Localizer.GetString("validation.emailRequired"),
+                    email = Localizer.GetString("validation.email")
                 });
             }
             <partial name="_FormInput" />
@@ -54,14 +62,14 @@
             @{
                 ViewData["PropertyName"] = "Input.Password";
                 ViewData["Value"] = Model.Input?.Password;
-                ViewData["Label"] = "Password";
-                ViewData["Placeholder"] = "Enter your password";
+                ViewData["Label"] = Localizer.GetString("pages.login.passwordLabel");
+                ViewData["Placeholder"] = Localizer.GetString("pages.login.passwordPlaceholder");
                 ViewData["AutoComplete"] = "current-password";
                 ViewData["Required"] = true;
                 ViewData["ValidationRules"] = System.Text.Json.JsonSerializer.Serialize(new { required = true });
                 ViewData["ErrorMessages"] = System.Text.Json.JsonSerializer.Serialize(new
                 {
-                    required = "Password is required"
+                    required = Localizer.GetString("validation.passwordRequired")
                 });
             }
             <partial name="_PasswordInput" />
@@ -72,17 +80,18 @@
                     @* Remember Me Checkbox Component *@
                     ViewData["PropertyName"] = "Input.RememberLogin";
                     ViewData["Value"] = Model.Input?.RememberLogin;
-                    ViewData["Label"] = "Keep me logged in";
+                    ViewData["Label"] = Localizer.GetString("pages.login.rememberMeLabel");
                     <partial name="_Checkbox" />
                 }
-                <a href="/Account/ForgotPassword" class="forget-password">Forgot password?</a>
+                <a href="/Account/ForgotPassword"
+                    class="forget-password">@Localizer.GetString("pages.login.forgotPasswordLink")</a>
             </div>
 
             @* Submit Button Component *@
             @{
                 ViewData["AspFor"] = Model.Input?.Button;
                 ViewData["Value"] = "login";
-                ViewData["Text"] = "Sign In";
+                ViewData["Text"] = Localizer.GetString("pages.login.signInButton");
             }
             <partial name="_SubmitButton" />
         </form>
@@ -90,7 +99,8 @@
         @if (!Model.View.IsAdminPortalClient)
         {
             <div class="signup-text">
-                Don't have an account? <a href="/Account/Register@(Request.QueryString)" class="signup-link">Sign Up</a>
+                @Localizer.GetString("pages.login.signUpText") <a href="/Account/Register@(Request.QueryString)"
+                    class="signup-link">@Localizer.GetString("pages.login.signUpLink")</a>
             </div>
         }
     </div>
@@ -101,7 +111,7 @@
 @if (!Model.View.EnableLocalLogin && !Model.View.VisibleExternalProviders.Any())
 {
     <div class="alert alert-warning">
-        <strong>Invalid login request</strong>
-        There are no login schemes configured for this request.
+        <strong>@Localizer.GetString("pages.login.invalidLoginMessage")</strong>
+        @Localizer.GetString("pages.login.noLoginSchemesMessage")
     </div>
 }

@@ -5,6 +5,8 @@
     - ReturnUrl: Return URL for redirect after login
 *@
 @model dynamic
+@using HiveSpace.UserService.Api.Services.Localization
+@inject ILocalizationService Localizer
 
 @{
     var providers = ViewData["Providers"] as System.Collections.Generic.IEnumerable<dynamic>;
@@ -20,7 +22,7 @@
                 asp-route-returnUrl="@returnUrl">
                 <img src="~/images/brands/@(provider.AuthenticationScheme.ToLower()).svg" alt="@provider.DisplayName"
                     class="social-icon" />
-                Sign in with @provider.DisplayName
+                @Localizer.GetString("social.continueWith") @provider.DisplayName
             </a>
         }
     </div>
@@ -28,7 +30,7 @@
     <div class="form-divider">
         <div class="divider-line"></div>
         <div class="divider-text">
-            <span>Or</span>
+            <span>@Localizer.GetString("pages.shared.or")</span>
         </div>
     </div>
 }

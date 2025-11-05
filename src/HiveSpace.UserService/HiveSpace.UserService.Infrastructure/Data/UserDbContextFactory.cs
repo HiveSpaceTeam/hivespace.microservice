@@ -21,12 +21,17 @@ public class UserDbContextFactory : IDesignTimeDbContextFactory<UserDbContext>
         if (string.IsNullOrWhiteSpace(connectionString))
         {
             var error = new Error(CommonErrorCode.ConfigurationMissing, "UserServiceDb");
-            throw new ConfigurationException(new[] { error });
+            throw new ConfigurationException([error]);
         }
 
         var optionsBuilder = new DbContextOptionsBuilder<UserDbContext>();
         // Migrations are stored in the Infrastructure project migrations folder
-        optionsBuilder.UseSqlServer(connectionString);
+        optionsBuilder.UseSqlServer(connectionString, options => options
+            .EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(30),
+                errorNumbersToAdd: null)
+        );
 
         return new UserDbContext(optionsBuilder.Options);
     }

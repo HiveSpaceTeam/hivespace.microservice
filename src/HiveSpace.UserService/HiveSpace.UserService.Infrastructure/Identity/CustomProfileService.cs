@@ -58,7 +58,7 @@ public class CustomProfileService : IProfileService
         // These are the roles like "Admin", "SystemAdmin", and "Seller".
         if (!string.IsNullOrEmpty(user.RoleName))
         {
-            claims.Add(new Claim("role", StringHelper.ToCamelCase(user.RoleName) ?? user.RoleName));
+            claims.Add(new Claim("role", user.RoleName));
         }
         
         // 2. Check for the "Store Owner" business role from the domain layer.
@@ -68,7 +68,7 @@ public class CustomProfileService : IProfileService
             var store = await _storeRepository.GetByOwnerIdAsync(user.Id);
             if (store is not null)
             {
-                claims.Add(new Claim("role", "storeOwner"));
+                claims.Add(new Claim("role", "StoreOwner"));
                 claims.Add(new Claim("store_id", store.Id.ToString()));
                 claims.Add(new Claim("store_name", store.StoreName));
             }
