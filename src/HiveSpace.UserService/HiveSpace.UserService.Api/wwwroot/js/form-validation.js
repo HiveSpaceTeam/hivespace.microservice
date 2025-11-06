@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function () {
   let isNavigating = false;
 
   // Add click listeners to auth navigation links and social login buttons to set the flag
-  const authLinks = document.querySelectorAll('.signup-link, .signin-link, .social-button .language-toggle-button');
+  const authLinks = document.querySelectorAll('.signup-link, .signin-link, .social-button, .language-toggle-button');
   authLinks.forEach(function (link) {
     // Use mousedown instead of click to fire before navigation
     link.addEventListener('mousedown', function (e) {

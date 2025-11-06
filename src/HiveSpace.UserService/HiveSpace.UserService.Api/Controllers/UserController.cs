@@ -37,10 +37,10 @@ public class UserController : ControllerBase
     /// Update the current user's settings
     /// </summary>
     [HttpPut("settings")]
-    [ProducesResponseType(typeof(GetUserSettingsResponseDto), StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<GetUserSettingsResponseDto>> SetUserSetting(
+    public async Task<ActionResult> SetUserSetting(
         [FromBody] UpdateUserSettingRequestDto request,
         CancellationToken cancellationToken)
     {

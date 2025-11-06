@@ -36,5 +36,5 @@ public class UserSettings : ValueObject
         return new UserSettings(this.Theme, culture);
     }
 
-    public static UserSettings Default => new UserSettings(Theme.Light, Culture.En);
+    public static UserSettings Default => new UserSettings(Theme.Light, Culture.Vi);
 }

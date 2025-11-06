@@ -74,12 +74,36 @@ public class LocalizationService : ILocalizationService
     public string GetString(string key, string? culture, params object[] args)
     {
         var template = GetString(key, culture);
-        
+
         if (args?.Length > 0)
         {
             try
             {
-                return string.Format(CultureInfo.GetCultureInfo(culture ?? GetCurrentCulture()), template, args);
+                var cultureName = culture;
+                if (string.IsNullOrEmpty(cultureName) || !IsCultureSupported(cultureName))
+                {
+                    cultureName = GetDefaultCulture();
+                }
+
+                CultureInfo cultureInfo;
+                try
+                {
+                    cultureInfo = CultureInfo.GetCultureInfo(cultureName);
+                }
+                catch (CultureNotFoundException)
+                {
+                    _logger.LogWarning("Requested culture '{Culture}' is not recognized by .NET, falling back to default/invariant", cultureName);
+                    try
+                    {
+                        cultureInfo = CultureInfo.GetCultureInfo(GetDefaultCulture());
+                    }
+                    catch (CultureNotFoundException)
+                    {
+                        cultureInfo = CultureInfo.InvariantCulture;
+                    }
+                }
+
+                return string.Format(cultureInfo, template, args);
             }
             catch (FormatException ex)
             {

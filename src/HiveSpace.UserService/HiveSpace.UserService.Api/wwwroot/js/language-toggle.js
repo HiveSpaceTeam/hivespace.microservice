@@ -159,13 +159,7 @@
       }
     });
 
-    // Handle browser back/forward button navigation
-    window.addEventListener('popstate', function (event) {
-      // When user clicks back/forward button, we want to clear the culture cookie
-      // since they might be navigating back to an external site
-      clearCultureStorage();
-      console.log('Cleared culture cookie on browser back/forward navigation');
-    });
+
 
     // Handle beforeunload event for any navigation away from the page
     window.addEventListener('beforeunload', function () {
