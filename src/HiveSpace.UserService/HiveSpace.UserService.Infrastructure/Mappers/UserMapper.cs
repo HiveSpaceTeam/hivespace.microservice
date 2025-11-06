@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Linq;
 using HiveSpace.Core.Exceptions;
 using HiveSpace.Core.Exceptions.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace HiveSpace.UserService.Infrastructure.Mappers;
 
@@ -39,7 +40,10 @@ public static class UserMapper
             // Addresses collection will be mapped separately via EF Core navigation
             Addresses = [.. domainUser.Addresses],
             IsDeleted = domainUser.IsDeleted,
-            DeletedAt = domainUser.DeletedAt
+            DeletedAt = domainUser.DeletedAt,
+            // Map settings as primitive values
+            Theme = domainUser.Settings.Theme,
+            Culture = domainUser.Settings.Culture
         };
     }
 
@@ -67,7 +71,7 @@ public static class UserMapper
         var status = (UserStatus)applicationUser.Status;
 
         // Use internal rehydration API (visible only to Infrastructure via InternalsVisibleTo)
-        return User.Rehydrate(
+        var user = User.Rehydrate(
             id: applicationUser.Id,
             email: email,
             userName: applicationUser.UserName ?? string.Empty,
@@ -85,7 +89,10 @@ public static class UserMapper
             lastLoginAt: applicationUser.LastLoginAt,
             addresses: applicationUser.Addresses,
             isDeleted: applicationUser.IsDeleted,
-            deletedAt: applicationUser.DeletedAt);
+            deletedAt: applicationUser.DeletedAt,
+            theme: applicationUser.Theme,
+            culture: applicationUser.Culture);
+        return user;
     }
 
     /// <summary>

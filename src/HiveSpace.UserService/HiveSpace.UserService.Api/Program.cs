@@ -3,6 +3,9 @@ using System.Text;
 using Duende.IdentityServer.Licensing;
 using HiveSpace.UserService.Api.Extensions;
 using HiveSpace.UserService.Infrastructure;
+using HiveSpace.UserService.Infrastructure.Data;
+using Microsoft.AspNetCore.Session;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
@@ -15,6 +18,17 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
     var configuration = builder.Configuration;
+
+    // Configure Session
+    builder.Services.AddDistributedMemoryCache();
+    builder.Services.AddSession(options =>
+    {
+        options.IdleTimeout = TimeSpan.FromMinutes(30);
+        options.Cookie.HttpOnly = true;
+        options.Cookie.IsEssential = true;
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    });
 
     builder.Host.UseSerilog((ctx, lc) => lc
         .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}", formatProvider: CultureInfo.InvariantCulture)
@@ -29,6 +43,14 @@ try
     // in production you will likely want a different approach.
     if (app.Environment.IsDevelopment())
     {
+        Log.Information("Ensuring database exists and is up to date");
+        using (var scope = app.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<UserDbContext>();
+            context.Database.EnsureCreated();
+        }
+
+        Log.Information("Seeding database...");
         SeedData.EnsureSeedData(app);
 
         // TODO: Fix license usage summary when needed

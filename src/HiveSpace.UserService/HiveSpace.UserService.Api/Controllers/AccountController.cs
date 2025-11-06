@@ -15,6 +15,8 @@ namespace HiveSpace.UserService.Api.Controllers;
 [ApiController]
 [Route("api/v{version:apiVersion}/accounts")]
 [ApiVersion("1.0")]
+[Produces("application/json")]
+[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 public class AccountController : ControllerBase
 {
     private readonly IAccountService _accountService;
@@ -29,17 +31,22 @@ public class AccountController : ControllerBase
     }
 
     /// <summary>
-    /// Send email verification link to the authenticated user.
-    /// Available to all authenticated users (Admin, Seller, Customer).
+    /// Request an email verification link.
     /// </summary>
-    /// <param name="request">Email verification request details</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>No content on successful send</returns>
-    [HttpPost("send-verification-email")]
-    [RequireAdminOrUser] // Available to both admins and users
-    public async Task<IActionResult> SendEmailVerification(
+    /// <param name="request">Email verification request with callback URL</param>
+    /// <param name="cancellationToken">Optional cancellation token</param>
+    /// <returns>Accepted (202) when verification email is sent</returns>
+    /// <response code="202">Email verification link sent successfully</response>
+    /// <response code="400">Invalid request data</response>
+    /// <response code="409">Email already verified</response>
+    [HttpPost("email-verification")]
+    [RequireAdminOrUser]
+    [ProducesResponseType(StatusCodes.Status202Accepted)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> RequestEmailVerification(
         [FromBody] SendEmailVerificationRequestDto request, 
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         ValidationHelper.ValidateResult(new SendEmailVerificationValidator().Validate(request));
         await _accountService.SendEmailVerificationAsync(request, cancellationToken);
@@ -47,21 +54,37 @@ public class AccountController : ControllerBase
     }
 
     /// <summary>
-    /// Alternative endpoint for email verification via GET (for email links).
-    /// This allows users to verify email by clicking a link in their email.
-    /// Available to all authenticated users (Admin, Seller, Customer).
+    /// Verify email address using verification token.
     /// </summary>
-    /// <param name="token">Verification token from the email link</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>No content on successful verification or redirect</returns>
-    [HttpGet("confirm-email")]
-    [RequireAdminOrUser] // Available to both admins and users
-    // [AllowAnonymous] // Allow anonymous access for email link verification
-    public async Task<ActionResult> VerifyEmailFromLink(
-        [FromQuery] string token,
+    /// <param name="request">Verification request containing the token</param>
+    /// <param name="cancellationToken">Optional cancellation token</param>
+    /// <returns>
+    /// - Redirect (302) to returnUrl if provided
+    /// - NoContent (204) if successful without returnUrl
+    /// </returns>
+    /// <response code="204">Email verified successfully</response>
+    /// <response code="302">Email verified and redirecting to return URL</response>
+    /// <response code="400">Invalid verification token</response>
+    /// <response code="409">Email already verified</response>
+    [HttpPost("email-verification/verify")]
+    [RequireAdminOrUser]
+    [Consumes("application/x-www-form-urlencoded")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status302Found)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult> VerifyEmail(
+        [FromForm] ConfirmEmailVerificationRequestDto request,
         CancellationToken cancellationToken = default)
     {
-        await _accountService.VerifyEmailAsync(token, cancellationToken);
+        await _accountService.ConfirmEmailVerificationAsync(request, cancellationToken);
+
+        // If returnUrl is provided, redirect after successful verification
+        if (!string.IsNullOrEmpty(request.ReturnUrl))
+        {
+            return Redirect(request.ReturnUrl);
+        }
+        
         return NoContent();
     }
 }

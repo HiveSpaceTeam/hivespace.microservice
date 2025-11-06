@@ -55,7 +55,9 @@ public class SeedData
                     DateOfBirth = new DateTime(1990, 1, 15),
                     Gender = (int)Gender.Female,
                     Status = (int)UserStatus.Active,
-                    CreatedAt = DateTimeOffset.UtcNow
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    Theme = Theme.Light,
+                    Culture = Culture.Vi
                 };
 
                 var result = userMgr.CreateAsync(alice, "Pass123$").Result;
@@ -121,7 +123,9 @@ public class SeedData
                     DateOfBirth = new DateTime(1985, 6, 20),
                     Gender = (int)Gender.Male,
                     Status = (int)UserStatus.Active,
-                    CreatedAt = DateTimeOffset.UtcNow
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    Theme = Theme.Light,
+                    Culture = Culture.Vi
                 };
 
                 var result = userMgr.CreateAsync(bob, "Pass123$").Result;
@@ -200,7 +204,9 @@ public class SeedData
                     Gender = (int)Gender.Male,
                     Status = (int)UserStatus.Active,
                     RoleName = "SystemAdmin", // Set role directly
-                    CreatedAt = DateTimeOffset.UtcNow
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    Theme = Theme.Light,
+                    Culture = Culture.Vi
                 };
 
                 var result = userMgr.CreateAsync(systemAdmin, "SysAdmin123$").Result;
@@ -244,7 +250,9 @@ public class SeedData
                     Gender = (int)Gender.Female,
                     Status = (int)UserStatus.Active,
                     RoleName = "Admin", // Set role directly
-                    CreatedAt = DateTimeOffset.UtcNow
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    Theme = Theme.Light,
+                    Culture = Culture.Vi
                 };
 
                 var result = userMgr.CreateAsync(admin, "Admin123$").Result;
@@ -307,7 +315,9 @@ public class SeedData
                     Gender = (int)Gender.Male,
                     Status = (int)UserStatus.Active,
                     RoleName = "Seller", // Set role directly
-                    CreatedAt = DateTimeOffset.UtcNow
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    Theme = Theme.Light,
+                    Culture = Culture.Vi
                 };
 
                 var sellerResult = userMgr.CreateAsync(seller, "Seller123$").Result;

@@ -125,11 +125,11 @@ public class Index : PageModel
                 return Page();
             }
             // Create the user
-            var newUser = new ApplicationUser 
-            { 
-                UserName = Input.Email, 
+            var newUser = new ApplicationUser
+            {
+                UserName = Input.Email,
                 Email = Input.Email,
-                FullName = Input.FullName ?? string.Empty
+                FullName = Input.FullName ?? string.Empty,
             };
 
             var result = await _userManager.CreateAsync(newUser, Input.Password!);

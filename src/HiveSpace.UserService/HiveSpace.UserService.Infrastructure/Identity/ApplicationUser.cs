@@ -20,8 +20,11 @@ public class ApplicationUser : IdentityUser<Guid>, ISoftDeletable
     // Role stored directly instead of using IdentityUserRole relationship
     public string? RoleName { get; set; }
     
-    // Navigation properties - using domain Address entity
+    // Navigation properties
     public virtual ICollection<Address> Addresses { get; set; } = new List<Address>();
+    // Settings as primitive values since UserSettings is now a ValueObject
+    public Theme Theme { get; set; } = Theme.Light;
+    public Culture Culture { get; set; } = Culture.Vi;
 
     // ISoftDeletable
     public bool IsDeleted { get; set; }

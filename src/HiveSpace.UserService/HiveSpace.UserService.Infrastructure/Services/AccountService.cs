@@ -31,6 +31,14 @@ public class AccountService : IAccountService
         _emailService = emailService;
         _logger = logger;
     }
+    
+    public async Task ConfirmEmailVerificationAsync(
+        ConfirmEmailVerificationRequestDto request,
+        CancellationToken cancellationToken = default)
+    {
+        // Use the existing verification logic but with the new DTO
+        await VerifyEmailAsync(request.Token, cancellationToken);
+    }
 
     public async Task SendEmailVerificationAsync(
         SendEmailVerificationRequestDto request, 

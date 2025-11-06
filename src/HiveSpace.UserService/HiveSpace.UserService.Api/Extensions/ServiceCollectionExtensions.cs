@@ -3,6 +3,7 @@ using HiveSpace.Core.Contexts;
 using HiveSpace.Core.Filters;
 using HiveSpace.Infrastructure.Authorization.Extensions;
 using HiveSpace.UserService.Api.Configs;
+using HiveSpace.UserService.Api.Services.Localization;
 using HiveSpace.UserService.Application;
 using HiveSpace.UserService.Infrastructure.Identity;
 using HiveSpace.UserService.Domain.Services;
@@ -11,8 +12,11 @@ using Microsoft.AspNetCore.Identity;
 using HiveSpace.UserService.Application.Services;
 using HiveSpace.UserService.Application.Interfaces.Services;
 using HiveSpace.UserService.Infrastructure.Settings;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
+using System.Globalization;
+using Microsoft.AspNetCore.Localization;
+using HiveSpace.UserService.Api.Middleware;
+
 
 namespace HiveSpace.UserService.Api.Extensions;
 
@@ -26,7 +30,7 @@ internal static class ServiceCollectionExtensions
         {
             options.Filters.Add<CustomExceptionFilter>();
         });
-        
+
         // Configure global route prefix using built-in .NET support
         services.Configure<RouteOptions>(options =>
         {
@@ -66,6 +70,7 @@ internal static class ServiceCollectionExtensions
         services.AddScoped<IUserContext, UserContext>();
         services.AddScoped<IAdminService, AdminService>();
         services.AddScoped<IStoreService, StoreService>();
+        services.AddScoped<IUserService, Application.Services.UserService>();
     }
 
     public static void AddAppDomainServices(this IServiceCollection services)
@@ -75,16 +80,36 @@ internal static class ServiceCollectionExtensions
         services.AddScoped<UserManager>();
     }
 
+    public static void AddLocalizationServices(this IServiceCollection services)
+    {
+        // Add localization support
+        services.AddLocalization();
+
+        // Register custom localization service
+        services.AddSingleton<ILocalizationService, LocalizationService>();
+
+        // Configure request localization options
+        services.Configure<RequestLocalizationOptions>(options =>
+        {
+            var supportedCultures = CultureMiddleware.GetSupportedCultures();
+            var defaultCulture = CultureMiddleware.GetDefaultCulture();
+
+            options.DefaultRequestCulture = new RequestCulture(defaultCulture);
+            options.SupportedCultures = supportedCultures.Select(c => new CultureInfo(c)).ToList();
+            options.SupportedUICultures = supportedCultures.Select(c => new CultureInfo(c)).ToList();
+        });
+    }
+
     public static void AddEmailConfig(this IServiceCollection services, IConfiguration configuration)
     {
         // Configure EmailSettings
         services.Configure<EmailSettings>(configuration.GetSection(EmailSettings.SectionName));
-        
+
         // Configure FluentEmail with SMTP
         services.AddFluentEmail(configuration["EmailSettings:FromEmail"], configuration["EmailSettings:FromName"])
             .AddRazorRenderer()
             .AddSmtpSender(
-                configuration["EmailSettings:SmtpServer"], 
+                configuration["EmailSettings:SmtpServer"],
                 int.Parse(configuration["EmailSettings:SmtpPort"] ?? "587"),
                 configuration["EmailSettings:SmtpUser"],
                 configuration["EmailSettings:SmtpPassword"]
@@ -174,7 +199,7 @@ internal static class ServiceCollectionExtensions
                     };
                 });
         }
-    
+
         // {
         //     services
         //         .AddAuthentication()

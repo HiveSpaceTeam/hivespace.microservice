@@ -48,6 +48,15 @@ public class ApplicationUserEntityConfiguration : IEntityTypeConfiguration<Appli
 
         builder.Property(u => u.LastLoginAt);
 
+        // Configure settings properties
+        builder.Property(u => u.Theme)
+            .HasConversion<int>()
+            .IsRequired();
+
+        builder.Property(u => u.Culture)
+            .HasConversion<int>()
+            .IsRequired();
+
         // Configure ISoftDeletable properties
         builder.Property(u => u.IsDeleted)
             .IsRequired()
