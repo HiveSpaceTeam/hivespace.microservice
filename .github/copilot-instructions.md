@@ -790,9 +790,9 @@ public async Task<ActionResult<GetUsersResponseDto>> GetUsers(
    - Add trace IDs for error tracking
    - Return standardized error response structure
 
-   ```
-
-   ```
+- Include source/field information in error responses
+- Add trace IDs for error tracking
+- Return standardized error response structure
 
 6. **Using Statements and Type References**: Organize imports correctly
 
