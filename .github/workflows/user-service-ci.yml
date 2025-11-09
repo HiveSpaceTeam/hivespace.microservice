@@ -89,12 +89,20 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS_SERVICE }}
 
+      - name: Ensure deployment variables are set
+        run: |
+          if [ -z "${{ vars.AZURE_WEBAPP_USER_SERVICE_NAME }}" ] || [ -z "${{ vars.AZURE_WEBAPP_USER_SERVICE_RG }}" ]; then
+            echo "ERROR: AZURE_WEBAPP_USER_SERVICE_NAME or AZURE_WEBAPP_USER_SERVICE_RG repository variable is not set.";
+            echo "Please add vars.AZURE_WEBAPP_USER_SERVICE_NAME and vars.AZURE_WEBAPP_USER_SERVICE_RG to the repository.";
+            exit 1;
+          fi
+
       - name: Deploy to Azure App Service via CLI (set container image)
         run: |
           echo "Deploying ${{ needs.build.outputs.image }} to web app '${{ vars.AZURE_WEBAPP_USER_SERVICE_NAME }}' in resource group '${{ vars.AZURE_WEBAPP_USER_SERVICE_RG }}'"
           az webapp config container set \
             --name "${{ vars.AZURE_WEBAPP_USER_SERVICE_NAME }}" \
             --resource-group "${{ vars.AZURE_WEBAPP_USER_SERVICE_RG }}" \
-            --docker-custom-image-name "${{ needs.build.outputs.image }}"
+            --container-image-name "${{ needs.build.outputs.image }}"
         env:
           AZURE_ACR_NAME: ${{ secrets.AZURE_ACR_NAME }}
