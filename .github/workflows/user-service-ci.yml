@@ -58,7 +58,9 @@ jobs:
         # if: ${{ github.event_name == 'push' }}
         uses: docker/build-push-action@v5
         with:
-          context: src/HiveSpace.UserService/HiveSpace.UserService.Api
+          # Use the repository root as the build context so the Dockerfile's
+          # COPY instructions can access files outside the Api folder
+          context: .
           file: src/HiveSpace.UserService/HiveSpace.UserService.Api/Dockerfile
           push: true
           tags: |
