@@ -1,0 +1,94 @@
+name: HiveSpace UserService CI
+
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - 'src/HiveSpace.UserService/**'
+  push:
+    branches: [master]
+    paths:
+      - 'src/HiveSpace.UserService/**'
+
+jobs:
+  build:
+    name: Build and publish UserService API
+    outputs:
+      image: ${{ steps.set_image_acr.outputs.image }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8 SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore NuGet packages
+        run: dotnet restore hivespace.microservice.sln
+
+      - name: Build solution (Release)
+        run: dotnet build hivespace.microservice.sln -c Release --no-restore
+
+      # --- Ensure ACR credentials are present on push events ---
+      - name: Require ACR credentials on push
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          if [ -z "${{ secrets.AZURE_CREDENTIALS_SERVICE }}" ] || [ -z "${{ secrets.AZURE_ACR_NAME }}" ]; then
+            echo "Missing AZURE_CREDENTIALS_SERVICE or AZURE_ACR_NAME secret. Cannot push to ACR.";
+            exit 1;
+          fi
+
+      - name: Login to Azure (for ACR push)
+        if: ${{ github.event_name == 'push' }}
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS_SERVICE }}
+
+      - name: Login to ACR
+        if: ${{ github.event_name == 'push' }}
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ secrets.AZURE_ACR_NAME }}.azurecr.io
+
+      - name: Build and push image to ACR
+        id: push_image_acr
+        if: ${{ github.event_name == 'push' }}
+        uses: docker/build-push-action@v5
+        with:
+          context: src/HiveSpace.UserService/HiveSpace.UserService.Api
+          file: src/HiveSpace.UserService/HiveSpace.UserService.Api/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.AZURE_ACR_NAME }}.azurecr.io/hivespace/userservice:${{ github.sha }}
+            ${{ secrets.AZURE_ACR_NAME }}.azurecr.io/hivespace/userservice:latest
+
+      - name: Set image output (ACR)
+        id: set_image_acr
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          IMAGE_TAG=${{ secrets.AZURE_ACR_NAME }}.azurecr.io/hivespace/userservice:${{ github.sha }}
+          echo "image=$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Success notice
+        run: echo "HiveSpace UserService CI finished successfully."
+
+  deploy:
+    name: Deploy to Azure App Service (Docker)
+    needs: build
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' }}
+    env:
+      # Default IMAGE_NAME will be set dynamically below depending on registry method
+      IMAGE_NAME: ''
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy image to Azure Web App
+        uses: azure/webapps-deploy@v2
+        with:
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+          images: ${{ needs.build.outputs.image }}
