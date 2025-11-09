@@ -47,10 +47,11 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS_SERVICE }}
 
       - name: Login to ACR
+        # Use Azure CLI to login to ACR (requires azure/login prior step)
         # if: ${{ github.event_name == 'push' }}
-        uses: azure/docker-login@v1
-        with:
-          login-server: ${{ secrets.AZURE_ACR_NAME }}.azurecr.io
+        run: |
+          echo "Logging in to ACR ${{ secrets.AZURE_ACR_NAME }} via az acr login";
+          az acr login --name ${{ secrets.AZURE_ACR_NAME }}
 
       - name: Build and push image to ACR
         id: push_image_acr
