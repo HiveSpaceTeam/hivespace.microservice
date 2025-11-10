@@ -39,21 +39,21 @@ try
         .ConfigureServices(configuration)
         .ConfigurePipeline();
 
+
+    Log.Information("Ensuring database exists and is up to date");
+    using (var scope = app.Services.CreateScope())
+    {
+        var context = scope.ServiceProvider.GetRequiredService<UserDbContext>();
+        context.Database.EnsureCreated();
+    }
+
     // this seeding is only for the template to bootstrap the DB and users.
     // in production you will likely want a different approach.
     if (app.Environment.IsDevelopment())
     {
-        Log.Information("Ensuring database exists and is up to date");
-        using (var scope = app.Services.CreateScope())
-        {
-            var context = scope.ServiceProvider.GetRequiredService<UserDbContext>();
-            context.Database.EnsureCreated();
-        }
-
         Log.Information("Seeding database...");
         SeedData.EnsureSeedData(app);
 
-        // TODO: Fix license usage summary when needed
         app.Lifetime.ApplicationStopping.Register(() =>
         {
             var usage = app.Services.GetRequiredService<LicenseUsageSummary>();
