@@ -43,13 +43,6 @@ try
     // in production you will likely want a different approach.
     if (app.Environment.IsDevelopment())
     {
-        Log.Information("Ensuring database exists and is up to date");
-        using (var scope = app.Services.CreateScope())
-        {
-            var context = scope.ServiceProvider.GetRequiredService<UserDbContext>();
-            context.Database.EnsureCreated();
-        }
-
         Log.Information("Seeding database...");
         SeedData.EnsureSeedData(app);
 
@@ -96,4 +89,5 @@ static string Summary(LicenseUsageSummary usage)
     sb.AppendLine(string.Format(CultureInfo.InvariantCulture, "  {0} Issuer(s) Used", issuerCount));
 
     return sb.ToString();
+
 }
