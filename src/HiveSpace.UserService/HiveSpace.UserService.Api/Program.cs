@@ -39,14 +39,6 @@ try
         .ConfigureServices(configuration)
         .ConfigurePipeline();
 
-
-    Log.Information("Ensuring database exists and is up to date");
-    using (var scope = app.Services.CreateScope())
-    {
-        var context = scope.ServiceProvider.GetRequiredService<UserDbContext>();
-        context.Database.EnsureCreated();
-    }
-
     // this seeding is only for the template to bootstrap the DB and users.
     // in production you will likely want a different approach.
     if (app.Environment.IsDevelopment())
