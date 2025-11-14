@@ -22,6 +22,8 @@ libs/**/obj/
 libs/**/bin/
 test/**/obj/
 test/**/bin/
+templates/**/obj/
+templates/**/bin/
 
 # Other
 /preview

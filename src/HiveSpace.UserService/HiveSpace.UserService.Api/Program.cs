@@ -4,6 +4,7 @@ using Duende.IdentityServer.Licensing;
 using HiveSpace.UserService.Api.Extensions;
 using HiveSpace.UserService.Infrastructure;
 using HiveSpace.UserService.Infrastructure.Data;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Session;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -28,6 +29,19 @@ try
         options.Cookie.IsEssential = true;
         options.Cookie.SameSite = SameSiteMode.Lax;
         options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    });
+
+    // Configure Forwarded Headers for Azure Container Apps
+    builder.Services.Configure<ForwardedHeadersOptions>(options =>
+    {
+        // This tells the app to trust the X-Forwarded-Proto (http/https) header.
+        options.ForwardedHeaders =
+            ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+
+        // This is CRITICAL for Azure Container Apps.
+        // It tells the app to trust the proxy even though it's not on a "known network."
+        options.KnownNetworks.Clear();
+        options.KnownProxies.Clear();
     });
 
     builder.Host.UseSerilog((ctx, lc) => lc
