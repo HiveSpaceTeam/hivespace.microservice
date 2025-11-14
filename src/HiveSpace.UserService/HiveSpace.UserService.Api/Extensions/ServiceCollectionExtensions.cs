@@ -122,6 +122,7 @@ internal static class ServiceCollectionExtensions
             .AddIdentityServer(options =>
             {
                 options.LicenseKey = configuration.GetValue("Duende:LicenseKey", "");
+                options.IssuerUri = configuration.GetValue("Issuer", "");
                 options.Events.RaiseErrorEvents = true;
                 options.Events.RaiseInformationEvents = true;
                 options.Events.RaiseFailureEvents = true;
