@@ -4,6 +4,7 @@ using Duende.IdentityServer.Licensing;
 using HiveSpace.UserService.Api.Extensions;
 using HiveSpace.UserService.Infrastructure;
 using HiveSpace.UserService.Infrastructure.Data;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Session;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -30,6 +31,19 @@ try
         options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     });
 
+    // Configure Forwarded Headers for Azure Container Apps
+    builder.Services.Configure<ForwardedHeadersOptions>(options =>
+    {
+        // This tells the app to trust the X-Forwarded-Proto (http/https) header.
+        options.ForwardedHeaders =
+            ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+
+        // This is CRITICAL for Azure Container Apps.
+        // It tells the app to trust the proxy even though it's not on a "known network."
+        options.KnownNetworks.Clear();
+        options.KnownProxies.Clear();
+    });
+
     builder.Host.UseSerilog((ctx, lc) => lc
         .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}", formatProvider: CultureInfo.InvariantCulture)
         .Enrich.FromLogContext()
@@ -46,7 +60,6 @@ try
         Log.Information("Seeding database...");
         SeedData.EnsureSeedData(app);
 
-        // TODO: Fix license usage summary when needed
         app.Lifetime.ApplicationStopping.Register(() =>
         {
             var usage = app.Services.GetRequiredService<LicenseUsageSummary>();
