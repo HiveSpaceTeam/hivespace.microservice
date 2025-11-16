@@ -102,29 +102,20 @@ jobs:
           imageToDeploy: ${{ needs.build.outputs.image }}
           registryUrl: ${{ vars.AZURE_ACR_NAME }}.azurecr.io
           environmentVariables: |
-            # Application Configuration
             - name: ASPNETCORE_ENVIRONMENT
               value: "Development"
-
-            # Logging Configuration  
             - name: Serilog__MinimumLevel__Default
               value: "Debug"
             - name: Serilog__MinimumLevel__Override__Microsoft
               value: "Information"
             - name: Serilog__MinimumLevel__Override__System
               value: "Information"
-
-            # Application URLs
             - name: DefaultRedirectUrl
               value: "${{ vars.DEFAULT_REDIRECT_URL }}"
             - name: Issuer
               value: "${{ vars.ISSUER_URL }}"
-
-            # Database Configuration
             - name: ConnectionStrings__UserServiceDb
               secretRef: CONNECTION_STRING_USER_SERVICE_DB
-
-            # Admin Portal Client Configuration
             - name: Clients__adminportal__ClientUri
               value: "${{ vars.ADMIN_PORTAL_CLIENT_URI }}"
             - name: Clients__adminportal__RedirectUris__0
@@ -133,8 +124,6 @@ jobs:
               value: "${{ vars.ADMIN_PORTAL_LOGOUT_REDIRECT_URI }}"
             - name: Clients__adminportal__AllowedCorsOrigins__0
               value: "${{ vars.ADMIN_PORTAL_CORS_ORIGIN }}"
-
-            # Seller Center Client Configuration
             - name: Clients__sellercenter__ClientUri
               value: "${{ vars.SELLER_CENTER_CLIENT_URI }}"
             - name: Clients__sellercenter__RedirectUris__0
@@ -143,8 +132,6 @@ jobs:
               value: "${{ vars.SELLER_CENTER_LOGOUT_REDIRECT_URI }}"
             - name: Clients__sellercenter__AllowedCorsOrigins__0
               value: "${{ vars.SELLER_CENTER_CORS_ORIGIN }}"
-
-            # Web UI Client Configuration
             - name: Clients__webui__ClientUri
               value: "${{ vars.WEBUI_CLIENT_URI }}"
             - name: Clients__webui__RedirectUris__0
@@ -153,20 +140,14 @@ jobs:
               value: "${{ vars.WEBUI_LOGOUT_REDIRECT_URI }}"
             - name: Clients__webui__AllowedCorsOrigins__0
               value: "${{ vars.WEBUI_CORS_ORIGIN }}"
-
-            # Authentication Configuration
             - name: Authentication__Google__ClientId
               secretRef: GOOGLE_CLIENT_ID
             - name: Authentication__Google__ClientSecret
               secretRef: GOOGLE_CLIENT_SECRET
-
-            # License Configuration
             - name: Duende__LicenseKey
               secretRef: DUENDE_LICENSE_KEY
             - name: MediatR__LicenseKey
               secretRef: MEDIATR_LICENSE_KEY
-
-            # Email Configuration
             - name: EmailSettings__SmtpServer
               value: "${{ vars.SMTP_SERVER }}"
             - name: EmailSettings__SmtpPort
