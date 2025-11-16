@@ -68,13 +68,12 @@ public class AccountController : ControllerBase
     /// <response code="409">Email already verified</response>
     [HttpPost("email-verification/verify")]
     [RequireAdminOrUser]
-    [Consumes("application/x-www-form-urlencoded")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status302Found)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult> VerifyEmail(
-        [FromForm] ConfirmEmailVerificationRequestDto request,
+        ConfirmEmailVerificationRequestDto request,
         CancellationToken cancellationToken = default)
     {
         await _accountService.ConfirmEmailVerificationAsync(request, cancellationToken);
