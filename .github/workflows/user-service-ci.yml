@@ -83,7 +83,7 @@ jobs:
     name: Deploy to Azure Container Apps
     needs: build
     runs-on: ubuntu-latest
-    environment: development
+    environment: dev
     # if: ${{ github.event_name == 'push' }}
     steps:
       - name: Checkout
