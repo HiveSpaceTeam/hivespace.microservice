@@ -53,6 +53,10 @@ jobs:
           echo "Logging in to ACR ${{ vars.AZURE_ACR_NAME }} via az acr login";
           az acr login --name ${{ vars.AZURE_ACR_NAME }}
 
+      - name: Generate short SHA
+        id: short-sha
+        run: echo "sha=${GITHUB_SHA::8}" >> $GITHUB_OUTPUT
+
       - name: Build and push image to ACR
         id: push_image_acr
         # if: ${{ github.event_name == 'push' }}
@@ -62,14 +66,14 @@ jobs:
           file: src/HiveSpace.UserService/HiveSpace.UserService.Api/Dockerfile
           push: true
           tags: |
-            ${{ vars.AZURE_ACR_NAME }}.azurecr.io/hivespace/user-service:${GITHUB_SHA::8}
+            ${{ vars.AZURE_ACR_NAME }}.azurecr.io/hivespace/user-service:${{ steps.short-sha.outputs.sha }}
             ${{ vars.AZURE_ACR_NAME }}.azurecr.io/hivespace/user-service:latest
 
       - name: Set image output (ACR)
         id: set_image_acr
         # if: ${{ github.event_name == 'push' }}
         run: |
-          IMAGE_TAG=${{ vars.AZURE_ACR_NAME }}.azurecr.io/hivespace/user-service:${GITHUB_SHA::8}
+          IMAGE_TAG=${{ vars.AZURE_ACR_NAME }}.azurecr.io/hivespace/user-service:${{ steps.short-sha.outputs.sha }}
           echo "image=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
       - name: Success notice
