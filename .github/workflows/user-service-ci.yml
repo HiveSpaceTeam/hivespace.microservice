@@ -62,14 +62,14 @@ jobs:
           file: src/HiveSpace.UserService/HiveSpace.UserService.Api/Dockerfile
           push: true
           tags: |
-            ${{ vars.AZURE_ACR_NAME }}.azurecr.io/hivespace/user-service:${{ github.sha }}
+            ${{ vars.AZURE_ACR_NAME }}.azurecr.io/hivespace/user-service:${GITHUB_SHA::8}
             ${{ vars.AZURE_ACR_NAME }}.azurecr.io/hivespace/user-service:latest
 
       - name: Set image output (ACR)
         id: set_image_acr
         # if: ${{ github.event_name == 'push' }}
         run: |
-          IMAGE_TAG=${{ vars.AZURE_ACR_NAME }}.azurecr.io/hivespace/user-service:${{ github.sha }}
+          IMAGE_TAG=${{ vars.AZURE_ACR_NAME }}.azurecr.io/hivespace/user-service:${GITHUB_SHA::8}
           echo "image=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
       - name: Success notice
@@ -90,6 +90,18 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS_SERVICE }}
 
+      - name: Select Environment Configuration
+        id: config
+        run: |
+          # Select environment template based on branch
+          if [ "${{ github.ref }}" == "refs/heads/master" ]; then
+            echo "config_path=.github/env/production.yaml" >> $GITHUB_OUTPUT
+            echo "Using production environment configuration"
+          else
+            echo "config_path=.github/env/development.yaml" >> $GITHUB_OUTPUT
+            echo "Using development environment configuration"
+          fi
+
       - name: Deploy to Azure Container Apps
         uses: azure/container-apps-deploy-action@v1
         with:
@@ -97,3 +109,4 @@ jobs:
           resourceGroup: ${{ vars.AZURE_RESOURCE_GROUP }}
           imageToDeploy: ${{ needs.build.outputs.image }}
           registryUrl: ${{ vars.AZURE_ACR_NAME }}.azurecr.io
+          yamlConfigPath: ${{ steps.config.outputs.config_path }}
