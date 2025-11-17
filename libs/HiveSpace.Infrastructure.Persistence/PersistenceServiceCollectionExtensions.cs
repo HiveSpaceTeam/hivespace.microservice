@@ -1,3 +1,4 @@
+using HiveSpace.Infrastructure.Messaging.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using HiveSpace.Infrastructure.Persistence.Idempotence;
 using HiveSpace.Infrastructure.Persistence.Outbox;
@@ -41,6 +42,7 @@ public static class PersistenceServiceCollectionExtensions
         
         // Add transaction services
         services.AddScoped<ITransactionService, TransactionService<TContext>>();
+        services.AddScoped<ITransactionalExecutionScope, TransactionalExecutionScope>();
         
         return services;
     }

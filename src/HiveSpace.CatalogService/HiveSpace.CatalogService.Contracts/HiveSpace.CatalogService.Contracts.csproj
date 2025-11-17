@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\HiveSpace.CatalogService.Application\IntegrationEvents\**\*.cs">
+      <Link>IntegrationEvents\%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </Compile>
+    <ProjectReference Include="..\..\..\libs\HiveSpace.Infrastructure.Messaging\HiveSpace.Infrastructure.Messaging.csproj" />
+  </ItemGroup>
+
+</Project>
+

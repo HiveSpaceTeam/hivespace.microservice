@@ -15,6 +15,8 @@ using HiveSpace.Core.Exceptions;
 using HiveSpace.Core.Exceptions.Models;
 using HiveSpace.UserService.Application.Interfaces.Services;
 using HiveSpace.UserService.Infrastructure.Services;
+using HiveSpace.UserService.Application.Interfaces.Messaging;
+using HiveSpace.UserService.Infrastructure.Messaging.Publishers;
 
 namespace HiveSpace.UserService.Infrastructure;
 
@@ -73,6 +75,7 @@ public static class UserInfrastructureExtension
         // Register Infrastructure services here
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<IAccountService, AccountService>();
+        services.AddScoped<IUserEventPublisher, UserEventPublisher>();
     }
 
     public static void AddUserServiceQueries(this IServiceCollection services, string connectionString)

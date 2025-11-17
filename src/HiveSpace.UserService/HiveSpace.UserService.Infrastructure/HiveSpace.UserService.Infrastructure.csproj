@@ -18,6 +18,7 @@
     <PackageReference Include="FluentEmail.Core" />
     <PackageReference Include="FluentEmail.Smtp" />
     <PackageReference Include="FluentEmail.Razor" />
+    <PackageReference Include="MassTransit" />
   </ItemGroup>
 
   <ItemGroup>

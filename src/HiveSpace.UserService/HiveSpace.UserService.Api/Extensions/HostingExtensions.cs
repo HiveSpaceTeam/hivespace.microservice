@@ -1,8 +1,16 @@
+using Confluent.Kafka;
 using HiveSpace.Core;
-// using HiveSpace.UserService.Application.Extensions;
+using HiveSpace.Infrastructure.Messaging.Configurations;
+using HiveSpace.Infrastructure.Messaging.Extensions;
+using HiveSpace.UserService.Application.Consumers;
+using HiveSpace.UserService.Application.IntegrationEvents;
 using HiveSpace.UserService.Infrastructure;
+using HiveSpace.UserService.Infrastructure.Messaging.Consumers;
 using Serilog;
 using Swashbuckle.AspNetCore.SwaggerUI;
+using Microsoft.Extensions.Options;
+using HiveSpace.CatalogService.Application.IntegrationEvents;
+using MassTransit;
 
 namespace HiveSpace.UserService.Api.Extensions;
 
@@ -38,6 +46,32 @@ internal static class HostingExtensions
         builder.Services.AddAppAuthentication(configuration);
         builder.Services.AddAppAuthorization();
         builder.Services.AddAppApiVersioning();
+
+        builder.Services.AddMassTransitWithKafka(configuration,
+            rider =>
+            {
+                rider.AddConsumer<UserAnalyticsConsumer>();
+                rider.AddConsumer<UserAuditConsumer>();
+            },
+            (kafka, ctx) =>
+            {
+                var kafkaOptions = ctx.GetRequiredService<IOptions<KafkaOptions>>().Value;
+                
+                kafka.TopicEndpoint<Ignore, UserCreatedIntegrationEvent>("user-created", kafkaOptions.ConsumerGroup, e =>
+                {
+                    e.ConfigureConsumer<UserAnalyticsConsumer>(ctx);
+                });
+
+                kafka.TopicEndpoint<Ignore, UserUpdatedIntegrationEvent>("user-updated", kafkaOptions.ConsumerGroup, e =>
+                {
+                    e.ConfigureConsumer<UserAuditConsumer>(ctx);
+                });
+            });
+
+        builder.Services.AddMassTransitWithRabbitMq(configuration, cfg =>
+        {
+            cfg.AddConsumer<ProductCreatedConsumer>();
+        });
 
         return builder.Build();
     }

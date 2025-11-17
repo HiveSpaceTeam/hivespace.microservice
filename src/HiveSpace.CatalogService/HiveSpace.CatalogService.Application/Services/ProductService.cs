@@ -8,6 +8,7 @@ using HiveSpace.CatalogService.Domain.Exceptions;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Core.Contexts;
 using HiveSpace.Infrastructure.Persistence.Transaction;
+using HiveSpace.CatalogService.Application.Interfaces.Messaging;
 
 namespace HiveSpace.CatalogService.Application.Services
 {
@@ -16,15 +17,18 @@ namespace HiveSpace.CatalogService.Application.Services
         private readonly IProductRepository _productRepository;
         private readonly ITransactionService _transactionService;
         private readonly IUserContext _userContext;
+        private readonly ICatalogEventPublisher _catalogEventPublisher;
 
         public ProductService(
             IProductRepository productRepository,
             ITransactionService transactionService,
-            IUserContext userContext)
+            IUserContext userContext,
+            ICatalogEventPublisher catalogEventPublisher)
         {
             _productRepository = productRepository;
             _transactionService = transactionService;
             _userContext = userContext;
+            _catalogEventPublisher = catalogEventPublisher;
         }
 
         public async Task<Guid> SaveProductAsync(ProductUpsertRequestDto request, CancellationToken cancellationToken = default)
@@ -60,6 +64,8 @@ namespace HiveSpace.CatalogService.Application.Services
                 await _productRepository.AddAsync(product, cancellationToken);
             }, performIdempotenceCheck: true, actionName: nameof(SaveProductAsync));
 
+            await _catalogEventPublisher.PublishProductCreatedAsync(product, cancellationToken);
+
             return product.Id;
         }
 
@@ -84,6 +90,7 @@ namespace HiveSpace.CatalogService.Application.Services
             
             var currentUserId = GetCurrentUserId();
             var wasUpdated = false;
+            Product? updatedProduct = null;
 
             await _transactionService.InTransactionScopeAsync(async transaction =>
             {
@@ -130,8 +137,14 @@ namespace HiveSpace.CatalogService.Application.Services
                     product.UpdateAuditInfo(currentUserId);
                     await _productRepository.UpdateAsync(product, cancellationToken);
                     wasUpdated = true;
+                    updatedProduct = product;
                 }
             }, performIdempotenceCheck: true, actionName: nameof(UpdateProductAsync));
+
+            if (updatedProduct is not null)
+            {
+                await _catalogEventPublisher.PublishProductUpdatedAsync(updatedProduct, cancellationToken);
+            }
 
             return wasUpdated;
         }
@@ -143,6 +156,7 @@ namespace HiveSpace.CatalogService.Application.Services
             if (product is null) return false;
 
             await _productRepository.DeleteAsync(product, cancellationToken);
+            await _catalogEventPublisher.PublishProductDeletedAsync(product.Id, _userContext.UserId.ToString(), cancellationToken);
             return true;
         }
 

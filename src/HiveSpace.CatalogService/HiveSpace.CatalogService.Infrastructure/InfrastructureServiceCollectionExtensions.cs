@@ -1,8 +1,10 @@
+using HiveSpace.CatalogService.Application.Interfaces.Messaging;
 using HiveSpace.CatalogService.Infrastructure.Data;
 using HiveSpace.CatalogService.Infrastructure.Repositories;
 using HiveSpace.CatalogService.Infrastructure.Queries;
 using HiveSpace.CatalogService.Application.Queries;
 using HiveSpace.CatalogService.Application.Interfaces.Repositories;
+using HiveSpace.CatalogService.Infrastructure.Messaging.Publishers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
@@ -37,6 +39,7 @@ namespace HiveSpace.CatalogService.Infrastructure
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IAttributeRepository, AttributeRepository>();
             services.AddScoped<ICategoryDataQuery, CategoryDataQuery>();
+            services.AddScoped<ICatalogEventPublisher, CatalogEventPublisher>();
         }
 
     }

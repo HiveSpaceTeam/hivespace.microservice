@@ -1,5 +1,6 @@
 using HiveSpace.Core.Contexts;
 using HiveSpace.Domain.Shared.Exceptions;
+using HiveSpace.UserService.Application.Interfaces.Messaging;
 using HiveSpace.UserService.Application.Interfaces.Services;
 using HiveSpace.UserService.Application.Models.Requests.User;
 using HiveSpace.UserService.Application.Models.Responses.User;
@@ -13,13 +14,16 @@ public class UserService : IUserService
 {
     private readonly IUserContext _userContext;
     private readonly IUserRepository _userRepository;
+    private readonly IUserEventPublisher _userEventPublisher;
 
     public UserService(
         IUserContext userContext,
-        IUserRepository userRepository)
+        IUserRepository userRepository,
+        IUserEventPublisher userEventPublisher)
     {
         _userContext = userContext;
         _userRepository = userRepository;
+        _userEventPublisher = userEventPublisher;
     }
 
     public async Task<GetUserSettingsResponseDto> GetUserSettingAsync(CancellationToken cancellationToken = default)
@@ -47,5 +51,6 @@ public class UserService : IUserService
             user.UpdateCulture(request.Culture.Value);
         
         await _userRepository.UpdateUserAsync(user, cancellationToken);
+        await _userEventPublisher.PublishUserUpdatedAsync(user, cancellationToken);
     }
 }

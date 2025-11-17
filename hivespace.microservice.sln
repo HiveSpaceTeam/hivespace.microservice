@@ -7,7 +7,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{02EA681E-C7D
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "HiveSpace.ApiGateway", "HiveSpace.ApiGateway", "{983AAABA-65F5-43CE-8A72-E2BD12AECEA4}"
 EndProject
-
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libs", "libs", "{8E604477-D2AC-48FD-A8EF-349D246FAC03}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.Core", "libs\HiveSpace.Core\HiveSpace.Core.csproj", "{A1C7DAC3-2F17-4A34-078C-478180B72148}"
@@ -18,21 +17,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.Infrastructure.Me
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.Infrastructure.Persistence", "libs\HiveSpace.Infrastructure.Persistence\HiveSpace.Infrastructure.Persistence.csproj", "{BF4216B8-2CA4-728D-84CD-0490ACE58275}"
 EndProject
-
-
-
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.YarpApiGateway", "src\HiveSpace.ApiGateway\HiveSpace.YarpApiGateway\HiveSpace.YarpApiGateway.csproj", "{3462DB16-D695-9630-4391-D5ED5935099A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.Application.Shared", "libs\HiveSpace.Application.Shared\HiveSpace.Application.Shared.csproj", "{5853E354-EB72-486A-B01F-83EA45070B1A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.Infrastructure.Authorization", "libs\HiveSpace.Infrastructure.Authorization\HiveSpace.Infrastructure.Authorization.csproj", "{F2B8C9A1-3D4E-4F5A-8B7C-1E9F0D2A5C3B}"
 EndProject
-
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{3538206F-AE28-4881-AF2F-492BCED295A9}"
 EndProject
-
-
-
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "HiveSpace.UserService", "HiveSpace.UserService", "{C6D12F93-D17B-4166-AD38-093ECCB27DC8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.UserService.Domain", "src\HiveSpace.UserService\HiveSpace.UserService.Domain\HiveSpace.UserService.Domain.csproj", "{C172BC1D-CA86-4940-B274-58919BC27A3F}"
@@ -52,6 +44,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.CatalogService.Domain", "src\HiveSpace.CatalogService\HiveSpace.CatalogService.Domain\HiveSpace.CatalogService.Domain.csproj", "{572779C3-109A-44EA-8166-6513B3CDB63B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.CatalogService.Infrastructure", "src\HiveSpace.CatalogService\HiveSpace.CatalogService.Infrastructure\HiveSpace.CatalogService.Infrastructure.csproj", "{9EB41060-B453-4816-AD32-5D3040CCF4A6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.CatalogService.Contracts", "src\HiveSpace.CatalogService\HiveSpace.CatalogService.Contracts\HiveSpace.CatalogService.Contracts.csproj", "{76585714-C5D4-4105-A99F-EEBAA727B47E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.UserService.Contracts", "src\HiveSpace.UserService\HiveSpace.UserService.Contracts\HiveSpace.UserService.Contracts.csproj", "{4CB59A1C-58C6-44F5-89D5-00A18C2A1FDB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -111,9 +107,6 @@ Global
 		{BF4216B8-2CA4-728D-84CD-0490ACE58275}.Release|x64.Build.0 = Release|Any CPU
 		{BF4216B8-2CA4-728D-84CD-0490ACE58275}.Release|x86.ActiveCfg = Release|Any CPU
 		{BF4216B8-2CA4-728D-84CD-0490ACE58275}.Release|x86.Build.0 = Release|Any CPU
-
-
-
 		{3462DB16-D695-9630-4391-D5ED5935099A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3462DB16-D695-9630-4391-D5ED5935099A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3462DB16-D695-9630-4391-D5ED5935099A}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -150,9 +143,6 @@ Global
 		{F2B8C9A1-3D4E-4F5A-8B7C-1E9F0D2A5C3B}.Release|x64.Build.0 = Release|Any CPU
 		{F2B8C9A1-3D4E-4F5A-8B7C-1E9F0D2A5C3B}.Release|x86.ActiveCfg = Release|Any CPU
 		{F2B8C9A1-3D4E-4F5A-8B7C-1E9F0D2A5C3B}.Release|x86.Build.0 = Release|Any CPU
-
-
-
 		{C172BC1D-CA86-4940-B274-58919BC27A3F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C172BC1D-CA86-4940-B274-58919BC27A3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C172BC1D-CA86-4940-B274-58919BC27A3F}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -249,27 +239,43 @@ Global
 		{9EB41060-B453-4816-AD32-5D3040CCF4A6}.Release|x64.Build.0 = Release|Any CPU
 		{9EB41060-B453-4816-AD32-5D3040CCF4A6}.Release|x86.ActiveCfg = Release|Any CPU
 		{9EB41060-B453-4816-AD32-5D3040CCF4A6}.Release|x86.Build.0 = Release|Any CPU
+		{76585714-C5D4-4105-A99F-EEBAA727B47E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{76585714-C5D4-4105-A99F-EEBAA727B47E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{76585714-C5D4-4105-A99F-EEBAA727B47E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{76585714-C5D4-4105-A99F-EEBAA727B47E}.Debug|x64.Build.0 = Debug|Any CPU
+		{76585714-C5D4-4105-A99F-EEBAA727B47E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{76585714-C5D4-4105-A99F-EEBAA727B47E}.Debug|x86.Build.0 = Debug|Any CPU
+		{76585714-C5D4-4105-A99F-EEBAA727B47E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{76585714-C5D4-4105-A99F-EEBAA727B47E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{76585714-C5D4-4105-A99F-EEBAA727B47E}.Release|x64.ActiveCfg = Release|Any CPU
+		{76585714-C5D4-4105-A99F-EEBAA727B47E}.Release|x64.Build.0 = Release|Any CPU
+		{76585714-C5D4-4105-A99F-EEBAA727B47E}.Release|x86.ActiveCfg = Release|Any CPU
+		{76585714-C5D4-4105-A99F-EEBAA727B47E}.Release|x86.Build.0 = Release|Any CPU
+		{4CB59A1C-58C6-44F5-89D5-00A18C2A1FDB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4CB59A1C-58C6-44F5-89D5-00A18C2A1FDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4CB59A1C-58C6-44F5-89D5-00A18C2A1FDB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4CB59A1C-58C6-44F5-89D5-00A18C2A1FDB}.Debug|x64.Build.0 = Debug|Any CPU
+		{4CB59A1C-58C6-44F5-89D5-00A18C2A1FDB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4CB59A1C-58C6-44F5-89D5-00A18C2A1FDB}.Debug|x86.Build.0 = Debug|Any CPU
+		{4CB59A1C-58C6-44F5-89D5-00A18C2A1FDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4CB59A1C-58C6-44F5-89D5-00A18C2A1FDB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4CB59A1C-58C6-44F5-89D5-00A18C2A1FDB}.Release|x64.ActiveCfg = Release|Any CPU
+		{4CB59A1C-58C6-44F5-89D5-00A18C2A1FDB}.Release|x64.Build.0 = Release|Any CPU
+		{4CB59A1C-58C6-44F5-89D5-00A18C2A1FDB}.Release|x86.ActiveCfg = Release|Any CPU
+		{4CB59A1C-58C6-44F5-89D5-00A18C2A1FDB}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{983AAABA-65F5-43CE-8A72-E2BD12AECEA4} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
-
 		{A1C7DAC3-2F17-4A34-078C-478180B72148} = {8E604477-D2AC-48FD-A8EF-349D246FAC03}
 		{9E47C24A-8E78-AD21-4A98-232284B0394C} = {8E604477-D2AC-48FD-A8EF-349D246FAC03}
 		{7C7FF4E5-FB42-6FCB-ED9C-E27CF40B6DA9} = {8E604477-D2AC-48FD-A8EF-349D246FAC03}
 		{BF4216B8-2CA4-728D-84CD-0490ACE58275} = {8E604477-D2AC-48FD-A8EF-349D246FAC03}
-
-
-
 		{3462DB16-D695-9630-4391-D5ED5935099A} = {983AAABA-65F5-43CE-8A72-E2BD12AECEA4}
 		{5853E354-EB72-486A-B01F-83EA45070B1A} = {8E604477-D2AC-48FD-A8EF-349D246FAC03}
 		{F2B8C9A1-3D4E-4F5A-8B7C-1E9F0D2A5C3B} = {8E604477-D2AC-48FD-A8EF-349D246FAC03}
-
-
-
-
 		{C6D12F93-D17B-4166-AD38-093ECCB27DC8} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{C172BC1D-CA86-4940-B274-58919BC27A3F} = {C6D12F93-D17B-4166-AD38-093ECCB27DC8}
 		{E25CFF53-28E9-4255-861A-1E31BBFE02D9} = {C6D12F93-D17B-4166-AD38-093ECCB27DC8}
@@ -280,6 +286,8 @@ Global
 		{6CDA8617-AAF5-4151-B86A-50762094859E} = {17EF53D8-2BD8-436D-928E-85A1108F6781}
 		{572779C3-109A-44EA-8166-6513B3CDB63B} = {17EF53D8-2BD8-436D-928E-85A1108F6781}
 		{9EB41060-B453-4816-AD32-5D3040CCF4A6} = {17EF53D8-2BD8-436D-928E-85A1108F6781}
+		{76585714-C5D4-4105-A99F-EEBAA727B47E} = {17EF53D8-2BD8-436D-928E-85A1108F6781}
+		{4CB59A1C-58C6-44F5-89D5-00A18C2A1FDB} = {C6D12F93-D17B-4166-AD38-093ECCB27DC8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D8C2701B-2199-41FF-B96B-89B56EA2198C}
