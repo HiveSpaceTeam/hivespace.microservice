@@ -200,18 +200,6 @@ internal static class ServiceCollectionExtensions
                     };
                 });
         }
-
-        // {
-        //     services
-        //         .AddAuthentication()
-        //         .AddFacebook(options =>
-        //         {
-        //             options.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
-        //             options.AppId = facebookAppId;
-        //             options.AppSecret = facebookAppSecret;
-        //             options.CallbackPath = "/signin-facebook";
-        //         });
-        // }
     }
 
     public static void AddAppAuthorization(this IServiceCollection services)
