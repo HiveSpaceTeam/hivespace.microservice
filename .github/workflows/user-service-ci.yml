@@ -111,7 +111,7 @@ jobs:
           resourceGroup: ${{ vars.AZURE_RESOURCE_GROUP }}
           imageToDeploy: ${{ needs.build.outputs.image }}
           registryUrl: ${{ vars.AZURE_ACR_NAME }}.azurecr.io
-          env: |
+          environmentVariables: |
             # Application Configuration
             ASPNETCORE_ENVIRONMENT=Development
 
