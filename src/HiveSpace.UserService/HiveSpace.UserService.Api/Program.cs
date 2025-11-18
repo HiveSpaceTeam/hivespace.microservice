@@ -47,7 +47,7 @@ try
         .ReadFrom.Configuration(ctx.Configuration));
 
     var app = builder
-        .ConfigureServices(configuration)
+        .ConfigureServices(configuration) 
         .ConfigurePipeline();
 
     Log.Information("Environment: {EnvironmentName}", app.Environment.EnvironmentName);
