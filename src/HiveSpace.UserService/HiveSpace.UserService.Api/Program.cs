@@ -3,10 +3,7 @@ using System.Text;
 using Duende.IdentityServer.Licensing;
 using HiveSpace.UserService.Api.Extensions;
 using HiveSpace.UserService.Infrastructure;
-using HiveSpace.UserService.Infrastructure.Data;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.AspNetCore.Session;
-using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
@@ -52,6 +49,8 @@ try
     var app = builder
         .ConfigureServices(configuration)
         .ConfigurePipeline();
+
+    Log.Information("Environment: {EnvironmentName}", app.Environment.EnvironmentName);
 
     // this seeding is only for the template to bootstrap the DB and users.
     // in production you will likely want a different approach.
