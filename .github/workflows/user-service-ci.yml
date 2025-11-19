@@ -111,7 +111,7 @@ jobs:
           resourceGroup: ${{ vars.AZURE_RESOURCE_GROUP }}
           imageToDeploy: ${{ needs.build.outputs.image }}
           registryUrl: ${{ vars.AZURE_ACR_NAME }}.azurecr.io
-          environmentVariables: >-
+          environmentVariables: |
             ASPNETCORE_ENVIRONMENT=Production
             RunningInContainer=true
             EnableDatabaseSeeding=false
@@ -164,29 +164,6 @@ jobs:
             Clients__sellercenter__AllowedScopes__3=offline_access
             Clients__sellercenter__AccessTokenLifetime=7200
             Clients__sellercenter__IdentityTokenLifetime=7200
-            Clients__webui__ClientId=webui
-            Clients__webui__ClientName="Web UI"
-            Clients__webui__ClientUri=${{ vars.WEBUI_CLIENT_URI }}
-            Clients__webui__RequireClientSecret=false
-            Clients__webui__AllowedGrantTypes__0=authorization_code
-            Clients__webui__AllowAccessTokensViaBrowser=false
-            Clients__webui__RequireConsent=false
-            Clients__webui__AllowOfflineAccess=true
-            Clients__webui__AbsoluteRefreshTokenLifetime=2592000
-            Clients__webui__SlidingRefreshTokenLifetime=1296000
-            Clients__webui__RefreshTokenExpiration=Sliding
-            Clients__webui__RefreshTokenUsage=OneTimeOnly
-            Clients__webui__AlwaysIncludeUserClaimsInIdToken=true
-            Clients__webui__RequirePkce=true
-            Clients__webui__RedirectUris__0=${{ vars.WEBUI_REDIRECT_URI }}
-            Clients__webui__PostLogoutRedirectUris__0=${{ vars.WEBUI_LOGOUT_REDIRECT_URI }}
-            Clients__webui__AllowedCorsOrigins__0=${{ vars.WEBUI_CORS_ORIGIN }}
-            Clients__webui__AllowedScopes__0=openid
-            Clients__webui__AllowedScopes__1=profile
-            Clients__webui__AllowedScopes__2=offline_access
-            Clients__webui__AllowedScopes__3=user.fullaccess
-            Clients__webui__AccessTokenLifetime=7200
-            Clients__webui__IdentityTokenLifetime=7200
             Authentication__Google__ClientId=${{ secrets.GOOGLE_CLIENT_ID }}
             Authentication__Google__ClientSecret=${{ secrets.GOOGLE_CLIENT_SECRET }}
             Duende__LicenseKey=${{ secrets.DUENDE_LICENSE_KEY }}
