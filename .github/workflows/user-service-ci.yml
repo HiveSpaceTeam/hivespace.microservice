@@ -111,27 +111,20 @@ jobs:
           resourceGroup: ${{ vars.AZURE_RESOURCE_GROUP }}
           imageToDeploy: ${{ needs.build.outputs.image }}
           registryUrl: ${{ vars.AZURE_ACR_NAME }}.azurecr.io
-          environmentVariables: |
-            # Application Configuration
-            ASPNETCORE_ENVIRONMENT=Development
-
-            # Logging Configuration
-            Serilog__MinimumLevel__Default=Debug
+          environmentVariables: >-
+            ASPNETCORE_ENVIRONMENT=Production
+            RunningInContainer=true
+            EnableDatabaseSeeding=false
+            Serilog__MinimumLevel__Default=Information
             Serilog__MinimumLevel__Override__Microsoft=Warning
             Serilog__MinimumLevel__Override__Microsoft.Hosting.Lifetime=Information
-            Serilog__MinimumLevel__Override__Microsoft.AspNetCore.Authentication=Debug
+            Serilog__MinimumLevel__Override__Microsoft.AspNetCore.Authentication=Warning
             Serilog__MinimumLevel__Override__System=Warning
-
-            # Application URLs
             DefaultRedirectUrl=${{ vars.DEFAULT_REDIRECT_URL }}
             Issuer=${{ vars.ISSUER_URL }}
-
-            # Database Configuration
             ConnectionStrings__UserServiceDb=${{ secrets.CONNECTION_STRING_USER_SERVICE_DB }}
-
-            # Admin Portal Client Configuration
             Clients__adminportal__ClientId=adminportal
-            Clients__adminportal__ClientName=Admin Portal
+            Clients__adminportal__ClientName="Admin Portal"
             Clients__adminportal__ClientUri=${{ vars.ADMIN_PORTAL_CLIENT_URI }}
             Clients__adminportal__RequireClientSecret=false
             Clients__adminportal__AllowedGrantTypes__0=authorization_code
@@ -148,10 +141,8 @@ jobs:
             Clients__adminportal__AllowedScopes__2=user.fullaccess
             Clients__adminportal__AccessTokenLifetime=7200
             Clients__adminportal__IdentityTokenLifetime=7200
-
-            # Seller Center Client Configuration
             Clients__sellercenter__ClientId=sellercenter
-            Clients__sellercenter__ClientName=Seller Center
+            Clients__sellercenter__ClientName="Seller Center"
             Clients__sellercenter__ClientUri=${{ vars.SELLER_CENTER_CLIENT_URI }}
             Clients__sellercenter__RequireClientSecret=false
             Clients__sellercenter__AllowedGrantTypes__0=authorization_code
@@ -173,10 +164,8 @@ jobs:
             Clients__sellercenter__AllowedScopes__3=offline_access
             Clients__sellercenter__AccessTokenLifetime=7200
             Clients__sellercenter__IdentityTokenLifetime=7200
-
-            # Web UI Client Configuration
             Clients__webui__ClientId=webui
-            Clients__webui__ClientName=Web UI
+            Clients__webui__ClientName="Web UI"
             Clients__webui__ClientUri=${{ vars.WEBUI_CLIENT_URI }}
             Clients__webui__RequireClientSecret=false
             Clients__webui__AllowedGrantTypes__0=authorization_code
@@ -198,16 +187,10 @@ jobs:
             Clients__webui__AllowedScopes__3=user.fullaccess
             Clients__webui__AccessTokenLifetime=7200
             Clients__webui__IdentityTokenLifetime=7200
-
-            # Authentication Configuration
             Authentication__Google__ClientId=${{ secrets.GOOGLE_CLIENT_ID }}
             Authentication__Google__ClientSecret=${{ secrets.GOOGLE_CLIENT_SECRET }}
-
-            # License Configuration
             Duende__LicenseKey=${{ secrets.DUENDE_LICENSE_KEY }}
             MediatR__LicenseKey=${{ secrets.MEDIATR_LICENSE_KEY }}
-
-            # Email Configuration
             EmailSettings__SmtpServer=${{ vars.SMTP_SERVER }}
             EmailSettings__SmtpPort=${{ vars.SMTP_PORT }}
             EmailSettings__SmtpUser=${{ secrets.SMTP_USER }}
