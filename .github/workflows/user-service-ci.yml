@@ -119,3 +119,5 @@ jobs:
             Serilog__MinimumLevel__Override__Microsoft.AspNetCore.Authentication=Warning
             Serilog__MinimumLevel__Override__System=Warning
             DefaultRedirectUrl=${{ vars.DEFAULT_REDIRECT_URL }}
+            Issuer=${{ vars.ISSUER_URL }}
+            ConnectionStrings__UserServiceDb=${{ secrets.CONNECTION_STRING_USER_SERVICE_DB }}
