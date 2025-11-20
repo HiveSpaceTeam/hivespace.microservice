@@ -112,7 +112,7 @@ jobs:
           imageToDeploy: ${{ needs.build.outputs.image }}
           registryUrl: ${{ vars.AZURE_ACR_NAME }}.azurecr.io
           environmentVariables: |
-            ASPNETCORE_ENVIRONMENT=Production
+            ASPNETCORE_ENVIRONMENT=Development
             Serilog__MinimumLevel__Default=Information
             Serilog__MinimumLevel__Override__Microsoft=Warning
             Serilog__MinimumLevel__Override__Microsoft.Hosting.Lifetime=Information
