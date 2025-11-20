@@ -120,7 +120,7 @@ jobs:
             Serilog__MinimumLevel__Override__System=Warning
             DefaultRedirectUrl=${{ vars.DEFAULT_REDIRECT_URL }}
             Issuer=${{ vars.ISSUER_URL }}
-            ConnectionStrings__UserServiceDb=${{ secrets.CONNECTION_STRING_USER_SERVICE_DB }}
+            ConnectionStrings__UserServiceDb=secretref:db-conn-string
             Clients__adminportal__ClientId=adminportal
             Clients__adminportal__ClientName=Admin Portal
             Clients__adminportal__ClientUri=${{ vars.ADMIN_PORTAL_CLIENT_URI }}
@@ -172,6 +172,7 @@ jobs:
             EmailSettings__SmtpPassword=${{ secrets.SMTP_PASSWORD }}
             EmailSettings__FromEmail=${{ vars.FROM_EMAIL }}
             EmailSettings__FromName=${{ vars.FROM_NAME }}
+
 
 
 
