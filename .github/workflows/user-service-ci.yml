@@ -1,4 +1,4 @@
-name: HiveSpace UserService CI
+name: UserService CI
 
 on:
   pull_request:
@@ -172,5 +172,6 @@ jobs:
             EmailSettings__SmtpPassword=${{ secrets.SMTP_PASSWORD }}
             EmailSettings__FromEmail=${{ vars.FROM_EMAIL }}
             EmailSettings__FromName=${{ vars.FROM_NAME }}
+
 
 
