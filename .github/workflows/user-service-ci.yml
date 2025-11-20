@@ -121,7 +121,7 @@ jobs:
             DefaultRedirectUrl=${{ vars.DEFAULT_REDIRECT_URL }}
             Issuer=${{ vars.ISSUER_URL }}
             Clients__adminportal__ClientId=adminportal
-            Clients__adminportal__ClientName="Admin Portal"
+            Clients__adminportal__ClientName=Admin Portal
             Clients__adminportal__ClientUri=${{ vars.ADMIN_PORTAL_CLIENT_URI }}
             Clients__adminportal__RequireClientSecret=false
             Clients__adminportal__AllowedGrantTypes__0=authorization_code
@@ -139,7 +139,7 @@ jobs:
             Clients__adminportal__AccessTokenLifetime=7200
             Clients__adminportal__IdentityTokenLifetime=7200
             Clients__sellercenter__ClientId=sellercenter
-            Clients__sellercenter__ClientName="Seller Center"
+            Clients__sellercenter__ClientName=Seller Center
             Clients__sellercenter__ClientUri=${{ vars.SELLER_CENTER_CLIENT_URI }}
             Clients__sellercenter__RequireClientSecret=false
             Clients__sellercenter__AllowedGrantTypes__0=authorization_code
@@ -171,3 +171,4 @@ jobs:
             EmailSettings__SmtpPassword=${{ secrets.SMTP_PASSWORD }}
             EmailSettings__FromEmail=${{ vars.FROM_EMAIL }}
             EmailSettings__FromName=${{ vars.FROM_NAME }}
+
