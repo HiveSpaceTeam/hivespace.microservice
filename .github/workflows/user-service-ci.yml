@@ -119,7 +119,7 @@ jobs:
             ConnectionStrings__UserServiceDb=${{ secrets.CONNECTION_STRING_USER_SERVICE_DB }}
             Issuer=${{ vars.ISSUER_URL }}
             Clients__adminportal__ClientId=adminportal
-            Clients__adminportal__ClientName=Admin Portal
+            Clients__adminportal__ClientName="Admin Portal"
             Clients__adminportal__ClientUri=${{ vars.ADMIN_PORTAL_CLIENT_URI }}
             Clients__adminportal__RequireClientSecret=false
             Clients__adminportal__AllowedGrantTypes__0=authorization_code
