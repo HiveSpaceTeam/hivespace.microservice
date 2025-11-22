@@ -114,13 +114,14 @@ jobs:
               --image ${{ needs.build.outputs.image }} \
               --set-env-vars \
                 ASPNETCORE_ENVIRONMENT=Production \
+                ASPNETCORE_URLS=http://+:8080 \
                 Serilog__MinimumLevel__Default=Information \
                 Serilog__MinimumLevel__Override__Microsoft=Warning \
                 Serilog__MinimumLevel__Override__Microsoft.Hosting.Lifetime=Information \
                 Serilog__MinimumLevel__Override__Microsoft.AspNetCore.Authentication=Warning \
                 Serilog__MinimumLevel__Override__System=Warning \
                 DefaultRedirectUrl=${{ vars.DEFAULT_REDIRECT_URL }} \
-                ConnectionStrings__UserServiceDb='${{ secrets.CONNECTION_STRING_USER_SERVICE_DB }}' \
+                ConnectionStrings__UserServiceDb=${{ secrets.CONNECTION_STRING_USER_SERVICE_DB }} \
                 Issuer=${{ vars.ISSUER_URL }} \
                 Clients__adminportal__ClientId=adminportal \
                 Clients__adminportal__ClientName="Admin Portal" \
