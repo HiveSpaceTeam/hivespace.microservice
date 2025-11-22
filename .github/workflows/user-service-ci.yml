@@ -94,78 +94,82 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     environment: dev
-    # if: ${{ github.event_name == 'push' }}
     steps:
-      - name: Login to Azure (for deployment)
+      - name: Login to Azure
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS_SERVICE }}
 
-      - name: Deploy to Azure Container Apps
-        uses: azure/container-apps-deploy-action@v1
+      - name: Deploy to Container App via CLI
+        uses: azure/cli@v2
         with:
-          containerAppName: ${{ vars.AZURE_CONTAINER_APP_USER_SERVICE_NAME }}
-          resourceGroup: ${{ vars.AZURE_RESOURCE_GROUP }}
-          imageToDeploy: ${{ needs.build.outputs.image }}
-          registryUrl: ${{ vars.AZURE_ACR_NAME }}.azurecr.io
-          environmentVariables: |
-            ASPNETCORE_ENVIRONMENT=Production
-            Serilog__MinimumLevel__Default=Information
-            Serilog__MinimumLevel__Override__Microsoft=Warning
-            Serilog__MinimumLevel__Override__Microsoft.Hosting.Lifetime=Information
-            Serilog__MinimumLevel__Override__Microsoft.AspNetCore.Authentication=Warning
-            Serilog__MinimumLevel__Override__System=Warning
-            DefaultRedirectUrl=${{ vars.DEFAULT_REDIRECT_URL }}
-            ConnectionStrings__UserServiceDb=${{ secrets.CONNECTION_STRING_USER_SERVICE_DB }}
-            Issuer=${{ vars.ISSUER_URL }}
-            Clients__adminportal__ClientId=adminportal
-            Clients__adminportal__ClientName=Admin Portal
-            Clients__adminportal__ClientUri=${{ vars.ADMIN_PORTAL_CLIENT_URI }}
-            Clients__adminportal__RequireClientSecret=false
-            Clients__adminportal__AllowedGrantTypes__0=authorization_code
-            Clients__adminportal__AllowAccessTokensViaBrowser=false
-            Clients__adminportal__RequireConsent=false
-            Clients__adminportal__AllowOfflineAccess=false
-            Clients__adminportal__AlwaysIncludeUserClaimsInIdToken=true
-            Clients__adminportal__RequirePkce=true
-            Clients__adminportal__RedirectUris__0=${{ vars.ADMIN_PORTAL_REDIRECT_URI }}
-            Clients__adminportal__PostLogoutRedirectUris__0=${{ vars.ADMIN_PORTAL_LOGOUT_REDIRECT_URI }}
-            Clients__adminportal__AllowedCorsOrigins__0=${{ vars.ADMIN_PORTAL_CORS_ORIGIN }}
-            Clients__adminportal__AllowedScopes__0=openid
-            Clients__adminportal__AllowedScopes__1=profile
-            Clients__adminportal__AllowedScopes__2=user.fullaccess
-            Clients__adminportal__AccessTokenLifetime=7200
-            Clients__adminportal__IdentityTokenLifetime=7200
-            Clients__sellercenter__ClientId=sellercenter
-            Clients__sellercenter__ClientName=Seller Center
-            Clients__sellercenter__ClientUri=${{ vars.SELLER_CENTER_CLIENT_URI }}
-            Clients__sellercenter__RequireClientSecret=false
-            Clients__sellercenter__AllowedGrantTypes__0=authorization_code
-            Clients__sellercenter__AllowAccessTokensViaBrowser=false
-            Clients__sellercenter__RequireConsent=false
-            Clients__sellercenter__AllowOfflineAccess=true
-            Clients__sellercenter__AbsoluteRefreshTokenLifetime=2592000
-            Clients__sellercenter__SlidingRefreshTokenLifetime=1296000
-            Clients__sellercenter__RefreshTokenExpiration=Sliding
-            Clients__sellercenter__RefreshTokenUsage=OneTimeOnly
-            Clients__sellercenter__AlwaysIncludeUserClaimsInIdToken=true
-            Clients__sellercenter__RequirePkce=true
-            Clients__sellercenter__RedirectUris__0=${{ vars.SELLER_CENTER_REDIRECT_URI }}
-            Clients__sellercenter__PostLogoutRedirectUris__0=${{ vars.SELLER_CENTER_LOGOUT_REDIRECT_URI }}
-            Clients__sellercenter__AllowedCorsOrigins__0=${{ vars.SELLER_CENTER_CORS_ORIGIN }}
-            Clients__sellercenter__AllowedScopes__0=openid
-            Clients__sellercenter__AllowedScopes__1=profile
-            Clients__sellercenter__AllowedScopes__2=user.fullaccess
-            Clients__sellercenter__AllowedScopes__3=offline_access
-            Clients__sellercenter__AccessTokenLifetime=7200
-            Clients__sellercenter__IdentityTokenLifetime=7200
-            Authentication__Google__ClientId=${{ secrets.GOOGLE_CLIENT_ID }}
-            Authentication__Google__ClientSecret=${{ secrets.GOOGLE_CLIENT_SECRET }}
-            Duende__LicenseKey=${{ secrets.DUENDE_LICENSE_KEY }}
-            MediatR__LicenseKey=${{ secrets.MEDIATR_LICENSE_KEY }}
-            EmailSettings__SmtpServer=${{ vars.SMTP_SERVER }}
-            EmailSettings__SmtpPort=${{ vars.SMTP_PORT }}
-            EmailSettings__SmtpUser=${{ secrets.SMTP_USER }}
-            EmailSettings__SmtpPassword=${{ secrets.SMTP_PASSWORD }}
-            EmailSettings__FromEmail=${{ vars.FROM_EMAIL }}
-            EmailSettings__FromName=${{ vars.FROM_NAME }}
+          inlineScript: |
+            az config set extension.use_dynamic_install=yes_without_prompt
+
+            echo "Deploying image: ${{ needs.build.outputs.image }}"
+
+            az containerapp update \
+              --name ${{ vars.AZURE_CONTAINER_APP_USER_SERVICE_NAME }} \
+              --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+              --image ${{ needs.build.outputs.image }} \
+              --set-env-vars \
+                ASPNETCORE_ENVIRONMENT=Production \
+                Serilog__MinimumLevel__Default=Information \
+                Serilog__MinimumLevel__Override__Microsoft=Warning \
+                Serilog__MinimumLevel__Override__Microsoft.Hosting.Lifetime=Information \
+                Serilog__MinimumLevel__Override__Microsoft.AspNetCore.Authentication=Warning \
+                Serilog__MinimumLevel__Override__System=Warning \
+                DefaultRedirectUrl=${{ vars.DEFAULT_REDIRECT_URL }} \
+                ConnectionStrings__UserServiceDb='${{ secrets.CONNECTION_STRING_USER_SERVICE_DB }}' \
+                Issuer=${{ vars.ISSUER_URL }} \
+                Clients__adminportal__ClientId=adminportal \
+                Clients__adminportal__ClientName="Admin Portal" \
+                Clients__adminportal__ClientUri=${{ vars.ADMIN_PORTAL_CLIENT_URI }} \
+                Clients__adminportal__RequireClientSecret=false \
+                Clients__adminportal__AllowedGrantTypes__0=authorization_code \
+                Clients__adminportal__AllowAccessTokensViaBrowser=false \
+                Clients__adminportal__RequireConsent=false \
+                Clients__adminportal__AllowOfflineAccess=false \
+                Clients__adminportal__AlwaysIncludeUserClaimsInIdToken=true \
+                Clients__adminportal__RequirePkce=true \
+                Clients__adminportal__RedirectUris__0=${{ vars.ADMIN_PORTAL_REDIRECT_URI }} \
+                Clients__adminportal__PostLogoutRedirectUris__0=${{ vars.ADMIN_PORTAL_LOGOUT_REDIRECT_URI }} \
+                Clients__adminportal__AllowedCorsOrigins__0=${{ vars.ADMIN_PORTAL_CORS_ORIGIN }} \
+                Clients__adminportal__AllowedScopes__0=openid \
+                Clients__adminportal__AllowedScopes__1=profile \
+                Clients__adminportal__AllowedScopes__2=user.fullaccess \
+                Clients__adminportal__AccessTokenLifetime=7200 \
+                Clients__adminportal__IdentityTokenLifetime=7200 \
+                Clients__sellercenter__ClientId=sellercenter \
+                Clients__sellercenter__ClientName="Seller Center" \
+                Clients__sellercenter__ClientUri=${{ vars.SELLER_CENTER_CLIENT_URI }} \
+                Clients__sellercenter__RequireClientSecret=false \
+                Clients__sellercenter__AllowedGrantTypes__0=authorization_code \
+                Clients__sellercenter__AllowAccessTokensViaBrowser=false \
+                Clients__sellercenter__RequireConsent=false \
+                Clients__sellercenter__AllowOfflineAccess=true \
+                Clients__sellercenter__AbsoluteRefreshTokenLifetime=2592000 \
+                Clients__sellercenter__SlidingRefreshTokenLifetime=1296000 \
+                Clients__sellercenter__RefreshTokenExpiration=Sliding \
+                Clients__sellercenter__RefreshTokenUsage=OneTimeOnly \
+                Clients__sellercenter__AlwaysIncludeUserClaimsInIdToken=true \
+                Clients__sellercenter__RequirePkce=true \
+                Clients__sellercenter__RedirectUris__0=${{ vars.SELLER_CENTER_REDIRECT_URI }} \
+                Clients__sellercenter__PostLogoutRedirectUris__0=${{ vars.SELLER_CENTER_LOGOUT_REDIRECT_URI }} \
+                Clients__sellercenter__AllowedCorsOrigins__0=${{ vars.SELLER_CENTER_CORS_ORIGIN }} \
+                Clients__sellercenter__AllowedScopes__0=openid \
+                Clients__sellercenter__AllowedScopes__1=profile \
+                Clients__sellercenter__AllowedScopes__2=user.fullaccess \
+                Clients__sellercenter__AllowedScopes__3=offline_access \
+                Clients__sellercenter__AccessTokenLifetime=7200 \
+                Clients__sellercenter__IdentityTokenLifetime=7200 \
+                Authentication__Google__ClientId=${{ secrets.GOOGLE_CLIENT_ID }} \
+                Authentication__Google__ClientSecret=${{ secrets.GOOGLE_CLIENT_SECRET }} \
+                Duende__LicenseKey=${{ secrets.DUENDE_LICENSE_KEY }} \
+                MediatR__LicenseKey=${{ secrets.MEDIATR_LICENSE_KEY }} \
+                EmailSettings__SmtpServer=${{ vars.SMTP_SERVER }} \
+                EmailSettings__SmtpPort=${{ vars.SMTP_PORT }} \
+                EmailSettings__SmtpUser=${{ secrets.SMTP_USER }} \
+                EmailSettings__SmtpPassword=${{ secrets.SMTP_PASSWORD }} \
+                EmailSettings__FromEmail=${{ vars.FROM_EMAIL }} \
+                EmailSettings__FromName=${{ vars.FROM_NAME }}
