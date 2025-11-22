@@ -121,7 +121,7 @@ jobs:
                 Serilog__MinimumLevel__Override__Microsoft.AspNetCore.Authentication=Warning \
                 Serilog__MinimumLevel__Override__System=Warning \
                 DefaultRedirectUrl=${{ vars.DEFAULT_REDIRECT_URL }} \
-                ConnectionStrings__UserServiceDb=${{ secrets.CONNECTION_STRING_USER_SERVICE_DB }} \
+                ConnectionStrings__UserServiceDb='${{ secrets.CONNECTION_STRING_USER_SERVICE_DB }}' \
                 Issuer=${{ vars.ISSUER_URL }} \
                 Clients__adminportal__ClientId=adminportal \
                 Clients__adminportal__ClientName="Admin Portal" \
