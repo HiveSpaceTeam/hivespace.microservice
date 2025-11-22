@@ -24,10 +24,11 @@ public static class UserInfrastructureExtension
     public static void AddUserDbContext(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("UserServiceDb");
+        System.Console.WriteLine("UserServiceDb Connection String: " + connectionString);
         if (string.IsNullOrWhiteSpace(connectionString))
         {
             var error = new Error(CommonErrorCode.ConfigurationMissing, "UserServiceDb");
-            throw new HiveSpace.Core.Exceptions.ApplicationException(new[] { error }, 500, false);
+            throw new HiveSpace.Core.Exceptions.ApplicationException([error], 500, false);
         }
 
         // Register interceptors manually
@@ -53,7 +54,12 @@ public static class UserInfrastructureExtension
         services.AddDbContext<UserDbContext>((serviceProvider, options) =>
         {
             var interceptors = serviceProvider.GetServices<ISaveChangesInterceptor>();
-            options.UseSqlServer(connectionString, b => b.MigrationsAssembly("HiveSpace.UserService.Api"))
+            options.UseSqlServer(
+                connectionString, sqlOptions => sqlOptions
+                .EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(30),
+                    errorNumbersToAdd: null))
                 .AddInterceptors(interceptors);
         });
 

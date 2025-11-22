@@ -45,6 +45,11 @@ internal static class HostingExtensions
     public static WebApplication ConfigurePipeline(this WebApplication app)
     {
         app.UseSerilogRequestLogging();
+        
+        // CRITICAL: Use forwarded headers FIRST - before any other middleware
+        // This ensures Azure Container Apps HTTPS termination is properly handled
+        app.UseForwardedHeaders();
+        
         if (app.Environment.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();

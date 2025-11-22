@@ -49,6 +49,7 @@ public static class Config
 
         // Admin Portal Client (full config)
         var adminPortalConfig = clientsSection.GetSection("adminportal").Get<ClientConfig>();
+        System.Console.WriteLine("Admin Portal Client Config: " + adminPortalConfig);
         if (adminPortalConfig != null)
         {
             var adminPortalClient = new Client
@@ -99,6 +100,7 @@ public static class Config
         // API Testing Client (minimal config)
         // Seller Center Client
         var sellerCenterConfig = clientsSection.GetSection("sellercenter").Get<ClientConfig>();
+        System.Console.WriteLine("Seller Center Client Config: " + sellerCenterConfig);
         if (sellerCenterConfig != null)
         {
             var sellerCenterClient = new Client
