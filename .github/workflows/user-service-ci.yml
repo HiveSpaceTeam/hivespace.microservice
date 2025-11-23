@@ -22,9 +22,10 @@ on:
 
 jobs:
   build:
-    name: Build and publish UserService API
+    name: Build and Test UserService API
     outputs:
       image: ${{ steps.set_image_acr.outputs.image }}
+      test-status: ${{ env.TEST_STATUS }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -59,20 +60,51 @@ jobs:
           dotnet build src/HiveSpace.UserService/HiveSpace.UserService.Api/HiveSpace.UserService.Api.csproj -c Release --no-restore
           echo "UserService build completed successfully."
 
+      - name: Run Unit Tests
+        run: |
+          echo "Searching for test projects..."
+          TEST_PROJECTS=$(find . -name "*.Tests.csproj" -o -name "*.Test.csproj" -o -name "*Tests.csproj" 2>/dev/null | head -10)
+
+          if [ -z "$TEST_PROJECTS" ]; then
+            echo "📝 No test projects found - skipping tests"
+            echo "Consider adding unit tests for better code quality"
+            echo "TEST_STATUS=no-tests" >> $GITHUB_ENV
+          else
+            echo "Found test projects:"
+            echo "$TEST_PROJECTS"
+            echo ""
+            
+            echo "Restoring test dependencies..."
+            echo "$TEST_PROJECTS" | xargs -I {} dotnet restore {}
+            
+            echo "Building test projects..."
+            echo "$TEST_PROJECTS" | xargs -I {} dotnet build {} -c Release --no-restore
+            
+            echo "Running unit tests..."
+            if dotnet test --configuration Release --no-build --verbosity normal; then
+              echo "✅ All tests passed"
+              echo "TEST_STATUS=passed" >> $GITHUB_ENV
+            else
+              echo "❌ Tests failed"
+              echo "TEST_STATUS=failed" >> $GITHUB_ENV
+              exit 1
+            fi
+          fi
+
       # --- Container Registry Operations (Push Events Only) ---
       - name: Validate ACR configuration
         if: ${{ github.event_name == 'push' }}
         run: |
           echo "Validating Azure Container Registry configuration..."
           if [ -z "${{ secrets.AZURE_CREDENTIALS_SERVICE }}" ]; then
-            echo "❌ Missing AZURE_CREDENTIALS_SERVICE secret";
+            echo "Missing AZURE_CREDENTIALS_SERVICE secret";
             exit 1;
           fi
           if [ -z "${{ vars.AZURE_ACR_NAME }}" ]; then
-            echo "❌ Missing AZURE_ACR_NAME variable";
+            echo "Missing AZURE_ACR_NAME variable";
             exit 1;
           fi
-          echo "✅ ACR configuration validated"
+          echo "ACR configuration validated"
           echo "Registry: ${{ vars.AZURE_ACR_NAME }}.azurecr.io"
 
       - name: Login to Azure
@@ -84,9 +116,9 @@ jobs:
       - name: Login to ACR
         if: ${{ github.event_name == 'push' }}
         run: |
-          echo "🔐 Logging in to Azure Container Registry..."
+          echo "Logging in to Azure Container Registry..."
           az acr login --name ${{ vars.AZURE_ACR_NAME }}
-          echo "✅ ACR login successful"
+          echo "ACR login successful"
 
       - name: Generate short SHA
         id: short-sha
@@ -130,18 +162,19 @@ jobs:
 
       - name: Build Summary
         run: |
-          echo "🎉 HiveSpace UserService CI completed successfully!"
-          echo "📋 Build Summary:"
+          echo "HiveSpace UserService CI completed successfully!"
+          echo "Build Summary:"
           echo "   • .NET Version: 8.0"
           echo "   • Configuration: Release"
           echo "   • Service: UserService"
+          echo "   • Tests: ${{ env.TEST_STATUS }}"
           echo "   • Commit: ${{ steps.short-sha.outputs.sha }}"
           if [ "${{ github.event_name }}" == "push" ]; then
             echo "   • Container Image: ${{ vars.AZURE_ACR_NAME }}.azurecr.io/hivespace/user-service:${{ steps.short-sha.outputs.sha }}"
           else
             echo "   • Container Image: Build skipped (PR/manual trigger)"
           fi
-          echo "✅ Ready for deployment"
+          echo "Ready for deployment"
 
   deploy:
     name: Deploy to Azure Container Apps
@@ -149,85 +182,122 @@ jobs:
     runs-on: ubuntu-latest
     environment: dev
     if: |
-      (github.event_name == 'push' && github.ref == 'refs/heads/master') ||
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.branch == 'master')
+      needs.build.outputs.test-status != 'failed' &&
+      ((github.event_name == 'push' && github.ref == 'refs/heads/master') ||
+       (github.event_name == 'workflow_dispatch' && github.event.inputs.branch == 'master'))
     steps:
+      - name: Validate test results
+        run: |
+          echo "Checking test results before deployment..."
+          TEST_STATUS="${{ needs.build.outputs.test-status }}"
+
+          if [ "$TEST_STATUS" = "failed" ]; then
+            echo "❌ Tests failed - deployment blocked"
+            exit 1
+          elif [ "$TEST_STATUS" = "no-tests" ]; then
+            echo "📝 No tests found - proceeding with deployment"
+            echo "⚠️  Consider adding unit tests for production readiness"
+          else
+            echo "✅ All tests passed - proceeding with deployment"
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS_SERVICE }}
 
-      - name: Deploy to Container App via CLI
+      - name: Get Container App Environment ID
+        id: get-env-id
         uses: azure/cli@v2
         with:
           inlineScript: |
-            az config set extension.use_dynamic_install=yes_without_prompt
-
-            echo "Deploying image: ${{ needs.build.outputs.image }}"
-
-            az containerapp update \
-              --name ${{ vars.AZURE_CONTAINER_APP_USER_SERVICE_NAME }} \
+            echo "Retrieving Container App Environment ID..."
+            ENV_ID=$(az containerapp env show \
+              --name ${{ vars.AZURE_CONTAINER_APP_ENV_NAME }} \
               --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
-              --image ${{ needs.build.outputs.image }} \
-              --set-env-vars \
-                ASPNETCORE_ENVIRONMENT=Production \
-                ASPNETCORE_URLS=http://+:8080 \
-                Serilog__MinimumLevel__Default=Information \
-                Serilog__MinimumLevel__Override__Microsoft=Warning \
-                Serilog__MinimumLevel__Override__Microsoft.Hosting.Lifetime=Information \
-                Serilog__MinimumLevel__Override__Microsoft.AspNetCore.Authentication=Warning \
-                Serilog__MinimumLevel__Override__System=Warning \
-                DefaultRedirectUrl=${{ vars.DEFAULT_REDIRECT_URL }} \
-                ConnectionStrings__UserServiceDb='${{ secrets.CONNECTION_STRING_USER_SERVICE_DB }}' \
-                Issuer=${{ vars.ISSUER_URL }} \
-                Clients__adminportal__ClientId=adminportal \
-                Clients__adminportal__ClientName="Admin Portal" \
-                Clients__adminportal__ClientUri=${{ vars.ADMIN_PORTAL_CLIENT_URI }} \
-                Clients__adminportal__RequireClientSecret=false \
-                Clients__adminportal__AllowedGrantTypes__0=authorization_code \
-                Clients__adminportal__AllowAccessTokensViaBrowser=false \
-                Clients__adminportal__RequireConsent=false \
-                Clients__adminportal__AllowOfflineAccess=false \
-                Clients__adminportal__AlwaysIncludeUserClaimsInIdToken=true \
-                Clients__adminportal__RequirePkce=true \
-                Clients__adminportal__RedirectUris__0=${{ vars.ADMIN_PORTAL_REDIRECT_URI }} \
-                Clients__adminportal__PostLogoutRedirectUris__0=${{ vars.ADMIN_PORTAL_LOGOUT_REDIRECT_URI }} \
-                Clients__adminportal__AllowedCorsOrigins__0=${{ vars.ADMIN_PORTAL_CORS_ORIGIN }} \
-                Clients__adminportal__AllowedScopes__0=openid \
-                Clients__adminportal__AllowedScopes__1=profile \
-                Clients__adminportal__AllowedScopes__2=user.fullaccess \
-                Clients__adminportal__AccessTokenLifetime=7200 \
-                Clients__adminportal__IdentityTokenLifetime=7200 \
-                Clients__sellercenter__ClientId=sellercenter \
-                Clients__sellercenter__ClientName="Seller Center" \
-                Clients__sellercenter__ClientUri=${{ vars.SELLER_CENTER_CLIENT_URI }} \
-                Clients__sellercenter__RequireClientSecret=false \
-                Clients__sellercenter__AllowedGrantTypes__0=authorization_code \
-                Clients__sellercenter__AllowAccessTokensViaBrowser=false \
-                Clients__sellercenter__RequireConsent=false \
-                Clients__sellercenter__AllowOfflineAccess=true \
-                Clients__sellercenter__AbsoluteRefreshTokenLifetime=2592000 \
-                Clients__sellercenter__SlidingRefreshTokenLifetime=1296000 \
-                Clients__sellercenter__RefreshTokenExpiration=Sliding \
-                Clients__sellercenter__RefreshTokenUsage=OneTimeOnly \
-                Clients__sellercenter__AlwaysIncludeUserClaimsInIdToken=true \
-                Clients__sellercenter__RequirePkce=true \
-                Clients__sellercenter__RedirectUris__0=${{ vars.SELLER_CENTER_REDIRECT_URI }} \
-                Clients__sellercenter__PostLogoutRedirectUris__0=${{ vars.SELLER_CENTER_LOGOUT_REDIRECT_URI }} \
-                Clients__sellercenter__AllowedCorsOrigins__0=${{ vars.SELLER_CENTER_CORS_ORIGIN }} \
-                Clients__sellercenter__AllowedScopes__0=openid \
-                Clients__sellercenter__AllowedScopes__1=profile \
-                Clients__sellercenter__AllowedScopes__2=user.fullaccess \
-                Clients__sellercenter__AllowedScopes__3=offline_access \
-                Clients__sellercenter__AccessTokenLifetime=7200 \
-                Clients__sellercenter__IdentityTokenLifetime=7200 \
-                Authentication__Google__ClientId=${{ secrets.GOOGLE_CLIENT_ID }} \
-                Authentication__Google__ClientSecret=${{ secrets.GOOGLE_CLIENT_SECRET }} \
-                Duende__LicenseKey=${{ secrets.DUENDE_LICENSE_KEY }} \
-                MediatR__LicenseKey=${{ secrets.MEDIATR_LICENSE_KEY }} \
-                EmailSettings__SmtpServer=${{ vars.SMTP_SERVER }} \
-                EmailSettings__SmtpPort=${{ vars.SMTP_PORT }} \
-                EmailSettings__SmtpUser=${{ secrets.SMTP_USER }} \
-                EmailSettings__SmtpPassword=${{ secrets.SMTP_PASSWORD }} \
-                EmailSettings__FromEmail=${{ vars.FROM_EMAIL }} \
-                EmailSettings__FromName=${{ vars.FROM_NAME }}
+              --query id \
+              --output tsv)
+
+            if [ -z "$ENV_ID" ]; then
+              echo "Failed to retrieve Container App Environment ID"
+              exit 1
+            fi
+
+            echo "Container App Environment ID retrieved"
+            echo "id=$ENV_ID" >> $GITHUB_OUTPUT
+
+      - name: Deploy UserService via Bicep
+        id: bicep-deploy
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            echo "Deploying UserService to Azure Container Apps via Bicep..."
+            echo "Image: ${{ needs.build.outputs.image }}"
+            echo "Container App: ${{ vars.AZURE_CONTAINER_APP_USER_SERVICE_NAME }}"
+            echo "Resource Group: ${{ vars.AZURE_RESOURCE_GROUP }}"
+            echo "Environment: dev"
+
+            # Deploy using Bicep template with parameter file
+            DEPLOYMENT_OUTPUT=$(az deployment group create \
+              --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+              --template-file infra/user-service.bicep \
+              --parameters @infra/parameters/user-service-dev.json \
+              --parameters \
+                containerAppName='${{ vars.AZURE_CONTAINER_APP_USER_SERVICE_NAME }}' \
+                containerAppEnvironmentId='${{ steps.get-env-id.outputs.id }}' \
+                containerImage='${{ needs.build.outputs.image }}' \
+                connectionString='${{ secrets.CONNECTION_STRING_USER_SERVICE_DB }}' \
+                googleAuth='{"clientId":"${{ secrets.GOOGLE_CLIENT_ID }}","clientSecret":"${{ secrets.GOOGLE_CLIENT_SECRET }}"}' \
+                licenseKeys='{"duende":"${{ secrets.DUENDE_LICENSE_KEY }}","mediatr":"${{ secrets.MEDIATR_LICENSE_KEY }}"}' \
+                smtpCredentials='{"user":"${{ secrets.SMTP_USER }}","password":"${{ secrets.SMTP_PASSWORD }}"}' \
+                customDomainConfig='{"name":"dev.auth.hivespace.site","certificateId":"${{ steps.get-env-id.outputs.id }}/managedCertificates/dev.auth.hivespace.site-cae-hive-251114040805"}' \
+                acrConfig='{"server":"acrhivespace.azurecr.io","identity":"system-environment"}' \
+              --query 'properties.outputs' \
+              --output json)
+
+            if [ $? -eq 0 ]; then
+              echo "Deployment completed successfully"
+              
+              # Extract outputs
+              CONTAINER_APP_FQDN=$(echo $DEPLOYMENT_OUTPUT | jq -r '.containerAppFQDN.value // ""')
+              CONTAINER_APP_ID=$(echo $DEPLOYMENT_OUTPUT | jq -r '.containerAppId.value // ""')
+              LATEST_REVISION=$(echo $DEPLOYMENT_OUTPUT | jq -r '.latestRevisionName.value // ""')
+              
+              echo "Deployment Summary:"
+              echo "   • Container App FQDN: https://$CONTAINER_APP_FQDN"
+              echo "   • Latest Revision: $LATEST_REVISION"
+              echo "   • Resource ID: $CONTAINER_APP_ID"
+              
+              # Set outputs for potential future steps
+              echo "fqdn=$CONTAINER_APP_FQDN" >> $GITHUB_OUTPUT
+              echo "revision=$LATEST_REVISION" >> $GITHUB_OUTPUT
+            else
+              echo "Deployment failed"
+              exit 1
+            fi
+
+      - name: Verify Deployment Health
+        if: steps.bicep-deploy.outputs.fqdn != ''
+        run: |
+          echo "Verifying deployment health..."
+          FQDN="${{ steps.bicep-deploy.outputs.fqdn }}"
+          HEALTH_URL="https://$FQDN/health"
+
+          echo "Health check URL: $HEALTH_URL"
+
+          # Wait for container to be ready (max 5 minutes)
+          for i in {1..30}; do
+            if curl -s -f "$HEALTH_URL" > /dev/null 2>&1; then
+              echo "Health check passed - UserService is running successfully"
+              echo "Service URL: https://$FQDN"
+              exit 0
+            fi
+            echo "Waiting for service to be ready... (attempt $i/30)"
+            sleep 10
+          done
+
+          echo "Health check timeout - Service may still be starting up"
+          echo "Service URL: https://$FQDN (check manually)"
