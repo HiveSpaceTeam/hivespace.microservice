@@ -144,7 +144,7 @@ public class AdminService : IAdminService
             ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
 
         // Validate deletion permissions using domain service
-        await _domainUserManager.ValidateUserDeletionAsync(currentAdmin, targetUser, cancellationToken);
+        _domainUserManager.ValidateUserDeletionAsync(currentAdmin, targetUser, cancellationToken);
 
         // Use EF Core Remove() - SoftDeleteInterceptor will handle soft delete automatically
         var deletedUser = await _userRepository.RemoveUserAsync(userId, cancellationToken);
