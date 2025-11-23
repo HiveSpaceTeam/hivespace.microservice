@@ -101,4 +101,5 @@ static string Summary(LicenseUsageSummary usage)
     sb.AppendLine(string.Format(CultureInfo.InvariantCulture, "  {0} Issuer(s) Used", issuerCount));
 
     return sb.ToString();
+
 }
