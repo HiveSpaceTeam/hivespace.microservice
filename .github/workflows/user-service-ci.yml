@@ -218,7 +218,7 @@ jobs:
           inlineScript: |
             echo "Retrieving Container App Environment ID..."
             ENV_ID=$(az containerapp env show \
-              --name ${{ vars.AZURE_CONTAINER_APP_USER_SERVICE_NAME }} \
+              --name ${{ vars.AZURE_CONTAINER_APP_ENV_NAME }} \
               --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
               --query id \
               --output tsv)
