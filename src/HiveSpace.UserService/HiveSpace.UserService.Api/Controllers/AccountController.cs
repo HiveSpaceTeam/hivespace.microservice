@@ -76,6 +76,7 @@ public class AccountController : ControllerBase
         ConfirmEmailVerificationRequestDto request,
         CancellationToken cancellationToken = default)
     {
+        ValidationHelper.ValidateResult(new ConfirmEmailVerificationValidator().Validate(request));
         await _accountService.ConfirmEmailVerificationAsync(request, cancellationToken);
 
         // If returnUrl is provided, redirect after successful verification

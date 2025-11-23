@@ -22,6 +22,9 @@ public class StoreController : ControllerBase
         _storeService = storeService;
     }
     
+    /// <summary>
+    /// Create a new store.
+    /// </summary>
     [HttpPost]
     [RequireUser]
     public async Task<ActionResult<CreateStoreResponseDto>> CreateStore(
@@ -29,7 +32,6 @@ public class StoreController : ControllerBase
         CancellationToken cancellationToken)
     {
         ValidationHelper.ValidateResult(new CreateStoreValidator().Validate(request));
-        
         var result = await _storeService.CreateStoreAsync(request, cancellationToken);
         return CreatedAtAction(nameof(CreateStore), new { id = result.StoreId }, result);
     }

@@ -24,7 +24,6 @@ public static class UserInfrastructureExtension
     public static void AddUserDbContext(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("UserServiceDb");
-        System.Console.WriteLine("UserServiceDb Connection String: " + connectionString);
         if (string.IsNullOrWhiteSpace(connectionString))
         {
             var error = new Error(CommonErrorCode.ConfigurationMissing, "UserServiceDb");
