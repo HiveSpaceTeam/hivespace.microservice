@@ -5,10 +5,12 @@ on:
     branches: [master]
     paths:
       - 'src/HiveSpace.UserService/**'
+      - '.github/workflows/user-service-ci.yml'
   push:
     branches: [master]
     paths:
       - 'src/HiveSpace.UserService/**'
+      - '.github/workflows/user-service-ci.yml'
   workflow_dispatch:
     inputs:
       branch:
