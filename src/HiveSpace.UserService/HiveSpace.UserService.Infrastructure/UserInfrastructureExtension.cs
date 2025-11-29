@@ -49,6 +49,9 @@ public static class UserInfrastructureExtension
         // Register Infrastructure services
         services.AddInfrastructureServices();
 
+        // Register Event Publisher services
+        services.AddEventPublisherServices();
+
         // Register UserService queries with connection string
         services.AddUserServiceQueries(connectionString);
 
@@ -75,7 +78,12 @@ public static class UserInfrastructureExtension
         // Register Infrastructure services here
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<IAccountService, AccountService>();
+    }
+
+    public static void AddEventPublisherServices(this IServiceCollection services)
+    {
         services.AddScoped<IUserEventPublisher, UserEventPublisher>();
+        services.AddScoped<IStoreEventPublisher, StoreEventPublisher>();
     }
 
     public static void AddUserServiceQueries(this IServiceCollection services, string connectionString)

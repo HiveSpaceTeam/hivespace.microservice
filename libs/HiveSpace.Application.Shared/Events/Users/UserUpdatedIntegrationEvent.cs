@@ -1,17 +1,15 @@
 using HiveSpace.Infrastructure.Messaging.Events;
-
-namespace HiveSpace.UserService.Application.IntegrationEvents;
-
-public record UserCreatedIntegrationEvent : IntegrationEvent
+namespace HiveSpace.Application.Shared.Events.Users;
+public record UserUpdatedIntegrationEvent : IntegrationEvent
 {
-    public UserCreatedIntegrationEvent(Guid userId, string email, string? phoneNumber)
+    public UserUpdatedIntegrationEvent(Guid userId, string email, string? phoneNumber)
     {
         UserId = userId;
         Email = email;
         PhoneNumber = phoneNumber;
     }
 
-    public UserCreatedIntegrationEvent()
+    public UserUpdatedIntegrationEvent()
         : this(Guid.Empty, string.Empty, null)
     {
     }

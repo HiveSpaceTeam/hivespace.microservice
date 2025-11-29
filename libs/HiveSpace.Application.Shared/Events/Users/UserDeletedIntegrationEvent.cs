@@ -1,7 +1,5 @@
 using HiveSpace.Infrastructure.Messaging.Events;
-
-namespace HiveSpace.UserService.Application.IntegrationEvents;
-
+namespace HiveSpace.Application.Shared.Events.Users;
 public record UserDeletedIntegrationEvent : IntegrationEvent
 {
     public UserDeletedIntegrationEvent(Guid userId, string? deletedBy)

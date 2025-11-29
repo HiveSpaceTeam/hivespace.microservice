@@ -10,6 +10,8 @@
     <Compile Include="..\HiveSpace.UserService.Application\IntegrationEvents\**\*.cs">
       <Link>IntegrationEvents\%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Compile>
+    <Compile Remove="..\HiveSpace.UserService.Application\IntegrationEvents\Stores\**" />
+    <Compile Remove="..\HiveSpace.UserService.Application\IntegrationEvents\Users\**" />
     <ProjectReference Include="..\..\..\libs\HiveSpace.Infrastructure.Messaging\HiveSpace.Infrastructure.Messaging.csproj" />
   </ItemGroup>
 

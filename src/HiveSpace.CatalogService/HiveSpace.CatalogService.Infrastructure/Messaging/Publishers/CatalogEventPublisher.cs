@@ -1,4 +1,4 @@
-using HiveSpace.CatalogService.Application.IntegrationEvents;
+using HiveSpace.Application.Shared.Events.Products;
 using HiveSpace.CatalogService.Application.Interfaces.Messaging;
 using HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate;
 using HiveSpace.Infrastructure.Messaging.Abstractions;

@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using HiveSpace.Core.Contexts;
+using HiveSpace.UserService.Application.Interfaces.Messaging;
 using HiveSpace.UserService.Application.Interfaces.Services;
 using HiveSpace.UserService.Application.Models.Requests.Store;
 using HiveSpace.UserService.Application.Models.Responses.Store;
@@ -15,15 +16,18 @@ public class StoreService : IStoreService
     private readonly IUserContext _userContext;
     private readonly StoreManager _storeManager;
     private readonly IStoreRepository _storeRepository;
-    
+    private readonly IStoreEventPublisher _storeEventPublisher;
+
     public StoreService(
         IUserContext userContext,
         StoreManager storeManager,
-        IStoreRepository storeRepository)
+        IStoreRepository storeRepository,
+        IStoreEventPublisher storeEventPublisher)
     {
         _userContext = userContext ?? throw new ArgumentNullException(nameof(userContext));
         _storeManager = storeManager ?? throw new ArgumentNullException(nameof(storeManager));
         _storeRepository = storeRepository ?? throw new ArgumentNullException(nameof(storeRepository));
+        _storeEventPublisher = storeEventPublisher ?? throw new ArgumentNullException(nameof(storeRepository));
     }
     
     public async Task<CreateStoreResponseDto> CreateStoreAsync(CreateStoreRequestDto request, CancellationToken cancellationToken = default)
@@ -40,7 +44,7 @@ public class StoreService : IStoreService
         _storeRepository.Add(store);
         
         await _storeRepository.SaveChangesAsync(cancellationToken);
-        
+        await _storeEventPublisher.PublishStoreCreatedAsync(store, cancellationToken);
         return new CreateStoreResponseDto(
             store.Id,
             store.StoreName,

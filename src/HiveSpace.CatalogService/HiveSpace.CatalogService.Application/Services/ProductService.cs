@@ -1,5 +1,4 @@
 ﻿using HiveSpace.CatalogService.Application.Interfaces;
-using HiveSpace.CatalogService.Application.Interfaces.Repositories;
 using HiveSpace.CatalogService.Application.Models.Dtos.Crud;
 using HiveSpace.CatalogService.Application.Models.Dtos.Request.Product;
 using HiveSpace.CatalogService.Application.Models.Requests;
@@ -9,6 +8,7 @@ using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Core.Contexts;
 using HiveSpace.Infrastructure.Persistence.Transaction;
 using HiveSpace.CatalogService.Application.Interfaces.Messaging;
+using HiveSpace.CatalogService.Application.Interfaces.Repositories.Domain;
 
 namespace HiveSpace.CatalogService.Application.Services
 {
@@ -35,7 +35,7 @@ namespace HiveSpace.CatalogService.Application.Services
         {
             cancellationToken.ThrowIfCancellationRequested();
             
-            var currentUserId = GetCurrentUserId();
+            //var currentUserId = GetCurrentUserId();
 
             // Create product first to get the generated ID (synchronous operation)
             var product = new Product(
@@ -43,7 +43,8 @@ namespace HiveSpace.CatalogService.Application.Services
                 request.Description,
                 ProductStatus.Available,
                 DateTimeOffset.UtcNow,
-                currentUserId
+                ""
+                
             );
 
             // Build related entities using shared factory methods (synchronous operations)
@@ -58,11 +59,7 @@ namespace HiveSpace.CatalogService.Application.Services
             product.UpdateSkus(skus);
             product.UpdateAttributes(attributes);
 
-            // Only wrap the actual repository operation in transaction
-            await _transactionService.InTransactionScopeAsync(async transaction =>
-            {
-                await _productRepository.AddAsync(product, cancellationToken);
-            }, performIdempotenceCheck: true, actionName: nameof(SaveProductAsync));
+            await _productRepository.AddAsync(product, cancellationToken);
 
             await _catalogEventPublisher.PublishProductCreatedAsync(product, cancellationToken);
 

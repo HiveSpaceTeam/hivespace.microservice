@@ -1,6 +1,6 @@
 using HiveSpace.CatalogService.Domain.Aggregates.CategoryAggregate;
 
-namespace HiveSpace.CatalogService.Application.Interfaces.Repositories
+namespace HiveSpace.CatalogService.Application.Interfaces.Repositories.Domain
 {
     public interface ICategoryRepository
     {

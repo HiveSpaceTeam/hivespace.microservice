@@ -1,6 +1,6 @@
 using HiveSpace.Infrastructure.Messaging.Events;
 
-namespace HiveSpace.CatalogService.Application.IntegrationEvents;
+namespace HiveSpace.Application.Shared.Events.Products;
 
 public record ProductDeletedIntegrationEvent : IntegrationEvent
 {

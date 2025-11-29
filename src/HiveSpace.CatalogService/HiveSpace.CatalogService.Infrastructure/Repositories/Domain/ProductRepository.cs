@@ -1,12 +1,9 @@
+using HiveSpace.CatalogService.Application.Interfaces.Repositories.Domain;
 using HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate;
 using HiveSpace.CatalogService.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
-using System.Threading;
 
-using HiveSpace.CatalogService.Application.Interfaces.Repositories;
-
-namespace HiveSpace.CatalogService.Infrastructure.Repositories
+namespace HiveSpace.CatalogService.Infrastructure.Repositories.Domain
 {
     public class ProductRepository : IProductRepository
     {

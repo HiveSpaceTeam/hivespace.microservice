@@ -1,13 +1,13 @@
 using Confluent.Kafka;
+using HiveSpace.Application.Shared.Events.Products;
 using HiveSpace.CatalogService.Application.Consumers;
-using HiveSpace.CatalogService.Application.IntegrationEvents;
 using HiveSpace.CatalogService.Infrastructure;
 using HiveSpace.CatalogService.Infrastructure.Data;
-using HiveSpace.Core;
-using HiveSpace.Infrastructure.Persistence;
-using HiveSpace.Infrastructure.Messaging.Extensions;
 using HiveSpace.CatalogService.Infrastructure.Messaging.Consumers;
+using HiveSpace.Core;
 using HiveSpace.Infrastructure.Messaging.Configurations;
+using HiveSpace.Infrastructure.Messaging.Extensions;
+using HiveSpace.Infrastructure.Persistence;
 using MassTransit;
 using Microsoft.Extensions.Options;
 
@@ -31,17 +31,17 @@ namespace HiveSpace.CatalogService.API.Extentions
             builder.Services.AddMassTransitWithKafka(configuration,
                 rider =>
                 {
-                    rider.AddConsumer<ProductAnalyticsConsumer>();
+                    //rider.AddConsumer<ProductAnalyticsConsumer>();
                     rider.AddConsumer<ProductAuditConsumer>();
                 },
                 (kafka, ctx) =>
                 {
                     var kafkaOptions = ctx.GetRequiredService<IOptions<KafkaOptions>>().Value;
 
-                    kafka.TopicEndpoint<Ignore, ProductCreatedIntegrationEvent>("catalog-product-created", kafkaOptions.ConsumerGroup, e =>
-                    {
-                        e.ConfigureConsumer<ProductAnalyticsConsumer>(ctx);
-                    });
+                    //kafka.TopicEndpoint<Ignore, ProductCreatedIntegrationEvent>("catalog-product-created", kafkaOptions.ConsumerGroup, e =>
+                    //{
+                    //    e.ConfigureConsumer<ProductAnalyticsConsumer>(ctx);
+                    //});
 
                     kafka.TopicEndpoint<Ignore, ProductUpdatedIntegrationEvent>("catalog-product-updated", kafkaOptions.ConsumerGroup, e =>
                     {
@@ -52,6 +52,7 @@ namespace HiveSpace.CatalogService.API.Extentions
             builder.Services.AddMassTransitWithRabbitMq(configuration, cfg =>
             {
                 cfg.AddConsumer<UserCreatedConsumer>();
+                cfg.AddConsumer<StoreCreatedConsumer>();
             });
 
             return builder.Build();

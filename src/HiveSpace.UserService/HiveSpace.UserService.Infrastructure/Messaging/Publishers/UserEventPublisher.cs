@@ -1,5 +1,5 @@
+using HiveSpace.Application.Shared.Events.Users;
 using HiveSpace.Infrastructure.Messaging.Abstractions;
-using HiveSpace.UserService.Application.IntegrationEvents;
 using HiveSpace.UserService.Application.Interfaces.Messaging;
 using HiveSpace.UserService.Domain.Aggregates.User;
 

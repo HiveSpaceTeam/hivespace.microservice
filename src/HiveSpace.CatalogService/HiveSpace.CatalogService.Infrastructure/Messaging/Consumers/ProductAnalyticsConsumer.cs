@@ -1,22 +1,22 @@
-using HiveSpace.CatalogService.Application.IntegrationEvents;
-using MassTransit;
-using Microsoft.Extensions.Logging;
+//using HiveSpace.Application.Shared.Events.Products;
+//using MassTransit;
+//using Microsoft.Extensions.Logging;
 
-namespace HiveSpace.CatalogService.Infrastructure.Messaging.Consumers;
+//namespace HiveSpace.CatalogService.Infrastructure.Messaging.Consumers;
 
-public class ProductAnalyticsConsumer : IConsumer<ProductCreatedIntegrationEvent>
-{
-    private readonly ILogger<ProductAnalyticsConsumer> _logger;
+//public class ProductAnalyticsConsumer : IConsumer<ProductCreatedIntegrationEvent>
+//{
+//    private readonly ILogger<ProductAnalyticsConsumer> _logger;
 
-    public ProductAnalyticsConsumer(ILogger<ProductAnalyticsConsumer> logger)
-    {
-        _logger = logger;
-    }
+//    public ProductAnalyticsConsumer(ILogger<ProductAnalyticsConsumer> logger)
+//    {
+//        _logger = logger;
+//    }
 
-    public Task Consume(ConsumeContext<ProductCreatedIntegrationEvent> context)
-    {
-        _logger.LogInformation("Analytics consumer received product {ProductId}", context.Message.ProductId);
-        return Task.CompletedTask;
-    }
-}
+//    public Task Consume(ConsumeContext<ProductCreatedIntegrationEvent> context)
+//    {
+//        _logger.LogInformation("Analytics consumer received product {ProductId}", context.Message.ProductId);
+//        return Task.CompletedTask;
+//    }
+//}
 

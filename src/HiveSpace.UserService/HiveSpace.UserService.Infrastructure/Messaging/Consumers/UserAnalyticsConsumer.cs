@@ -1,4 +1,4 @@
-using HiveSpace.UserService.Application.IntegrationEvents;
+using HiveSpace.Application.Shared.Events.Users;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 

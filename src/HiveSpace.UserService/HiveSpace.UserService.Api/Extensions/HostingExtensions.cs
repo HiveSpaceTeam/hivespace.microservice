@@ -1,16 +1,15 @@
 using Confluent.Kafka;
+using HiveSpace.Application.Shared.Events.Users;
 using HiveSpace.Core;
 using HiveSpace.Infrastructure.Messaging.Configurations;
 using HiveSpace.Infrastructure.Messaging.Extensions;
 using HiveSpace.UserService.Application.Consumers;
-using HiveSpace.UserService.Application.IntegrationEvents;
 using HiveSpace.UserService.Infrastructure;
 using HiveSpace.UserService.Infrastructure.Messaging.Consumers;
+using MassTransit;
+using Microsoft.Extensions.Options;
 using Serilog;
 using Swashbuckle.AspNetCore.SwaggerUI;
-using Microsoft.Extensions.Options;
-using HiveSpace.CatalogService.Application.IntegrationEvents;
-using MassTransit;
 
 namespace HiveSpace.UserService.Api.Extensions;
 

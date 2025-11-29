@@ -7,10 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\HiveSpace.Domain.Shared\HiveSpace.Domain.Shared.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="FluentValidation" />
     <PackageReference Include="MassTransit" />
     <PackageReference Include="MassTransit.Kafka" />
@@ -18,6 +14,10 @@
     <PackageReference Include="MediatR" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HiveSpace.Domain.Shared\HiveSpace.Domain.Shared.csproj" />
   </ItemGroup>
 
 </Project>

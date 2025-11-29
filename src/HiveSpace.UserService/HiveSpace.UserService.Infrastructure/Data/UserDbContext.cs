@@ -1,3 +1,6 @@
+using HiveSpace.Infrastructure.Persistence;
+using HiveSpace.Infrastructure.Persistence.Idempotence;
+using HiveSpace.Infrastructure.Persistence.Outbox;
 using HiveSpace.UserService.Infrastructure.Identity;
 using HiveSpace.UserService.Domain.Aggregates.User;
 using Microsoft.AspNetCore.Identity;
@@ -11,6 +14,8 @@ public class UserDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Gui
 {
     public DbSet<Address> Addresses { get; set; }
     public DbSet<Store> Stores { get; set; }
+    public DbSet<IncomingRequest> IncomingRequests { get; set; }
+    public DbSet<OutboxMessage> OutboxMessages { get; set; }
     public UserDbContext(DbContextOptions<UserDbContext> options) : base(options)
     {
     }
@@ -24,6 +29,7 @@ public class UserDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Gui
 
         // Only apply configurations from Infrastructure assembly (not Domain)
         builder.ApplyConfigurationsFromAssembly(typeof(UserDbContext).Assembly);
+        builder.AddPersistenceBuilder();
 
         // Configure table names following the Identity Service pattern
         builder.Entity<Address>().ToTable("addresses");
