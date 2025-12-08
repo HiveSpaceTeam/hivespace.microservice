@@ -43,6 +43,8 @@ public static class UserInfrastructureExtension
         // Add specific outbox repository for UserDbContext (for background services)
         services.AddOutboxServices<UserDbContext>();
 
+        services.AddAppInterceptors();
+
         // Register UserService repositories
         services.AddUserServiceRepositories();
 

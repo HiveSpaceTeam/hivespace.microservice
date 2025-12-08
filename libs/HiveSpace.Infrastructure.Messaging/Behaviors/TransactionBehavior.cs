@@ -1,21 +1,18 @@
-using HiveSpace.Infrastructure.Messaging.Abstractions;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace HiveSpace.Infrastructure.Messaging.Behaviors;
 
 /// <summary>
-/// Wraps MediatR handlers inside a transactional boundary.
+/// Simple MediatR pipeline behavior that just calls the next handler.
 /// </summary>
 public class TransactionBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     where TRequest : notnull
 {
-    private readonly ITransactionalExecutionScope _transactionScope;
     private readonly ILogger<TransactionBehavior<TRequest, TResponse>> _logger;
 
-    public TransactionBehavior(ITransactionalExecutionScope transactionScope, ILogger<TransactionBehavior<TRequest, TResponse>> logger)
+    public TransactionBehavior(ILogger<TransactionBehavior<TRequest, TResponse>> logger)
     {
-        _transactionScope = transactionScope;
         _logger = logger;
     }
 
@@ -23,11 +20,8 @@ public class TransactionBehavior<TRequest, TResponse> : IPipelineBehavior<TReque
     {
         var requestName = typeof(TRequest).Name;
 
-        return _transactionScope.ExecuteAsync(requestName, async _ =>
-        {
-            _logger.LogDebug("Executing transactional handler for {RequestName}", requestName);
-            return await next();
-        }, ensureIdempotence: true, cancellationToken);
+        _logger.LogDebug("Executing handler for {RequestName}", requestName);
+        return next();
     }
 }
 

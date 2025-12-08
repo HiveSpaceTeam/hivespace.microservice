@@ -1,11 +1,13 @@
-﻿using System.Text.Json.Serialization;
-using HiveSpace.Infrastructure.Messaging.Abstractions;
+﻿using HiveSpace.Infrastructure.Messaging.Abstractions;
+using MassTransit;
+using System.Text.Json.Serialization;
 
 namespace HiveSpace.Infrastructure.Messaging.Events;
 
 /// <summary>
 /// Base integration event implementation used by the outbox pattern.
 /// </summary>
+[ExcludeFromTopology]
 public record IntegrationEvent : IIntegrationEvent
 {
     public IntegrationEvent()

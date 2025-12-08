@@ -1,4 +1,3 @@
-using HiveSpace.Infrastructure.Messaging.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using HiveSpace.Infrastructure.Persistence.Idempotence;
 using HiveSpace.Infrastructure.Persistence.Outbox;
@@ -42,7 +41,6 @@ public static class PersistenceServiceCollectionExtensions
         
         // Add transaction services
         services.AddScoped<ITransactionService, TransactionService<TContext>>();
-        services.AddScoped<ITransactionalExecutionScope, TransactionalExecutionScope>();
         
         return services;
     }
@@ -59,7 +57,7 @@ public static class PersistenceServiceCollectionExtensions
         // Register all interceptors from the current assembly
         services.AddScoped<ISaveChangesInterceptor, AuditableInterceptor>();
         services.AddScoped<ISaveChangesInterceptor, SoftDeleteInterceptor>();
-        services.AddScoped<ISaveChangesInterceptor, DomainEventToOutboxInterceptor>();
+        //services.AddScoped<ISaveChangesInterceptor, DomainEventToOutboxInterceptor>();
         services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventInterceptor>();
 
         return services;

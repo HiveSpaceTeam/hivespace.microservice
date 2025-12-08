@@ -8,20 +8,20 @@ namespace HiveSpace.CatalogService.Application.Consumers;
 
 public class StoreCreatedConsumer : IConsumer<StoreCreatedIntegrationEvent>
 {
-    private readonly ILogger<UserCreatedConsumer> _logger;
+    private readonly ILogger<StoreCreatedConsumer> _logger;
     private readonly IStoreSnapshotRepository _storeSnapshotRepository;
 
-    public StoreCreatedConsumer(IStoreSnapshotRepository storeRepository, ILogger<UserCreatedConsumer> logger)
+    public StoreCreatedConsumer(IStoreSnapshotRepository storeRepository, ILogger<StoreCreatedConsumer> logger)
     {
         _logger = logger;
         _storeSnapshotRepository = storeRepository;
     }
 
-    public Task Consume(ConsumeContext<StoreCreatedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<StoreCreatedIntegrationEvent> context)
     {
         _logger.LogInformation("store created event received");
 
-        _storeSnapshotRepository.AddAsync(new StoreSnapshot
+        await _storeSnapshotRepository.AddAsync(new StoreSnapshot
         {
             OwnerId = context.Message.OwnerId,
             StoreName = context.Message.StoreName,
@@ -30,9 +30,7 @@ public class StoreCreatedConsumer : IConsumer<StoreCreatedIntegrationEvent>
             Address = context.Message.Address,
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow
-        });
-
-        return Task.CompletedTask;
+        }, context.CancellationToken);
     }
 }
 
