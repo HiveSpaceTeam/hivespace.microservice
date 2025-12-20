@@ -1,20 +1,24 @@
-using System.Linq;
+using HiveSpace.Infrastructure.Messaging.Configurations;
 using HiveSpace.Infrastructure.Messaging.Filters;
 using HiveSpace.Infrastructure.Messaging.Observers;
-using HiveSpace.Infrastructure.Messaging.Configurations;
 using MassTransit;
+using MassTransit.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using System.Linq;
+using MassTransit.EntityFrameworkCoreIntegration;
+using Microsoft.EntityFrameworkCore;
 
 namespace HiveSpace.Infrastructure.Messaging.Extensions;
 
 public static class RabbitMqExtensions
 {
-    public static IServiceCollection AddMassTransitWithRabbitMq(
+    public static IServiceCollection AddMassTransitWithRabbitMq<TDbContext>(
         this IServiceCollection services,
         IConfiguration configuration,
         Action<IBusRegistrationConfigurator>? configure = null)
+        where TDbContext : DbContext
     {
         services.AddMessagingCore(configuration);
 
@@ -43,6 +47,14 @@ public static class RabbitMqExtensions
             }
 
             bus.SetKebabCaseEndpointNameFormatter();
+
+            bus.AddEntityFrameworkOutbox<TDbContext>(o =>
+            {
+                o.QueryDelay = TimeSpan.FromSeconds(1);
+                o.UseSqlServer();
+                o.UseBusOutbox();
+                
+            });
 
             bus.UsingRabbitMq((context, cfg) =>
             {

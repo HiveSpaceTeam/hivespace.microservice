@@ -19,6 +19,7 @@
     <PackageReference Include="FluentEmail.Smtp" />
     <PackageReference Include="FluentEmail.Razor" />
     <PackageReference Include="MassTransit" />
+    <PackageReference Include="MassTransit.EntityFrameworkCore" />
   </ItemGroup>
 
   <ItemGroup>

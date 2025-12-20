@@ -5,6 +5,8 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- MediatR -->
+    <PackageVersion Include="MassTransit.EntityFramework" Version="8.5.7" />
+    <PackageVersion Include="MassTransit.EntityFrameworkCore" Version="8.5.7" />
     <PackageVersion Include="MediatR" Version="13.0.0" />
     <!-- Microsoft AspNetCore packages -->
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.Facebook" Version="8.0.11" />
@@ -16,18 +18,17 @@
     <PackageVersion Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.11" />
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="8.0.11" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.0.0" />
-
     <!-- Microsoft EntityFrameworkCore packages -->
-    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="8.0.11" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.11" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.11" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.11" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.11" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="9.0.1" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.1" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.1" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.1" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.1" />
     <!-- Microsoft Extensions packages -->
     <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.2" />
     <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
     <!-- Microsoft Data packages -->
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="6.0.2" />
@@ -40,20 +41,16 @@
     <!-- FluentValidation -->
     <PackageVersion Include="FluentValidation" Version="12.0.0" />
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.0.0" />
-    
     <!-- FluentEmail -->
     <PackageVersion Include="FluentEmail.Core" Version="3.0.2" />
     <PackageVersion Include="FluentEmail.Smtp" Version="3.0.2" />
     <PackageVersion Include="FluentEmail.Razor" Version="3.0.2" />
-
     <!-- Dapper -->
     <PackageVersion Include="Dapper" Version="2.1.28" />
-    
     <!-- Messaging -->
-    <PackageVersion Include="MassTransit" Version="8.2.0" />
-    <PackageVersion Include="MassTransit.RabbitMQ" Version="8.2.0" />
-    <PackageVersion Include="MassTransit.Kafka" Version="8.2.0" />
-
+    <PackageVersion Include="MassTransit" Version="8.5.7" />
+    <PackageVersion Include="MassTransit.RabbitMQ" Version="8.5.7" />
+    <PackageVersion Include="MassTransit.Kafka" Version="8.5.7" />
     <!-- JWT -->
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.12.0" />
     <!-- Logging -->

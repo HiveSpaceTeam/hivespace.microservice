@@ -5,6 +5,7 @@ using HiveSpace.Infrastructure.Messaging.Configurations;
 using HiveSpace.Infrastructure.Messaging.Extensions;
 using HiveSpace.UserService.Application.Consumers;
 using HiveSpace.UserService.Infrastructure;
+using HiveSpace.UserService.Infrastructure.Data;
 using HiveSpace.UserService.Infrastructure.Messaging.Consumers;
 using MassTransit;
 using Microsoft.Extensions.Options;
@@ -67,7 +68,7 @@ internal static class HostingExtensions
                 });
             });
 
-        builder.Services.AddMassTransitWithRabbitMq(configuration, cfg =>
+        builder.Services.AddMassTransitWithRabbitMq<UserDbContext>(configuration, cfg =>
         {
             cfg.AddConsumer<ProductCreatedConsumer>();
         });

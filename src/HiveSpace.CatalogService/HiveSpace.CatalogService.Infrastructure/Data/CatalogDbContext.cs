@@ -7,6 +7,7 @@ using HiveSpace.Infrastructure.Persistence.Idempotence;
 using HiveSpace.Infrastructure.Persistence.Outbox;
 using Microsoft.EntityFrameworkCore;
 using HiveSpace.CatalogService.Application.Models.ReadModels;
+using MassTransit;
 
 namespace HiveSpace.CatalogService.Infrastructure.Data
 {
@@ -42,6 +43,10 @@ namespace HiveSpace.CatalogService.Infrastructure.Data
 
             modelBuilder.ApplyConfiguration(new StoreSnapshotValueConfiguration());
             modelBuilder.AddPersistenceBuilder();
+
+            modelBuilder.AddInboxStateEntity();
+            modelBuilder.AddOutboxMessageEntity();
+            modelBuilder.AddOutboxStateEntity();
         }
     }
 }

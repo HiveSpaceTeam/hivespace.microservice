@@ -2,6 +2,7 @@ using HiveSpace.CatalogService.Application.Interfaces.Repositories.Domain;
 using HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate;
 using HiveSpace.CatalogService.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Collections;
 
 namespace HiveSpace.CatalogService.Infrastructure.Repositories.Domain
 {
@@ -15,6 +16,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Repositories.Domain
 
         public async Task<Product?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
+            IEnumerable<Product> a = _context.Products.Where(p => p.Id == id);
             return await _context.Products.FindAsync(new object?[] { id }, cancellationToken);
         }
 
