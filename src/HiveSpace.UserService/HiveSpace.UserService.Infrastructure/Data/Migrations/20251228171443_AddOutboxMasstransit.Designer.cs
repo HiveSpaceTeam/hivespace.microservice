@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HiveSpace.UserService.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(UserDbContext))]
-    [Migration("20251228170111_AddOutboxMasstransit")]
+    [Migration("20251228171443_AddOutboxMasstransit")]
     partial class AddOutboxMasstransit
     {
         /// <inheritdoc />
