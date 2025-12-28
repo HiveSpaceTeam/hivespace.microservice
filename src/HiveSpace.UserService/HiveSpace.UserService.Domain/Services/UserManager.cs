@@ -270,7 +270,7 @@ public class UserManager : IDomainService
     /// <param name="targetUser">The user to be deleted</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <exception cref="ForbiddenException">Thrown when deletion is not allowed</exception>
-    public async Task ValidateUserDeletionAsync(User currentAdmin, User targetUser, CancellationToken cancellationToken = default)
+    public void ValidateUserDeletionAsync(User currentAdmin, User targetUser, CancellationToken cancellationToken = default)
     {
         // Validate admin is active
         if (currentAdmin.Status != UserStatus.Active)

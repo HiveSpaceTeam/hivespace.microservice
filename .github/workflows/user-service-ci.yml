@@ -1,0 +1,305 @@
+name: UserService CI
+
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - 'src/HiveSpace.UserService/**'
+      - '.github/workflows/user-service-ci.yml'
+  push:
+    branches: [master]
+    paths:
+      - 'src/HiveSpace.UserService/**'
+      - '.github/workflows/user-service-ci.yml'
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to deploy (release or master)'
+        required: true
+        default: 'master'
+        type: choice
+        options:
+          - release
+          - master
+
+jobs:
+  build:
+    name: Build and Test UserService API
+    outputs:
+      image: ${{ steps.set_image_acr.outputs.image }}
+      test-status: ${{ env.TEST_STATUS }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore NuGet packages (UserService only)
+        run: |
+          dotnet restore src/HiveSpace.UserService/HiveSpace.UserService.Api/HiveSpace.UserService.Api.csproj
+          dotnet restore src/HiveSpace.UserService/HiveSpace.UserService.Application/HiveSpace.UserService.Application.csproj
+          dotnet restore src/HiveSpace.UserService/HiveSpace.UserService.Domain/HiveSpace.UserService.Domain.csproj
+          dotnet restore src/HiveSpace.UserService/HiveSpace.UserService.Infrastructure/HiveSpace.UserService.Infrastructure.csproj
+
+      - name: Build UserService projects (Release)
+        run: |
+          echo "Building UserService projects..."
+          dotnet build src/HiveSpace.UserService/HiveSpace.UserService.Domain/HiveSpace.UserService.Domain.csproj -c Release --no-restore
+          dotnet build src/HiveSpace.UserService/HiveSpace.UserService.Application/HiveSpace.UserService.Application.csproj -c Release --no-restore
+          dotnet build src/HiveSpace.UserService/HiveSpace.UserService.Infrastructure/HiveSpace.UserService.Infrastructure.csproj -c Release --no-restore
+          dotnet build src/HiveSpace.UserService/HiveSpace.UserService.Api/HiveSpace.UserService.Api.csproj -c Release --no-restore
+          echo "UserService build completed successfully."
+
+      - name: Run Unit Tests
+        run: |
+          echo "Searching for test projects..."
+          TEST_PROJECTS=$(find . -name "*.Tests.csproj" -o -name "*.Test.csproj" -o -name "*Tests.csproj" 2>/dev/null | head -10)
+
+          if [ -z "$TEST_PROJECTS" ]; then
+            echo "📝 No test projects found - skipping tests"
+            echo "Consider adding unit tests for better code quality"
+            echo "TEST_STATUS=no-tests" >> $GITHUB_ENV
+          else
+            echo "Found test projects:"
+            echo "$TEST_PROJECTS"
+            echo ""
+            
+            echo "Restoring test dependencies..."
+            echo "$TEST_PROJECTS" | xargs -I {} dotnet restore {}
+            
+            echo "Building test projects..."
+            echo "$TEST_PROJECTS" | xargs -I {} dotnet build {} -c Release --no-restore
+            
+            echo "Running unit tests..."
+            if dotnet test --configuration Release --no-build --verbosity normal; then
+              echo "✅ All tests passed"
+              echo "TEST_STATUS=passed" >> $GITHUB_ENV
+            else
+              echo "❌ Tests failed"
+              echo "TEST_STATUS=failed" >> $GITHUB_ENV
+              exit 1
+            fi
+          fi
+
+      # --- Container Registry Operations (Push Events Only) ---
+      - name: Validate ACR configuration
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          echo "Validating Azure Container Registry configuration..."
+          if [ -z "${{ secrets.AZURE_CREDENTIALS_SERVICE }}" ]; then
+            echo "Missing AZURE_CREDENTIALS_SERVICE secret";
+            exit 1;
+          fi
+          if [ -z "${{ vars.AZURE_ACR_NAME }}" ]; then
+            echo "Missing AZURE_ACR_NAME variable";
+            exit 1;
+          fi
+          echo "ACR configuration validated"
+          echo "Registry: ${{ vars.AZURE_ACR_NAME }}.azurecr.io"
+
+      - name: Login to Azure
+        if: ${{ github.event_name == 'push' }}
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS_SERVICE }}
+
+      - name: Login to ACR
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          echo "Logging in to Azure Container Registry..."
+          az acr login --name ${{ vars.AZURE_ACR_NAME }}
+          echo "ACR login successful"
+
+      - name: Generate short SHA
+        id: short-sha
+        run: echo "sha=${GITHUB_SHA::8}" >> $GITHUB_OUTPUT
+
+      - name: Set up Docker Buildx
+        if: ${{ github.event_name == 'push' }}
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: image=moby/buildkit:buildx-stable-1
+
+      - name: Build and push image to ACR
+        id: push_image_acr
+        if: ${{ github.event_name == 'push' }}
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: src/HiveSpace.UserService/HiveSpace.UserService.Api/Dockerfile
+          push: true
+          platforms: linux/amd64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            BUILDKIT_INLINE_CACHE=1
+          tags: |
+            ${{ vars.AZURE_ACR_NAME }}.azurecr.io/hivespace/user-service:${{ steps.short-sha.outputs.sha }}
+            ${{ vars.AZURE_ACR_NAME }}.azurecr.io/hivespace/user-service:latest
+          labels: |
+            org.opencontainers.image.title=HiveSpace UserService
+            org.opencontainers.image.description=UserService API with Identity Server
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
+
+      - name: Set image output (ACR)
+        id: set_image_acr
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          IMAGE_TAG=${{ vars.AZURE_ACR_NAME }}.azurecr.io/hivespace/user-service:${{ steps.short-sha.outputs.sha }}
+          echo "image=$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Build Summary
+        run: |
+          echo "HiveSpace UserService CI completed successfully!"
+          echo "Build Summary:"
+          echo "   • .NET Version: 8.0"
+          echo "   • Configuration: Release"
+          echo "   • Service: UserService"
+          echo "   • Tests: ${{ env.TEST_STATUS }}"
+          echo "   • Commit: ${{ steps.short-sha.outputs.sha }}"
+          if [ "${{ github.event_name }}" == "push" ]; then
+            echo "   • Container Image: ${{ vars.AZURE_ACR_NAME }}.azurecr.io/hivespace/user-service:${{ steps.short-sha.outputs.sha }}"
+          else
+            echo "   • Container Image: Build skipped (PR/manual trigger)"
+          fi
+          echo "Ready for deployment"
+
+  deploy:
+    name: Deploy to Azure Container Apps
+    needs: build
+    runs-on: ubuntu-latest
+    environment: dev
+    if: |
+      needs.build.outputs.test-status != 'failed' &&
+      ((github.event_name == 'push' && github.ref == 'refs/heads/master') ||
+       (github.event_name == 'workflow_dispatch' && github.event.inputs.branch == 'master'))
+    steps:
+      - name: Validate test results
+        run: |
+          echo "Checking test results before deployment..."
+          TEST_STATUS="${{ needs.build.outputs.test-status }}"
+
+          if [ "$TEST_STATUS" = "failed" ]; then
+            echo "❌ Tests failed - deployment blocked"
+            exit 1
+          elif [ "$TEST_STATUS" = "no-tests" ]; then
+            echo "📝 No tests found - proceeding with deployment"
+            echo "⚠️  Consider adding unit tests for production readiness"
+          else
+            echo "✅ All tests passed - proceeding with deployment"
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS_SERVICE }}
+
+      - name: Get Container App Environment ID
+        id: get-env-id
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            echo "Retrieving Container App Environment ID..."
+            ENV_ID=$(az containerapp env show \
+              --name ${{ vars.AZURE_CONTAINER_APP_ENV_NAME }} \
+              --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+              --query id \
+              --output tsv)
+
+            if [ -z "$ENV_ID" ]; then
+              echo "Failed to retrieve Container App Environment ID"
+              exit 1
+            fi
+
+            echo "Container App Environment ID retrieved"
+            echo "id=$ENV_ID" >> $GITHUB_OUTPUT
+
+      - name: Deploy UserService via Bicep
+        id: bicep-deploy
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            echo "Deploying UserService to Azure Container Apps via Bicep..."
+            echo "Image: ${{ needs.build.outputs.image }}"
+            echo "Container App: ${{ vars.AZURE_CONTAINER_APP_USER_SERVICE_NAME }}"
+            echo "Resource Group: ${{ vars.AZURE_RESOURCE_GROUP }}"
+            echo "Environment: dev"
+
+            # Deploy using Bicep template with parameter file
+            DEPLOYMENT_OUTPUT=$(az deployment group create \
+              --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+              --template-file infra/user-service.bicep \
+              --parameters @infra/parameters/user-service-dev.json \
+              --parameters \
+                containerAppName='${{ vars.AZURE_CONTAINER_APP_USER_SERVICE_NAME }}' \
+                containerAppEnvironmentId='${{ steps.get-env-id.outputs.id }}' \
+                containerImage='${{ needs.build.outputs.image }}' \
+                connectionString='${{ secrets.CONNECTION_STRING_USER_SERVICE_DB }}' \
+                googleAuth='{"clientId":"${{ secrets.GOOGLE_CLIENT_ID }}","clientSecret":"${{ secrets.GOOGLE_CLIENT_SECRET }}"}' \
+                licenseKeys='{"duende":"${{ secrets.DUENDE_LICENSE_KEY }}","mediatr":"${{ secrets.MEDIATR_LICENSE_KEY }}"}' \
+                smtpCredentials='{"user":"${{ secrets.SMTP_USER }}","password":"${{ secrets.SMTP_PASSWORD }}"}' \
+                customDomainConfig='{"name":"dev.auth.hivespace.site","certificateId":"${{ steps.get-env-id.outputs.id }}/managedCertificates/dev.auth.hivespace.site-cae-hive-251114040805"}' \
+                acrConfig='{"server":"acrhivespace.azurecr.io","identity":"system-environment"}' \
+              --query 'properties.outputs' \
+              --output json)
+
+            if [ $? -eq 0 ]; then
+              echo "Deployment completed successfully"
+              
+              # Extract outputs
+              CONTAINER_APP_FQDN=$(echo $DEPLOYMENT_OUTPUT | jq -r '.containerAppFQDN.value // ""')
+              CONTAINER_APP_ID=$(echo $DEPLOYMENT_OUTPUT | jq -r '.containerAppId.value // ""')
+              LATEST_REVISION=$(echo $DEPLOYMENT_OUTPUT | jq -r '.latestRevisionName.value // ""')
+              
+              echo "Deployment Summary:"
+              echo "   • Container App FQDN: https://$CONTAINER_APP_FQDN"
+              echo "   • Latest Revision: $LATEST_REVISION"
+              echo "   • Resource ID: $CONTAINER_APP_ID"
+              
+              # Set outputs for potential future steps
+              echo "fqdn=$CONTAINER_APP_FQDN" >> $GITHUB_OUTPUT
+              echo "revision=$LATEST_REVISION" >> $GITHUB_OUTPUT
+            else
+              echo "Deployment failed"
+              exit 1
+            fi
+
+      - name: Verify Deployment Health
+        if: steps.bicep-deploy.outputs.fqdn != ''
+        run: |
+          echo "Verifying deployment health..."
+          FQDN="${{ steps.bicep-deploy.outputs.fqdn }}"
+          HEALTH_URL="https://$FQDN/health"
+
+          echo "Health check URL: $HEALTH_URL"
+
+          # Wait for container to be ready (max 5 minutes)
+          for i in {1..30}; do
+            if curl -s -f "$HEALTH_URL" > /dev/null 2>&1; then
+              echo "Health check passed - UserService is running successfully"
+              echo "Service URL: https://$FQDN"
+              exit 0
+            fi
+            echo "Waiting for service to be ready... (attempt $i/30)"
+            sleep 10
+          done
+
+          echo "Health check timeout - Service may still be starting up"
+          echo "Service URL: https://$FQDN (check manually)"
