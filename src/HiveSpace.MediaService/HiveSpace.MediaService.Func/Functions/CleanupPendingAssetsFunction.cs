@@ -36,8 +36,7 @@ public class CleanupPendingAssetsFunction(
             }
 
             logger.LogInformation($"Found {pendingAssets.Count} expired pending assets. Starting cleanup...");
-
-            int successCount = 0;
+            
             int errorCount = 0;
 
             foreach (var asset in pendingAssets)
@@ -48,29 +47,47 @@ public class CleanupPendingAssetsFunction(
                     // StoragePath should contain the blob name/path inside the container
                     if (!string.IsNullOrEmpty(asset.StoragePath))
                     {
-                        await storageService.DeleteBlobAsync(TempContainerName, asset.StoragePath);
-                        logger.LogInformation($"Deleted blob: {asset.StoragePath} from container: {TempContainerName}");
+                        try 
+                        {
+                            await storageService.DeleteBlobAsync(TempContainerName, asset.StoragePath);
+                            logger.LogInformation($"Deleted blob: {asset.StoragePath} from container: {TempContainerName}");
+                        }
+                        catch (Exception ex)
+                        {
+                            // If delete fails (e.g. network), we rethrow to skip DB deletion for this item.
+                            // If it's 404 (already gone), ideally we proceed, but without knowing the specific exception type from generic IStorageService,
+                            // we rely on it throwing for actual failures.
+                            // NOTE: If the blob is already gone, this might fail depending on implementation. 
+                            // Assuming typical idempotency or that exception implies retry needed.
+                            throw;
+                        }
                     }
 
-                    // 2. Remove from Database context
+                    // 2. Remove from Database and Save per item
                     dbContext.MediaAssets.Remove(asset);
-                    successCount++;
+                    await dbContext.SaveChangesAsync();
                 }
                 catch (Exception ex)
                 {
                     logger.LogError(ex, $"Error cleaning up asset {asset.Id} (StoragePath: {asset.StoragePath})");
                     errorCount++;
-                    // If storage deletion failed, we ideally shouldn't delete from DB yet, or we retry next time.
-                    // By not adding to deletion tracking (or rolling back?), wait, Remove(asset) is synchronous on context.
-                    // If I want to skip DB deletion for this item, I should not call Remove(asset).
-                    // In this try/catch, if exception occurs at DeleteBlobAsync, Remove() is not reached.
-                }
-            }
 
-            if (successCount > 0)
-            {
-                await dbContext.SaveChangesAsync();
-                logger.LogInformation($"Successfully removed {successCount} assets from database.");
+                    // Critical: If SaveChanges failed, the entity is still tracked as 'Deleted'.
+                    // We must reset its state so it doesn't cause the next SaveChangesAsync to fail or retry removing it.
+                    try 
+                    {
+                        var entry = dbContext.Entry(asset);
+                        if (entry.State == EntityState.Deleted)
+                        {
+                            // Revert to Unchanged so it is not processed in future SaveChanges calls in this loop
+                            entry.State = EntityState.Unchanged;
+                        }
+                    }
+                    catch (Exception stateEx)
+                    {
+                        logger.LogError(stateEx, "Failed to reset entity state for asset {AssetId}", asset.Id);
+                    }
+                }
             }
 
             if (errorCount > 0)

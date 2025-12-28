@@ -18,18 +18,7 @@ var host = new HostBuilder()
     {
         var configuration = context.Configuration;
         var connectionString = configuration["Database:MediaServiceDb"];
-        if (string.IsNullOrEmpty(connectionString))
-        {
-            Console.WriteLine("!!! CRITICAL: Database:MediaServiceDb is NULL or EMPTY !!!");
-            // Debug: print all keys
-            foreach(var k in configuration.AsEnumerable()) { 
-                if (k.Key.Contains("Database")) Console.WriteLine($"Config Key: {k.Key} = {k.Value}"); 
-            }
-        }
-        else 
-        {
-            Console.WriteLine($"SUCCESS: Database:MediaServiceDb found (len: {connectionString.Length})");
-        }
+
 
         // Register Core Services
         services.AddScoped<IStorageService, AzureBlobStorageService>();
