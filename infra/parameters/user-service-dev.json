@@ -1,0 +1,39 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environment": {
+      "value": "dev"
+    },
+    "appConfig": {
+      "value": {
+        "defaultRedirectUrl": "https://dev.auth.hivespace.site",
+        "issuerUrl": "https://dev.auth.hivespace.site"
+      }
+    },
+    "clientConfigs": {
+      "value": {
+        "adminPortal": {
+          "clientUri": "https://dev.admin.hivespace.site",
+          "redirectUri": "https://dev.admin.hivespace.site/callback/login",
+          "logoutRedirectUri": "https://dev.admin.hivespace.site/callback/logout",
+          "corsOrigin": "https://dev.admin.hivespace.site"
+        },
+        "sellerCenter": {
+          "clientUri": "https://dev.seller.hivespace.site",
+          "redirectUri": "https://dev.seller.hivespace.site/callback/login",
+          "logoutRedirectUri": "https://dev.seller.hivespace.site/callback/logout",
+          "corsOrigin": "https://dev.seller.hivespace.site"
+        }
+      }
+    },
+    "smtpConfig": {
+      "value": {
+        "server": "smtp-relay.brevo.com",
+        "port": "587",
+        "fromEmail": "dev5ktarget@gmail.com",
+        "fromName": "HiveSpace"
+      }
+    }
+  }
+}

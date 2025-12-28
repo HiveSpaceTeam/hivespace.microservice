@@ -54,12 +54,8 @@ public class AdminController : ControllerBase
         [FromQuery] GetUsersRequestDto request,
         CancellationToken cancellationToken)
     {
-        // Validate request
         ValidationHelper.ValidateResult(new GetUsersValidator().Validate(request));
-
-        // Call service
         var result = await _adminService.GetUsersAsync(request, cancellationToken);
-
         return Ok(result);
     }
 
@@ -74,9 +70,7 @@ public class AdminController : ControllerBase
         CancellationToken cancellationToken)
     {
         ValidationHelper.ValidateResult(new GetAdminValidator().Validate(request));
-
         var result = await _adminService.GetAdminsAsync(request, cancellationToken);
-
         return Ok(result);
     }
 
@@ -90,24 +84,22 @@ public class AdminController : ControllerBase
         [FromBody] SetUserStatusRequestDto request,
         CancellationToken cancellationToken)
     {
-        // Validate request
         ValidationHelper.ValidateResult(new SetUserStatusValidator().Validate(request));
-
-        // Call service method - returns strongly-typed DTO based on ResponseType
         var result = await _adminService.SetUserStatusAsync(request, cancellationToken);
-
         return Ok(result);
     }
 
+    /// <summary>
+    /// Deletes a user by their unique identifier.
+    /// Available to Admin and SystemAdmin roles.
+    /// </summary>
     [HttpDelete("users/{userId}")]
     [RequireAdmin]
     public async Task<ActionResult<DeleteUserResponseDto>> DeleteUser(
         Guid userId,
         CancellationToken cancellationToken)
     {
-        // Call service method
         var result = await _adminService.DeleteUserAsync(userId, cancellationToken);
-
         return Ok(result);
     }
 }

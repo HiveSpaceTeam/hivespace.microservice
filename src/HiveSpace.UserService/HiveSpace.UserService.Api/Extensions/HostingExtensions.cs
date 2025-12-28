@@ -71,6 +71,8 @@ internal static class HostingExtensions
     public static WebApplication ConfigurePipeline(this WebApplication app)
     {
         app.UseSerilogRequestLogging();
+        app.UseForwardedHeaders();
+        
         if (app.Environment.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();

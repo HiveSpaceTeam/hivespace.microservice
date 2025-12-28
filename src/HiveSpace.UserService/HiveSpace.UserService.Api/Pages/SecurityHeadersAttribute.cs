@@ -11,6 +11,8 @@ public sealed class SecurityHeadersAttribute : ActionFilterAttribute
         var result = context.Result;
         if (result is PageResult)
         {
+            var environment = context.HttpContext.RequestServices.GetRequiredService<IWebHostEnvironment>();
+            
             // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
             if (!context.HttpContext.Response.Headers.ContainsKey("X-Content-Type-Options"))
             {
@@ -24,12 +26,28 @@ public sealed class SecurityHeadersAttribute : ActionFilterAttribute
             }
 
             // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy
-            var csp = "default-src 'self'; object-src 'none'; frame-ancestors 'none'; sandbox allow-forms allow-same-origin allow-scripts; base-uri 'self';";
-            // also consider adding upgrade-insecure-requests once you have HTTPS in place for production
-            //csp += "upgrade-insecure-requests;";
-            // also an example if you need client images to be displayed from twitter
-            // csp += "img-src 'self' https://pbs.twimg.com;";
-
+            string csp;
+            if (environment.IsDevelopment())
+            {
+                // Very permissive CSP for development to avoid blocking issues
+                csp = "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: ws: wss: http: https: localhost:* 127.0.0.1:* *.localhost:*; " +
+                      "frame-ancestors 'none'; " +
+                      "base-uri 'self';";
+            }
+            else
+            {
+                // Restrictive CSP for production
+                csp = "default-src 'self'; " +
+                     "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+                     "style-src 'self' 'unsafe-inline'; " +
+                     "img-src 'self' data: blob:; " +
+                     "font-src 'self'; " +
+                     "connect-src 'self'; " +
+                     "object-src 'none'; " +
+                     "frame-ancestors 'none'; " +
+                     "base-uri 'self';";
+            }
+            
             // once for standards compliant browsers
             if (!context.HttpContext.Response.Headers.ContainsKey("Content-Security-Policy"))
             {

@@ -122,6 +122,7 @@ internal static class ServiceCollectionExtensions
             .AddIdentityServer(options =>
             {
                 options.LicenseKey = configuration.GetValue("Duende:LicenseKey", "");
+                options.IssuerUri = configuration.GetValue("Issuer", "");
                 options.Events.RaiseErrorEvents = true;
                 options.Events.RaiseInformationEvents = true;
                 options.Events.RaiseFailureEvents = true;
@@ -199,18 +200,6 @@ internal static class ServiceCollectionExtensions
                     };
                 });
         }
-
-        // {
-        //     services
-        //         .AddAuthentication()
-        //         .AddFacebook(options =>
-        //         {
-        //             options.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
-        //             options.AppId = facebookAppId;
-        //             options.AppSecret = facebookAppSecret;
-        //             options.CallbackPath = "/signin-facebook";
-        //         });
-        // }
     }
 
     public static void AddAppAuthorization(this IServiceCollection services)
