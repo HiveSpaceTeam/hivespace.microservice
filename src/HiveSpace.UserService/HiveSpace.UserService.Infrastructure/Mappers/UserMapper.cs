@@ -112,6 +112,8 @@ public static class UserMapper
         applicationUser.UpdatedAt = DateTimeOffset.UtcNow;
         applicationUser.LastLoginAt = domainUser.LastLoginAt;
         applicationUser.RoleName = domainUser.Role?.Name; // Update role name directly
+        applicationUser.Theme = domainUser.Settings.Theme;
+        applicationUser.Culture = domainUser.Settings.Culture;
         // Note: Addresses are updated separately via EF Core change tracking
     }
 }
