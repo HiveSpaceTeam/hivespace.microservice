@@ -5,7 +5,11 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- MediatR -->
+    <PackageVersion Include="Azure.Storage.Blobs" Version="12.26.0" />
+    <PackageVersion Include="Azure.Storage.Queues" Version="12.24.0" />
+    <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
     <PackageVersion Include="MediatR" Version="13.0.0" />
+    <PackageVersion Include="Carter" Version="8.2.1" />
     <!-- Microsoft AspNetCore packages -->
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.Facebook" Version="8.0.11" />
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.11" />
@@ -17,6 +21,7 @@
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="8.0.11" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.0.0" />
     <!-- Microsoft EntityFrameworkCore packages -->
+    <PackageVersion Include="Microsoft.Azure.Functions.Worker.Extensions.Timer" Version="4.3.1" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="8.0.11" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.11" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.11" />
@@ -53,11 +58,21 @@
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="7.0.0" />
     <!-- YARP Reverse Proxy -->
     <PackageVersion Include="Yarp.ReverseProxy" Version="2.3.0" />
+    <!-- Azure Functions -->
+    <PackageVersion Include="Microsoft.Azure.Functions.Worker" Version="1.21.0" />
+    <PackageVersion Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.17.2" />
+    <PackageVersion Include="Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues" Version="5.3.0" />
+    <!-- Image Processing -->
+    <PackageVersion Include="SixLabors.ImageSharp" Version="3.1.12" />
     <!-- Test Packages -->
     <PackageVersion Include="coverlet.collector" Version="6.0.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageVersion Include="xunit" Version="2.5.3" />
+    <PackageVersion Include="Asp.Versioning.Http" Version="8.1.0" />
+    <PackageVersion Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.0" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.3" />
     <PackageVersion Include="FluentAssertions" Version="6.12.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.8.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="4.8.0" />
   </ItemGroup>
 </Project>
