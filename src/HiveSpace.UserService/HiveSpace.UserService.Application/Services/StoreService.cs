@@ -43,8 +43,8 @@ public class StoreService : IStoreService
         // Save through repository
         _storeRepository.Add(store);
         
-        await _storeRepository.SaveChangesAsync(cancellationToken);
         await _storeEventPublisher.PublishStoreCreatedAsync(store, cancellationToken);
+        await _storeRepository.SaveChangesAsync(cancellationToken);
         return new CreateStoreResponseDto(
             store.Id,
             store.StoreName,

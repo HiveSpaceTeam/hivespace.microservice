@@ -47,26 +47,26 @@ internal static class HostingExtensions
         builder.Services.AddAppAuthorization();
         builder.Services.AddAppApiVersioning();
 
-        builder.Services.AddMassTransitWithKafka(configuration,
-            rider =>
-            {
-                rider.AddConsumer<UserAnalyticsConsumer>();
-                rider.AddConsumer<UserAuditConsumer>();
-            },
-            (kafka, ctx) =>
-            {
-                var kafkaOptions = ctx.GetRequiredService<IOptions<KafkaOptions>>().Value;
+        //builder.Services.AddMassTransitWithKafka(configuration,
+        //    rider =>
+        //    {
+        //        rider.AddConsumer<UserAnalyticsConsumer>();
+        //        rider.AddConsumer<UserAuditConsumer>();
+        //    },
+        //    (kafka, ctx) =>
+        //    {
+        //        var kafkaOptions = ctx.GetRequiredService<IOptions<KafkaOptions>>().Value;
                 
-                kafka.TopicEndpoint<Ignore, UserCreatedIntegrationEvent>("user-created", kafkaOptions.ConsumerGroup, e =>
-                {
-                    e.ConfigureConsumer<UserAnalyticsConsumer>(ctx);
-                });
+        //        kafka.TopicEndpoint<Ignore, UserCreatedIntegrationEvent>("user-created", kafkaOptions.ConsumerGroup, e =>
+        //        {
+        //            e.ConfigureConsumer<UserAnalyticsConsumer>(ctx);
+        //        });
 
-                kafka.TopicEndpoint<Ignore, UserUpdatedIntegrationEvent>("user-updated", kafkaOptions.ConsumerGroup, e =>
-                {
-                    e.ConfigureConsumer<UserAuditConsumer>(ctx);
-                });
-            });
+        //        kafka.TopicEndpoint<Ignore, UserUpdatedIntegrationEvent>("user-updated", kafkaOptions.ConsumerGroup, e =>
+        //        {
+        //            e.ConfigureConsumer<UserAuditConsumer>(ctx);
+        //        });
+        //    });
 
         builder.Services.AddMassTransitWithRabbitMq<UserDbContext>(configuration, cfg =>
         {
