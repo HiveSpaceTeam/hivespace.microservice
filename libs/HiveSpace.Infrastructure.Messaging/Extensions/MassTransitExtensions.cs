@@ -20,14 +20,6 @@ public static class MassTransitExtensions
         services.Configure<RabbitMqOptions>(configuration.GetSection(RabbitMqOptions.SectionName));
         services.Configure<KafkaOptions>(configuration.GetSection(KafkaOptions.SectionName));
 
-        services.TryAddSingleton<PublishObserver>();
-        services.TryAddSingleton<SendObserver>();
-        services.TryAddSingleton<ConsumeObserver>();
-
-        services.TryAddScoped(typeof(LoggingFilter<>));
-        services.TryAddScoped(typeof(ExceptionHandlingFilter<>));
-        services.TryAddScoped(typeof(RetryFilter<>));
-
         services.TryAddScoped<IMessageBus, MassTransitMessageBus>();
         services.TryAddScoped<IEventPublisher>(sp => (IEventPublisher)sp.GetRequiredService<IMessageBus>());
 

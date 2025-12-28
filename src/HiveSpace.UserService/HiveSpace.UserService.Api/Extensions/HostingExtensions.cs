@@ -1,14 +1,7 @@
-using Confluent.Kafka;
-using HiveSpace.Application.Shared.Events.Users;
 using HiveSpace.Core;
-using HiveSpace.Infrastructure.Messaging.Configurations;
 using HiveSpace.Infrastructure.Messaging.Extensions;
-using HiveSpace.UserService.Application.Consumers;
 using HiveSpace.UserService.Infrastructure;
 using HiveSpace.UserService.Infrastructure.Data;
-using HiveSpace.UserService.Infrastructure.Messaging.Consumers;
-using MassTransit;
-using Microsoft.Extensions.Options;
 using Serilog;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
@@ -70,7 +63,6 @@ internal static class HostingExtensions
 
         builder.Services.AddMassTransitWithRabbitMq<UserDbContext>(configuration, cfg =>
         {
-            cfg.AddConsumer<ProductCreatedConsumer>();
         });
 
         return builder.Build();

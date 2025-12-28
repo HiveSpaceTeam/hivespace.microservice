@@ -1,16 +1,14 @@
-using HiveSpace.CatalogService.Application.Interfaces.Messaging;
+using HiveSpace.CatalogService.Application.Interfaces.Repositories.Domain;
+using HiveSpace.CatalogService.Application.Interfaces.Repositories.Snapshot;
+using HiveSpace.CatalogService.Application.Queries;
 using HiveSpace.CatalogService.Infrastructure.Data;
 using HiveSpace.CatalogService.Infrastructure.Queries;
-using HiveSpace.CatalogService.Application.Queries;
-using HiveSpace.CatalogService.Infrastructure.Messaging.Publishers;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
+using HiveSpace.CatalogService.Infrastructure.Repositories.Domain;
 using HiveSpace.Core.Exceptions;
 using HiveSpace.Core.Exceptions.Models;
-using HiveSpace.CatalogService.Application.Interfaces.Repositories.Domain;
-using HiveSpace.CatalogService.Infrastructure.Repositories.Domain;
-using HiveSpace.CatalogService.Application.Interfaces.Repositories.Snapshot;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HiveSpace.CatalogService.Infrastructure
 {
@@ -40,7 +38,6 @@ namespace HiveSpace.CatalogService.Infrastructure
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IAttributeRepository, AttributeRepository>();
             services.AddScoped<ICategoryDataQuery, CategoryDataQuery>();
-            services.AddScoped<ICatalogEventPublisher, CatalogEventPublisher>();
 
 
             services.AddScoped<IStoreSnapshotRepository, StoreSnapshotRepository>();

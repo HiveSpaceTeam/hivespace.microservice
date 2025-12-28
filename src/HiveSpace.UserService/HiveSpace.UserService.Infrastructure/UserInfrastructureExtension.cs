@@ -84,7 +84,6 @@ public static class UserInfrastructureExtension
 
     public static void AddEventPublisherServices(this IServiceCollection services)
     {
-        services.AddScoped<IUserEventPublisher, UserEventPublisher>();
         services.AddScoped<IStoreEventPublisher, StoreEventPublisher>();
     }
 
