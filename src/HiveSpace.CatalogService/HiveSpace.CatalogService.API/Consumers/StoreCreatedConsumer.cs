@@ -2,9 +2,8 @@ using HiveSpace.Application.Shared.Events.Stores;
 using HiveSpace.CatalogService.Application.Interfaces.Repositories.Snapshot;
 using HiveSpace.CatalogService.Application.Models.ReadModels;
 using MassTransit;
-using Microsoft.Extensions.Logging;
 
-namespace HiveSpace.CatalogService.Application.Consumers;
+namespace HiveSpace.CatalogService.API.Consumers;
 
 public class StoreCreatedConsumer : IConsumer<StoreCreatedIntegrationEvent>
 {

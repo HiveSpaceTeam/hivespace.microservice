@@ -1,4 +1,4 @@
-using HiveSpace.CatalogService.Application.Consumers;
+using HiveSpace.CatalogService.API.Consumers;
 using HiveSpace.CatalogService.Infrastructure;
 using HiveSpace.CatalogService.Infrastructure.Data;
 using HiveSpace.Core;
