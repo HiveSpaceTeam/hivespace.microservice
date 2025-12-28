@@ -1,7 +1,5 @@
 using HiveSpace.Infrastructure.Messaging.Abstractions;
 using HiveSpace.Infrastructure.Messaging.Configurations;
-using HiveSpace.Infrastructure.Messaging.Filters;
-using HiveSpace.Infrastructure.Messaging.Observers;
 using HiveSpace.Infrastructure.Messaging.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
