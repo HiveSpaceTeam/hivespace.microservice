@@ -3,10 +3,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace HiveSpace.UserService.Infrastructure.Data.Migrations
+namespace HiveSpace.CatalogService.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class AddOutboxMasstransit : Migration
+    public partial class StoreSnapshotAndMasstransitOutbox : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -35,39 +35,6 @@ namespace HiveSpace.UserService.Infrastructure.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "incoming_requests",
-                columns: table => new
-                {
-                    CorrelationId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    RequestId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ActionName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_incoming_requests", x => new { x.RequestId, x.CorrelationId });
-                });
-
-            migrationBuilder.CreateTable(
-                name: "outbox_messages",
-                columns: table => new
-                {
-                    EventId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    EventTypeName = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
-                    State = table.Column<int>(type: "int", nullable: false),
-                    TimesSent = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
-                    EventCreationTime = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    Content = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: false),
-                    OperationId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_outbox_messages", x => x.EventId);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "OutboxState",
                 columns: table => new
                 {
@@ -81,6 +48,24 @@ namespace HiveSpace.UserService.Infrastructure.Data.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_OutboxState", x => x.OutboxId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "StoreSnapshots",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    OwnerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    StoreName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    LogoUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Address = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_StoreSnapshots", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -131,12 +116,6 @@ namespace HiveSpace.UserService.Infrastructure.Data.Migrations
                 column: "Delivered");
 
             migrationBuilder.CreateIndex(
-                name: "IX_incoming_requests_RequestId",
-                table: "incoming_requests",
-                column: "RequestId",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
                 name: "IX_OutboxMessage_EnqueueTime",
                 table: "OutboxMessage",
                 column: "EnqueueTime");
@@ -170,13 +149,10 @@ namespace HiveSpace.UserService.Infrastructure.Data.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "incoming_requests");
-
-            migrationBuilder.DropTable(
-                name: "outbox_messages");
-
-            migrationBuilder.DropTable(
                 name: "OutboxMessage");
+
+            migrationBuilder.DropTable(
+                name: "StoreSnapshots");
 
             migrationBuilder.DropTable(
                 name: "InboxState");

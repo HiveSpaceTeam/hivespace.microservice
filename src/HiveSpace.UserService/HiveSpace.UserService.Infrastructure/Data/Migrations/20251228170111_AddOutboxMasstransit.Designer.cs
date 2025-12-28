@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HiveSpace.UserService.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(UserDbContext))]
-    [Migration("20251228163352_AddOutboxMasstransit")]
+    [Migration("20251228170111_AddOutboxMasstransit")]
     partial class AddOutboxMasstransit
     {
         /// <inheritdoc />
@@ -24,71 +24,6 @@ namespace HiveSpace.UserService.Infrastructure.Data.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("HiveSpace.Infrastructure.Persistence.Idempotence.IncomingRequest", b =>
-                {
-                    b.Property<Guid>("RequestId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("CorrelationId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("ActionName")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.HasKey("RequestId", "CorrelationId");
-
-                    b.HasIndex("RequestId")
-                        .IsUnique();
-
-                    b.ToTable("incoming_requests", (string)null);
-                });
-
-            modelBuilder.Entity("HiveSpace.Infrastructure.Persistence.Outbox.OutboxMessage", b =>
-                {
-                    b.Property<Guid>("EventId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasMaxLength(4000)
-                        .HasColumnType("nvarchar(4000)");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<DateTimeOffset>("EventCreationTime")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("EventTypeName")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<Guid>("OperationId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("State")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TimesSent")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.HasKey("EventId");
-
-                    b.ToTable("outbox_messages", (string)null);
-                });
 
             modelBuilder.Entity("HiveSpace.UserService.Domain.Aggregates.Store.Store", b =>
                 {
