@@ -1,14 +1,9 @@
 using HiveSpace.Infrastructure.Messaging.Configurations;
-using HiveSpace.Infrastructure.Messaging.Filters;
-using HiveSpace.Infrastructure.Messaging.Observers;
 using MassTransit;
-using MassTransit.Configuration;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using System.Linq;
-using MassTransit.EntityFrameworkCoreIntegration;
-using Microsoft.EntityFrameworkCore;
 
 namespace HiveSpace.Infrastructure.Messaging.Extensions;
 
@@ -22,32 +17,31 @@ public static class RabbitMqExtensions
     {
         services.AddMessagingCore(configuration);
 
-        var kafkaRegistrations = services
-            .Where(sd => sd.ServiceType == typeof(KafkaRegistration) && sd.ImplementationInstance is KafkaRegistration)
-            .Select(sd => (KafkaRegistration)sd.ImplementationInstance!)
-            .ToList();
+        //var kafkaRegistrations = services
+        //    .Where(sd => sd.ServiceType == typeof(KafkaRegistration) && sd.ImplementationInstance is KafkaRegistration)
+        //    .Select(sd => (KafkaRegistration)sd.ImplementationInstance!)
+        //    .ToList();
 
         services.AddMassTransit(bus =>
         {
             configure?.Invoke(bus);
 
-            foreach (var registration in kafkaRegistrations)
-            {
-                bus.AddRider(rider =>
-                {
-                    registration.ConfigureRider?.Invoke(rider);
-                    rider.UsingKafka((context, kafka) =>
-                    {
-                        var kafkaOptions = context.GetRequiredService<IOptions<KafkaOptions>>().Value;
-                        kafka.Host(kafkaOptions.BootstrapServers);
+            //foreach (var registration in kafkaRegistrations)
+            //{
+            //    bus.AddRider(rider =>
+            //    {
+            //        registration.ConfigureRider?.Invoke(rider);
+            //        rider.UsingKafka((context, kafka) =>
+            //        {
+            //            var kafkaOptions = context.GetRequiredService<IOptions<KafkaOptions>>().Value;
+            //            kafka.Host(kafkaOptions.BootstrapServers);
 
-                        registration.ConfigureEndpoints?.Invoke(kafka, context);
-                    });
-                });
-            }
+            //            registration.ConfigureEndpoints?.Invoke(kafka, context);
+            //        });
+            //    });
+            //}
 
             bus.SetKebabCaseEndpointNameFormatter();
-
             bus.AddEntityFrameworkOutbox<TDbContext>(o =>
             {
                 o.QueryDelay = TimeSpan.FromSeconds(1);
@@ -57,7 +51,6 @@ public static class RabbitMqExtensions
             });
 
             bus.AddConfigureEndpointsCallback((context, name, cfg) => { cfg.UseEntityFrameworkOutbox<TDbContext>(context); });
-
 
             bus.UsingRabbitMq((context, cfg) =>
             {
@@ -78,15 +71,6 @@ public static class RabbitMqExtensions
                 });
 
                 cfg.PrefetchCount = options.PrefetchCount;
-
-                cfg.UseConsumeFilter(typeof(LoggingFilter<>), context);
-                cfg.UseConsumeFilter(typeof(ExceptionHandlingFilter<>), context);
-                cfg.UseConsumeFilter(typeof(RetryFilter<>), context);
-
-                cfg.ConnectPublishObserver(context.GetRequiredService<PublishObserver>());
-                cfg.ConnectSendObserver(context.GetRequiredService<SendObserver>());
-                cfg.ConnectConsumeObserver(context.GetRequiredService<ConsumeObserver>());
-
                 cfg.ConfigureEndpoints(context);
             });
         });

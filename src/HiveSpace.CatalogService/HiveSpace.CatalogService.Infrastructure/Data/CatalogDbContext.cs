@@ -22,8 +22,6 @@ namespace HiveSpace.CatalogService.Infrastructure.Data
         public DbSet<Sku> Skus { get; set; }
         public DbSet<ProductAttribute> ProductAttributes { get; set; }
         public DbSet<AttributeValue> AttributeValues { get; set; }
-        public DbSet<IncomingRequest> IncomingRequests { get; set; }
-        public DbSet<OutboxMessage> OutboxMessages { get; set; }
         #endregion
 
         #region ReadModels
@@ -42,7 +40,6 @@ namespace HiveSpace.CatalogService.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new AttributeValueConfiguration());
 
             modelBuilder.ApplyConfiguration(new StoreSnapshotValueConfiguration());
-            modelBuilder.AddPersistenceBuilder();
 
             modelBuilder.AddInboxStateEntity();
             modelBuilder.AddOutboxMessageEntity();

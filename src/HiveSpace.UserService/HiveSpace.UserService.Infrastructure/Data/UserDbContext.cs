@@ -15,8 +15,6 @@ public class UserDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Gui
 {
     public DbSet<Address> Addresses { get; set; }
     public DbSet<Store> Stores { get; set; }
-    public DbSet<IncomingRequest> IncomingRequests { get; set; }
-    public DbSet<OutboxMessage> OutboxMessages { get; set; }
     public UserDbContext(DbContextOptions<UserDbContext> options) : base(options)
     {
     }
@@ -30,7 +28,6 @@ public class UserDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Gui
 
         // Only apply configurations from Infrastructure assembly (not Domain)
         builder.ApplyConfigurationsFromAssembly(typeof(UserDbContext).Assembly);
-        builder.AddPersistenceBuilder();
 
         // Add MassTransit outbox entities
         builder.AddInboxStateEntity();

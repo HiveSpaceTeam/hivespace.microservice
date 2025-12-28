@@ -14,16 +14,13 @@ public class UserService : IUserService
 {
     private readonly IUserContext _userContext;
     private readonly IUserRepository _userRepository;
-    private readonly IUserEventPublisher _userEventPublisher;
 
     public UserService(
         IUserContext userContext,
-        IUserRepository userRepository,
-        IUserEventPublisher userEventPublisher)
+        IUserRepository userRepository)
     {
         _userContext = userContext;
         _userRepository = userRepository;
-        _userEventPublisher = userEventPublisher;
     }
 
     public async Task<GetUserSettingsResponseDto> GetUserSettingAsync(CancellationToken cancellationToken = default)
@@ -51,6 +48,5 @@ public class UserService : IUserService
             user.UpdateCulture(request.Culture.Value);
         
         await _userRepository.UpdateUserAsync(user, cancellationToken);
-        await _userEventPublisher.PublishUserUpdatedAsync(user, cancellationToken);
     }
 }

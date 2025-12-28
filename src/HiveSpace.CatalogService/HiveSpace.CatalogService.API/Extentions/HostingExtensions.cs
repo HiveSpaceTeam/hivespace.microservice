@@ -1,15 +1,9 @@
-using Confluent.Kafka;
-using HiveSpace.Application.Shared.Events.Products;
 using HiveSpace.CatalogService.Application.Consumers;
 using HiveSpace.CatalogService.Infrastructure;
 using HiveSpace.CatalogService.Infrastructure.Data;
-using HiveSpace.CatalogService.Infrastructure.Messaging.Consumers;
 using HiveSpace.Core;
-using HiveSpace.Infrastructure.Messaging.Configurations;
 using HiveSpace.Infrastructure.Messaging.Extensions;
 using HiveSpace.Infrastructure.Persistence;
-using MassTransit;
-using Microsoft.Extensions.Options;
 
 namespace HiveSpace.CatalogService.API.Extentions
 {
@@ -51,7 +45,6 @@ namespace HiveSpace.CatalogService.API.Extentions
 
             builder.Services.AddMassTransitWithRabbitMq<CatalogDbContext>(configuration, cfg =>
             {
-                cfg.AddConsumer<UserCreatedConsumer>();
                 cfg.AddConsumer<StoreCreatedConsumer>();
             });
 

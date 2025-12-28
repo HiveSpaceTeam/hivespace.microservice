@@ -14,4 +14,9 @@
     <ProjectReference Include="..\HiveSpace.Infrastructure.Messaging\HiveSpace.Infrastructure.Messaging.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Events\Products\" />
+    <Folder Include="Events\Users\" />
+  </ItemGroup>
+
 </Project>
