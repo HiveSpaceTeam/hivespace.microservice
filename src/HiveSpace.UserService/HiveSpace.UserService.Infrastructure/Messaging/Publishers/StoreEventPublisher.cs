@@ -1,5 +1,5 @@
-using HiveSpace.Application.Shared.Events.Stores;
 using HiveSpace.Infrastructure.Messaging.Abstractions;
+using HiveSpace.Infrastructure.Messaging.Shared.Events.Stores;
 using HiveSpace.UserService.Application.Interfaces.Messaging;
 using HiveSpace.UserService.Domain.Aggregates.Store;
 

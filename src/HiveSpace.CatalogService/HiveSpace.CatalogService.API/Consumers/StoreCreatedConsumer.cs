@@ -1,6 +1,6 @@
-using HiveSpace.Application.Shared.Events.Stores;
 using HiveSpace.CatalogService.Application.Interfaces.Repositories.Snapshot;
 using HiveSpace.CatalogService.Application.Models.ReadModels;
+using HiveSpace.Infrastructure.Messaging.Shared.Events.Stores;
 using MassTransit;
 
 namespace HiveSpace.CatalogService.API.Consumers;

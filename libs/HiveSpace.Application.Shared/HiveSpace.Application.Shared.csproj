@@ -10,8 +10,4 @@
     <PackageReference Include="MediatR" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\HiveSpace.Infrastructure.Messaging\HiveSpace.Infrastructure.Messaging.csproj" />
-  </ItemGroup>
-
 </Project>

@@ -1,7 +1,7 @@
 
 using HiveSpace.Infrastructure.Messaging.Events;
 
-namespace HiveSpace.Application.Shared.Events.Stores;
+namespace HiveSpace.Infrastructure.Messaging.Shared.Events.Stores;
 
 public record StoreCreatedIntegrationEvent : IntegrationEvent
 {

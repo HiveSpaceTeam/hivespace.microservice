@@ -23,11 +23,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference
-      Include="..\..\..\libs\HiveSpace.Infrastructure.Persistence\HiveSpace.Infrastructure.Persistence.csproj" />
+    <ProjectReference Include="..\..\..\libs\HiveSpace.Infrastructure.Messaging.Shared\HiveSpace.Infrastructure.Messaging.Shared.csproj" />
+    <ProjectReference Include="..\..\..\libs\HiveSpace.Infrastructure.Persistence\HiveSpace.Infrastructure.Persistence.csproj" />
     <ProjectReference Include="..\HiveSpace.UserService.Domain\HiveSpace.UserService.Domain.csproj" />
-    <ProjectReference
-      Include="..\HiveSpace.UserService.Application\HiveSpace.UserService.Application.csproj" />
+    <ProjectReference Include="..\HiveSpace.UserService.Application\HiveSpace.UserService.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -11,11 +11,11 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="FluentValidation" />
-    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+  
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\libs\HiveSpace.Infrastructure.Messaging.Shared\HiveSpace.Infrastructure.Messaging.Shared.csproj" />
     <ProjectReference Include="..\HiveSpace.CatalogService.Application\HiveSpace.CatalogService.Application.csproj" />
     <ProjectReference Include="..\HiveSpace.CatalogService.Infrastructure\HiveSpace.CatalogService.Infrastructure.csproj" />
   </ItemGroup>

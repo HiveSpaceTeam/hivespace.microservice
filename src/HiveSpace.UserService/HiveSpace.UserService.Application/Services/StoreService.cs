@@ -1,6 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using HiveSpace.Core.Contexts;
 using HiveSpace.UserService.Application.Interfaces.Messaging;
 using HiveSpace.UserService.Application.Interfaces.Services;
