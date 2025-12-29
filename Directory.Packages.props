@@ -7,7 +7,6 @@
     <!-- MediatR -->
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.26.0" />
     <PackageVersion Include="Azure.Storage.Queues" Version="12.24.0" />
-    <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
     <PackageVersion Include="MassTransit.EntityFramework" Version="8.5.7" />
     <PackageVersion Include="MassTransit.EntityFrameworkCore" Version="8.5.7" />
     <PackageVersion Include="MediatR" Version="13.0.0" />
