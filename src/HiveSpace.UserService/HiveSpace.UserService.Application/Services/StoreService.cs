@@ -24,7 +24,7 @@ public class StoreService : IStoreService
         _userContext = userContext ?? throw new ArgumentNullException(nameof(userContext));
         _storeManager = storeManager ?? throw new ArgumentNullException(nameof(storeManager));
         _storeRepository = storeRepository ?? throw new ArgumentNullException(nameof(storeRepository));
-        _storeEventPublisher = storeEventPublisher ?? throw new ArgumentNullException(nameof(storeRepository));
+        _storeEventPublisher = storeEventPublisher ?? throw new ArgumentNullException(nameof(storeEventPublisher));
     }
     
     public async Task<CreateStoreResponseDto> CreateStoreAsync(CreateStoreRequestDto request, CancellationToken cancellationToken = default)

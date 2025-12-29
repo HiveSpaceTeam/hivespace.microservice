@@ -1,6 +1,5 @@
 using HiveSpace.Core.Contexts;
 using HiveSpace.Domain.Shared.Exceptions;
-using HiveSpace.UserService.Application.Interfaces.Messaging;
 using HiveSpace.UserService.Application.Interfaces.Services;
 using HiveSpace.UserService.Application.Models.Requests.User;
 using HiveSpace.UserService.Application.Models.Responses.User;
