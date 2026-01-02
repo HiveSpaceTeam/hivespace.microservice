@@ -16,9 +16,6 @@
     },
     "managedIdentityName": {
       "value": "func-hivespace-media-dev-uami"
-    },
-    "appInsightsName": {
-      "value": "appi-hivespace-media-dev"
     }
   }
 }

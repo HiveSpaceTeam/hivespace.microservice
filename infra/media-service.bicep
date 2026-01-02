@@ -20,10 +20,6 @@ param location string = resourceGroup().location
 @description('Deployment timestamp')
 param deploymentTimestamp string = utcNow()
 
-@description('Application Insights Name')
-param appInsightsName string
-
-var functionWorkerRuntime = 'dotnet-isolated'
 var storageRoleDefinitionId = 'b7e6dc6d-f1e8-4753-8033-0f276bb0955b' // Storage Blob Data Owner
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
@@ -77,16 +73,6 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2023-12-01' = {
   }
 }
 
-resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
-  name: appInsightsName
-  location: location
-  kind: 'web'
-  properties: {
-    Application_Type: 'web'
-    Request_Source: 'rest'
-  }
-}
-
 resource functionApp 'Microsoft.Web/sites@2024-11-01' = {
   name: functionAppName
   location: location
@@ -121,10 +107,6 @@ resource functionApp 'Microsoft.Web/sites@2024-11-01' = {
         {
           name: 'AzureWebJobsStorage__clientId'
           value: managedIdentity.properties.clientId
-        }
-        {
-          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
-          value: appInsights.properties.ConnectionString
         }
       ]
     }

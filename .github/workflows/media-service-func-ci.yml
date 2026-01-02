@@ -113,27 +113,27 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS_SERVICE }}
 
-      # - name: Deploy Infrastructure via Bicep
-      #   id: bicep-deploy
-      #   uses: azure/cli@v2
-      #   with:
-      #     inlineScript: |
-      #       echo "Deploying MediaService Infrastructure via Bicep..."
+      - name: Deploy Infrastructure via Bicep
+        id: bicep-deploy
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            echo "Deploying MediaService Infrastructure via Bicep..."
 
-      #       # Override functionAppName if variable is set, otherwise use what's in the parameters file
-      #       FUNCTION_APP_NAME="${{ vars.AZURE_FUNCTION_APP_MEDIA_SERVICE_NAME }}"
-      #       if [ -z "$FUNCTION_APP_NAME" ]; then
-      #         FUNCTION_APP_NAME="func-hivespace-media-dev"
-      #       fi
+            # Override functionAppName if variable is set, otherwise use what's in the parameters file
+            FUNCTION_APP_NAME="${{ vars.AZURE_FUNCTION_APP_MEDIA_SERVICE_NAME }}"
+            if [ -z "$FUNCTION_APP_NAME" ]; then
+              FUNCTION_APP_NAME="func-hivespace-media-dev"
+            fi
 
-      #       echo "Target Function App: $FUNCTION_APP_NAME"
-      #       echo "Resource Group: ${{ vars.AZURE_RESOURCE_GROUP }}"
+            echo "Target Function App: $FUNCTION_APP_NAME"
+            echo "Resource Group: ${{ vars.AZURE_RESOURCE_GROUP }}"
 
-      #       az deployment group create \
-      #         --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
-      #         --template-file infra/media-service.bicep \
-      #         --parameters @infra/parameters/media-service-dev.json \
-      #         --parameters functionAppName="$FUNCTION_APP_NAME"
+            az deployment group create \
+              --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+              --template-file infra/media-service.bicep \
+              --parameters @infra/parameters/media-service-dev.json \
+              --parameters functionAppName="$FUNCTION_APP_NAME"
 
       - name: Deploy to Azure Functions
         uses: Azure/functions-action@v1
