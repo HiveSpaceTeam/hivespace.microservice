@@ -91,6 +91,7 @@ jobs:
         with:
           name: function-app
           path: ./publish
+          include-hidden-files: true
 
   deploy:
     name: Deploy to Azure Function App
