@@ -1,0 +1,24 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environmentName": {
+      "value": "dev"
+    },
+    "functionAppName": {
+      "value": "func-hivespace-media-dev"
+    },
+    "storageAccountName": {
+      "value": "sthivespacemediadev"
+    },
+    "appServicePlanName": {
+      "value": "asp-hivespace-media-dev"
+    },
+    "managedIdentityName": {
+      "value": "func-hivespace-media-dev-uami"
+    },
+    "appInsightsName": {
+      "value": "appi-hivespace-media-dev"
+    }
+  }
+}

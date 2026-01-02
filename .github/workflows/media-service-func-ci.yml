@@ -1,0 +1,141 @@
+name: MediaService Func CI
+
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - 'src/HiveSpace.MediaService/**'
+      - '.github/workflows/media-service-func-ci.yml'
+  push:
+    branches: [master]
+    paths:
+      - 'src/HiveSpace.MediaService/**'
+      - '.github/workflows/media-service-func-ci.yml'
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to deploy (release or master)'
+        required: true
+        default: 'master'
+        type: choice
+        options:
+          - release
+          - master
+
+jobs:
+  build:
+    name: Build and Test MediaService Func
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore NuGet packages
+        run: |
+          dotnet restore src/HiveSpace.MediaService/HiveSpace.MediaService.Func/HiveSpace.MediaService.Func.csproj
+
+      - name: Build MediaService projects (Release)
+        run: |
+          echo "Building MediaService projects..."
+          dotnet build src/HiveSpace.MediaService/HiveSpace.MediaService.Func/HiveSpace.MediaService.Func.csproj -c Release --no-restore
+          echo "MediaService build completed successfully."
+
+      - name: Run Unit Tests
+        run: |
+          echo "Searching for test projects..."
+          # Looking for tests specifically in the MediaService folder
+          TEST_PROJECTS=$(find src/HiveSpace.MediaService -name "*.Tests.csproj" -o -name "*.Test.csproj" -o -name "*Tests.csproj" 2>/dev/null | head -10)
+
+          if [ -z "$TEST_PROJECTS" ]; then
+            echo "📝 No test projects found - skipping tests"
+            echo "Consider adding unit tests for better code quality"
+          else
+            echo "Found test projects:"
+            echo "$TEST_PROJECTS"
+            echo ""
+            
+            echo "Restoring test dependencies..."
+            echo "$TEST_PROJECTS" | xargs -I {} dotnet restore {}
+            
+            echo "Building test projects..."
+            echo "$TEST_PROJECTS" | xargs -I {} dotnet build {} -c Release --no-restore
+            
+            echo "Running unit tests..."
+            if dotnet test --configuration Release --no-build --verbosity normal; then
+              echo "✅ All tests passed"
+            else
+              echo "❌ Tests failed"
+              exit 1
+            fi
+          fi
+
+      - name: Publish Function App
+        run: |
+          dotnet publish src/HiveSpace.MediaService/HiveSpace.MediaService.Func/HiveSpace.MediaService.Func.csproj -c Release --output ./publish
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: function-app
+          path: ./publish
+
+  deploy:
+    name: Deploy to Azure Function App
+    needs: build
+    runs-on: ubuntu-latest
+    environment: dev
+    # if: |
+    #   (github.event_name == 'push' && github.ref == 'refs/heads/master') ||
+    #   (github.event_name == 'workflow_dispatch' && github.event.inputs.branch == 'master')
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: function-app
+          path: ./publish
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS_SERVICE }}
+
+      # - name: Deploy Infrastructure via Bicep
+      #   id: bicep-deploy
+      #   uses: azure/cli@v2
+      #   with:
+      #     inlineScript: |
+      #       echo "Deploying MediaService Infrastructure via Bicep..."
+
+      #       # Override functionAppName if variable is set, otherwise use what's in the parameters file
+      #       FUNCTION_APP_NAME="${{ vars.AZURE_FUNCTION_APP_MEDIA_SERVICE_NAME }}"
+      #       if [ -z "$FUNCTION_APP_NAME" ]; then
+      #         FUNCTION_APP_NAME="func-hivespace-media-dev"
+      #       fi
+
+      #       echo "Target Function App: $FUNCTION_APP_NAME"
+      #       echo "Resource Group: ${{ vars.AZURE_RESOURCE_GROUP }}"
+
+      #       az deployment group create \
+      #         --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+      #         --template-file infra/media-service.bicep \
+      #         --parameters @infra/parameters/media-service-dev.json \
+      #         --parameters functionAppName="$FUNCTION_APP_NAME"
+
+      - name: Deploy to Azure Functions
+        uses: Azure/functions-action@v1
+        with:
+          app-name: ${{ vars.AZURE_FUNCTION_APP_MEDIA_SERVICE_NAME }}
+          package: ./publish
