@@ -86,11 +86,25 @@ jobs:
         run: |
           dotnet publish src/HiveSpace.MediaService/HiveSpace.MediaService.Func/HiveSpace.MediaService.Func.csproj -c Release --output ./publish
 
+      - name: Verify .azurefunctions directory
+        run: |
+          echo "Checking for .azurefunctions directory..."
+          if [ -d "./publish/.azurefunctions" ]; then
+            echo "✅ .azurefunctions directory found!"
+            ls -la ./publish/.azurefunctions
+          else
+            echo "❌ ERROR: .azurefunctions directory NOT found!"
+            echo "Contents of ./publish:"
+            ls -la ./publish
+            exit 1
+          fi
+
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: function-app
           path: ./publish
+          include-hidden-files: true
 
   deploy:
     name: Deploy to Azure Function App
@@ -106,6 +120,19 @@ jobs:
         with:
           name: function-app
           path: ./publish
+
+      - name: Verify downloaded artifact
+        run: |
+          echo "Verifying artifact contents..."
+          if [ -d "./publish/.azurefunctions" ]; then
+            echo "✅ .azurefunctions directory found in downloaded artifact!"
+            ls -la ./publish/.azurefunctions
+          else
+            echo "❌ ERROR: .azurefunctions directory NOT found in downloaded artifact!"
+            echo "Contents of ./publish:"
+            ls -la ./publish
+            exit 1
+          fi
 
       - name: Login to Azure
         uses: azure/login@v2
