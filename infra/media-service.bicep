@@ -125,23 +125,23 @@ resource functionApp 'Microsoft.Web/sites@2024-11-01' = {
           value: managedIdentity.properties.clientId
         }
         {
-          name: 'AzureStorage:ConnectionString'
+          name: 'AzureStorage__ConnectionString'
           value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};AccountKey=${storageAccount.listKeys().keys[0].value};EndpointSuffix=${environment().suffixes.storage}'
         }
         {
-          name: 'AzureStorage:TempContainer'
+          name: 'AzureStorage__TempContainer'
           value: tempContainerName
         }
         {
-          name: 'AzureStorage:PublicContainer'
+          name: 'AzureStorage__PublicContainer'
           value: publicContainerName
         }
         {
-          name: 'AzureStorage:QueueName'
+          name: 'AzureStorage__QueueName'
           value: queueName
         }
         {
-          name: 'Database:MediaServiceDb'
+          name: 'Database__MediaServiceDb'
           value: mediaDbConnectionString
         }
         {
