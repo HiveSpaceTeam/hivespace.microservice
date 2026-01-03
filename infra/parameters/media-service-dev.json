@@ -6,16 +6,25 @@
       "value": "dev"
     },
     "functionAppName": {
-      "value": "func-hivespace-media-dev"
+      "value": "func-hivespace-media-svc-dev"
     },
     "storageAccountName": {
       "value": "sthivespacemediadev"
     },
     "appServicePlanName": {
-      "value": "asp-hivespace-media-dev"
+      "value": "ASP-rghivespacedev-a3ca"
     },
     "managedIdentityName": {
-      "value": "func-hivespace-media-dev-uami"
+      "value": "func-hivespace-media-svc-dev-uami"
+    },
+    "tempContainerName": {
+      "value": "temp-media-upload"
+    },
+    "publicContainerName": {
+      "value": "public-assets"
+    },
+    "queueName": {
+      "value": "image-processing-queue"
     }
   }
 }

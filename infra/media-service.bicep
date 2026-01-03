@@ -20,7 +20,6 @@ param location string = resourceGroup().location
 @description('Deployment timestamp')
 param deploymentTimestamp string = utcNow()
 
-
 resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   name: storageAccountName
   location: location
@@ -50,22 +49,33 @@ resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-
   location: location
 }
 
-
-
-resource appServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
+resource appServicePlan 'Microsoft.Web/serverfarms@2023-12-01' = {
   name: appServicePlanName
   location: location
   kind: 'linux'
   sku: {
-    name: 'Y1'
-    tier: 'Dynamic'
+    name: 'FC1'
+    tier: 'FlexConsumption'
   }
   properties: {
     reserved: true
   }
 }
 
-resource functionApp 'Microsoft.Web/sites@2022-03-01' = {
+@description('Temp Container Name')
+param tempContainerName string = 'temp-media-upload'
+
+@description('Public Container Name')
+param publicContainerName string = 'public-assets'
+
+@description('Queue Name')
+param queueName string = 'image-processing-queue'
+
+@secure()
+@description('Database Connection String')
+param mediaDbConnectionString string
+
+resource functionApp 'Microsoft.Web/sites@2024-11-01' = {
   name: functionAppName
   location: location
   kind: 'functionapp,linux'
@@ -79,8 +89,14 @@ resource functionApp 'Microsoft.Web/sites@2022-03-01' = {
     serverFarmId: appServicePlan.id
     httpsOnly: true
     siteConfig: {
-      use32BitWorkerProcess: false
-      linuxFxVersion: 'DOTNET-ISOLATED|8.0'
+      numberOfWorkers: 1
+      acrUseManagedIdentityCreds: false
+      alwaysOn: false
+      http20Enabled: false
+      functionAppScaleLimit: 100
+      minimumElasticInstanceCount: 0
+      minTlsVersion: '1.2'
+      ftpsState: 'FtpsOnly'
       appSettings: [
         {
           name: 'AzureWebJobsStorage__accountName'
@@ -95,16 +111,46 @@ resource functionApp 'Microsoft.Web/sites@2022-03-01' = {
           value: managedIdentity.properties.clientId
         }
         {
-          name: 'FUNCTIONS_EXTENSION_VERSION'
-          value: '~4'
+          name: 'AzureStorage:ConnectionString'
+          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};AccountKey=${storageAccount.listKeys().keys[0].value};EndpointSuffix=${environment().suffixes.storage}'
         }
         {
-          name: 'FUNCTIONS_WORKER_RUNTIME'
-          value: 'dotnet-isolated'
+          name: 'AzureStorage:TempContainer'
+          value: tempContainerName
+        }
+        {
+          name: 'AzureStorage:PublicContainer'
+          value: publicContainerName
+        }
+        {
+          name: 'AzureStorage:QueueName'
+          value: queueName
+        }
+        {
+          name: 'Database:MediaServiceDb'
+          value: mediaDbConnectionString
         }
       ]
-      ftpsState: 'FtpsOnly'
-      minTlsVersion: '1.2'
+    }
+    functionAppConfig: {
+      deployment: {
+        storage: {
+          type: 'blobContainer'
+          value: '${storageAccount.properties.primaryEndpoints.blob}${deploymentContainer.name}'
+          authentication: {
+            type: 'UserAssignedIdentity'
+            userAssignedIdentityResourceId: managedIdentity.id
+          }
+        }
+      }
+      runtime: {
+        name: 'dotnet-isolated'
+        version: '8.0'
+      }
+      scaleAndConcurrency: {
+        maximumInstanceCount: 100
+        instanceMemoryMB: 2048
+      }
     }
   }
   tags: {
@@ -114,7 +160,6 @@ resource functionApp 'Microsoft.Web/sites@2022-03-01' = {
     LastDeployedAt: deploymentTimestamp
   }
 }
-
 
 @description('The name of the function app')
 output functionAppName string = functionApp.name

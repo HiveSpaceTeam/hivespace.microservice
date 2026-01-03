@@ -136,7 +136,8 @@ jobs:
               --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
               --template-file infra/media-service.bicep \
               --parameters @infra/parameters/media-service-dev.json \
-              --parameters functionAppName="$FUNCTION_APP_NAME"
+              --parameters functionAppName="$FUNCTION_APP_NAME" \
+              --parameters mediaDbConnectionString="${{ secrets.MEDIA_DB_CONNECTION_STRING }}"
 
       - name: Deploy to Azure Functions
         uses: Azure/functions-action@v1
