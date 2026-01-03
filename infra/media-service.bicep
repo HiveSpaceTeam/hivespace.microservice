@@ -75,6 +75,19 @@ param queueName string = 'image-processing-queue'
 @description('Database Connection String')
 param mediaDbConnectionString string
 
+@description('Application Insights Name')
+param appInsightsName string
+
+resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
+  name: appInsightsName
+  location: location
+  kind: 'web'
+  properties: {
+    Application_Type: 'web'
+    Request_Source: 'rest'
+  }
+}
+
 resource functionApp 'Microsoft.Web/sites@2024-11-01' = {
   name: functionAppName
   location: location
@@ -130,6 +143,10 @@ resource functionApp 'Microsoft.Web/sites@2024-11-01' = {
         {
           name: 'Database:MediaServiceDb'
           value: mediaDbConnectionString
+        }
+        {
+          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+          value: applicationInsights.properties.ConnectionString
         }
       ]
     }

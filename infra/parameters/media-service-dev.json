@@ -25,6 +25,9 @@
     },
     "queueName": {
       "value": "image-processing-queue"
+    },
+    "appInsightsName": {
+      "value": "appi-hivespace-dev"
     }
   }
 }
