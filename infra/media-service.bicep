@@ -20,7 +20,7 @@ param location string = resourceGroup().location
 @description('Deployment timestamp')
 param deploymentTimestamp string = utcNow()
 
-var storageRoleDefinitionId = 'b7e6dc6d-f1e8-4753-8033-0f276bb0955b' // Storage Blob Data Owner
+
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   name: storageAccountName
@@ -51,15 +51,7 @@ resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-
   location: location
 }
 
-resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  scope: storageAccount
-  name: guid(storageAccount.id, managedIdentity.id, storageRoleDefinitionId)
-  properties: {
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', storageRoleDefinitionId)
-    principalId: managedIdentity.properties.principalId
-    principalType: 'ServicePrincipal'
-  }
-}
+
 
 resource appServicePlan 'Microsoft.Web/serverfarms@2023-12-01' = {
   name: appServicePlanName
@@ -137,9 +129,7 @@ resource functionApp 'Microsoft.Web/sites@2024-11-01' = {
     ManagedBy: 'Bicep'
     LastDeployedAt: deploymentTimestamp
   }
-  dependsOn: [
-    roleAssignment
-  ]
+
 }
 
 @description('The name of the function app')
