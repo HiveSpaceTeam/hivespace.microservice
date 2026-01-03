@@ -21,7 +21,6 @@ param location string = resourceGroup().location
 param deploymentTimestamp string = utcNow()
 
 
-
 resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   name: storageAccountName
   location: location
@@ -53,19 +52,20 @@ resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-
 
 
 
-resource appServicePlan 'Microsoft.Web/serverfarms@2023-12-01' = {
+resource appServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
   name: appServicePlanName
   location: location
+  kind: 'linux'
   sku: {
-    name: 'FC1'
-    tier: 'FlexConsumption'
+    name: 'Y1'
+    tier: 'Dynamic'
   }
   properties: {
     reserved: true
   }
 }
 
-resource functionApp 'Microsoft.Web/sites@2024-11-01' = {
+resource functionApp 'Microsoft.Web/sites@2022-03-01' = {
   name: functionAppName
   location: location
   kind: 'functionapp,linux'
@@ -79,14 +79,8 @@ resource functionApp 'Microsoft.Web/sites@2024-11-01' = {
     serverFarmId: appServicePlan.id
     httpsOnly: true
     siteConfig: {
-      numberOfWorkers: 1
-      acrUseManagedIdentityCreds: false
-      alwaysOn: false
-      http20Enabled: false
-      functionAppScaleLimit: 100
-      minimumElasticInstanceCount: 0
-      minTlsVersion: '1.2'
-      ftpsState: 'FtpsOnly'
+      use32BitWorkerProcess: false
+      linuxFxVersion: 'DOTNET-ISOLATED|8.0'
       appSettings: [
         {
           name: 'AzureWebJobsStorage__accountName'
@@ -100,27 +94,17 @@ resource functionApp 'Microsoft.Web/sites@2024-11-01' = {
           name: 'AzureWebJobsStorage__clientId'
           value: managedIdentity.properties.clientId
         }
-      ]
-    }
-    functionAppConfig: {
-      deployment: {
-        storage: {
-          type: 'blobContainer'
-          value: '${storageAccount.properties.primaryEndpoints.blob}${deploymentContainer.name}'
-          authentication: {
-            type: 'UserAssignedIdentity'
-            userAssignedIdentityResourceId: managedIdentity.id
-          }
+        {
+          name: 'FUNCTIONS_EXTENSION_VERSION'
+          value: '~4'
         }
-      }
-      runtime: {
-        name: 'dotnet-isolated'
-        version: '8.0'
-      }
-      scaleAndConcurrency: {
-        maximumInstanceCount: 100
-        instanceMemoryMB: 2048
-      }
+        {
+          name: 'FUNCTIONS_WORKER_RUNTIME'
+          value: 'dotnet-isolated'
+        }
+      ]
+      ftpsState: 'FtpsOnly'
+      minTlsVersion: '1.2'
     }
   }
   tags: {
@@ -129,8 +113,8 @@ resource functionApp 'Microsoft.Web/sites@2024-11-01' = {
     ManagedBy: 'Bicep'
     LastDeployedAt: deploymentTimestamp
   }
-
 }
+
 
 @description('The name of the function app')
 output functionAppName string = functionApp.name
