@@ -9,7 +9,7 @@
       "value": "func-hivespace-media-svc-dev"
     },
     "storageAccountName": {
-      "value": "sthivespacemediadev"
+      "value": "sthivespacedev"
     },
     "appServicePlanName": {
       "value": "ASP-rghivespacedev-a3ca"

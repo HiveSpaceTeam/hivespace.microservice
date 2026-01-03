@@ -97,6 +97,7 @@ resource functionApp 'Microsoft.Web/sites@2024-11-01' = {
       minimumElasticInstanceCount: 0
       minTlsVersion: '1.2'
       ftpsState: 'FtpsOnly'
+      scmType: 'None'
       appSettings: [
         {
           name: 'AzureWebJobsStorage__accountName'
