@@ -1,7 +1,7 @@
 using HiveSpace.CatalogService.Domain.Aggregates.CategoryAggregate;
+using HiveSpace.CatalogService.Domain.Repositories.Domain;
 using HiveSpace.CatalogService.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using HiveSpace.CatalogService.Application.Interfaces.Repositories.Domain;
 
 namespace HiveSpace.CatalogService.Infrastructure.Repositories.Domain
 {

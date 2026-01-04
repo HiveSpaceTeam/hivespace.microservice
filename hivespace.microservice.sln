@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.0.11222.15 d18.0
+VisualStudioVersion = 18.0.11222.15
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 EndProject
@@ -52,10 +52,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.MedieService.Core", "src\HiveSpace.MedieService\HiveSpace.MedieService.Core\HiveSpace.MedieService.Core.csproj", "{B5B2FE00-2573-4760-8F3A-83F0FC619522}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.MedieService.Func", "src\HiveSpace.MedieService\HiveSpace.MedieService.Func\HiveSpace.MedieService.Func.csproj", "{10D27F4D-6958-4B7F-BED2-9F8B57E4D909}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.CatalogService.Contracts", "src\HiveSpace.CatalogService\HiveSpace.CatalogService.Contracts\HiveSpace.CatalogService.Contracts.csproj", "{76585714-C5D4-4105-A99F-EEBAA727B47E}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.UserService.Contracts", "src\HiveSpace.UserService\HiveSpace.UserService.Contracts\HiveSpace.UserService.Contracts.csproj", "{4CB59A1C-58C6-44F5-89D5-00A18C2A1FDB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.Infrastructure.Messaging.Shared", "libs\HiveSpace.Infrastructure.Messaging.Shared\HiveSpace.Infrastructure.Messaging.Shared.csproj", "{8236F463-FD72-4401-8FCB-171C86EE3C1A}"
 EndProject
@@ -285,30 +281,6 @@ Global
 		{10D27F4D-6958-4B7F-BED2-9F8B57E4D909}.Release|x64.Build.0 = Release|Any CPU
 		{10D27F4D-6958-4B7F-BED2-9F8B57E4D909}.Release|x86.ActiveCfg = Release|Any CPU
 		{10D27F4D-6958-4B7F-BED2-9F8B57E4D909}.Release|x86.Build.0 = Release|Any CPU
-		{76585714-C5D4-4105-A99F-EEBAA727B47E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{76585714-C5D4-4105-A99F-EEBAA727B47E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{76585714-C5D4-4105-A99F-EEBAA727B47E}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{76585714-C5D4-4105-A99F-EEBAA727B47E}.Debug|x64.Build.0 = Debug|Any CPU
-		{76585714-C5D4-4105-A99F-EEBAA727B47E}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{76585714-C5D4-4105-A99F-EEBAA727B47E}.Debug|x86.Build.0 = Debug|Any CPU
-		{76585714-C5D4-4105-A99F-EEBAA727B47E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{76585714-C5D4-4105-A99F-EEBAA727B47E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{76585714-C5D4-4105-A99F-EEBAA727B47E}.Release|x64.ActiveCfg = Release|Any CPU
-		{76585714-C5D4-4105-A99F-EEBAA727B47E}.Release|x64.Build.0 = Release|Any CPU
-		{76585714-C5D4-4105-A99F-EEBAA727B47E}.Release|x86.ActiveCfg = Release|Any CPU
-		{76585714-C5D4-4105-A99F-EEBAA727B47E}.Release|x86.Build.0 = Release|Any CPU
-		{4CB59A1C-58C6-44F5-89D5-00A18C2A1FDB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4CB59A1C-58C6-44F5-89D5-00A18C2A1FDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4CB59A1C-58C6-44F5-89D5-00A18C2A1FDB}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{4CB59A1C-58C6-44F5-89D5-00A18C2A1FDB}.Debug|x64.Build.0 = Debug|Any CPU
-		{4CB59A1C-58C6-44F5-89D5-00A18C2A1FDB}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{4CB59A1C-58C6-44F5-89D5-00A18C2A1FDB}.Debug|x86.Build.0 = Debug|Any CPU
-		{4CB59A1C-58C6-44F5-89D5-00A18C2A1FDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4CB59A1C-58C6-44F5-89D5-00A18C2A1FDB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4CB59A1C-58C6-44F5-89D5-00A18C2A1FDB}.Release|x64.ActiveCfg = Release|Any CPU
-		{4CB59A1C-58C6-44F5-89D5-00A18C2A1FDB}.Release|x64.Build.0 = Release|Any CPU
-		{4CB59A1C-58C6-44F5-89D5-00A18C2A1FDB}.Release|x86.ActiveCfg = Release|Any CPU
-		{4CB59A1C-58C6-44F5-89D5-00A18C2A1FDB}.Release|x86.Build.0 = Release|Any CPU
 		{8236F463-FD72-4401-8FCB-171C86EE3C1A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8236F463-FD72-4401-8FCB-171C86EE3C1A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8236F463-FD72-4401-8FCB-171C86EE3C1A}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -348,8 +320,6 @@ Global
 		{1D402DFF-449B-4E4A-B3DB-F3CB9456DED6} = {EE818222-7D45-30D7-4A47-18D467CC099A}
 		{B5B2FE00-2573-4760-8F3A-83F0FC619522} = {EE818222-7D45-30D7-4A47-18D467CC099A}
 		{10D27F4D-6958-4B7F-BED2-9F8B57E4D909} = {EE818222-7D45-30D7-4A47-18D467CC099A}
-		{76585714-C5D4-4105-A99F-EEBAA727B47E} = {17EF53D8-2BD8-436D-928E-85A1108F6781}
-		{4CB59A1C-58C6-44F5-89D5-00A18C2A1FDB} = {C6D12F93-D17B-4166-AD38-093ECCB27DC8}
 		{8236F463-FD72-4401-8FCB-171C86EE3C1A} = {8E604477-D2AC-48FD-A8EF-349D246FAC03}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution

@@ -1,9 +1,6 @@
-using HiveSpace.CatalogService.Application.Interfaces.Repositories.Snapshot;
-using HiveSpace.CatalogService.Application.Models.ReadModels;
-using HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate;
+using HiveSpace.CatalogService.Domain.Aggregates.External;
+using HiveSpace.CatalogService.Domain.Repositories.External;
 using HiveSpace.CatalogService.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
-using System;
 
 namespace HiveSpace.CatalogService.Infrastructure.Repositories.Domain
 {
@@ -15,7 +12,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Repositories.Domain
             _context = context;
         }
 
-        public async Task AddAsync(StoreSnapshot store, CancellationToken cancellationToken = default)
+        public async Task AddAsync(StoreRef store, CancellationToken cancellationToken = default)
         {
             await _context.StoreSnapshots.AddAsync(store, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken); // thêm dòng này

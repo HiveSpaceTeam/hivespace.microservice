@@ -1,6 +1,6 @@
-using HiveSpace.CatalogService.Application.Interfaces.Repositories.Domain;
-using HiveSpace.CatalogService.Application.Interfaces.Repositories.Snapshot;
 using HiveSpace.CatalogService.Application.Queries;
+using HiveSpace.CatalogService.Domain.Repositories.Domain;
+using HiveSpace.CatalogService.Domain.Repositories.External;
 using HiveSpace.CatalogService.Infrastructure.Data;
 using HiveSpace.CatalogService.Infrastructure.Queries;
 using HiveSpace.CatalogService.Infrastructure.Repositories.Domain;

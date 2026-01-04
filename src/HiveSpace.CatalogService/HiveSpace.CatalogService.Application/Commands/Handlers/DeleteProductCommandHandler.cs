@@ -1,20 +1,25 @@
 using HiveSpace.Application.Shared.Handlers;
-using HiveSpace.CatalogService.Application.Interfaces;
+using HiveSpace.CatalogService.Domain.Repositories.Domain;
 
 namespace HiveSpace.CatalogService.Application.Commands.Handlers;
 
 public class DeleteProductCommandHandler : ICommandHandler<DeleteProductCommand, bool>
 {
-    private readonly IProductService _productService;
+    private readonly IProductRepository _productRepository;
 
-    public DeleteProductCommandHandler(IProductService productService)
+    public DeleteProductCommandHandler(IProductRepository productRepo)
     {
-        _productService = productService;
+        _productRepository = productRepo;
     }
 
-    public Task<bool> Handle(DeleteProductCommand request, CancellationToken cancellationToken)
+    public async Task<bool> Handle(DeleteProductCommand request, CancellationToken cancellationToken)
     {
-        return _productService.DeleteProductAsync(request.ProductId, cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+        var product = await _productRepository.GetByIdAsync(request.ProductId, cancellationToken);
+        if (product is null) return false;
+
+        await _productRepository.DeleteAsync(product, cancellationToken);
+        return true;
     }
 }
 

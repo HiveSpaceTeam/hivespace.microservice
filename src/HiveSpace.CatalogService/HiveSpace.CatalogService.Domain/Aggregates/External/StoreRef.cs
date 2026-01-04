@@ -1,6 +1,6 @@
-﻿namespace HiveSpace.CatalogService.Application.Models.ReadModels
+﻿namespace HiveSpace.CatalogService.Domain.Aggregates.External
 {
-    public class StoreSnapshot
+    public class StoreRef
     {
         public Guid Id { get;  set; }
         public Guid OwnerId { get;  set; }

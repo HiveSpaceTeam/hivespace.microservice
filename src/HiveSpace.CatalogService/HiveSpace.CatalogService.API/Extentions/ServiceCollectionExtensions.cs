@@ -16,7 +16,6 @@ namespace HiveSpace.CatalogService.API.Extentions
         }
         public static void AddAppApplicationServices(this IServiceCollection services)
         {
-            services.AddScoped<IProductService, ProductService>();
             services.AddScoped<ICategoryService, CategoryService>();
 
             services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<CreateProductCommand>());

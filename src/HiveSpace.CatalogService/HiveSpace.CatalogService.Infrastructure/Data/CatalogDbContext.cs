@@ -6,8 +6,8 @@ using HiveSpace.Infrastructure.Persistence;
 using HiveSpace.Infrastructure.Persistence.Idempotence;
 using HiveSpace.Infrastructure.Persistence.Outbox;
 using Microsoft.EntityFrameworkCore;
-using HiveSpace.CatalogService.Application.Models.ReadModels;
 using MassTransit;
+using HiveSpace.CatalogService.Domain.Aggregates.External;
 
 namespace HiveSpace.CatalogService.Infrastructure.Data
 {
@@ -25,7 +25,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Data
         #endregion
 
         #region ReadModels
-        public DbSet<StoreSnapshot> StoreSnapshots { get; set; }
+        public DbSet<StoreRef> StoreSnapshots { get; set; }
         #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

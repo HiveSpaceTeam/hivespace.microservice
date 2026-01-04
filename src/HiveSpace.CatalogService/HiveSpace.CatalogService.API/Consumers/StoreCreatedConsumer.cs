@@ -1,5 +1,5 @@
-using HiveSpace.CatalogService.Application.Interfaces.Repositories.Snapshot;
-using HiveSpace.CatalogService.Application.Models.ReadModels;
+using HiveSpace.CatalogService.Domain.Aggregates.External;
+using HiveSpace.CatalogService.Domain.Repositories.External;
 using HiveSpace.Infrastructure.Messaging.Shared.Events.Stores;
 using MassTransit;
 
@@ -20,7 +20,7 @@ public class StoreCreatedConsumer : IConsumer<StoreCreatedIntegrationEvent>
     {
         _logger.LogInformation("store created event received");
 
-        await _storeSnapshotRepository.AddAsync(new StoreSnapshot
+        await _storeSnapshotRepository.AddAsync(new StoreRef
         {
             OwnerId = context.Message.OwnerId,
             StoreName = context.Message.StoreName,
