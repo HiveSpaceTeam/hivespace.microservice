@@ -12,53 +12,8 @@ namespace HiveSpace.Core.Filters
         public void OnException(ExceptionContext context)
         {
             context.ExceptionHandled = true;
-            var errorResponse = new ExceptionModel
-            {
-                Errors = [],
-                Status = "500",
-                Timestamp = DateTimeOffset.Now,
-                TraceId = Guid.NewGuid().ToString(),
-                Version = "1.0"
-            };
-
-            if (context.Exception is HiveSpaceException exception) 
-            {
-                var errorList = new List<ErrorCodeDto>();
-                foreach (Error error in exception.ErrorCodeList)
-                {
-                    var errorDto = new ErrorCodeDto(
-                        error.ErrorCode.Code,
-                        error.ErrorCode.Name,
-                        StringHelper.ToCamelCase(error.Source)
-                    );
-                    errorList.Add(errorDto);
-                }
-                errorResponse.Errors = [.. errorList];
-                errorResponse.Status = exception.HttpCode.ToString();
-            }
-            else if (context.Exception is DomainException domainException)
-            {
-                var errorCode = domainException.ErrorCode;
-                var errorDto = new ErrorCodeDto(
-                    domainException.ErrorCode.Code,
-                    domainException.ErrorCode.Name,
-                    StringHelper.ToCamelCase(domainException.Source)
-                );
-                errorResponse.Errors = [errorDto];
-                errorResponse.Status = domainException.HttpCode.ToString();
-            }
-            else
-            {
-                var error = new ErrorCodeDto(
-                    "000000",
-                    "ServerError",
-                    null
-                );
-#if DEBUG
-                error = error with { MessageCode = context.Exception.Message };
-#endif
-                errorResponse.Errors = [error];
-            }
+            
+            var errorResponse = ExceptionResponseFactory.CreateResponse(context.Exception);
 
             context.Result = new ObjectResult(errorResponse)
             {

@@ -1,0 +1,33 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environmentName": {
+      "value": "dev"
+    },
+    "functionAppName": {
+      "value": "func-hivespace-media-svc-dev"
+    },
+    "storageAccountName": {
+      "value": "sthivespacedev"
+    },
+    "appServicePlanName": {
+      "value": "ASP-rghivespacedev-a3ca"
+    },
+    "managedIdentityName": {
+      "value": "func-hivespace-media-svc-dev-uami"
+    },
+    "tempContainerName": {
+      "value": "temp-media-upload"
+    },
+    "publicContainerName": {
+      "value": "public-assets"
+    },
+    "queueName": {
+      "value": "image-processing-queue"
+    },
+    "appInsightsName": {
+      "value": "appi-hivespace-dev"
+    }
+  }
+}
