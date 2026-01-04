@@ -133,14 +133,53 @@ jobs:
             echo "Resource Group: ${{ vars.AZURE_RESOURCE_GROUP }}"
 
             az deployment group create \
+              --name media-service \
               --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
               --template-file infra/media-service.bicep \
               --parameters @infra/parameters/media-service-dev.json \
               --parameters functionAppName="$FUNCTION_APP_NAME" \
               --parameters mediaDbConnectionString="${{ secrets.MEDIA_DB_CONNECTION_STRING }}"
 
-      - name: Deploy to Azure Functions
-        uses: Azure/functions-action@v1
+      - name: Deploy to Azure Functions (Blob Config)
+        uses: azure/cli@v2
         with:
-          app-name: ${{ vars.AZURE_FUNCTION_APP_MEDIA_SERVICE_NAME }}
-          package: ./publish
+          inlineScript: |
+            echo "Retrieving Bicep Outputs..."
+            # Note: We need to parse outputs from the previous step if possible, 
+            # OR we can just re-derive the names since we know the inputs.
+            # However, since we are in the same job, let's just grab them from the deployment command result provided we captured it? 
+            # Actually, standard 'az deployment group create' outputs JSON.
+
+            # Let's run the deployment AND capture outputs in one go, or run a command to get outputs.
+            # Simpler: We know the Resource Group and Function App Name.
+            # We can query the App Service to find its storage configuration? Too complex.
+            # Let's rely on standard naming conventions OR query the deployment we just ran.
+
+            DEPLOYMENT_NAME="media-service" # Name used in the Azure Portal for the deployment
+
+            echo "Getting outputs from deployment '$DEPLOYMENT_NAME'..."
+            outputs=$(az deployment group show --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} --name $DEPLOYMENT_NAME --query properties.outputs)
+
+            STORAGE_ACCOUNT_NAME=$(echo $outputs | jq -r .storageAccountName.value)
+            CONTAINER_NAME=$(echo $outputs | jq -r .deploymentContainerName.value)
+            FUNCTION_APP_NAME=$(echo $outputs | jq -r .functionAppName.value)
+
+            echo "Storage Account: $STORAGE_ACCOUNT_NAME"
+            echo "Container: $CONTAINER_NAME"
+            echo "Function App: $FUNCTION_APP_NAME"
+
+            echo "Uploading application files to Blob Storage..."
+            # Authenticate via Account Key (easiest since SP has Contributor on RG)
+            ACCOUNT_KEY=$(az storage account keys list --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} --account-name $STORAGE_ACCOUNT_NAME --query "[0].value" -o tsv)
+
+            az storage blob upload-batch \
+              --account-name $STORAGE_ACCOUNT_NAME \
+              --account-key $ACCOUNT_KEY \
+              --destination $CONTAINER_NAME \
+              --source ./publish \
+              --overwrite
+              
+            echo "Restarting Function App to pick up new files..."
+            az functionapp restart --name $FUNCTION_APP_NAME --resource-group ${{ vars.AZURE_RESOURCE_GROUP }}
+
+            echo "✅ Deployment Complete"

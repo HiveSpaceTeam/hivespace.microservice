@@ -200,3 +200,9 @@ output functionAppName string = functionApp.name
 
 @description('The resource ID of the User Assigned Identity')
 output managedIdentityId string = managedIdentity.id
+
+@description('The name of the storage account')
+output storageAccountName string = storageAccount.name
+
+@description('The name of the deployment container')
+output deploymentContainerName string = deploymentContainer.name
