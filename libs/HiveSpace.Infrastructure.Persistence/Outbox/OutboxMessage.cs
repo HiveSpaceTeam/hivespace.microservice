@@ -19,8 +19,8 @@ public class OutboxMessage : IAuditable
 
     public OutboxMessage(IntegrationEvent @event, Guid transactionId)
     {
-        EventId = @event.Id;
-        EventCreationTime = @event.CreationDate.DateTime;
+        EventId = @event.EventId;
+        EventCreationTime = @event.OccurredOn;
         EventTypeName = @event.GetType().FullName ?? string.Empty;
         Content = JsonSerializer.Serialize(@event, @event.GetType(), s_indentedOptions);
         State = EventStateEnum.NotPublished;

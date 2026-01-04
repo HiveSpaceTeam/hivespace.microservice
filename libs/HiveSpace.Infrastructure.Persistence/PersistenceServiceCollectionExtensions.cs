@@ -57,7 +57,7 @@ public static class PersistenceServiceCollectionExtensions
         // Register all interceptors from the current assembly
         services.AddScoped<ISaveChangesInterceptor, AuditableInterceptor>();
         services.AddScoped<ISaveChangesInterceptor, SoftDeleteInterceptor>();
-        services.AddScoped<ISaveChangesInterceptor, DomainEventToOutboxInterceptor>();
+        //services.AddScoped<ISaveChangesInterceptor, DomainEventToOutboxInterceptor>();
         services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventInterceptor>();
 
         return services;

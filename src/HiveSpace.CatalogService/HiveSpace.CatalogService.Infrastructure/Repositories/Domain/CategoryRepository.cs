@@ -1,9 +1,9 @@
 using HiveSpace.CatalogService.Domain.Aggregates.CategoryAggregate;
+using HiveSpace.CatalogService.Domain.Repositories.Domain;
 using HiveSpace.CatalogService.Infrastructure.Data;
-using HiveSpace.CatalogService.Application.Interfaces.Repositories;
 using Microsoft.EntityFrameworkCore;
 
-namespace HiveSpace.CatalogService.Infrastructure.Repositories
+namespace HiveSpace.CatalogService.Infrastructure.Repositories.Domain
 {
     public class CategoryRepository : ICategoryRepository
     {

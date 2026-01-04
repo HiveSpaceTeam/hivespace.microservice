@@ -15,6 +15,8 @@ using HiveSpace.Core.Exceptions;
 using HiveSpace.Core.Exceptions.Models;
 using HiveSpace.UserService.Application.Interfaces.Services;
 using HiveSpace.UserService.Infrastructure.Services;
+using HiveSpace.UserService.Application.Interfaces.Messaging;
+using HiveSpace.UserService.Infrastructure.Messaging.Publishers;
 
 namespace HiveSpace.UserService.Infrastructure;
 
@@ -39,13 +41,18 @@ public static class UserInfrastructureExtension
         services.AddPersistenceInfrastructure<UserDbContext>();
 
         // Add specific outbox repository for UserDbContext (for background services)
-        services.AddOutboxServices<UserDbContext>();
+        //services.AddOutboxServices<UserDbContext>();
+
+        services.AddAppInterceptors();
 
         // Register UserService repositories
         services.AddUserServiceRepositories();
 
         // Register Infrastructure services
         services.AddInfrastructureServices();
+
+        // Register Event Publisher services
+        services.AddEventPublisherServices();
 
         // Register UserService queries with connection string
         services.AddUserServiceQueries(connectionString);
@@ -78,6 +85,11 @@ public static class UserInfrastructureExtension
         // Register Infrastructure services here
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<IAccountService, AccountService>();
+    }
+
+    public static void AddEventPublisherServices(this IServiceCollection services)
+    {
+        services.AddScoped<IStoreEventPublisher, StoreEventPublisher>();
     }
 
     public static void AddUserServiceQueries(this IServiceCollection services, string connectionString)

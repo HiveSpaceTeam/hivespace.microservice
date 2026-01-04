@@ -1,16 +1,17 @@
-using System.Globalization;
-using System.Text;
 using Duende.IdentityServer.Licensing;
 using HiveSpace.UserService.Api.Extensions;
 using HiveSpace.UserService.Infrastructure;
 using Microsoft.AspNetCore.HttpOverrides;
 using Serilog;
+using System.Globalization;
+using System.Text;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console(formatProvider: CultureInfo.InvariantCulture)
     .CreateBootstrapLogger();
 
 Log.Information("Starting up");
+
 
 try
 {
