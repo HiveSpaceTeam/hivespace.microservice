@@ -167,16 +167,6 @@ resource functionApp 'Microsoft.Web/sites@2024-11-01' = {
       ]
     }
     functionAppConfig: {
-      deployment: {
-        storage: {
-          type: 'blobContainer'
-          value: '${storageAccount.properties.primaryEndpoints.blob}${deploymentContainer.name}'
-          authentication: {
-            type: 'UserAssignedIdentity'
-            userAssignedIdentityResourceId: managedIdentity.id
-          }
-        }
-      }
       runtime: {
         name: 'dotnet-isolated'
         version: '8.0'
