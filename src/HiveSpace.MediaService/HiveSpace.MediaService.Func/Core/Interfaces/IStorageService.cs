@@ -1,11 +1,10 @@
-using Azure.Storage.Sas;
-using Azure.Storage.Blobs.Models;
+using HiveSpace.MediaService.Func.Core.Enums;
 
 namespace HiveSpace.MediaService.Func.Core.Interfaces;
 
 public interface IStorageService
 {
-    Uri GenerateSasToken(string containerName, string blobName, BlobSasPermissions permissions, int expiryMinutes);
+    Uri GeneratePresignedUrl(string containerName, string blobName, StoragePermissions permissions, int expiryMinutes);
     string GetContainerUrl(string containerName);
     Task<Stream> DownloadBlobAsync(string containerName, string blobName);
     Task UploadBlobAsync(string containerName, string blobName, Stream content, string contentType);

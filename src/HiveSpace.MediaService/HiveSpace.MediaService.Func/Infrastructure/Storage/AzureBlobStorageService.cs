@@ -1,14 +1,9 @@
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Sas;
-using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.MediaService.Func.Core.Interfaces;
+using HiveSpace.MediaService.Func.Core.Enums;
 using Microsoft.Extensions.Configuration;
-// Exceptions? Need to migrate them too or use Shared exceptions.
-// existing: HiveSpace.MediaService.Core.Exceptions. using HiveSpace.MediaService.Func.Core.Exceptions?
-// I'll stick to generic exceptions for now if custom ones are not crucial or migrate them later.
-// Existing code uses MediaDomainErrorCode.
-// I need `MediaDomainErrorCode` as well.
 
 namespace HiveSpace.MediaService.Func.Infrastructure.Storage;
 
@@ -29,23 +24,27 @@ public class AzureBlobStorageService : IStorageService
         }
 
         if (connectionString == null)
-            throw new Exception("StorageConfigurationMissing"); // Simplified for now
-        
+            throw new Exception("StorageConfigurationMissing");
         
         _blobServiceClient = new BlobServiceClient(connectionString);
         Console.WriteLine($"SUCCESS: AzureBlobStorageService initialized. Connection string len: {connectionString.Length}");
     }
 
-    public Uri GenerateSasToken(string containerName, string blobName, BlobSasPermissions permissions, int expiryMinutes)
+    public Uri GeneratePresignedUrl(string containerName, string blobName, StoragePermissions permissions, int expiryMinutes)
     {
         var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
-        containerClient.CreateIfNotExists(PublicAccessType.Blob);
         var blobClient = containerClient.GetBlobClient(blobName);
 
         if (!blobClient.CanGenerateSasUri)
         {
             throw new Exception("StorageConfigurationMissing");
         }
+
+        var sasPermissions = BlobSasPermissions.List; // Default or None
+        if (permissions.HasFlag(StoragePermissions.Read)) sasPermissions |= BlobSasPermissions.Read;
+        if (permissions.HasFlag(StoragePermissions.Write)) sasPermissions |= BlobSasPermissions.Write;
+        if (permissions.HasFlag(StoragePermissions.Delete)) sasPermissions |= BlobSasPermissions.Delete;
+        if (permissions.HasFlag(StoragePermissions.Create)) sasPermissions |= BlobSasPermissions.Create;
 
         var sasBuilder = new BlobSasBuilder
         {
@@ -54,7 +53,7 @@ public class AzureBlobStorageService : IStorageService
             Resource = "b",
             ExpiresOn = DateTimeOffset.UtcNow.AddMinutes(expiryMinutes)
         };
-        sasBuilder.SetPermissions(permissions);
+        sasBuilder.SetPermissions(sasPermissions);
 
         return blobClient.GenerateSasUri(sasBuilder);
     }
@@ -70,18 +69,19 @@ public class AzureBlobStorageService : IStorageService
         var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
         var blobClient = containerClient.GetBlobClient(blobName);
 
-        if (!await blobClient.ExistsAsync())
+        try
         {
-            throw new Exception("BlobNotFound");
+            return await blobClient.OpenReadAsync();
         }
-
-        return await blobClient.OpenReadAsync();
+        catch (Azure.RequestFailedException ex) when (ex.Status == 404)
+        {
+            throw new Exception("BlobNotFound", ex);
+        }
     }
 
     public async Task UploadBlobAsync(string containerName, string blobName, Stream content, string contentType)
     {
         var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
-        await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
         var blobClient = containerClient.GetBlobClient(blobName);
 
         var blobHeaders = new BlobHttpHeaders 
@@ -100,7 +100,15 @@ public class AzureBlobStorageService : IStorageService
     {
         var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
         var blobClient = containerClient.GetBlobClient(blobName);
-        await blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots);
+        
+        try
+        {
+            await blobClient.DeleteAsync(DeleteSnapshotsOption.IncludeSnapshots);
+        }
+        catch (Azure.RequestFailedException ex) when (ex.Status == 404)
+        {
+            // Ignore if blob not found
+        }
     }
     public async Task ConfigureCorsAsync(string[] allowedOrigins, CancellationToken cancellationToken)
     {

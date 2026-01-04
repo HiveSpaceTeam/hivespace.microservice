@@ -1,4 +1,4 @@
-using Azure.Storage.Sas;
+using HiveSpace.MediaService.Func.Core.Enums;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.MediaService.Func.Core.Contracts;
 using HiveSpace.MediaService.Func.Core.DomainModels;
@@ -42,10 +42,10 @@ public class MediaService : IMediaService
         var expiryMinutes = 10; 
         
         // 2. Generate SAS Token
-        var sasUri = _storageService.GenerateSasToken(
+        var sasUri = _storageService.GeneratePresignedUrl(
             containerName, 
             storagePath, 
-            BlobSasPermissions.Write | BlobSasPermissions.Create, 
+            StoragePermissions.Write | StoragePermissions.Create, 
             expiryMinutes
         ).ToString();
             

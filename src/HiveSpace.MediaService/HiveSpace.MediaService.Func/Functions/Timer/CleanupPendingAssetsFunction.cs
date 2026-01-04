@@ -17,81 +17,99 @@ public class CleanupPendingAssetsFunction(
     private string TempContainerName => configuration["AzureStorage:TempContainer"] ?? "temp-media-upload";
 
     [Function(nameof(CleanupPendingAssetsFunction))]
-    public async Task Run([TimerTrigger("0 0 * * * *")] TimerInfo timerInfo) // Run every hour
+    public async Task Run([TimerTrigger("0 0 0 * * *")] TimerInfo timerInfo) // Run daily at midnight UTC
     {
         logger.LogInformation("Cleanup pending assets function executed at: {RunTime}", DateTime.Now);
 
         var cutoffTime = DateTimeOffset.UtcNow.AddHours(-24);
+        const int batchSize = 100; // Process in batches to avoid memory issues
+        int totalProcessed = 0;
+        int totalErrors = 0;
 
         try
         {
-            var pendingAssets = await dbContext.MediaAssets
-                .Where(x => x.Status == MediaStatus.Pending && x.CreatedAt < cutoffTime)
-                .ToListAsync();
+            // Process in batches using pagination
+            bool hasMore = true;
+            
+            while (hasMore)
+            {
+                var pendingAssets = await dbContext.MediaAssets
+                    .Where(x => x.Status == MediaStatus.Pending && x.CreatedAt < cutoffTime)
+                    .Take(batchSize)
+                    .ToListAsync();
 
-            if (pendingAssets.Count == 0)
+                if (pendingAssets.Count == 0)
+                {
+                    hasMore = false;
+                    break;
+                }
+
+                logger.LogInformation("Processing batch of {Count} expired pending assets...", pendingAssets.Count);
+
+                // Batch delete from blob storage
+                var blobDeleteTasks = pendingAssets
+                    .Where(asset => !string.IsNullOrEmpty(asset.StoragePath))
+                    .Select(asset => DeleteBlobSafelyAsync(asset));
+
+                var deleteResults = await Task.WhenAll(blobDeleteTasks);
+
+                // Remove successfully deleted assets from database
+                var successfulDeletes = pendingAssets
+                    .Where((asset, index) => 
+                        string.IsNullOrEmpty(asset.StoragePath) || 
+                        deleteResults[pendingAssets.IndexOf(asset)])
+                    .ToList();
+
+                if (successfulDeletes.Any())
+                {
+                    dbContext.MediaAssets.RemoveRange(successfulDeletes);
+                    await dbContext.SaveChangesAsync();
+                    totalProcessed += successfulDeletes.Count;
+                }
+
+                totalErrors += pendingAssets.Count - successfulDeletes.Count;
+
+                // If we got less than batch size, we're done
+                if (pendingAssets.Count < batchSize)
+                {
+                    hasMore = false;
+                }
+            }
+
+            if (totalProcessed == 0)
             {
                 logger.LogInformation("No expired pending assets found.");
-                return;
             }
-
-            logger.LogInformation("Found {Count} expired pending assets. Starting cleanup...", pendingAssets.Count);
-            
-            int errorCount = 0;
-
-            foreach (var asset in pendingAssets)
+            else
             {
-                try
-                {
-                    // 1. Delete from Blob Storage
-                    // StoragePath should contain the blob name/path inside the container
-                    if (!string.IsNullOrEmpty(asset.StoragePath))
-                    {
-                        try 
-                        {
-                            await storageService.DeleteBlobAsync(TempContainerName, asset.StoragePath);
-                            logger.LogInformation("Deleted blob: {StoragePath} from container: {ContainerName}", asset.StoragePath, TempContainerName);
-                        }
-                        catch 
-                        {
-                            // If delete fails (e.g. network), we rethrow to skip DB deletion for this item.
-                            throw;
-                        }
-                    }
-
-                    // 2. Remove from Database and Save per item
-                    dbContext.MediaAssets.Remove(asset);
-                    await dbContext.SaveChangesAsync();
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Error cleaning up asset {AssetId} (StoragePath: {StoragePath})", asset.Id, asset.StoragePath);
-                    errorCount++;
-
-                    try 
-                    {
-                        var entry = dbContext.Entry(asset);
-                        if (entry.State == EntityState.Deleted)
-                        {
-                            // Revert to Unchanged so it is not processed in future SaveChanges calls in this loop
-                            entry.State = EntityState.Unchanged;
-                        }
-                    }
-                    catch (Exception stateEx)
-                    {
-                        logger.LogError(stateEx, "Failed to reset entity state for asset {AssetId}", asset.Id);
-                    }
-                }
-            }
-
-            if (errorCount > 0)
-            {
-                logger.LogWarning("{ErrorCount} assets failed to process during cleanup.", errorCount);
+                logger.LogInformation(
+                    "Cleanup completed. Processed: {Processed}, Errors: {Errors}", 
+                    totalProcessed, 
+                    totalErrors);
             }
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Critical error during cleanup function execution.");
+        }
+    }
+
+    private async Task<bool> DeleteBlobSafelyAsync(MediaAsset asset)
+    {
+        try
+        {
+            await storageService.DeleteBlobAsync(TempContainerName, asset.StoragePath);
+            logger.LogDebug("Deleted blob: {StoragePath}", asset.StoragePath);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(
+                ex, 
+                "Failed to delete blob for asset {AssetId} (StoragePath: {StoragePath})", 
+                asset.Id, 
+                asset.StoragePath);
+            return false;
         }
     }
 }

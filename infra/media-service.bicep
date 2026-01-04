@@ -44,6 +44,22 @@ resource deploymentContainer 'Microsoft.Storage/storageAccounts/blobServices/con
   name: 'app-package-${functionAppName}'
 }
 
+resource tempContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-01-01' = {
+  parent: blobService
+  name: tempContainerName
+  properties: {
+    publicAccess: 'Blob'
+  }
+}
+
+resource publicContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-01-01' = {
+  parent: blobService
+  name: publicContainerName
+  properties: {
+    publicAccess: 'Blob'
+  }
+}
+
 resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
   name: managedIdentityName
   location: location

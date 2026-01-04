@@ -24,7 +24,7 @@ public class ImageProcessingFunction(
     private string TempContainerName => configuration["AzureStorage:TempContainer"] ?? "temp-media-upload";
 
     [Function(nameof(ImageProcessingFunction))]
-    public async Task Run([QueueTrigger(QueueName, Connection = "AzureWebJobsStorage")] string message)
+    public async Task Run([QueueTrigger(QueueName, Connection = "AzureStorage:ConnectionString")] string message)
     {
         logger.LogInformation("Processing queue message: {Message}", message);
 
