@@ -1,13 +1,10 @@
-using HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate;
-using HiveSpace.CatalogService.Domain.Aggregates.CategoryAggregate;
 using HiveSpace.CatalogService.Domain.Aggregates.AttributeAggregate;
-using HiveSpace.CatalogService.Infrastructure.Data.Configurations;
-using HiveSpace.Infrastructure.Persistence;
-using HiveSpace.Infrastructure.Persistence.Idempotence;
-using HiveSpace.Infrastructure.Persistence.Outbox;
-using Microsoft.EntityFrameworkCore;
-using MassTransit;
+using HiveSpace.CatalogService.Domain.Aggregates.CategoryAggregate;
 using HiveSpace.CatalogService.Domain.Aggregates.External;
+using HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate;
+using HiveSpace.CatalogService.Infrastructure.Data.Configurations;
+using HiveSpace.Infrastructure.Messaging.Extensions;
+using Microsoft.EntityFrameworkCore;
 
 namespace HiveSpace.CatalogService.Infrastructure.Data
 {
@@ -41,9 +38,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Data
 
             modelBuilder.ApplyConfiguration(new StoreSnapshotValueConfiguration());
 
-            modelBuilder.AddInboxStateEntity();
-            modelBuilder.AddOutboxMessageEntity();
-            modelBuilder.AddOutboxStateEntity();
+            MassTransitExtensions.AddEntityOutBox(modelBuilder);
         }
     }
 }

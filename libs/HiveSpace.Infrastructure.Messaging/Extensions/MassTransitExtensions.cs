@@ -1,6 +1,8 @@
 using HiveSpace.Infrastructure.Messaging.Abstractions;
 using HiveSpace.Infrastructure.Messaging.Configurations;
 using HiveSpace.Infrastructure.Messaging.Services;
+using MassTransit;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -22,6 +24,17 @@ public static class MassTransitExtensions
         services.TryAddScoped<IEventPublisher>(sp => (IEventPublisher)sp.GetRequiredService<IMessageBus>());
 
         return services;
+    }
+
+    /// <summary>
+    /// Configures the Entity Framework entities required for the Outbox and Inbox patterns.
+    /// </summary>
+    /// <param name="modelBuilder"></param>
+    public static void AddEntityOutBox(this ModelBuilder modelBuilder)
+    {
+        modelBuilder.AddInboxStateEntity();
+        modelBuilder.AddOutboxMessageEntity();
+        modelBuilder.AddOutboxStateEntity();
     }
 }
 
