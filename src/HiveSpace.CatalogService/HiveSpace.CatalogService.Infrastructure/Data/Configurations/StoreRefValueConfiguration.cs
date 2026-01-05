@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace HiveSpace.CatalogService.Infrastructure.Data.Configurations
 {
-    public class StoreSnapshotValueConfiguration : IEntityTypeConfiguration<StoreRef>
+    public class StoreRefValueConfiguration : IEntityTypeConfiguration<StoreRef>
     {
         public void Configure(EntityTypeBuilder<StoreRef> entity)
         {
-            entity.ToTable("StoreSnapshots");
+            entity.ToTable("StoreRefs");
             entity.HasKey(av => av.Id);
         }
     }

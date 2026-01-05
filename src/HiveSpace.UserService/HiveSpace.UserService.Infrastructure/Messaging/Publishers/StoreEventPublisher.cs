@@ -16,7 +16,7 @@ public class StoreEventPublisher : IStoreEventPublisher
 
     public Task PublishStoreCreatedAsync(Store store, CancellationToken cancellationToken = default)
     {
-        var evt = new StoreCreatedIntegrationEvent(store.OwnerId, store.StoreName, store.Description, store.LogoUrl, store.Address);
+        var evt = new StoreCreatedIntegrationEvent(store.Id, store.OwnerId, store.StoreName, store.Description, store.LogoUrl, store.Address);
         return _eventPublisher.PublishAsync(evt, cancellationToken);
     }
 

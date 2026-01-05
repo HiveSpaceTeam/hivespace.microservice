@@ -40,7 +40,7 @@ namespace HiveSpace.CatalogService.Infrastructure
             services.AddScoped<ICategoryDataQuery, CategoryDataQuery>();
 
 
-            services.AddScoped<IStoreSnapshotRepository, StoreSnapshotRepository>();
+            services.AddScoped<IStoreRefRepository, StoreRefRepository>();
         }
 
     }

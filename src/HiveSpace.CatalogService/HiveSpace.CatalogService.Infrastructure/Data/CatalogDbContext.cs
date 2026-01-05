@@ -22,7 +22,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Data
         #endregion
 
         #region ReadModels
-        public DbSet<StoreRef> StoreSnapshots { get; set; }
+        public DbSet<StoreRef> StoreRef { get; set; }
         #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -36,7 +36,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new ProductVariantConfiguration());
             modelBuilder.ApplyConfiguration(new AttributeValueConfiguration());
 
-            modelBuilder.ApplyConfiguration(new StoreSnapshotValueConfiguration());
+            modelBuilder.ApplyConfiguration(new StoreRefValueConfiguration());
 
             MassTransitExtensions.AddEntityOutBox(modelBuilder);
         }
