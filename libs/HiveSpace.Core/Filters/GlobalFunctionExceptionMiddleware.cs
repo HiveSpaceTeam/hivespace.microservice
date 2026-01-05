@@ -32,6 +32,11 @@ public class GlobalFunctionExceptionMiddleware(ILogger<GlobalFunctionExceptionMi
                 
                 context.GetInvocationResult().Value = response;
             }
+            else
+            {
+                // Re-throw for non-HTTP triggers to preserve retry/dead-letter behavior
+                throw;
+            }
         }
     }
 }
