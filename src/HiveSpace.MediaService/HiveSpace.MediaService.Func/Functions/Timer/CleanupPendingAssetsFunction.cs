@@ -47,20 +47,24 @@ public class CleanupPendingAssetsFunction(
                 logger.LogInformation("Processing batch of {Count} expired pending assets...", pendingAssets.Count);
 
                 // Batch delete from blob storage
-                var blobDeleteTasks = pendingAssets
+                var assetsWithStorage = pendingAssets
                     .Where(asset => !string.IsNullOrEmpty(asset.StoragePath))
-                    .Select(asset => DeleteBlobSafelyAsync(asset));
+                    .ToList();
 
-                var deleteResults = await Task.WhenAll(blobDeleteTasks);
+                var deleteTasks = assetsWithStorage
+                    .Select(async asset => new { Asset = asset, Success = await DeleteBlobSafelyAsync(asset) });
+                
+                var deleteResults = await Task.WhenAll(deleteTasks);
+                var deleteResultsDict = deleteResults.ToDictionary(r => r.Asset.Id, r => r.Success);
 
                 // Remove successfully deleted assets from database
                 var successfulDeletes = pendingAssets
-                    .Where((asset, index) => 
+                    .Where(asset => 
                         string.IsNullOrEmpty(asset.StoragePath) || 
-                        deleteResults[pendingAssets.IndexOf(asset)])
+                        (deleteResultsDict.TryGetValue(asset.Id, out var success) && success))
                     .ToList();
 
-                if (successfulDeletes.Any())
+                if (successfulDeletes.Count > 0)
                 {
                     dbContext.MediaAssets.RemoveRange(successfulDeletes);
                     await dbContext.SaveChangesAsync();

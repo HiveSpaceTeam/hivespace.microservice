@@ -60,7 +60,7 @@
     <PackageVersion Include="Yarp.ReverseProxy" Version="2.3.0" />
     <!-- Azure Functions -->
     <PackageVersion Include="Microsoft.Azure.Functions.Worker" Version="1.21.0" />
-    <PackageVersion Include="Microsoft.Azure.Functions.Worker.Core" Version="1.21.0" />
+    <PackageVersion Include="Microsoft.Azure.Functions.Worker.Core" Version="2.51.0" />
     <PackageVersion Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.17.2" />
     <PackageVersion Include="Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues" Version="5.3.0" />
     <PackageVersion Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.3.0" />

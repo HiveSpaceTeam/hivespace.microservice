@@ -5,6 +5,9 @@ using HiveSpace.MediaService.Func.Core.Interfaces;
 using HiveSpace.MediaService.Func.Core.Enums;
 using Microsoft.Extensions.Configuration;
 
+using HiveSpace.Domain.Shared.Exceptions;
+using HiveSpace.MediaService.Func.Core.Exceptions;
+
 namespace HiveSpace.MediaService.Func.Infrastructure.Storage;
 
 public class AzureBlobStorageService : IStorageService
@@ -40,11 +43,12 @@ public class AzureBlobStorageService : IStorageService
             throw new Exception("StorageConfigurationMissing");
         }
 
-        var sasPermissions = BlobSasPermissions.List; // Default or None
+        BlobSasPermissions sasPermissions = 0;
         if (permissions.HasFlag(StoragePermissions.Read)) sasPermissions |= BlobSasPermissions.Read;
         if (permissions.HasFlag(StoragePermissions.Write)) sasPermissions |= BlobSasPermissions.Write;
         if (permissions.HasFlag(StoragePermissions.Delete)) sasPermissions |= BlobSasPermissions.Delete;
         if (permissions.HasFlag(StoragePermissions.Create)) sasPermissions |= BlobSasPermissions.Create;
+        if (permissions.HasFlag(StoragePermissions.List)) sasPermissions |= BlobSasPermissions.List;
 
         var sasBuilder = new BlobSasBuilder
         {
@@ -75,7 +79,7 @@ public class AzureBlobStorageService : IStorageService
         }
         catch (Azure.RequestFailedException ex) when (ex.Status == 404)
         {
-            throw new Exception("BlobNotFound", ex);
+            throw new NotFoundException(MediaDomainErrorCode.MediaNotFound, nameof(blobName));
         }
     }
 
