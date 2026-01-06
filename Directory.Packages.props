@@ -33,6 +33,7 @@
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
+	<PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
     <!-- Microsoft Data packages -->
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="6.0.2" />
     <!-- Duende IdentityServer packages -->
