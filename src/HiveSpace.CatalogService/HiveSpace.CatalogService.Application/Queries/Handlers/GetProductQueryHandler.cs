@@ -1,7 +1,7 @@
 using HiveSpace.Application.Shared.Handlers;
 using HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate;
 using HiveSpace.CatalogService.Domain.Exceptions;
-using HiveSpace.CatalogService.Domain.Repositories.Domain;
+using HiveSpace.CatalogService.Domain.Repositories;
 using HiveSpace.Domain.Shared.Exceptions;
 
 namespace HiveSpace.CatalogService.Application.Queries.Handlers;

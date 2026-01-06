@@ -1,6 +1,6 @@
 using HiveSpace.Application.Shared.Handlers;
 using HiveSpace.CatalogService.Application.Models.Dtos.Crud;
-using HiveSpace.CatalogService.Domain.Repositories.Domain;
+using HiveSpace.CatalogService.Domain.Repositories;
 
 namespace HiveSpace.CatalogService.Application.Queries.Handlers;
 

@@ -2,7 +2,7 @@ using HiveSpace.CatalogService.Domain.Aggregates.External;
 using HiveSpace.CatalogService.Domain.Repositories.External;
 using HiveSpace.CatalogService.Infrastructure.Data;
 
-namespace HiveSpace.CatalogService.Infrastructure.Repositories.Domain
+namespace HiveSpace.CatalogService.Infrastructure.Repositories.Externals
 {
     public class StoreRefRepository : IStoreRefRepository
     {

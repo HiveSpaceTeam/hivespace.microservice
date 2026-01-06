@@ -2,7 +2,7 @@ using HiveSpace.Application.Shared.Handlers;
 using HiveSpace.CatalogService.Application.Helpers;
 using HiveSpace.CatalogService.Application.Models.Requests;
 using HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate;
-using HiveSpace.CatalogService.Domain.Repositories.Domain;
+using HiveSpace.CatalogService.Domain.Repositories;
 using HiveSpace.Core.Contexts;
 using HiveSpace.Infrastructure.Persistence.Transaction;
 
