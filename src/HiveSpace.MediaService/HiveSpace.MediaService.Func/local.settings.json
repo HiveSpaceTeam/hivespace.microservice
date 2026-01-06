@@ -1,0 +1,12 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+    "AzureStorage:ConnectionString": "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=",
+    "AzureStorage:TempContainer": "temp-media-upload",
+    "AzureStorage:PublicContainer": "public-assets",
+    "AzureStorage:QueueName": "image-processing-queue",
+    "Database:MediaServiceDb": "Server=localhost,1433;Database=MediaDb;User Id=sa;Encrypt=False;TrustServerCertificate=True"
+  }
+}

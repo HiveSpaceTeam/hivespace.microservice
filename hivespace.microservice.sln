@@ -23,8 +23,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.Application.Share
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.Infrastructure.Authorization", "libs\HiveSpace.Infrastructure.Authorization\HiveSpace.Infrastructure.Authorization.csproj", "{F2B8C9A1-3D4E-4F5A-8B7C-1E9F0D2A5C3B}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{3538206F-AE28-4881-AF2F-492BCED295A9}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "HiveSpace.UserService", "HiveSpace.UserService", "{C6D12F93-D17B-4166-AD38-093ECCB27DC8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.UserService.Domain", "src\HiveSpace.UserService\HiveSpace.UserService.Domain\HiveSpace.UserService.Domain.csproj", "{C172BC1D-CA86-4940-B274-58919BC27A3F}"
@@ -45,13 +43,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.CatalogService.Do
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.CatalogService.Infrastructure", "src\HiveSpace.CatalogService\HiveSpace.CatalogService.Infrastructure\HiveSpace.CatalogService.Infrastructure.csproj", "{9EB41060-B453-4816-AD32-5D3040CCF4A6}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "HiveSpace.MedieService", "HiveSpace.MedieService", "{EE818222-7D45-30D7-4A47-18D467CC099A}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "HiveSpace.MediaService", "HiveSpace.MediaService", "{EE818222-7D45-30D7-4A47-18D467CC099A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.MedieService.Api", "src\HiveSpace.MedieService\HiveSpace.MedieService.Api\HiveSpace.MedieService.Api.csproj", "{1D402DFF-449B-4E4A-B3DB-F3CB9456DED6}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.MedieService.Core", "src\HiveSpace.MedieService\HiveSpace.MedieService.Core\HiveSpace.MedieService.Core.csproj", "{B5B2FE00-2573-4760-8F3A-83F0FC619522}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.MedieService.Func", "src\HiveSpace.MedieService\HiveSpace.MedieService.Func\HiveSpace.MedieService.Func.csproj", "{10D27F4D-6958-4B7F-BED2-9F8B57E4D909}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.MediaService.Func", "src\HiveSpace.MediaService\HiveSpace.MediaService.Func\HiveSpace.MediaService.Func.csproj", "{10D27F4D-6958-4B7F-BED2-9F8B57E4D909}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.Infrastructure.Messaging.Shared", "libs\HiveSpace.Infrastructure.Messaging.Shared\HiveSpace.Infrastructure.Messaging.Shared.csproj", "{8236F463-FD72-4401-8FCB-171C86EE3C1A}"
 EndProject
@@ -245,30 +239,6 @@ Global
 		{9EB41060-B453-4816-AD32-5D3040CCF4A6}.Release|x64.Build.0 = Release|Any CPU
 		{9EB41060-B453-4816-AD32-5D3040CCF4A6}.Release|x86.ActiveCfg = Release|Any CPU
 		{9EB41060-B453-4816-AD32-5D3040CCF4A6}.Release|x86.Build.0 = Release|Any CPU
-		{1D402DFF-449B-4E4A-B3DB-F3CB9456DED6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1D402DFF-449B-4E4A-B3DB-F3CB9456DED6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1D402DFF-449B-4E4A-B3DB-F3CB9456DED6}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{1D402DFF-449B-4E4A-B3DB-F3CB9456DED6}.Debug|x64.Build.0 = Debug|Any CPU
-		{1D402DFF-449B-4E4A-B3DB-F3CB9456DED6}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{1D402DFF-449B-4E4A-B3DB-F3CB9456DED6}.Debug|x86.Build.0 = Debug|Any CPU
-		{1D402DFF-449B-4E4A-B3DB-F3CB9456DED6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1D402DFF-449B-4E4A-B3DB-F3CB9456DED6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1D402DFF-449B-4E4A-B3DB-F3CB9456DED6}.Release|x64.ActiveCfg = Release|Any CPU
-		{1D402DFF-449B-4E4A-B3DB-F3CB9456DED6}.Release|x64.Build.0 = Release|Any CPU
-		{1D402DFF-449B-4E4A-B3DB-F3CB9456DED6}.Release|x86.ActiveCfg = Release|Any CPU
-		{1D402DFF-449B-4E4A-B3DB-F3CB9456DED6}.Release|x86.Build.0 = Release|Any CPU
-		{B5B2FE00-2573-4760-8F3A-83F0FC619522}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B5B2FE00-2573-4760-8F3A-83F0FC619522}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B5B2FE00-2573-4760-8F3A-83F0FC619522}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{B5B2FE00-2573-4760-8F3A-83F0FC619522}.Debug|x64.Build.0 = Debug|Any CPU
-		{B5B2FE00-2573-4760-8F3A-83F0FC619522}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{B5B2FE00-2573-4760-8F3A-83F0FC619522}.Debug|x86.Build.0 = Debug|Any CPU
-		{B5B2FE00-2573-4760-8F3A-83F0FC619522}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B5B2FE00-2573-4760-8F3A-83F0FC619522}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B5B2FE00-2573-4760-8F3A-83F0FC619522}.Release|x64.ActiveCfg = Release|Any CPU
-		{B5B2FE00-2573-4760-8F3A-83F0FC619522}.Release|x64.Build.0 = Release|Any CPU
-		{B5B2FE00-2573-4760-8F3A-83F0FC619522}.Release|x86.ActiveCfg = Release|Any CPU
-		{B5B2FE00-2573-4760-8F3A-83F0FC619522}.Release|x86.Build.0 = Release|Any CPU
 		{10D27F4D-6958-4B7F-BED2-9F8B57E4D909}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{10D27F4D-6958-4B7F-BED2-9F8B57E4D909}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{10D27F4D-6958-4B7F-BED2-9F8B57E4D909}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -317,8 +287,6 @@ Global
 		{572779C3-109A-44EA-8166-6513B3CDB63B} = {17EF53D8-2BD8-436D-928E-85A1108F6781}
 		{9EB41060-B453-4816-AD32-5D3040CCF4A6} = {17EF53D8-2BD8-436D-928E-85A1108F6781}
 		{EE818222-7D45-30D7-4A47-18D467CC099A} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
-		{1D402DFF-449B-4E4A-B3DB-F3CB9456DED6} = {EE818222-7D45-30D7-4A47-18D467CC099A}
-		{B5B2FE00-2573-4760-8F3A-83F0FC619522} = {EE818222-7D45-30D7-4A47-18D467CC099A}
 		{10D27F4D-6958-4B7F-BED2-9F8B57E4D909} = {EE818222-7D45-30D7-4A47-18D467CC099A}
 		{8236F463-FD72-4401-8FCB-171C86EE3C1A} = {8E604477-D2AC-48FD-A8EF-349D246FAC03}
 	EndGlobalSection

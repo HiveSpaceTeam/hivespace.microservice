@@ -985,3 +985,27 @@ public class PresignUrlEndpoint : CarterModule
 - **Validators**: Automatically registered via `builder.Services.AddValidatorsFromAssembly(...)` in `HostingExtensions.cs`.
 - **MediatR**: Automatically registered via `services.AddMediatR(...)` in `ServiceCollectionExtensions.cs`.
 - **Carter**: Automatically registered via `builder.Services.AddCarter()` and mapped via `app.MapCarter()`.
+
+## General Coding Rules
+
+1. **Primary Constructors**: Prefer using primary constructors for C# classes where applicable (C# 12+ feature).
+
+   ```csharp
+   // ✅ DO:
+   public class MyService(ILogger<MyService> logger, IRepository repository)
+   {
+       // ...
+   }
+
+   // ❌ DON'T:
+   public class MyService
+   {
+       private readonly ILogger<MyService> _logger;
+       public MyService(ILogger<MyService> logger)
+       {
+           _logger = logger;
+       }
+   }
+   ```
+
+2. **Cleanup**: Remove unnecessary files (e.g., log files, temporary artifacts, restore logs) immediately after use or generation. Do not clutter the workspace.

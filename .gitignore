@@ -38,6 +38,3 @@ docker
 *.crt
 *.pfx
 *.p12
-
-# Azure Functions
-**/local.settings.json

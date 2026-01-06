@@ -3,6 +3,7 @@
   "profiles": {
     "HiveSpace.MediaService.Func": {
       "commandName": "Project",
+      "commandLineArgs": "--port 5003",
       "dotnetRunMessages": true,
       "environmentVariables": {
         "DOTNET_ENVIRONMENT": "Development"

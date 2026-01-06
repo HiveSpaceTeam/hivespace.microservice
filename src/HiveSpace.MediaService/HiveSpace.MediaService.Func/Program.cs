@@ -3,19 +3,32 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using HiveSpace.MediaService.Core.Data;
-using HiveSpace.MediaService.Core.Interfaces;
-using HiveSpace.MediaService.Core.Services;
-using HiveSpace.Infrastructure.Persistence;
+using Microsoft.Extensions.Logging;
+using HiveSpace.MediaService.Func.Infrastructure.Data;
+using HiveSpace.MediaService.Func.Infrastructure.Storage;
+using HiveSpace.MediaService.Func.Core.Interfaces;
+using HiveSpace.MediaService.Func.Core.Services;
+using FluentValidation;
+using HiveSpace.MediaService.Func.Core.Validators;
+
+using HiveSpace.Core.Filters;
 
 var host = new HostBuilder()
-    .ConfigureFunctionsWorkerDefaults()
+    .ConfigureFunctionsWorkerDefaults(worker => 
+    {
+        worker.UseMiddleware<GlobalFunctionExceptionMiddleware>();
+    })
     .ConfigureAppConfiguration((context, config) =>
     {
         config.AddJsonFile("local.settings.json", optional: true, reloadOnChange: true);
     })
     .ConfigureServices((context, services) =>
     {
+        services.Configure<System.Text.Json.JsonSerializerOptions>(options =>
+        {
+            options.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        });
+
         var configuration = context.Configuration;
         var connectionString = configuration["Database:MediaServiceDb"];
 
@@ -23,14 +36,54 @@ var host = new HostBuilder()
         // Register Core Services
         services.AddScoped<IStorageService, AzureBlobStorageService>();
         services.AddScoped<IQueueService, AzureQueueService>();
+        services.AddScoped<IMediaService, MediaService>();
+
+        // Register Validators
+        services.AddValidatorsFromAssemblyContaining<PresignUrlRequestValidator>();
         
         // Register Database
         services.AddDbContext<MediaDbContext>((sp, options) =>
         {
-            options.UseSqlServer(connectionString);
+            options.UseSqlServer(connectionString, sqlOptions => sqlOptions
+                .EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(30),
+                    errorNumbersToAdd: null));
         });
 
     })
     .Build();
+
+// Apply pending migrations automatically
+using (var scope = host.Services.CreateScope())
+{
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    var context = scope.ServiceProvider.GetRequiredService<MediaDbContext>();
+    
+    try
+    {
+        // Check for pending migrations before applying them
+        var pendingMigrations = context.Database.GetPendingMigrations();
+        if (pendingMigrations.Any())
+        {
+            logger.LogInformation("Found {Count} pending migrations: {Migrations}", 
+                pendingMigrations.Count(), 
+                string.Join(", ", pendingMigrations));
+            
+            logger.LogInformation("Applying pending migrations...");
+            context.Database.Migrate();
+            logger.LogInformation("Migrations applied successfully");
+        }
+        else
+        {
+            logger.LogInformation("No pending migrations found. Database is up to date.");
+        }
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "An error occurred while migrating the database");
+        throw;
+    }
+}
 
 host.Run();
