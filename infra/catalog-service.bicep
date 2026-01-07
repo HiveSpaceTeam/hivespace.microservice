@@ -14,14 +14,6 @@ param dockerRegistryUrl string = 'https://acrhivespace.azurecr.io'
 @description('Docker Registry Image and Tag')
 param dockerImage string
 
-@description('Docker Registry Username')
-@secure()
-param dockerRegistryUsername string
-
-@description('Docker Registry Password')
-@secure()
-param dockerRegistryPassword string
-
 @description('Connection String for Catalog Db')
 @secure()
 param connectionStringCatalogDb string
@@ -41,6 +33,9 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
   name: webAppName
   location: location
   kind: 'app,linux'
+  identity: {
+    type: 'SystemAssigned'
+  }
   properties: {
     serverFarmId: appServicePlanId
     reserved: true
@@ -54,18 +49,11 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
       minTlsVersion: '1.2'
       scmMinTlsVersion: '1.2'
       ftpsState: 'FtpsOnly'
+      acrUseManagedIdentityCreds: true
       appSettings: [
         {
           name: 'DOCKER_REGISTRY_SERVER_URL'
           value: dockerRegistryUrl
-        }
-        {
-          name: 'DOCKER_REGISTRY_SERVER_USERNAME'
-          value: dockerRegistryUsername
-        }
-        {
-          name: 'DOCKER_REGISTRY_SERVER_PASSWORD'
-          value: dockerRegistryPassword
         }
         {
           name: 'WEBSITES_ENABLE_APP_SERVICE_STORAGE'

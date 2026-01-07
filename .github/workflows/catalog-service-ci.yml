@@ -222,8 +222,6 @@ jobs:
                 webAppName=${{ vars.AZURE_WEBAPP_CATALOG_SERVICE_NAME }} \
                 appServicePlanId="${{ vars.AZURE_APP_SERVICE_PLAN_ID }}" \
                 dockerRegistryUrl="https://${{ vars.AZURE_ACR_NAME }}.azurecr.io" \
-                dockerRegistryUsername=${{ secrets.ACR_USERNAME }} \
-                dockerRegistryPassword=${{ secrets.ACR_PASSWORD }} \
                 dockerImage="${{ needs.build.outputs.image }}" \
                 connectionStringCatalogDb="${{ secrets.CONNECTION_STRING_CATALOG_DB }}"
 
