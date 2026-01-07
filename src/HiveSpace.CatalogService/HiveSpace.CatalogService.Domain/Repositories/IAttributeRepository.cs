@@ -1,6 +1,6 @@
 using HiveSpace.CatalogService.Domain.Aggregates.AttributeAggregate;
 
-namespace HiveSpace.CatalogService.Application.Interfaces.Repositories
+namespace HiveSpace.CatalogService.Domain.Repositories
 {
     public interface IAttributeRepository
     {

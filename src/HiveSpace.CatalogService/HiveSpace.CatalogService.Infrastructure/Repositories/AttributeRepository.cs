@@ -1,6 +1,6 @@
 using HiveSpace.CatalogService.Domain.Aggregates.AttributeAggregate;
+using HiveSpace.CatalogService.Domain.Repositories;
 using HiveSpace.CatalogService.Infrastructure.Data;
-using HiveSpace.CatalogService.Application.Interfaces.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace HiveSpace.CatalogService.Infrastructure.Repositories
