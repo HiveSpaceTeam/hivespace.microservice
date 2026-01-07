@@ -60,6 +60,10 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
           value: 'false'
         }
         {
+          name: 'ASPNETCORE_ENVIRONMENT'
+          value: 'Development'
+        }
+        {
           name: 'ConnectionStrings__CatalogDb'
           value: connectionStringCatalogDb
         }
