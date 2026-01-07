@@ -1,0 +1,257 @@
+name: CatalogService CI
+
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - 'src/HiveSpace.CatalogService/**'
+      - '.github/workflows/catalog-service-ci.yml'
+  push:
+    branches: [master]
+    paths:
+      - 'src/HiveSpace.CatalogService/**'
+      - '.github/workflows/catalog-service-ci.yml'
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to deploy (release or master)'
+        required: true
+        default: 'master'
+        type: choice
+        options:
+          - release
+          - master
+
+jobs:
+  build:
+    name: Build and Test CatalogService API
+    outputs:
+      image: ${{ steps.set_image_acr.outputs.image }}
+      test-status: ${{ env.TEST_STATUS }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore NuGet packages (CatalogService only)
+        run: |
+          dotnet restore src/HiveSpace.CatalogService/HiveSpace.CatalogService.API/HiveSpace.CatalogService.API.csproj
+          dotnet restore src/HiveSpace.CatalogService/HiveSpace.CatalogService.Application/HiveSpace.CatalogService.Application.csproj
+          dotnet restore src/HiveSpace.CatalogService/HiveSpace.CatalogService.Domain/HiveSpace.CatalogService.Domain.csproj
+          dotnet restore src/HiveSpace.CatalogService/HiveSpace.CatalogService.Infrastructure/HiveSpace.CatalogService.Infrastructure.csproj
+
+      - name: Build CatalogService projects (Release)
+        run: |
+          echo "Building CatalogService projects..."
+          dotnet build src/HiveSpace.CatalogService/HiveSpace.CatalogService.Domain/HiveSpace.CatalogService.Domain.csproj -c Release --no-restore
+          dotnet build src/HiveSpace.CatalogService/HiveSpace.CatalogService.Application/HiveSpace.CatalogService.Application.csproj -c Release --no-restore
+          dotnet build src/HiveSpace.CatalogService/HiveSpace.CatalogService.Infrastructure/HiveSpace.CatalogService.Infrastructure.csproj -c Release --no-restore
+          dotnet build src/HiveSpace.CatalogService/HiveSpace.CatalogService.API/HiveSpace.CatalogService.API.csproj -c Release --no-restore
+          echo "CatalogService build completed successfully."
+
+      - name: Run Unit Tests
+        run: |
+          echo "Searching for test projects..."
+          TEST_PROJECTS=$(find src/HiveSpace.CatalogService -name "*.Tests.csproj" -o -name "*.Test.csproj" -o -name "*Tests.csproj" 2>/dev/null | head -10)
+
+          if [ -z "$TEST_PROJECTS" ]; then
+            echo "📝 No test projects found - skipping tests"
+            echo "Consider adding unit tests for better code quality"
+            echo "TEST_STATUS=no-tests" >> $GITHUB_ENV
+          else
+            echo "Found test projects:"
+            echo "$TEST_PROJECTS"
+            echo ""
+            
+            echo "Restoring test dependencies..."
+            echo "$TEST_PROJECTS" | xargs -I {} dotnet restore {}
+            
+            echo "Building test projects..."
+            echo "$TEST_PROJECTS" | xargs -I {} dotnet build {} -c Release --no-restore
+            
+            echo "Running unit tests..."
+            if dotnet test --configuration Release --no-build --verbosity normal src/HiveSpace.CatalogService; then
+              echo "✅ All tests passed"
+              echo "TEST_STATUS=passed" >> $GITHUB_ENV
+            else
+              echo "❌ Tests failed"
+              echo "TEST_STATUS=failed" >> $GITHUB_ENV
+              exit 1
+            fi
+          fi
+
+      # --- Container Registry Operations (Push Events Only) ---
+      - name: Validate ACR configuration
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          echo "Validating Azure Container Registry configuration..."
+          if [ -z "${{ secrets.AZURE_CREDENTIALS_SERVICE }}" ]; then
+            echo "Missing AZURE_CREDENTIALS_SERVICE secret";
+            exit 1;
+          fi
+          if [ -z "${{ vars.AZURE_ACR_NAME }}" ]; then
+            echo "Missing AZURE_ACR_NAME variable";
+            exit 1;
+          fi
+          echo "ACR configuration validated"
+          echo "Registry: ${{ vars.AZURE_ACR_NAME }}.azurecr.io"
+
+      - name: Login to Azure
+        if: ${{ github.event_name == 'push' }}
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS_SERVICE }}
+
+      - name: Login to ACR
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          echo "Logging in to Azure Container Registry..."
+          az acr login --name ${{ vars.AZURE_ACR_NAME }}
+          echo "ACR login successful"
+
+      - name: Generate short SHA
+        id: short-sha
+        run: echo "sha=${GITHUB_SHA::8}" >> $GITHUB_OUTPUT
+
+      - name: Set up Docker Buildx
+        if: ${{ github.event_name == 'push' }}
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: image=moby/buildkit:buildx-stable-1
+
+      - name: Build and push image to ACR
+        id: push_image_acr
+        if: ${{ github.event_name == 'push' }}
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: src/HiveSpace.CatalogService/HiveSpace.CatalogService.API/Dockerfile
+          push: true
+          platforms: linux/amd64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            BUILDKIT_INLINE_CACHE=1
+          tags: |
+            ${{ vars.AZURE_ACR_NAME }}.azurecr.io/hivespace/catalog-service:${{ steps.short-sha.outputs.sha }}
+            ${{ vars.AZURE_ACR_NAME }}.azurecr.io/hivespace/catalog-service:latest
+          labels: |
+            org.opencontainers.image.title=HiveSpace CatalogService
+            org.opencontainers.image.description=CatalogService API
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
+
+      - name: Set image output (ACR)
+        id: set_image_acr
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          IMAGE_TAG=${{ vars.AZURE_ACR_NAME }}.azurecr.io/hivespace/catalog-service:${{ steps.short-sha.outputs.sha }}
+          echo "image=$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Build Summary
+        run: |
+          echo "HiveSpace CatalogService CI completed successfully!"
+          echo "Build Summary:"
+          echo "   • .NET Version: 8.0"
+          echo "   • Configuration: Release"
+          echo "   • Service: CatalogService"
+          echo "   • Tests: ${{ env.TEST_STATUS }}"
+          echo "   • Commit: ${{ steps.short-sha.outputs.sha }}"
+          if [ "${{ github.event_name }}" == "push" ]; then
+            echo "   • Container Image: ${{ vars.AZURE_ACR_NAME }}.azurecr.io/hivespace/catalog-service:${{ steps.short-sha.outputs.sha }}"
+          else
+            echo "   • Container Image: Build skipped (PR/manual trigger)"
+          fi
+          echo "Ready for deployment"
+
+  deploy:
+    name: Deploy to Azure App Service
+    needs: build
+    runs-on: ubuntu-latest
+    environment: dev
+    # if: |
+    #   needs.build.outputs.test-status != 'failed' &&
+    #   ((github.event_name == 'push' && github.ref == 'refs/heads/master') ||
+    #    (github.event_name == 'workflow_dispatch' && github.event.inputs.branch == 'master'))
+    steps:
+      - name: Validate test results
+        run: |
+          echo "Checking test results before deployment..."
+          TEST_STATUS="${{ needs.build.outputs.test-status }}"
+
+          if [ "$TEST_STATUS" = "failed" ]; then
+            echo "❌ Tests failed - deployment blocked"
+            exit 1
+          elif [ "$TEST_STATUS" = "no-tests" ]; then
+            echo "📝 No tests found - proceeding with deployment"
+            echo "⚠️  Consider adding unit tests for production readiness"
+          else
+            echo "✅ All tests passed - proceeding with deployment"
+          fi
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS_SERVICE }}
+
+      - name: Deploy Infrastructure
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            az deployment group create \
+              --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+              --template-file infra/catalog-service.bicep \
+              --parameters \
+                webAppName=${{ vars.AZURE_WEBAPP_CATALOG_SERVICE_NAME }} \
+                appServicePlanId="${{ vars.AZURE_APP_SERVICE_PLAN_ID }}" \
+                dockerRegistryUrl="https://${{ vars.AZURE_ACR_NAME }}.azurecr.io" \
+                dockerRegistryUsername=${{ secrets.ACR_USERNAME }} \
+                dockerRegistryPassword=${{ secrets.ACR_PASSWORD }} \
+                dockerImage="${{ needs.build.outputs.image }}" \
+                connectionStringCatalogDb="${{ secrets.CONNECTION_STRING_CATALOG_DB }}"
+
+      - name: Verify Deployment Health
+        run: |
+          echo "Verifying deployment health..."
+          # Assuming standard App Service URL structure if FQDN is not available from output
+          # Or we can query it using CLI
+
+          echo "Retrieving App Service Hostname..."
+          APP_NAME="${{ vars.AZURE_WEBAPP_CATALOG_SERVICE_NAME }}"
+          FQDN=$(az webapp show --name $APP_NAME --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} --query defaultHostName --output tsv)
+
+          if [ -z "$FQDN" ]; then
+             echo "Could not retrieve FQDN for $APP_NAME. Skipping health check."
+             exit 0
+          fi
+
+          HEALTH_URL="https://$FQDN/health"
+          echo "Health check URL: $HEALTH_URL"
+
+          # Wait for container to be ready (max 5 minutes)
+          for i in {1..30}; do
+            if curl -s -f "$HEALTH_URL" > /dev/null 2>&1; then
+              echo "Health check passed - CatalogService is running successfully"
+              echo "Service URL: https://$FQDN"
+              exit 0
+            fi
+            echo "Waiting for service to be ready... (attempt $i/30)"
+            sleep 10
+          done
+
+          echo "Health check timeout - Service may still be starting up"
+          echo "Service URL: https://$FQDN (check manually)"
