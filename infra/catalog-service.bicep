@@ -18,16 +18,16 @@ param dockerImage string
 @secure()
 param connectionStringCatalogDb string
 
-@description('RabbitMQ Host')
-param rabbitMqHost string
+// @description('RabbitMQ Host')
+// param rabbitMqHost string
 
-@description('RabbitMQ Username')
-@secure()
-param rabbitMqUsername string
+// @description('RabbitMQ Username')
+// @secure()
+// param rabbitMqUsername string
 
-@description('RabbitMQ Password')
-@secure()
-param rabbitMqPassword string
+// @description('RabbitMQ Password')
+// @secure()
+// param rabbitMqPassword string
 
 resource webApp 'Microsoft.Web/sites@2023-12-01' = {
   name: webAppName
@@ -67,22 +67,22 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
           name: 'ConnectionStrings__CatalogDb'
           value: connectionStringCatalogDb
         }
-        {
-          name: 'Messaging__RabbitMq__Host'
-          value: rabbitMqHost
-        }
+        // {
+        //   name: 'Messaging__RabbitMq__Host'
+        //   value: rabbitMqHost
+        // }
         {
           name: 'Messaging__RabbitMq__Port'
           value: '5672'
         }
-        {
-          name: 'Messaging__RabbitMq__Username'
-          value: rabbitMqUsername
-        }
-        {
-          name: 'Messaging__RabbitMq__Password'
-          value: rabbitMqPassword
-        }
+        // {
+        //   name: 'Messaging__RabbitMq__Username'
+        //   value: rabbitMqUsername
+        // }
+        // {
+        //   name: 'Messaging__RabbitMq__Password'
+        //   value: rabbitMqPassword
+        // }
       ]
     }
   }

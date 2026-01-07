@@ -224,9 +224,6 @@ jobs:
                 dockerRegistryUrl="https://${{ vars.AZURE_ACR_NAME }}.azurecr.io" \
                 dockerImage="${{ needs.build.outputs.image }}" \
                 connectionStringCatalogDb="${{ secrets.CONNECTION_STRING_CATALOG_DB }}"
-                rabbitMqHost="${{ secrets.RABBITMQ_HOST }}" \
-                rabbitMqUsername="${{ secrets.RABBITMQ_USERNAME }}" \
-                rabbitMqPassword="${{ secrets.RABBITMQ_PASSWORD }}"
 
       - name: Verify Deployment Health
         run: |
