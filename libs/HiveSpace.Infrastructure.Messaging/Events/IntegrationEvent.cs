@@ -1,18 +1,24 @@
-﻿using System.Text.Json.Serialization;
+﻿using HiveSpace.Infrastructure.Messaging.Abstractions;
+using MassTransit;
+using System.Text.Json.Serialization;
 
 namespace HiveSpace.Infrastructure.Messaging.Events;
 
-public record IntegrationEvent
+/// <summary>
+/// Base integration event implementation used by the outbox pattern.
+/// </summary>
+[ExcludeFromTopology]
+public record IntegrationEvent : IIntegrationEvent
 {
     public IntegrationEvent()
     {
-        Id = Guid.NewGuid();
-        CreationDate = DateTimeOffset.Now;
+        EventId = Guid.NewGuid();
+        OccurredOn = DateTimeOffset.UtcNow;
     }
 
     [JsonInclude]
-    public Guid Id { get; set; }
+    public Guid EventId { get; init; }
 
     [JsonInclude]
-    public DateTimeOffset CreationDate { get; set; }
+    public DateTimeOffset OccurredOn { get; init; }
 }

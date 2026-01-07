@@ -1,6 +1,8 @@
+using HiveSpace.CatalogService.API.Consumers;
 using HiveSpace.CatalogService.Infrastructure;
 using HiveSpace.CatalogService.Infrastructure.Data;
 using HiveSpace.Core;
+using HiveSpace.Infrastructure.Messaging.Extensions;
 using HiveSpace.Infrastructure.Persistence;
 
 namespace HiveSpace.CatalogService.API.Extentions
@@ -19,6 +21,32 @@ namespace HiveSpace.CatalogService.API.Extentions
             
             // Add Persistence services for TransactionService
             builder.Services.AddPersistenceInfrastructure<CatalogDbContext>();
+
+            //builder.Services.AddMassTransitWithKafka(configuration,
+            //    rider =>
+            //    {
+            //        //rider.AddConsumer<ProductAnalyticsConsumer>();
+            //        rider.AddConsumer<ProductAuditConsumer>();
+            //    },
+            //    (kafka, ctx) =>
+            //    {
+            //        var kafkaOptions = ctx.GetRequiredService<IOptions<KafkaOptions>>().Value;
+
+            //        //kafka.TopicEndpoint<Ignore, ProductCreatedIntegrationEvent>("catalog-product-created", kafkaOptions.ConsumerGroup, e =>
+            //        //{
+            //        //    e.ConfigureConsumer<ProductAnalyticsConsumer>(ctx);
+            //        //});
+
+            //        kafka.TopicEndpoint<Ignore, ProductUpdatedIntegrationEvent>("catalog-product-updated", kafkaOptions.ConsumerGroup, e =>
+            //        {
+            //            e.ConfigureConsumer<ProductAuditConsumer>(ctx);
+            //        });
+            //    });
+
+            builder.Services.AddMassTransitWithRabbitMq<CatalogDbContext>(configuration, cfg =>
+            {
+                cfg.AddConsumer<StoreCreatedConsumer>();
+            });
 
             return builder.Build();
         }

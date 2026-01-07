@@ -1,6 +1,8 @@
-﻿using HiveSpace.CatalogService.Application.Interfaces;
+﻿using HiveSpace.CatalogService.Application;
+using HiveSpace.CatalogService.Application.Commands;
+using HiveSpace.CatalogService.Application.Interfaces;
+using HiveSpace.CatalogService.Application.Queries;
 using HiveSpace.CatalogService.Application.Services;
-using HiveSpace.Core.Contexts;
 using HiveSpace.Core.Filters;
 
 namespace HiveSpace.CatalogService.API.Extentions
@@ -16,7 +18,8 @@ namespace HiveSpace.CatalogService.API.Extentions
         }
         public static void AddAppApplicationServices(this IServiceCollection services)
         {
-            services.AddScoped<IProductService, ProductService>();
+            // Add MediatR and register handlers
+            services.AddApplication();
             services.AddScoped<ICategoryService, CategoryService>();
         }
     }
