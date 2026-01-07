@@ -44,7 +44,7 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
     httpsOnly: true
     clientCertMode: 'Required'
     siteConfig: {
-      linuxFxVersion: 'DOCKER|${dockerImage}'
+      linuxFxVersion: 'sitecontainers' 
       http20Enabled: false
       minTlsVersion: '1.2'
       scmMinTlsVersion: '1.2'
@@ -71,10 +71,10 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
         //   name: 'Messaging__RabbitMq__Host'
         //   value: rabbitMqHost
         // }
-        {
-          name: 'Messaging__RabbitMq__Port'
-          value: '5672'
-        }
+        // {
+        //   name: 'Messaging__RabbitMq__Port'
+        //   value: '5672'
+        // }
         // {
         //   name: 'Messaging__RabbitMq__Username'
         //   value: rabbitMqUsername
@@ -83,8 +83,35 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
         //   name: 'Messaging__RabbitMq__Password'
         //   value: rabbitMqPassword
         // }
+        // {
+        //   name: 'Messaging__Kafka__BootstrapServers'
+        //   value: 'broker:29092'
+        // }
+        // {
+        //   name: 'Messaging__Kafka__ClientId'
+        //   value: 'catalog-service'
+        // }
+        // {
+        //   name: 'Messaging__Kafka__ConsumerGroup'
+        //   value: 'catalog-service'
+        // }
+        // {
+        //   name: 'Messaging__Kafka__SecurityProtocol'
+        //   value: 'PLAINTEXT'
+        // }
       ]
     }
+  }
+}
+
+resource webAppContainer 'Microsoft.Web/sites/sitecontainers@2023-12-01' = {
+  parent: webApp
+  name: 'main'
+  properties: {
+    image: dockerImage
+    targetPort: '8080'
+    isMain: true
+    authType: 'SystemAssigned'
   }
 }
 
