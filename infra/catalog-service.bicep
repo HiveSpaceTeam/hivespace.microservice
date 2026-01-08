@@ -111,7 +111,7 @@ resource webAppContainer 'Microsoft.Web/sites/sitecontainers@2023-12-01' = {
     image: dockerImage
     targetPort: '8080'
     isMain: true
-    authType: 'SystemAssigned'
+    authType: 'SystemIdentity'
   }
 }
 

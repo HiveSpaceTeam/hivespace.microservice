@@ -256,4 +256,3 @@ jobs:
 
           echo "Health check timeout - Service may still be starting up"
           echo "Service URL: https://$FQDN (check manually)"
-
