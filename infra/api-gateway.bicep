@@ -162,6 +162,7 @@ resource globalApi 'Microsoft.ApiManagement/service/apis@2023-05-01-preview' = {
     displayName: 'HiveSpace Global API'
     path: '/'
     protocols: ['https']
+    subscriptionRequired: false
   }
 }
 
@@ -196,7 +197,7 @@ resource globalApiPolicy 'Microsoft.ApiManagement/service/apis/policies@2023-05-
             <!-- Routing Logic -->
             <choose>
                 <!-- User Service Routes -->
-                <when condition='@(context.Request.Url.Path.StartsWith("/identity") || context.Request.Url.Path.Contains("/users/") || context.Request.Url.Path.Contains("/accounts/") || context.Request.Url.Path.Contains("/admins/") || context.Request.Url.Path.Contains("/stores/"))'>
+                <when condition='@(context.Request.Url.Path.StartsWith("/identity") || context.Request.Url.Path.Contains("/users") || context.Request.Url.Path.Contains("/accounts") || context.Request.Url.Path.Contains("/admins") || context.Request.Url.Path.Contains("/stores"))'>
                     <set-backend-service backend-id="user-service-backend" />
                     <!-- Rewrite /identity prefix if needed. YARP config removed it. -->
                     <choose>
@@ -207,12 +208,12 @@ resource globalApiPolicy 'Microsoft.ApiManagement/service/apis/policies@2023-05-
                 </when>
                 
                 <!-- Catalog Service Routes -->
-                <when condition='@(context.Request.Url.Path.Contains("/categories/") || context.Request.Url.Path.Contains("/products/"))'>
+                <when condition='@(context.Request.Url.Path.Contains("/categories") || context.Request.Url.Path.Contains("/products"))'>
                     <set-backend-service backend-id="catalog-service-backend" />
                 </when>
                 
                 <!-- Media Service Routes -->
-                <when condition='@(context.Request.Url.Path.Contains("/media/"))'>
+                <when condition='@(context.Request.Url.Path.Contains("/media"))'>
                     <set-backend-service backend-id="media-service-backend" />
                 </when>
             </choose>
