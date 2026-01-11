@@ -13,7 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HiveSpace.CatalogService.Infrastructure
 {
-    public static class InfrastructureServiceCollectionExtensions
+    public static class CatalogInfrastructureExtensions
     {
         public static IServiceCollection AddCatalogDbContext(this IServiceCollection services, IConfiguration configuration)
         {
@@ -25,7 +25,11 @@ namespace HiveSpace.CatalogService.Infrastructure
             }
 
             services.AddDbContext<CatalogDbContext>(options =>
-                options.UseSqlServer(connectionString));
+                options.UseSqlServer(connectionString, sqlOptions => sqlOptions
+                    .EnableRetryOnFailure(
+                        maxRetryCount: 5,
+                        maxRetryDelay: TimeSpan.FromSeconds(30),
+                        errorNumbersToAdd: null)));
 
             // Register CatalogService repositories
             services.AddCatalogServiceRepositories();

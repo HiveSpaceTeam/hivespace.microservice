@@ -11,6 +11,7 @@
 		<PackageReference Include="System.IdentityModel.Tokens.Jwt" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
 		<PackageReference Include="Microsoft.Azure.Functions.Worker" />
+		<PackageReference Include="Microsoft.Azure.Functions.Worker.Core" />
 		<PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" />
 	</ItemGroup>
 
