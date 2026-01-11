@@ -42,7 +42,7 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
     isXenon: false
     hyperV: false
     httpsOnly: true
-    clientCertMode: 'Required'
+    clientCertMode: 'Optional'
     siteConfig: {
       linuxFxVersion: 'sitecontainers' 
       http20Enabled: false

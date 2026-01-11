@@ -110,13 +110,13 @@ jobs:
           echo "Registry: ${{ vars.AZURE_ACR_NAME }}.azurecr.io"
 
       - name: Login to Azure
-        # if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' }}
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS_SERVICE }}
 
       - name: Login to ACR
-        # if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' }}
         run: |
           echo "Logging in to Azure Container Registry..."
           az acr login --name ${{ vars.AZURE_ACR_NAME }}
@@ -127,14 +127,14 @@ jobs:
         run: echo "sha=${GITHUB_SHA::8}" >> $GITHUB_OUTPUT
 
       - name: Set up Docker Buildx
-        # if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' }}
         uses: docker/setup-buildx-action@v3
         with:
           driver-opts: image=moby/buildkit:buildx-stable-1
 
       - name: Build and push image to ACR
         id: push_image_acr
-        # if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' }}
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -157,7 +157,7 @@ jobs:
 
       - name: Set image output (ACR)
         id: set_image_acr
-        # if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' }}
         run: |
           IMAGE_TAG=${{ vars.AZURE_ACR_NAME }}.azurecr.io/hivespace/catalog-service:${{ steps.short-sha.outputs.sha }}
           echo "image=$IMAGE_TAG" >> $GITHUB_OUTPUT
@@ -183,10 +183,10 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     environment: dev
-    # if: |
-    #   needs.build.outputs.test-status != 'failed' &&
-    #   ((github.event_name == 'push' && github.ref == 'refs/heads/master') ||
-    #    (github.event_name == 'workflow_dispatch' && github.event.inputs.branch == 'master'))
+    if: |
+      needs.build.outputs.test-status != 'failed' &&
+      ((github.event_name == 'push' && github.ref == 'refs/heads/master') ||
+       (github.event_name == 'workflow_dispatch' && github.event.inputs.branch == 'master'))
     steps:
       - name: Checkout
         uses: actions/checkout@v4

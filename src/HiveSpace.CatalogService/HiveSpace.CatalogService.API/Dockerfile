@@ -22,6 +22,7 @@ COPY ["src/HiveSpace.CatalogService/HiveSpace.CatalogService.Domain/HiveSpace.Ca
 COPY ["src/HiveSpace.CatalogService/HiveSpace.CatalogService.Infrastructure/HiveSpace.CatalogService.Infrastructure.csproj", "src/HiveSpace.CatalogService/HiveSpace.CatalogService.Infrastructure/"]
 COPY ["libs/HiveSpace.Infrastructure.Messaging.Shared/HiveSpace.Infrastructure.Messaging.Shared.csproj", "libs/HiveSpace.Infrastructure.Messaging.Shared/"]
 COPY ["libs/HiveSpace.Infrastructure.Messaging/HiveSpace.Infrastructure.Messaging.csproj", "libs/HiveSpace.Infrastructure.Messaging/"]
+COPY ["libs/HiveSpace.Infrastructure.Persistence/HiveSpace.Infrastructure.Persistence.csproj", "libs/HiveSpace.Infrastructure.Persistence/"]
 COPY ["libs/HiveSpace.Core/HiveSpace.Core.csproj", "libs/HiveSpace.Core/"]
 COPY ["libs/HiveSpace.Domain.Shared/HiveSpace.Domain.Shared.csproj", "libs/HiveSpace.Domain.Shared/"]
 
