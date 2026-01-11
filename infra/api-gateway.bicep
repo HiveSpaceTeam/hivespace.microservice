@@ -129,7 +129,7 @@ resource userServiceBackend 'Microsoft.ApiManagement/service/backends@2023-05-01
   name: 'user-service-backend'
   properties: {
     url: userServiceUrl
-    protocol: 'https'
+    protocol: 'http'
     description: 'Backend for User Service'
   }
 }
@@ -139,7 +139,7 @@ resource catalogServiceBackend 'Microsoft.ApiManagement/service/backends@2023-05
   name: 'catalog-service-backend'
   properties: {
     url: catalogServiceUrl
-    protocol: 'https'
+    protocol: 'http'
     description: 'Backend for Catalog Service'
   }
 }
@@ -149,7 +149,7 @@ resource mediaServiceBackend 'Microsoft.ApiManagement/service/backends@2023-05-0
   name: 'media-service-backend'
   properties: {
     url: mediaServiceUrl
-    protocol: 'https'
+    protocol: 'http'
     description: 'Backend for Media Service'
   }
 }
