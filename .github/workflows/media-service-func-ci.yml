@@ -145,17 +145,7 @@ jobs:
         with:
           inlineScript: |
             echo "Retrieving Bicep Outputs..."
-            # Note: We need to parse outputs from the previous step if possible,
-            # OR we can just re-derive the names since we know the inputs.
-            # However, since we are in the same job, let's just grab them from the deployment command result provided we captured it?
-            # Actually, standard 'az deployment group create' outputs JSON.
-
-            # Let's run the deployment AND capture outputs in one go, or run a command to get outputs.
-            # Simpler: We know the Resource Group and Function App Name.
-            # We can query the App Service to find its storage configuration? Too complex.
-            # Let's rely on standard naming conventions OR query the deployment we just ran.
-
-            DEPLOYMENT_NAME="media-service" # Name used in the Azure Portal for the deployment
+            DEPLOYMENT_NAME="media-service" 
 
             echo "Getting outputs from deployment '$DEPLOYMENT_NAME'..."
             outputs=$(az deployment group show --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} --name $DEPLOYMENT_NAME --query properties.outputs)

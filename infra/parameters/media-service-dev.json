@@ -12,7 +12,7 @@
       "value": "sthivespacedev"
     },
     "appServicePlanName": {
-      "value": "asp-hivespace-dev"
+      "value": "asp-hivespace-flex-dev"
     },
     "managedIdentityName": {
       "value": "func-hivespace-media-svc-dev-uami"
