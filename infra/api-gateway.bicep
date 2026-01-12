@@ -45,7 +45,7 @@ param customDomainCertificateUrl string
 param customDomainHostName string = 'dev.api.hivespace.site'
 
 
-resource apimService 'Microsoft.ApiManagement/service@2023-05-01-preview' = {
+resource apimService 'Microsoft.ApiManagement/service@2021-08-01' = {
   name: apimName
   location: location
   tags: tags
@@ -80,7 +80,7 @@ resource apimService 'Microsoft.ApiManagement/service@2023-05-01-preview' = {
 }
 
 // Named Values
-resource appInsightsKeyNamedValue 'Microsoft.ApiManagement/service/namedValues@2023-05-01-preview' = {
+resource appInsightsKeyNamedValue 'Microsoft.ApiManagement/service/namedValues@2021-08-01' = {
   parent: apimService
   name: 'appinsights-key'
   properties: {
@@ -91,7 +91,7 @@ resource appInsightsKeyNamedValue 'Microsoft.ApiManagement/service/namedValues@2
 }
 
 // Loggers
-resource appInsightsLogger 'Microsoft.ApiManagement/service/loggers@2023-05-01-preview' = {
+resource appInsightsLogger 'Microsoft.ApiManagement/service/loggers@2021-08-01' = {
   parent: apimService
   name: appInsightsName
   properties: {
@@ -108,7 +108,7 @@ resource appInsightsLogger 'Microsoft.ApiManagement/service/loggers@2023-05-01-p
 }
 
 // Diagnostics (Global)
-resource globalDiagnostics 'Microsoft.ApiManagement/service/diagnostics@2023-05-01-preview' = {
+resource globalDiagnostics 'Microsoft.ApiManagement/service/diagnostics@2021-08-01' = {
   parent: apimService
   name: 'applicationinsights'
   properties: {
@@ -124,38 +124,38 @@ resource globalDiagnostics 'Microsoft.ApiManagement/service/diagnostics@2023-05-
 }
 
 // Backends
-resource userServiceBackend 'Microsoft.ApiManagement/service/backends@2023-05-01-preview' = {
+resource userServiceBackend 'Microsoft.ApiManagement/service/backends@2021-08-01' = {
   parent: apimService
   name: 'user-service-backend'
   properties: {
-    url: userServiceUrl
-    protocol: 'http'
+    url: replace(userServiceUrl, 'http://', 'https://')
+    protocol: 'https'
     description: 'Backend for User Service'
   }
 }
 
-resource catalogServiceBackend 'Microsoft.ApiManagement/service/backends@2023-05-01-preview' = {
+resource catalogServiceBackend 'Microsoft.ApiManagement/service/backends@2021-08-01' = {
   parent: apimService
   name: 'catalog-service-backend'
   properties: {
-    url: catalogServiceUrl
-    protocol: 'http'
+    url: replace(catalogServiceUrl, 'http://', 'https://')
+    protocol: 'https'
     description: 'Backend for Catalog Service'
   }
 }
 
-resource mediaServiceBackend 'Microsoft.ApiManagement/service/backends@2023-05-01-preview' = {
+resource mediaServiceBackend 'Microsoft.ApiManagement/service/backends@2021-08-01' = {
   parent: apimService
   name: 'media-service-backend'
   properties: {
-    url: mediaServiceUrl
-    protocol: 'http'
+    url: replace(mediaServiceUrl, 'http://', 'https://')
+    protocol: 'https'
     description: 'Backend for Media Service'
   }
 }
 
 // Global API
-resource globalApi 'Microsoft.ApiManagement/service/apis@2023-05-01-preview' = {
+resource globalApi 'Microsoft.ApiManagement/service/apis@2021-08-01' = {
   parent: apimService
   name: 'hivespace-global-api'
   properties: {
@@ -167,7 +167,7 @@ resource globalApi 'Microsoft.ApiManagement/service/apis@2023-05-01-preview' = {
 }
 
 // Global Policy (CORS + Routing)
-resource globalApiPolicy 'Microsoft.ApiManagement/service/apis/policies@2023-05-01-preview' = {
+resource globalApiPolicy 'Microsoft.ApiManagement/service/apis/policies@2021-08-01' = {
   parent: globalApi
   name: 'policy'
   properties: {
@@ -202,7 +202,7 @@ resource globalApiPolicy 'Microsoft.ApiManagement/service/apis/policies@2023-05-
                     <!-- Rewrite /identity prefix if needed. YARP config removed it. -->
                     <choose>
                         <when condition='@(context.Request.Url.Path.StartsWith("/identity"))'>
-                            <rewrite-uri template='@(context.Request.Url.Path.Replace("/identity", ""))' />
+                            <rewrite-uri template='@(context.Request.Url.Path.Length == 9 ? "/" : context.Request.Url.Path.Substring(9))' copy-unmatched-params="true" />
                         </when>
                     </choose>
                 </when>
@@ -241,7 +241,7 @@ resource globalApiPolicy 'Microsoft.ApiManagement/service/apis/policies@2023-05-
 }
 
 // Operations (Catch-All)
-resource catchAllGet 'Microsoft.ApiManagement/service/apis/operations@2023-05-01-preview' = {
+resource catchAllGet 'Microsoft.ApiManagement/service/apis/operations@2021-08-01' = {
   parent: globalApi
   name: 'catch-all-get'
   properties: {
@@ -251,7 +251,7 @@ resource catchAllGet 'Microsoft.ApiManagement/service/apis/operations@2023-05-01
   }
 }
 
-resource catchAllPost 'Microsoft.ApiManagement/service/apis/operations@2023-05-01-preview' = {
+resource catchAllPost 'Microsoft.ApiManagement/service/apis/operations@2021-08-01' = {
   parent: globalApi
   name: 'catch-all-post'
   properties: {
@@ -261,7 +261,7 @@ resource catchAllPost 'Microsoft.ApiManagement/service/apis/operations@2023-05-0
   }
 }
 
-resource catchAllPut 'Microsoft.ApiManagement/service/apis/operations@2023-05-01-preview' = {
+resource catchAllPut 'Microsoft.ApiManagement/service/apis/operations@2021-08-01' = {
   parent: globalApi
   name: 'catch-all-put'
   properties: {
@@ -271,7 +271,7 @@ resource catchAllPut 'Microsoft.ApiManagement/service/apis/operations@2023-05-01
   }
 }
 
-resource catchAllDelete 'Microsoft.ApiManagement/service/apis/operations@2023-05-01-preview' = {
+resource catchAllDelete 'Microsoft.ApiManagement/service/apis/operations@2021-08-01' = {
   parent: globalApi
   name: 'catch-all-delete'
   properties: {
@@ -281,12 +281,22 @@ resource catchAllDelete 'Microsoft.ApiManagement/service/apis/operations@2023-05
   }
 }
 
-resource catchAllPatch 'Microsoft.ApiManagement/service/apis/operations@2023-05-01-preview' = {
+resource catchAllPatch 'Microsoft.ApiManagement/service/apis/operations@2021-08-01' = {
   parent: globalApi
   name: 'catch-all-patch'
   properties: {
     displayName: 'Catch All PATCH'
     method: 'PATCH'
+    urlTemplate: '/*'
+  }
+}
+
+resource catchAllOptions 'Microsoft.ApiManagement/service/apis/operations@2021-08-01' = {
+  parent: globalApi
+  name: 'catch-all-options'
+  properties: {
+    displayName: 'Catch All OPTIONS'
+    method: 'OPTIONS'
     urlTemplate: '/*'
   }
 }
