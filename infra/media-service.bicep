@@ -171,7 +171,10 @@ resource functionApp 'Microsoft.Web/sites@2024-11-01' = {
   }
 }
 
-resource storageBlobDataOwnerRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+@description('Grant permissions to the Managed Identity')
+param grantPermissions bool = false
+
+resource storageBlobDataOwnerRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (grantPermissions) {
   scope: storageAccount
   name: guid(storageAccount.id, managedIdentity.id, 'Storage Blob Data Owner')
   properties: {
@@ -181,7 +184,7 @@ resource storageBlobDataOwnerRole 'Microsoft.Authorization/roleAssignments@2022-
   }
 }
 
-resource storageAccountContributorRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+resource storageAccountContributorRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (grantPermissions) {
   scope: storageAccount
   name: guid(storageAccount.id, managedIdentity.id, 'Storage Account Contributor')
   properties: {
@@ -191,7 +194,7 @@ resource storageAccountContributorRole 'Microsoft.Authorization/roleAssignments@
   }
 }
 
-resource storageAccountReaderRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+resource storageAccountReaderRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (grantPermissions) {
   scope: storageAccount
   name: guid(storageAccount.id, managedIdentity.id, 'Reader')
   properties: {
@@ -201,7 +204,7 @@ resource storageAccountReaderRole 'Microsoft.Authorization/roleAssignments@2022-
   }
 }
 
-resource storageQueueDataContributorRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+resource storageQueueDataContributorRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (grantPermissions) {
   scope: storageAccount
   name: guid(storageAccount.id, managedIdentity.id, 'Storage Queue Data Contributor')
   properties: {
