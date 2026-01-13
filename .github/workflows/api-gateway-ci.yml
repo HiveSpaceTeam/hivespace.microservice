@@ -1,0 +1,136 @@
+name: API Gateway CI
+
+on:
+  push:
+    paths:
+      - 'infra/api-gateway.bicep'
+      - '.github/workflows/api-gateway-ci.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy API Gateway
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS_SERVICE }}
+
+      - name: Fetch Backend URLs and Secrets
+        id: fetch-resources
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            echo "Fetching backend service URLs..."
+
+            # 1. User Service (Container App)
+            # 1. User Service (Container App)
+            if az containerapp show \
+              --name ${{ vars.AZURE_CONTAINER_APP_USER_SERVICE_NAME }} \
+              --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+              --query properties.configuration.ingress.fqdn \
+              --output tsv &>/dev/null; then
+              
+                USER_SERVICE_FQDN=$(az containerapp show \
+                  --name ${{ vars.AZURE_CONTAINER_APP_USER_SERVICE_NAME }} \
+                  --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+                  --query properties.configuration.ingress.fqdn \
+                  --output tsv)
+                echo "User Service URL: https://$USER_SERVICE_FQDN"
+            else
+                echo "⚠️ User Service not found. using placeholder."
+                USER_SERVICE_FQDN="user-service-not-deployed.azurecontainerapps.io"
+            fi
+
+            # 2. Catalog Service (App Service)
+            # 2. Catalog Service (App Service)
+            if az webapp show \
+              --name ${{ vars.AZURE_WEBAPP_CATALOG_SERVICE_NAME }} \
+              --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+              --query defaultHostName \
+              --output tsv &>/dev/null; then
+
+                CATALOG_SERVICE_HOST=$(az webapp show \
+                  --name ${{ vars.AZURE_WEBAPP_CATALOG_SERVICE_NAME }} \
+                  --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+                  --query defaultHostName \
+                  --output tsv)
+                echo "Catalog Service URL: https://$CATALOG_SERVICE_HOST"
+            else
+                echo "⚠️ Catalog Service not found. using placeholder."
+                CATALOG_SERVICE_HOST="catalog-service-not-deployed.azurewebsites.net"
+            fi
+
+            # 3. Media Service (Function App)
+            # Use 'func-hivespace-media-dev' as fallback if var not set, matching media-service-ci logic
+            MEDIA_APP_NAME="${{ vars.AZURE_FUNCTION_APP_MEDIA_SERVICE_NAME }}"
+            if [ -z "$MEDIA_APP_NAME" ]; then
+              MEDIA_APP_NAME="func-hivespace-media-dev"
+            fi
+
+            if az functionapp show \
+              --name $MEDIA_APP_NAME \
+              --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+              --query defaultHostName \
+              --output tsv &>/dev/null; then
+                
+                MEDIA_SERVICE_HOST=$(az functionapp show \
+                  --name $MEDIA_APP_NAME \
+                  --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+                  --query defaultHostName \
+                  --output tsv)
+                echo "Media Service URL: https://$MEDIA_SERVICE_HOST"
+            else
+                echo "⚠️ Media Service ($MEDIA_APP_NAME) not found. using placeholder."
+                MEDIA_SERVICE_HOST="media-service-not-deployed.azurewebsites.net"
+            fi
+
+            # 4. App Insights Resources
+            APP_INSIGHTS_KEY=$(az monitor app-insights component show \
+              --app appi-hivespace-dev \
+              --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+              --query instrumentationKey \
+              --output tsv)
+
+            APP_INSIGHTS_ID=$(az monitor app-insights component show \
+              --app appi-hivespace-dev \
+              --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+              --query id \
+              --output tsv)
+
+            # Set Outputs
+            echo "user_url=https://$USER_SERVICE_FQDN" >> $GITHUB_OUTPUT
+            echo "catalog_url=https://$CATALOG_SERVICE_HOST" >> $GITHUB_OUTPUT
+            echo "media_url=https://$MEDIA_SERVICE_HOST" >> $GITHUB_OUTPUT
+            echo "app_insights_key=$APP_INSIGHTS_KEY" >> $GITHUB_OUTPUT
+            echo "app_insights_id=$APP_INSIGHTS_ID" >> $GITHUB_OUTPUT
+
+      - name: Deploy API Gateway via Bicep
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            echo "Deploying API Management Configuration..."
+
+            # KeyVault Secret for Custom Domain
+            # Assumes KeyVault name logic: kv-hivespace-dev (standard convention) or from variable
+            KV_NAME="kv-hivespace-dev" 
+            CERT_SECRET_URL="https://$KV_NAME.vault.azure.net/secrets/api-hivespace-site-pfx-dev"
+
+            az deployment group create \
+              --name api-gateway-deploy \
+              --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+              --template-file infra/api-gateway.bicep \
+              --parameters \
+                apimName="apim-hivespace-dev" \
+                userServiceUrl="${{ steps.fetch-resources.outputs.user_url }}" \
+                catalogServiceUrl="${{ steps.fetch-resources.outputs.catalog_url }}" \
+                mediaServiceUrl="${{ steps.fetch-resources.outputs.media_url }}" \
+                appInsightsName="appi-hivespace-dev" \
+                appInsightsId="${{ steps.fetch-resources.outputs.app_insights_id }}" \
+                appInsightsInstrumentationKey="${{ steps.fetch-resources.outputs.app_insights_key }}" \
+                customDomainCertificateUrl="$CERT_SECRET_URL"

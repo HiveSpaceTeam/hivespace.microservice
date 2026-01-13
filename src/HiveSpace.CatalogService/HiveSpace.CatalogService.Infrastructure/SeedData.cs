@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace HiveSpace.CatalogService.Infrastructure;
 
@@ -17,17 +18,24 @@ public class SeedData
         using var scope = app.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
 
+        var logger = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<SeedData>>();
+
+        Console.WriteLine("Checking for pending migrations...");
         var pending = (await context.Database.GetPendingMigrationsAsync(cancellationToken)).ToList();
         if (pending.Count > 0)
         {
-            Log.Information("Found {Count} pending migrations: {Migrations}", pending.Count, string.Join(", ", pending));
-            Log.Information("Applying pending migrations...");
+            logger.LogInformation("Found {Count} pending migrations: {Migrations}", pending.Count, string.Join(", ", pending));
+            Console.WriteLine($"Found {pending.Count} pending migrations. Applying...");
+            
             await context.Database.MigrateAsync(cancellationToken);
-            Log.Information("Migrations applied successfully");
+            
+            logger.LogInformation("Migrations applied successfully");
+            Console.WriteLine("Migrations applied successfully.");
         }
         else
         {
-            Log.Information("No pending migrations found. Database is up to date.");
+            logger.LogInformation("No pending migrations found. Database is up to date.");
+            Console.WriteLine("No pending migrations found. Database is up to date.");
         }
     }
 }
