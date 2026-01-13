@@ -162,6 +162,12 @@ jobs:
             # Authenticate via Account Key (easiest since SP has Contributor on RG)
             ACCOUNT_KEY=$(az storage account keys list --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} --account-name $STORAGE_ACCOUNT_NAME --query "[0].value" -o tsv)
 
+            echo "Cleaning deployment container..."
+            az storage blob delete-batch \
+              --account-name $STORAGE_ACCOUNT_NAME \
+              --account-key $ACCOUNT_KEY \
+              --source $CONTAINER_NAME
+
             az storage blob upload-batch \
               --account-name $STORAGE_ACCOUNT_NAME \
               --account-key $ACCOUNT_KEY \
