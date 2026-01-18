@@ -101,6 +101,7 @@ resource functionApp 'Microsoft.Web/sites@2024-11-01' = {
       minTlsVersion: '1.2'
       ftpsState: 'FtpsOnly'
       scmType: 'None'
+      linuxFxVersion: 'DOTNET-ISOLATED|8.0'
       appSettings: [
         {
           name: 'AzureWebJobsStorage'
