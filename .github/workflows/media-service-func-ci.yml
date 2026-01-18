@@ -182,9 +182,4 @@ jobs:
             echo "Restarting Function App to pick up new files..."
             az functionapp restart --name $FUNCTION_APP_NAME --resource-group ${{ vars.AZURE_RESOURCE_GROUP }}
 
-            echo "Syncing function triggers..."
-            az functionapp sync-function-triggers \
-              --name $FUNCTION_APP_NAME \
-              --resource-group ${{ vars.AZURE_RESOURCE_GROUP }}
-
             echo "✅ Deployment Complete"
