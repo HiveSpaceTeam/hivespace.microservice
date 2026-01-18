@@ -84,7 +84,11 @@ jobs:
 
       - name: Publish Function App
         run: |
-          dotnet publish src/HiveSpace.MediaService/HiveSpace.MediaService.Func/HiveSpace.MediaService.Func.csproj -c Release --output ./publish
+          dotnet publish src/HiveSpace.MediaService/HiveSpace.MediaService.Func/HiveSpace.MediaService.Func.csproj \
+            -c Release \
+            --output ./publish \
+            /p:GenerateFunctionAppMetadataFiles=true \
+            /p:PublishReadyToRun=false
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -177,4 +181,10 @@ jobs:
 
             echo "Restarting Function App to pick up new files..."
             az functionapp restart --name $FUNCTION_APP_NAME --resource-group ${{ vars.AZURE_RESOURCE_GROUP }}
+
+            echo "Syncing function triggers..."
+            az functionapp function sync-function-triggers \
+              --name $FUNCTION_APP_NAME \
+              --resource-group ${{ vars.AZURE_RESOURCE_GROUP }}
+
             echo "✅ Deployment Complete"
