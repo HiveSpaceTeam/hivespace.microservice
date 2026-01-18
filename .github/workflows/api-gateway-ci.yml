@@ -91,6 +91,10 @@ jobs:
             fi
 
             # 4. App Insights Resources
+            # Install application-insights extension if not already installed
+            echo "Installing Application Insights extension..."
+            az extension add --name application-insights --only-show-errors 2>/dev/null || true
+
             APP_INSIGHTS_KEY=$(az monitor app-insights component show \
               --app appi-hivespace-dev \
               --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
