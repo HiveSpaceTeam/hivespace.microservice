@@ -4,4 +4,4 @@ public record PresignUrlResponse(
     Guid FileId, 
     string UploadUrl, 
     string StoragePath, 
-    DateTime ExpiresAt);
+    DateTimeOffset ExpiresAt);

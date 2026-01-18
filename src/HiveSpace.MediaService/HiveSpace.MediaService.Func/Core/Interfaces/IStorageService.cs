@@ -10,4 +10,6 @@ public interface IStorageService
     Task UploadBlobAsync(string containerName, string blobName, Stream content, string contentType);
     Task DeleteBlobAsync(string containerName, string blobName);
     Task ConfigureCorsAsync(string[] allowedOrigins, CancellationToken cancellationToken);
+    Task EnsureContainerExistsAsync(string containerName);
+    string GetPublicUrl(string containerName, string blobName, string? cdnHost = null);
 }

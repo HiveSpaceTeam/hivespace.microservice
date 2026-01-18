@@ -7,6 +7,10 @@
     "AzureStorage:TempContainer": "temp-media-upload",
     "AzureStorage:PublicContainer": "public-assets",
     "AzureStorage:QueueName": "image-processing-queue",
-    "Database:MediaServiceDb": "Server=localhost,1433;Database=MediaDb;User Id=sa;Encrypt=False;TrustServerCertificate=True"
+    "AzureStorage:CdnHost": "",
+    "Database:MediaServiceDb": "Server=localhost,1433;Database=MediaDb;User Id=sa;Encrypt=False;TrustServerCertificate=True",
+    "MediaCleanup:ExpirationHours": "24",
+    "MediaCleanup:BatchSize": "100",
+    "MediaService:PresignUrlExpiryMinutes": "10"
   }
 }

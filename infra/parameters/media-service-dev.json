@@ -14,18 +14,6 @@
     "appServicePlanName": {
       "value": "asp-hivespace-flex-dev"
     },
-    "managedIdentityName": {
-      "value": "func-hivespace-media-svc-dev-uami"
-    },
-    "tempContainerName": {
-      "value": "temp-media-upload"
-    },
-    "publicContainerName": {
-      "value": "public-assets"
-    },
-    "queueName": {
-      "value": "image-processing-queue"
-    },
     "appInsightsName": {
       "value": "appi-hivespace-dev"
     }

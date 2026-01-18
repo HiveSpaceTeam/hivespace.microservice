@@ -7,9 +7,6 @@ param storageAccountName string
 @description('App Service Plan name')
 param appServicePlanName string
 
-@description('User Assigned Managed Identity Name')
-param managedIdentityName string
-
 @description('Environment name (dev, staging, prod)')
 @allowed(['dev', 'staging', 'prod'])
 param environmentName string = 'dev'
@@ -50,10 +47,6 @@ resource publicContainer 'Microsoft.Storage/storageAccounts/blobServices/contain
   }
 }
 
-resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
-  name: managedIdentityName
-  location: location
-}
 
 resource appServicePlan 'Microsoft.Web/serverfarms@2023-12-01' = {
   name: appServicePlanName
@@ -93,10 +86,7 @@ resource functionApp 'Microsoft.Web/sites@2024-11-01' = {
   location: location
   kind: 'functionapp,linux'
   identity: {
-    type: 'UserAssigned'
-    userAssignedIdentities: {
-      '${managedIdentity.id}': {}
-    }
+    type: 'SystemAssigned'
   }
   properties: {
     serverFarmId: appServicePlan.id
@@ -133,8 +123,24 @@ resource functionApp 'Microsoft.Web/sites@2024-11-01' = {
           value: queueName
         }
         {
+          name: 'AzureStorage__CdnHost'
+          value: '' // Optional: CDN host for serving public assets
+        }
+        {
           name: 'Database__MediaServiceDb'
           value: mediaDbConnectionString
+        }
+        {
+          name: 'MediaCleanup__ExpirationHours'
+          value: '24' // Clean up pending assets older than 24 hours
+        }
+        {
+          name: 'MediaCleanup__BatchSize'
+          value: '100' // Process 100 assets per batch
+        }
+        {
+          name: 'MediaService__PresignUrlExpiryMinutes'
+          value: '10' // Presigned URLs expire after 10 minutes
         }
         {
           name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
@@ -148,8 +154,7 @@ resource functionApp 'Microsoft.Web/sites@2024-11-01' = {
           type: 'blobContainer'
           value: '${storageAccount.properties.primaryEndpoints.blob}${deploymentContainer.name}'
           authentication: {
-            type: 'UserAssignedIdentity'
-            userAssignedIdentityResourceId: managedIdentity.id
+            type: 'SystemAssignedIdentity'
           }
         }
       }
@@ -176,40 +181,40 @@ param grantPermissions bool = false
 
 resource storageBlobDataOwnerRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (grantPermissions) {
   scope: storageAccount
-  name: guid(storageAccount.id, managedIdentity.id, 'Storage Blob Data Owner')
+  name: guid(storageAccount.id, functionApp.id, 'Storage Blob Data Owner')
   properties: {
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b7e6dc6d-f1e8-4753-8033-0f276bb0955b')
-    principalId: managedIdentity.properties.principalId
+    principalId: functionApp.identity.principalId
     principalType: 'ServicePrincipal'
   }
 }
 
 resource storageAccountContributorRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (grantPermissions) {
   scope: storageAccount
-  name: guid(storageAccount.id, managedIdentity.id, 'Storage Account Contributor')
+  name: guid(storageAccount.id, functionApp.id, 'Storage Account Contributor')
   properties: {
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '17d1049b-9a8d-46fb-8dd5-3234972012e0')
-    principalId: managedIdentity.properties.principalId
+    principalId: functionApp.identity.principalId
     principalType: 'ServicePrincipal'
   }
 }
 
 resource storageAccountReaderRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (grantPermissions) {
   scope: storageAccount
-  name: guid(storageAccount.id, managedIdentity.id, 'Reader')
+  name: guid(storageAccount.id, functionApp.id, 'Reader')
   properties: {
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'acdd72a7-3385-48ef-bd42-f606fba81ae7')
-    principalId: managedIdentity.properties.principalId
+    principalId: functionApp.identity.principalId
     principalType: 'ServicePrincipal'
   }
 }
 
 resource storageQueueDataContributorRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (grantPermissions) {
   scope: storageAccount
-  name: guid(storageAccount.id, managedIdentity.id, 'Storage Queue Data Contributor')
+  name: guid(storageAccount.id, functionApp.id, 'Storage Queue Data Contributor')
   properties: {
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '974c5e8b-45b9-4653-ba55-5f855dd0fb88')
-    principalId: managedIdentity.properties.principalId
+    principalId: functionApp.identity.principalId
     principalType: 'ServicePrincipal'
   }
 }
@@ -217,8 +222,8 @@ resource storageQueueDataContributorRole 'Microsoft.Authorization/roleAssignment
 @description('The name of the function app')
 output functionAppName string = functionApp.name
 
-@description('The resource ID of the User Assigned Identity')
-output managedIdentityId string = managedIdentity.id
+@description('The principal ID of the System Assigned Identity')
+output managedIdentityPrincipalId string = functionApp.identity.principalId
 
 @description('The name of the storage account')
 output storageAccountName string = storageAccount.name

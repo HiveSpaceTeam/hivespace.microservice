@@ -4,7 +4,7 @@ using Azure.Storage.Sas;
 using HiveSpace.MediaService.Func.Core.Interfaces;
 using HiveSpace.MediaService.Func.Core.Enums;
 using Microsoft.Extensions.Configuration;
-
+using Microsoft.Extensions.Logging;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.MediaService.Func.Core.Exceptions;
 
@@ -14,23 +14,25 @@ public class AzureBlobStorageService : IStorageService
 {
     private readonly BlobServiceClient _blobServiceClient;
     private readonly IConfiguration _configuration;
+    private readonly ILogger<AzureBlobStorageService> _logger;
 
-    public AzureBlobStorageService(IConfiguration configuration)
+    public AzureBlobStorageService(IConfiguration configuration, ILogger<AzureBlobStorageService> logger)
     {
         _configuration = configuration;
+        _logger = logger;
+        
         var connectionString = _configuration["AzureStorage:ConnectionString"];
         if (string.IsNullOrEmpty(connectionString))
         {
-             Console.WriteLine("!!! CRITICAL: AzureBlobStorageService - connectionString is NULL !!!");
+             _logger.LogWarning("AzureStorage:ConnectionString not found, trying fallback configuration");
              connectionString = _configuration["Values:AzureStorage:ConnectionString"];
-             Console.WriteLine($"Trying Values:AzureStorage:ConnectionString -> {(connectionString == null ? "NULL" : "FOUND")}");
         }
 
-        if (connectionString == null)
-            throw new Exception("StorageConfigurationMissing");
+        if (string.IsNullOrEmpty(connectionString))
+            throw new DomainException(500, MediaDomainErrorCode.StorageConfigurationMissing, "Storage connection string is not configured");
         
         _blobServiceClient = new BlobServiceClient(connectionString);
-        Console.WriteLine($"SUCCESS: AzureBlobStorageService initialized. Connection string len: {connectionString.Length}");
+        _logger.LogInformation("AzureBlobStorageService initialized successfully");
     }
 
     public Uri GeneratePresignedUrl(string containerName, string blobName, StoragePermissions permissions, int expiryMinutes)
@@ -40,7 +42,7 @@ public class AzureBlobStorageService : IStorageService
 
         if (!blobClient.CanGenerateSasUri)
         {
-            throw new Exception("StorageConfigurationMissing");
+            throw new DomainException(500, MediaDomainErrorCode.StorageConfigurationMissing, "Cannot generate SAS URI - storage account key required");
         }
 
         BlobSasPermissions sasPermissions = 0;
@@ -79,7 +81,7 @@ public class AzureBlobStorageService : IStorageService
         }
         catch (Azure.RequestFailedException ex) when (ex.Status == 404)
         {
-            throw new NotFoundException(MediaDomainErrorCode.MediaNotFound, nameof(blobName));
+            throw new DomainException(404, MediaDomainErrorCode.BlobNotFound, $"Blob '{blobName}' not found in container '{containerName}'");
         }
     }
 
@@ -145,5 +147,30 @@ public class AzureBlobStorageService : IStorageService
                StaticWebsite = properties.Value.StaticWebsite
             }, 
             cancellationToken);
+    }
+
+    public async Task EnsureContainerExistsAsync(string containerName)
+    {
+        var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
+        await containerClient.CreateIfNotExistsAsync();
+    }
+
+    public string GetPublicUrl(string containerName, string blobName, string? cdnHost = null)
+    {
+        var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
+        var blobClient = containerClient.GetBlobClient(blobName);
+        var blobUrl = blobClient.Uri.ToString();
+
+        if (string.IsNullOrEmpty(cdnHost))
+            return blobUrl;
+
+        // Replace storage account host with CDN host
+        var builder = new UriBuilder(blobClient.Uri)
+        {
+            Host = cdnHost,
+            Scheme = "https",
+            Port = -1
+        };
+        return builder.ToString();
     }
 }

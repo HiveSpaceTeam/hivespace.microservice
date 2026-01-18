@@ -12,9 +12,10 @@ using Microsoft.Extensions.Logging;
 namespace HiveSpace.MediaService.Func.Functions.Http;
 
 public class ConfirmUploadFunction(
-    ILogger<ConfirmUploadFunction> logger,
-    IMediaService mediaService,
-    IValidator<ConfirmUploadRequest> validator)
+    ILogger<ConfirmUploadFunction> logger
+    , IMediaService mediaService,
+    IValidator<ConfirmUploadRequest> validator
+    )
 {
     private readonly ILogger<ConfirmUploadFunction> _logger = logger;
     private readonly IMediaService _mediaService = mediaService;

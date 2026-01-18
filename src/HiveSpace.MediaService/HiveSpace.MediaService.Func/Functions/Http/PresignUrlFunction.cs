@@ -13,8 +13,9 @@ namespace HiveSpace.MediaService.Func.Functions.Http;
 
 public class PresignUrlFunction(
     ILogger<PresignUrlFunction> logger,
-    IMediaService mediaService,
-    IValidator<PresignUrlRequest> validator)
+    IValidator<PresignUrlRequest> validator,
+    IMediaService mediaService
+    )
 {
     private readonly ILogger<PresignUrlFunction> _logger = logger;
     private readonly IMediaService _mediaService = mediaService;
