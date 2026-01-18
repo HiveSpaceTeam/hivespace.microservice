@@ -103,27 +103,11 @@ resource functionApp 'Microsoft.Web/sites@2024-11-01' = {
       scmType: 'None'
       appSettings: [
         {
-          name: 'AzureWebJobsStorage__accountName'
-          value: storageAccount.name
-        }
-        {
           name: 'AzureWebJobsStorage'
           value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};AccountKey=${storageAccount.listKeys().keys[0].value};EndpointSuffix=${environment().suffixes.storage}'
         }
         {
-          name: 'FUNCTIONS_WORKER_RUNTIME'
-          value: 'dotnet-isolated'
-        }
-        {
-          name: 'FUNCTIONS_EXTENSION_VERSION'
-          value: '~4'
-        }
-        {
-          name: 'WEBSITE_RUN_FROM_PACKAGE'
-          value: 'https://${storageAccount.name}.blob.${environment().suffixes.storage}/${deploymentContainer.name}'
-        }
-        {
-          name: 'AzureStorage:ConnectionString'
+          name: 'AzureStorage__ConnectionString'
           value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};AccountKey=${storageAccount.listKeys().keys[0].value};EndpointSuffix=${environment().suffixes.storage}'
         }
         {
