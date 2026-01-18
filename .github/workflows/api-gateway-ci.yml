@@ -85,18 +85,25 @@ jobs:
 
             echo "Looking for Media Service Function App: $MEDIA_APP_NAME"
 
+            # For Flex Consumption function apps, defaultHostName is null
+            # Use hostNameSslStates[0].name instead
             if az functionapp show \
               --name "$MEDIA_APP_NAME" \
               --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
-              --query defaultHostName \
               --output tsv &>/dev/null; then
                 
                 MEDIA_SERVICE_HOST=$(az functionapp show \
                   --name "$MEDIA_APP_NAME" \
                   --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
-                  --query defaultHostName \
+                  --query "properties.hostNameSslStates[?hostType=='Standard'].name | [0]" \
                   --output tsv)
-                echo "✓ Media Service found: https://$MEDIA_SERVICE_HOST"
+                
+                if [ -n "$MEDIA_SERVICE_HOST" ]; then
+                  echo "✓ Media Service found: https://$MEDIA_SERVICE_HOST"
+                else
+                  echo "⚠️ Could not retrieve hostname. Using placeholder."
+                  MEDIA_SERVICE_HOST="media-service-not-deployed.azurewebsites.net"
+                fi
             else
                 echo "⚠️ Media Service ($MEDIA_APP_NAME) not found. Using placeholder."
                 MEDIA_SERVICE_HOST="media-service-not-deployed.azurewebsites.net"
