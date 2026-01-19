@@ -148,38 +148,21 @@ jobs:
         uses: azure/cli@v2
         with:
           inlineScript: |
-            echo "Retrieving Bicep Outputs..."
-            DEPLOYMENT_NAME="media-service" 
+            echo "Retrieving Deployment Details..."
+            
+            # We use the Env Var set in the previous step
+            RG=${{ vars.AZURE_RESOURCE_GROUP }}
+            
+            echo "Targeting Function App: $APP_NAME"
 
-            echo "Getting outputs from deployment '$DEPLOYMENT_NAME'..."
-            outputs=$(az deployment group show --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} --name $DEPLOYMENT_NAME --query properties.outputs)
-
-            STORAGE_ACCOUNT_NAME=$(echo $outputs | jq -r .storageAccountName.value)
-            CONTAINER_NAME=$(echo $outputs | jq -r .deploymentContainerName.value)
-            FUNCTION_APP_NAME=$(echo $outputs | jq -r .functionAppName.value)
-
-            echo "Storage Account: $STORAGE_ACCOUNT_NAME"
-            echo "Container: $CONTAINER_NAME"
-            echo "Function App: $FUNCTION_APP_NAME"
-
-            echo "Uploading application files to Blob Storage..."
-            # Authenticate via Account Key (easiest since SP has Contributor on RG)
-            ACCOUNT_KEY=$(az storage account keys list --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} --account-name $STORAGE_ACCOUNT_NAME --query "[0].value" -o tsv)
-
-            echo "Cleaning deployment container..."
-            az storage blob delete-batch \
-              --account-name $STORAGE_ACCOUNT_NAME \
-              --account-key $ACCOUNT_KEY \
-              --source $CONTAINER_NAME
-
-            az storage blob upload-batch \
-              --account-name $STORAGE_ACCOUNT_NAME \
-              --account-key $ACCOUNT_KEY \
-              --destination $CONTAINER_NAME \
-              --source ./publish \
-              --overwrite
-
-            echo "Restarting Function App to pick up new files..."
-            az functionapp restart --name $FUNCTION_APP_NAME --resource-group ${{ vars.AZURE_RESOURCE_GROUP }}
+            echo "🚀 Deploying functionapp.zip using config-zip..."
+            
+            # This command handles uploading the zip and updating the function app
+            # to run from the package.
+            az functionapp deployment source config-zip \
+              --resource-group $RG \
+              --name $FUNCTION_APP_NAME \
+              --src functionapp.zip \
+              --build-remote false
 
             echo "✅ Deployment Complete"
