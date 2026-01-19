@@ -115,6 +115,14 @@ jobs:
           name: function-app
           path: ./publish
 
+      - name: Zip Artifact for Deployment
+        run: |
+          echo "Zipping publish folder..."
+          cd publish
+          zip -r ../functionapp.zip .
+          cd ..
+          echo "✅ Created functionapp.zip"
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -167,4 +175,5 @@ jobs:
               --build-remote false
 
             echo "✅ Deployment Complete"
+
 
