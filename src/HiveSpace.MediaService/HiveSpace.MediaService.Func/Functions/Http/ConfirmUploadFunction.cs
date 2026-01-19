@@ -23,7 +23,7 @@ public class ConfirmUploadFunction(
 
     [Function("ConfirmUpload")]
     public async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Function, "post", Route = ApiConfigs.ConfirmUpload)] HttpRequestData req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = ApiConfigs.ConfirmUpload)] HttpRequestData req,
         string fileId)
     {
         _logger.LogInformation("Processing ConfirmUpload request for FileID: {FileId}", fileId);

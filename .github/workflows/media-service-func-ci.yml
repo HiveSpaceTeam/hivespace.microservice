@@ -157,15 +157,15 @@ jobs:
         with:
           inlineScript: |
             echo "Retrieving Deployment Details..."
-            
+
             # We use the Env Var set in the previous step
             RG=${{ vars.AZURE_RESOURCE_GROUP }}
             FUNCTION_APP_NAME="${{ vars.AZURE_FUNCTION_APP_MEDIA_SERVICE_NAME }}"
-            
+
             echo "Targeting Function App: $APP_NAME"
 
             echo "🚀 Deploying functionapp.zip using config-zip..."
-            
+
             # This command handles uploading the zip and updating the function app
             # to run from the package.
             az functionapp deployment source config-zip \
@@ -175,5 +175,3 @@ jobs:
               --build-remote false
 
             echo "✅ Deployment Complete"
-
-

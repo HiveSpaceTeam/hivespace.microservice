@@ -22,7 +22,7 @@ public class PresignUrlFunction(
     private readonly IValidator<PresignUrlRequest> _validator = validator;
 
     [Function("PresignUrl")]
-    public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "post", Route = ApiConfigs.PresignUrl)] HttpRequestData req)
+    public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = ApiConfigs.PresignUrl)] HttpRequestData req)
     {
         _logger.LogInformation("Processing PresignUrl request.");
 
