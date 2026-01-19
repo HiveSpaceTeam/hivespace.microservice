@@ -144,7 +144,7 @@ jobs:
               --parameters functionAppName="$FUNCTION_APP_NAME" \
               --parameters mediaDbConnectionString="${{ secrets.MEDIA_DB_CONNECTION_STRING }}"
 
-      - name: Deploy to Azure Functions (Blob Config)
+      - name: Deploy to Azure Functions (Zip Deploy)
         uses: azure/cli@v2
         with:
           inlineScript: |
@@ -152,6 +152,7 @@ jobs:
             
             # We use the Env Var set in the previous step
             RG=${{ vars.AZURE_RESOURCE_GROUP }}
+            FUNCTION_APP_NAME="${{ vars.AZURE_FUNCTION_APP_MEDIA_SERVICE_NAME }}"
             
             echo "Targeting Function App: $APP_NAME"
 
@@ -166,3 +167,4 @@ jobs:
               --build-remote false
 
             echo "✅ Deployment Complete"
+
