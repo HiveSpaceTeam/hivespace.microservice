@@ -24,7 +24,6 @@ public class MediaCleanupService(
         logger.LogInformation("Starting cleanup of assets older than {Hours} hours", ExpirationHours);
 
         int totalCleaned = 0;
-        int totalFailed = 0;
         int batchCount = 0;
 
         try
@@ -63,12 +62,11 @@ public class MediaCleanupService(
             var duration = DateTimeOffset.UtcNow - startTime;
             
             logger.LogInformation(
-                "Cleanup complete: {Cleaned} cleaned, {Failed} failed, {Duration}s",
+                "Cleanup complete: {Cleaned} cleaned, {Duration}s",
                 totalCleaned,
-                totalFailed,
                 duration.TotalSeconds);
 
-            return new CleanupResult(totalCleaned, totalFailed, batchCount, duration);
+            return new CleanupResult(totalCleaned, duration);
         }
         catch (Exception ex)
         {

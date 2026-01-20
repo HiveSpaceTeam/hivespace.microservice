@@ -19,9 +19,8 @@ public class CleanupPendingAssetsFunction(
             var result = await cleanupService.CleanupExpiredPendingAssetsAsync();
             
             logger.LogInformation(
-                "Cleanup function completed successfully. Processed: {Processed}, Errors: {Errors}, Duration: {Duration}s",
+                "Cleanup function completed successfully. Processed: {Processed}, Duration: {Duration}s",
                 result.TotalProcessed,
-                result.TotalErrors,
                 result.Duration.TotalSeconds);
         }
         catch (Exception ex)

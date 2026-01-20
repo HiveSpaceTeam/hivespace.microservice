@@ -56,7 +56,6 @@ public class MediaAsset : AggregateRoot<Guid>, IAuditable
             throw new DomainException(400, MediaDomainErrorCode.MediaProcessingFailed, nameof(MediaAsset));
         
         Status = MediaStatus.Uploaded;
-        UpdatedAt = DateTimeOffset.UtcNow;
     }
 
     public void MarkAsProcessed(string? publicUrl, string? thumbnailUrl = null)
@@ -81,7 +80,7 @@ public class MediaAsset : AggregateRoot<Guid>, IAuditable
         MimeType = newMimeType;
     }
 
-    public void SetEntityId(string? entityId)
+    public void SetEntityId(string entityId)
     {
         if (string.IsNullOrWhiteSpace(entityId))
             throw new DomainException(400, MediaDomainErrorCode.MediaProcessingFailed, nameof(entityId));

@@ -7,7 +7,5 @@ public interface IMediaCleanupService
 
 public record CleanupResult(
     int TotalProcessed,
-    int TotalErrors,
-    int BatchesProcessed,
     TimeSpan Duration
 );

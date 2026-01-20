@@ -28,7 +28,6 @@ var host = new HostBuilder()
         services.Configure<System.Text.Json.JsonSerializerOptions>(options =>
         {
             options.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
-            options.Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
         });
 
         var configuration = context.Configuration;
