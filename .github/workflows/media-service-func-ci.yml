@@ -57,7 +57,7 @@ jobs:
         run: |
           echo "Searching for test projects..."
           # Looking for tests specifically in the MediaService folder
-          TEST_PROJECTS=$(find src/HiveSpace.MediaService -name "*.Tests.csproj" -o -name "*.Test.csproj" -o -name "*Tests.csproj" 2>/dev/null | head -10)
+          TEST_PROJECTS=$(find src/HiveSpace.MediaService -name "*.Tests.csproj" -o -name "*.Test.csproj" -o -name "*Tests.csproj" 2>/dev/null)
 
           if [ -z "$TEST_PROJECTS" ]; then
             echo "📝 No test projects found - skipping tests"
@@ -74,7 +74,7 @@ jobs:
             echo "$TEST_PROJECTS" | xargs -I {} dotnet build {} -c Release --no-restore
 
             echo "Running unit tests..."
-            if dotnet test --configuration Release --no-build --verbosity normal; then
+            if echo "$TEST_PROJECTS" | xargs -I {} dotnet test {} --configuration Release --no-build --verbosity normal; then
               echo "✅ All tests passed"
             else
               echo "❌ Tests failed"
@@ -102,9 +102,9 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     environment: dev
-    # if: |
-    #   (github.event_name == 'push' && github.ref == 'refs/heads/master') ||
-    #   (github.event_name == 'workflow_dispatch' && github.event.inputs.branch == 'master')
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/master') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.branch == 'master')
     steps:
       - name: Checkout
         uses: actions/checkout@v4
