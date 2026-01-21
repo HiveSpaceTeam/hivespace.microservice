@@ -86,9 +86,9 @@ jobs:
         run: |
           dotnet publish src/HiveSpace.MediaService/HiveSpace.MediaService.Func/HiveSpace.MediaService.Func.csproj \
             -c Release \
-            --output ./publish \
-            /p:GenerateFunctionAppMetadataFiles=true \
-            /p:PublishReadyToRun=false
+            -r linux-x64 \
+            --self-contained false \
+            --output ./publish
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
