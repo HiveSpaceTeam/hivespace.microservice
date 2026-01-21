@@ -4,30 +4,23 @@ using HiveSpace.MediaService.Func.Core.Contracts;
 using HiveSpace.MediaService.Func.Core.DomainModels;
 using HiveSpace.MediaService.Func.Core.Interfaces;
 using HiveSpace.MediaService.Func.Infrastructure.Data;
-using Microsoft.Extensions.Configuration;
+using HiveSpace.MediaService.Func.Core.Configuration;
 using System.Text.Json;
 using HiveSpace.MediaService.Func.Core.Exceptions;
 
 namespace HiveSpace.MediaService.Func.Core.Services;
 
-public class MediaService : IMediaService
+public class MediaService(
+    IStorageService storageService,
+    MediaDbContext dbContext,
+    StorageConfiguration storageConfig,
+    IQueueService queueService
+        ) : IMediaService
 {
-    private readonly IStorageService _storageService;
-    private readonly MediaDbContext _dbContext;
-    private readonly IConfiguration _configuration;
-    private readonly IQueueService _queueService;
-
-    public MediaService(
-        IStorageService storageService, 
-        MediaDbContext dbContext, 
-        IConfiguration configuration,
-        IQueueService queueService)
-    {
-        _storageService = storageService;
-        _dbContext = dbContext;
-        _configuration = configuration;
-        _queueService = queueService;
-    }
+    private readonly IStorageService _storageService = storageService;
+    private readonly MediaDbContext _dbContext = dbContext;
+    private readonly StorageConfiguration _storageConfig = storageConfig;
+    private readonly IQueueService _queueService = queueService;
 
     public async Task<PresignUrlResponse> GeneratePresignedUrlAsync(PresignUrlRequest request)
     {
@@ -36,12 +29,12 @@ public class MediaService : IMediaService
         var uniqueFileName = $"{Guid.NewGuid()}{fileExtension}";
         var storagePath = $"{request.EntityType.ToLower()}/{uniqueFileName}";
 
-        var containerName = _configuration["AzureStorage:TempContainer"] 
-                            ?? throw new DomainException(500, MediaDomainErrorCode.StorageConfigurationMissing, nameof(MediaService));
+        var containerName = _storageConfig.TempContainer;
+        var expiryMinutes = _storageConfig.PresignUrlExpiryMinutes; 
         
-        var expiryMinutes = 10; 
-        
-        // 2. Generate SAS Token
+        // 2. Ensure Container Exists & Generate SAS Token
+        await _storageService.EnsureContainerExistsAsync(containerName);
+
         var sasUri = _storageService.GeneratePresignedUrl(
             containerName, 
             storagePath, 
@@ -49,7 +42,7 @@ public class MediaService : IMediaService
             expiryMinutes
         ).ToString();
             
-        var expiresAt = DateTime.UtcNow.AddMinutes(expiryMinutes);
+        var expiresAt = DateTimeOffset.UtcNow.AddMinutes(expiryMinutes);
 
         // 3. Save Pending Metadata to DB
         var mediaAsset = new MediaAsset(

@@ -13,15 +13,16 @@ namespace HiveSpace.MediaService.Func.Functions.Http;
 
 public class PresignUrlFunction(
     ILogger<PresignUrlFunction> logger,
-    IMediaService mediaService,
-    IValidator<PresignUrlRequest> validator)
+    IValidator<PresignUrlRequest> validator,
+    IMediaService mediaService
+    )
 {
     private readonly ILogger<PresignUrlFunction> _logger = logger;
     private readonly IMediaService _mediaService = mediaService;
     private readonly IValidator<PresignUrlRequest> _validator = validator;
 
     [Function("PresignUrl")]
-    public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "post", Route = ApiConfigs.PresignUrl)] HttpRequestData req)
+    public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = ApiConfigs.PresignUrl)] HttpRequestData req)
     {
         _logger.LogInformation("Processing PresignUrl request.");
 

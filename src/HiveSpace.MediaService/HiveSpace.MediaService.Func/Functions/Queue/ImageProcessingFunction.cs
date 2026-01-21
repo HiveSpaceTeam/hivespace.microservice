@@ -1,6 +1,7 @@
 using System.Text.Json;
 using HiveSpace.MediaService.Func.Infrastructure.Data;
 using HiveSpace.MediaService.Func.Core.DomainModels;
+using HiveSpace.MediaService.Func.Core.Configuration;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
@@ -17,11 +18,11 @@ public class ImageProcessingFunction(
     ILogger<ImageProcessingFunction> logger,
     IConfiguration configuration,
     IStorageService storageService,
-    MediaDbContext dbContext)
+    StorageConfiguration storageConfig,
+    MediaDbContext dbContext
+    )
 {
     private const string QueueName = "image-processing-queue";
-    private string PublicContainerName => configuration["AzureStorage:PublicContainer"] ?? "public-assets";
-    private string TempContainerName => configuration["AzureStorage:TempContainer"] ?? "temp-media-upload";
 
     [Function(nameof(ImageProcessingFunction))]
     public async Task Run([QueueTrigger(QueueName, Connection = "AzureStorage:ConnectionString")] string message)
@@ -47,11 +48,9 @@ public class ImageProcessingFunction(
 
     private async Task HandleMediaAssetAsync(MediaAsset mediaAsset)
     {
-        // 1. Download original image
-        
         try
         {
-            using var originalStream = await storageService.DownloadBlobAsync(TempContainerName, mediaAsset.StoragePath);
+            using var originalStream = await storageService.DownloadBlobAsync(storageConfig.TempContainer, mediaAsset.StoragePath);
             
             if (originalStream.CanSeek && originalStream.Length == 0)
             {
@@ -67,9 +66,9 @@ public class ImageProcessingFunction(
 
             logger.LogInformation("Successfully processed image {MediaAssetId}", mediaAsset.Id);
         }
-        catch (DomainException ex) when (ex.ErrorCode == MediaDomainErrorCode.BlobNotFound)
+        catch (Exception ex)
         {
-            logger.LogError("Blob {StoragePath} not found in {ContainerName}.", mediaAsset.StoragePath, TempContainerName);
+            logger.LogError(ex, "Failed to process media asset {MediaAssetId}", mediaAsset.Id);
             mediaAsset.MarkAsFailed();
             await dbContext.SaveChangesAsync();
         }
@@ -109,7 +108,7 @@ public class ImageProcessingFunction(
             
             if (originalStream.CanSeek) originalStream.Position = 0;
             
-            await storageService.UploadBlobAsync(PublicContainerName, mediaAsset.StoragePath, originalStream, mediaAsset.MimeType ?? "application/octet-stream");
+            await storageService.UploadBlobAsync(storageConfig.PublicContainer, mediaAsset.StoragePath, originalStream, mediaAsset.MimeType ?? "application/octet-stream");
         }
     }
 
@@ -134,7 +133,7 @@ public class ImageProcessingFunction(
         
         mediaAsset.UpdateFileSize(outputStream.Length);
 
-        await storageService.UploadBlobAsync(PublicContainerName, mediaAsset.StoragePath, outputStream, "image/webp");
+        await storageService.UploadBlobAsync(storageConfig.PublicContainer, mediaAsset.StoragePath, outputStream, "image/webp");
     }
 
     private async Task UploadThumbnailAsync(Image image, MediaAsset mediaAsset)
@@ -151,7 +150,7 @@ public class ImageProcessingFunction(
         thumbStream.Position = 0;
 
         var thumbPath = GetThumbnailPath(mediaAsset.StoragePath);
-        await storageService.UploadBlobAsync(PublicContainerName, thumbPath, thumbStream, "image/webp");
+        await storageService.UploadBlobAsync(storageConfig.PublicContainer, thumbPath, thumbStream, "image/webp");
     }
 
     private async Task UpdateMediaAssetUrlsAsync(MediaAsset mediaAsset)
@@ -171,7 +170,7 @@ public class ImageProcessingFunction(
 
     private string GetPublicUrl(string path)
     {
-        var url = $"{storageService.GetContainerUrl(PublicContainerName)}/{path}";
+        var url = $"{storageService.GetContainerUrl(storageConfig.PublicContainer)}/{path}";
         var cdnHost = configuration["AzureStorage:CdnHost"];
         
         if (!string.IsNullOrEmpty(cdnHost))

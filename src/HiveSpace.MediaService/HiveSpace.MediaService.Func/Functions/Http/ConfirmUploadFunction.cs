@@ -12,9 +12,10 @@ using Microsoft.Extensions.Logging;
 namespace HiveSpace.MediaService.Func.Functions.Http;
 
 public class ConfirmUploadFunction(
-    ILogger<ConfirmUploadFunction> logger,
-    IMediaService mediaService,
-    IValidator<ConfirmUploadRequest> validator)
+    ILogger<ConfirmUploadFunction> logger
+    , IMediaService mediaService,
+    IValidator<ConfirmUploadRequest> validator
+    )
 {
     private readonly ILogger<ConfirmUploadFunction> _logger = logger;
     private readonly IMediaService _mediaService = mediaService;
@@ -22,7 +23,7 @@ public class ConfirmUploadFunction(
 
     [Function("ConfirmUpload")]
     public async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Function, "post", Route = ApiConfigs.ConfirmUpload)] HttpRequestData req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = ApiConfigs.ConfirmUpload)] HttpRequestData req,
         string fileId)
     {
         _logger.LogInformation("Processing ConfirmUpload request for FileID: {FileId}", fileId);

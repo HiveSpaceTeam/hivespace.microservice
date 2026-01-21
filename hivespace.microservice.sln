@@ -51,6 +51,33 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.Infrastructure.Me
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "HiveSpace.MediaService", "HiveSpace.MediaService", "{E2A1845F-AD98-4844-BFF1-F07B959A2DC0}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "infra", "infra", "{E0000000-0000-0000-0000-000000000001}"
+	ProjectSection(SolutionItems) = preProject
+		infra\api-gateway.bicep = infra\api-gateway.bicep
+		infra\catalog-service.bicep = infra\catalog-service.bicep
+		infra\media-service.bicep = infra\media-service.bicep
+		infra\user-service.bicep = infra\user-service.bicep
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "parameters", "parameters", "{E0000000-0000-0000-0000-000000000002}"
+	ProjectSection(SolutionItems) = preProject
+		infra\parameters\media-service-dev.json = infra\parameters\media-service-dev.json
+		infra\parameters\user-service-dev.json = infra\parameters\user-service-dev.json
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{E0000000-0000-0000-0000-000000000003}"
+	ProjectSection(SolutionItems) = preProject
+		.github\copilot-instructions.md = .github\copilot-instructions.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{E0000000-0000-0000-0000-000000000004}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\api-gateway-ci.yml = .github\workflows\api-gateway-ci.yml
+		.github\workflows\catalog-service-ci.yml = .github\workflows\catalog-service-ci.yml
+		.github\workflows\media-service-func-ci.yml = .github\workflows\media-service-func-ci.yml
+		.github\workflows\user-service-ci.yml = .github\workflows\user-service-ci.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -265,12 +292,14 @@ Global
 		{8236F463-FD72-4401-8FCB-171C86EE3C1A}.Release|x64.Build.0 = Release|Any CPU
 		{8236F463-FD72-4401-8FCB-171C86EE3C1A}.Release|x86.ActiveCfg = Release|Any CPU
 		{8236F463-FD72-4401-8FCB-171C86EE3C1A}.Release|x86.Build.0 = Release|Any CPU
+
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{983AAABA-65F5-43CE-8A72-E2BD12AECEA4} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{8E604477-D2AC-48FD-A8EF-349D246FAC03} = {E0000000-0000-0000-0000-000000000001}
 		{A1C7DAC3-2F17-4A34-078C-478180B72148} = {8E604477-D2AC-48FD-A8EF-349D246FAC03}
 		{9E47C24A-8E78-AD21-4A98-232284B0394C} = {8E604477-D2AC-48FD-A8EF-349D246FAC03}
 		{7C7FF4E5-FB42-6FCB-ED9C-E27CF40B6DA9} = {8E604477-D2AC-48FD-A8EF-349D246FAC03}
@@ -291,6 +320,9 @@ Global
 		{10D27F4D-6958-4B7F-BED2-9F8B57E4D909} = {E2A1845F-AD98-4844-BFF1-F07B959A2DC0}
 		{8236F463-FD72-4401-8FCB-171C86EE3C1A} = {8E604477-D2AC-48FD-A8EF-349D246FAC03}
 		{E2A1845F-AD98-4844-BFF1-F07B959A2DC0} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{E0000000-0000-0000-0000-000000000002} = {E0000000-0000-0000-0000-000000000001}
+		{E0000000-0000-0000-0000-000000000004} = {E0000000-0000-0000-0000-000000000003}
+
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D8C2701B-2199-41FF-B96B-89B56EA2198C}

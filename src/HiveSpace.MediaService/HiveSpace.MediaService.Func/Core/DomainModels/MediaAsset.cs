@@ -1,5 +1,7 @@
 using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.Domain.Shared.Interfaces;
+using HiveSpace.Domain.Shared.Exceptions;
+using HiveSpace.MediaService.Func.Core.Exceptions;
 
 namespace HiveSpace.MediaService.Func.Core.DomainModels;
 
@@ -50,6 +52,9 @@ public class MediaAsset : AggregateRoot<Guid>, IAuditable
 
     public void MarkAsUploaded()
     {
+        if (Status != MediaStatus.Pending)
+            throw new DomainException(400, MediaDomainErrorCode.MediaProcessingFailed, nameof(MediaAsset));
+        
         Status = MediaStatus.Uploaded;
     }
 
@@ -75,8 +80,14 @@ public class MediaAsset : AggregateRoot<Guid>, IAuditable
         MimeType = newMimeType;
     }
 
-    public void SetEntityId(string? entityId)
+    public void SetEntityId(string entityId)
     {
+        if (string.IsNullOrWhiteSpace(entityId))
+            throw new DomainException(400, MediaDomainErrorCode.MediaProcessingFailed, nameof(entityId));
+        
+        if (Status != MediaStatus.Pending)
+            throw new DomainException(400, MediaDomainErrorCode.MediaProcessingFailed, nameof(entityId));
+        
         EntityId = entityId;
     }
 }
