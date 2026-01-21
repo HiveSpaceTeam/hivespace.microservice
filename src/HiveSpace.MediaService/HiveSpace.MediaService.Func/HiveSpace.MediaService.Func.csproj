@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GenerateFunctionAppMetadataFiles>true</GenerateFunctionAppMetadataFiles>
+    <PublishReadyToRun>true</PublishReadyToRun>
   </PropertyGroup>
   <ItemGroup>
     <!-- Core Functions Packages -->
@@ -34,3 +35,4 @@
     </None>
   </ItemGroup>
 </Project>
+
