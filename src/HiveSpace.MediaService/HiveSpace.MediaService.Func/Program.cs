@@ -72,36 +72,36 @@ var host = new HostBuilder()
     .Build();
 
 // Apply pending migrations automatically (Development only)
-if (host.Services.GetRequiredService<IHostEnvironment>().IsDevelopment())
-{
-    using var scope = host.Services.CreateScope();
-    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-    var context = scope.ServiceProvider.GetRequiredService<MediaDbContext>();
+// if (host.Services.GetRequiredService<IHostEnvironment>().IsDevelopment())
+// {
+//     using var scope = host.Services.CreateScope();
+//     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+//     var context = scope.ServiceProvider.GetRequiredService<MediaDbContext>();
 
-    try
-    {
-        // Check for pending migrations before applying them
-        var pendingMigrations = context.Database.GetPendingMigrations();
-        if (pendingMigrations.Any())
-        {
-            logger.LogInformation("Found {Count} pending migrations: {Migrations}",
-                pendingMigrations.Count(),
-                string.Join(", ", pendingMigrations));
+//     try
+//     {
+//         // Check for pending migrations before applying them
+//         var pendingMigrations = context.Database.GetPendingMigrations();
+//         if (pendingMigrations.Any())
+//         {
+//             logger.LogInformation("Found {Count} pending migrations: {Migrations}",
+//                 pendingMigrations.Count(),
+//                 string.Join(", ", pendingMigrations));
 
-            logger.LogInformation("Applying pending migrations...");
-            context.Database.Migrate();
-            logger.LogInformation("Migrations applied successfully");
-        }
-        else
-        {
-            logger.LogInformation("No pending migrations found. Database is up to date.");
-        }
-    }
-    catch (Exception ex)
-    {
-        logger.LogError(ex, "An error occurred while migrating the database");
-        throw;
-    }
-}
+//             logger.LogInformation("Applying pending migrations...");
+//             context.Database.Migrate();
+//             logger.LogInformation("Migrations applied successfully");
+//         }
+//         else
+//         {
+//             logger.LogInformation("No pending migrations found. Database is up to date.");
+//         }
+//     }
+//     catch (Exception ex)
+//     {
+//         logger.LogError(ex, "An error occurred while migrating the database");
+//         throw;
+//     }
+// }
 
 host.Run();
