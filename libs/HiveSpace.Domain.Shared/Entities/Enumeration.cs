@@ -1,5 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Reflection;
+using HiveSpace.Domain.Shared.Exceptions;
+using HiveSpace.Domain.Shared.Errors;
 
 namespace HiveSpace.Domain.Shared.Entities;
 
@@ -21,7 +23,7 @@ public abstract class Enumeration : IComparable
                     .Select(f => f.GetValue(null))
                     .Cast<T>();
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         if (obj is not Enumeration otherValue)
         {
@@ -58,8 +60,8 @@ public abstract class Enumeration : IComparable
     {
         var matchingItem = GetAll<T>().FirstOrDefault(predicate);
 
-        return matchingItem ?? throw new InvalidOperationException($"'{value}' is not a valid {description} in {typeof(T)}");
+        return matchingItem ?? throw new InvalidFieldException(DomainErrorCode.InvalidEnumerationValue, nameof(value));
     }
 
-    public int CompareTo(object other) => Id.CompareTo(((Enumeration)other).Id);
+    public int CompareTo(object? other) => other is null ? 1 : Id.CompareTo(((Enumeration)other).Id);
 }
