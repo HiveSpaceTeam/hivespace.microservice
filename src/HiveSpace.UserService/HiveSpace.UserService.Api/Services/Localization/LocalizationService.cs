@@ -1,6 +1,8 @@
 using System.Globalization;
 using System.Text.Json;
 using System.Collections.Concurrent;
+using HiveSpace.Domain.Shared.Exceptions;
+using HiveSpace.Domain.Shared.Errors;
 
 namespace HiveSpace.UserService.Api.Services.Localization;
 
@@ -21,8 +23,8 @@ public class LocalizationService : ILocalizationService
 
     public LocalizationService(IWebHostEnvironment environment, ILogger<LocalizationService> logger)
     {
-        _environment = environment ?? throw new ArgumentNullException(nameof(environment));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _environment = environment ?? throw new InvalidFieldException(DomainErrorCode.ArgumentNull, nameof(environment));
+        _logger = logger ?? throw new InvalidFieldException(DomainErrorCode.ArgumentNull, nameof(logger));
         
         // Pre-load all supported cultures
         LoadAllCultures();

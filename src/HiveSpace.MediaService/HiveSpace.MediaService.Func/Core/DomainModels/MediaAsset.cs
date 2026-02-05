@@ -1,6 +1,7 @@
 using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.Domain.Shared.Interfaces;
 using HiveSpace.Domain.Shared.Exceptions;
+using HiveSpace.Domain.Shared.Errors;
 using HiveSpace.MediaService.Func.Core.Exceptions;
 
 namespace HiveSpace.MediaService.Func.Core.DomainModels;
@@ -39,9 +40,9 @@ public class MediaAsset : AggregateRoot<Guid>, IAuditable
         string? entityId = null)
     {
         Id = Guid.NewGuid();
-        FileName = fileName ?? throw new ArgumentNullException(nameof(fileName));
-        StoragePath = storagePath ?? throw new ArgumentNullException(nameof(storagePath));
-        EntityType = entityType ?? throw new ArgumentNullException(nameof(entityType));
+        FileName = fileName ?? throw new InvalidFieldException(DomainErrorCode.ParameterRequired, nameof(fileName));
+        StoragePath = storagePath ?? throw new InvalidFieldException(DomainErrorCode.ParameterRequired, nameof(storagePath));
+        EntityType = entityType ?? throw new InvalidFieldException(DomainErrorCode.ParameterRequired, nameof(entityType));
         OriginalFileName = originalFileName;
         MimeType = mimeType;
         FileSize = fileSize;

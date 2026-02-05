@@ -5,6 +5,8 @@ using HiveSpace.Core.Exceptions;
 using HiveSpace.Core.Exceptions.Models;
 using HiveSpace.Infrastructure.Persistence.Idempotence;
 using HiveSpace.Core.Contexts;
+using HiveSpace.Domain.Shared.Exceptions;
+using HiveSpace.Domain.Shared.Errors;
 
 namespace HiveSpace.Infrastructure.Persistence.Transaction;
 
@@ -23,7 +25,7 @@ public class TransactionService<TContext> : ITransactionService, IDisposable
     {
         if (!context.Database.IsRelational())
         {
-            throw new InvalidOperationException("TransactionService only supports relational databases.");
+            throw new DomainException(400, DomainErrorCode.ParameterRequired, nameof(context));
         }
         _dbContext = context;
         _incomingRequestRepository = incomingRequestRepository;

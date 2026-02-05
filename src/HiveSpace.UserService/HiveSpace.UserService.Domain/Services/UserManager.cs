@@ -1,5 +1,6 @@
 using HiveSpace.Domain.Shared.Interfaces;
 using HiveSpace.Domain.Shared.Exceptions;
+using HiveSpace.Domain.Shared.Errors;
 using HiveSpace.UserService.Domain.Aggregates.User;
 using HiveSpace.UserService.Domain.Enums;
 using HiveSpace.UserService.Domain.Exceptions;
@@ -20,7 +21,7 @@ public class UserManager : IDomainService
 
     public UserManager(IUserRepository userRepository)
     {
-        _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+        _userRepository = userRepository ?? throw new InvalidFieldException(DomainErrorCode.ArgumentNull, nameof(userRepository));
     }
 
     /// <summary>
