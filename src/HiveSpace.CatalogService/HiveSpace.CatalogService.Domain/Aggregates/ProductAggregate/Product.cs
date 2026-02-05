@@ -1,5 +1,8 @@
 ﻿using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.Domain.Shared.Interfaces;
+using HiveSpace.Domain.Shared.Exceptions;
+using HiveSpace.Domain.Shared.Errors;
+using HiveSpace.CatalogService.Domain.Exceptions;
 using System.Text.Json.Serialization;
 
 namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
@@ -107,40 +110,40 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
 
         public void AddCategory(ProductCategory category)
         {
-            if (category == null) throw new ArgumentNullException(nameof(category));
+            if (category == null) throw new InvalidFieldException(DomainErrorCode.ParameterRequired, nameof(category));
             _categories.Add(category);
         }
 
         public void RemoveCategory(ProductCategory category)
         {
-            if (category == null) throw new ArgumentNullException(nameof(category));
+            if (category == null) throw new InvalidFieldException(DomainErrorCode.ParameterRequired, nameof(category));
             _categories.Remove(category);
         }
 
         public void UpdateCategories(List<ProductCategory> categories)
         {
-            if (categories == null) throw new ArgumentNullException(nameof(categories));
+            if (categories == null) throw new InvalidFieldException(DomainErrorCode.ParameterRequired, nameof(categories));
             _categories.Clear();
             _categories.AddRange(categories);
         }
 
         public void UpdateAttributes(List<ProductAttribute> attributes)
         {
-            if (attributes == null) throw new ArgumentNullException(nameof(attributes));
+            if (attributes == null) throw new InvalidFieldException(DomainErrorCode.ParameterRequired, nameof(attributes));
             _attributes.Clear();
             _attributes.AddRange(attributes);
         }
 
         public void UpdateVariants(List<ProductVariant> variants)
         {
-            if (variants == null) throw new ArgumentNullException(nameof(variants));
+            if (variants == null) throw new InvalidFieldException(DomainErrorCode.ParameterRequired, nameof(variants));
             _variants.Clear();
             _variants.AddRange(variants);
         }
 
         public void UpdateSkus(List<Sku> skus)
         {
-            if (skus == null) throw new ArgumentNullException(nameof(skus));
+            if (skus == null) throw new InvalidFieldException(DomainErrorCode.ParameterRequired, nameof(skus));
             _skus.Clear();
             _skus.AddRange(skus);
         }

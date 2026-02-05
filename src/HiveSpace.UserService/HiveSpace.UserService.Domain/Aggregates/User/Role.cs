@@ -1,4 +1,6 @@
 using HiveSpace.Domain.Shared.Entities;
+using HiveSpace.Domain.Shared.Exceptions;
+using HiveSpace.UserService.Domain.Exceptions;
 
 namespace HiveSpace.UserService.Domain.Aggregates.User;
 
@@ -22,7 +24,7 @@ public class Role : ValueObject
     private Role(string name, string description)
     {
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Role name cannot be empty.", nameof(name));
+            throw new InvalidFieldException(UserDomainErrorCode.RoleNameRequired, nameof(name));
 
         Name = name;
         Description = description;
@@ -41,14 +43,14 @@ public class Role : ValueObject
     public static Role FromName(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Role name cannot be null or empty.", nameof(name));
+            throw new InvalidFieldException(UserDomainErrorCode.RoleNameRequired, nameof(name));
 
         var normalized = name.Trim();
         if (normalized.Equals(RoleNames.Seller, StringComparison.OrdinalIgnoreCase)) return Seller;
         if (normalized.Equals(RoleNames.Admin, StringComparison.OrdinalIgnoreCase)) return Admin;
         if (normalized.Equals(RoleNames.SystemAdmin, StringComparison.OrdinalIgnoreCase)) return SystemAdmin;
 
-        throw new ArgumentException($"Unknown role name: {name}", nameof(name));
+        throw new InvalidFieldException(UserDomainErrorCode.UnknownRoleName, nameof(name));
     }
 
     protected override IEnumerable<object> GetEqualityComponents()

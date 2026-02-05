@@ -3,6 +3,8 @@ using HiveSpace.Infrastructure.Persistence.Outbox;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using HiveSpace.Infrastructure.Messaging.Interfaces;
+using HiveSpace.Domain.Shared.Exceptions;
+using HiveSpace.Domain.Shared.Errors;
 
 namespace HiveSpace.Infrastructure.Persistence.Interceptors;
 
@@ -18,7 +20,7 @@ public class DomainEventToOutboxInterceptor : ISaveChangesInterceptor
         IIntegrationEventMapper integrationEventMapper
         )
     {
-        _integrationEventMapper = integrationEventMapper ?? throw new ArgumentNullException(nameof(integrationEventMapper));
+        _integrationEventMapper = integrationEventMapper ?? throw new InvalidFieldException(DomainErrorCode.ArgumentNull, nameof(integrationEventMapper));
     }
 
     public InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)

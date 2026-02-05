@@ -1,5 +1,7 @@
 using HiveSpace.Core.Contexts;
 using HiveSpace.UserService.Application.Interfaces.Messaging;
+using HiveSpace.Domain.Shared.Exceptions;
+using HiveSpace.Domain.Shared.Errors;
 using HiveSpace.UserService.Application.Interfaces.Services;
 using HiveSpace.UserService.Application.Models.Requests.Store;
 using HiveSpace.UserService.Application.Models.Responses.Store;
@@ -21,10 +23,10 @@ public class StoreService : IStoreService
         IStoreRepository storeRepository,
         IStoreEventPublisher storeEventPublisher)
     {
-        _userContext = userContext ?? throw new ArgumentNullException(nameof(userContext));
-        _storeManager = storeManager ?? throw new ArgumentNullException(nameof(storeManager));
-        _storeRepository = storeRepository ?? throw new ArgumentNullException(nameof(storeRepository));
-        _storeEventPublisher = storeEventPublisher ?? throw new ArgumentNullException(nameof(storeEventPublisher));
+        _userContext = userContext ?? throw new InvalidFieldException(DomainErrorCode.ArgumentNull, nameof(userContext));
+        _storeManager = storeManager ?? throw new InvalidFieldException(DomainErrorCode.ArgumentNull, nameof(storeManager));
+        _storeRepository = storeRepository ?? throw new InvalidFieldException(DomainErrorCode.ArgumentNull, nameof(storeRepository));
+        _storeEventPublisher = storeEventPublisher ?? throw new InvalidFieldException(DomainErrorCode.ArgumentNull, nameof(storeEventPublisher));
     }
     
     public async Task<CreateStoreResponseDto> CreateStoreAsync(CreateStoreRequestDto request, CancellationToken cancellationToken = default)
