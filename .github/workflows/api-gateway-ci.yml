@@ -167,4 +167,5 @@ jobs:
                 mediaServiceUrl="${{ steps.fetch-resources.outputs.media_url }}" \
 
                 customDomainCertificateUrl="$CERT_SECRET_URL" \
-                customDomainHostName="${{ vars.API_GATEWAY_CUSTOM_DOMAIN }}"
+                customDomainHostName="${{ vars.API_GATEWAY_CUSTOM_DOMAIN }}" \
+                keyVaultName="$KV_NAME"

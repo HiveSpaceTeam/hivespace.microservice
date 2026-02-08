@@ -37,6 +37,9 @@ param customDomainCertificateUrl string
 @description('Custom Domain Hostname')
 param customDomainHostName string = 'dev.api.hivespace.site'
 
+@description('Key Vault Name')
+param keyVaultName string
+
 resource applicationInsights 'Microsoft.Insights/components@2020-02-02' existing = {
   name: appInsightsName
 }
@@ -76,8 +79,7 @@ resource apimService 'Microsoft.ApiManagement/service@2021-08-01' = {
 }
 
 // Key Vault Access for Custom Domain Certificate
-// Extract Key Vault name from the certificate URL: https://{vault-name}.vault.azure.net/secrets/{secret-name}/{version}
-var keyVaultName = split(split(customDomainCertificateUrl, '/')[2], '.')[0]
+
 
 resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
   name: keyVaultName
