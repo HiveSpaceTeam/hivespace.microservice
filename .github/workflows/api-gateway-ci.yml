@@ -165,6 +165,5 @@ jobs:
                 userServiceUrl="${{ steps.fetch-resources.outputs.user_url }}" \
                 catalogServiceUrl="${{ steps.fetch-resources.outputs.catalog_url }}" \
                 mediaServiceUrl="${{ steps.fetch-resources.outputs.media_url }}" \
-
                 customDomainCertificateUrl="$CERT_SECRET_URL" \
                 customDomainHostName="${{ vars.API_GATEWAY_CUSTOM_DOMAIN }}"
