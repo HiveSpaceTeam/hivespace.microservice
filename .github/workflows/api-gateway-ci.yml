@@ -2,8 +2,10 @@ name: API Gateway CI
 
 on:
   push:
+    branches: [master]
     paths:
       - 'infra/api-gateway.bicep'
+      - 'infra/parameters/api-gateway-dev.json'
       - '.github/workflows/api-gateway-ci.yml'
   workflow_dispatch:
 
@@ -120,24 +122,10 @@ jobs:
             echo "Installing Application Insights extension..."
             az extension add --name application-insights --only-show-errors 2>/dev/null || true
 
-            APP_INSIGHTS_KEY=$(az monitor app-insights component show \
-              --app appi-hivespace-dev \
-              --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
-              --query instrumentationKey \
-              --output tsv)
-
-            APP_INSIGHTS_ID=$(az monitor app-insights component show \
-              --app appi-hivespace-dev \
-              --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
-              --query id \
-              --output tsv)
-
             # Set Outputs
             echo "user_url=https://$USER_SERVICE_FQDN" >> $GITHUB_OUTPUT
             echo "catalog_url=https://$CATALOG_SERVICE_HOST" >> $GITHUB_OUTPUT
             echo "media_url=https://$MEDIA_SERVICE_HOST" >> $GITHUB_OUTPUT
-            echo "app_insights_key=$APP_INSIGHTS_KEY" >> $GITHUB_OUTPUT
-            echo "app_insights_id=$APP_INSIGHTS_ID" >> $GITHUB_OUTPUT
 
       - name: Deploy API Gateway via Bicep
         uses: azure/cli@v2
@@ -146,20 +134,37 @@ jobs:
             echo "Deploying API Management Configuration..."
 
             # KeyVault Secret for Custom Domain
-            # Assumes KeyVault name logic: kv-hivespace-dev (standard convention) or from variable
-            KV_NAME="kv-hivespace-dev" 
-            CERT_SECRET_URL="https://$KV_NAME.vault.azure.net/secrets/api-hivespace-site-pfx-dev"
+            KV_NAME="${{ vars.KEY_VAULT_NAME }}"
+            CERT_SECRET_NAME="${{ vars.CERT_SECRET_NAME }}"
+
+            echo "Checking for Key Vault: $KV_NAME"
+            if ! az keyvault show --name "$KV_NAME" --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} &>/dev/null; then
+              echo "❌ Error: Key Vault '$KV_NAME' not found!"
+              exit 1
+            fi
+
+            echo "Checking for Certificate Secret: $CERT_SECRET_NAME"
+            # Get latest secret version ID to constructing versioned URL
+            CERT_ID=$(az keyvault secret show --vault-name "$KV_NAME" --name "$CERT_SECRET_NAME" --query "id" --output tsv || true)
+            CERT_VERSION=${CERT_ID##*/}
+
+            if [ -z "$CERT_VERSION" ]; then
+              echo "❌ Error: Secret '$CERT_SECRET_NAME' not found in Key Vault '$KV_NAME'!"
+              exit 1
+            fi
+
+            # Construct versioned secret URL: https://{vault}.vault.azure.net/secrets/{name}/{version}
+            CERT_SECRET_URL="https://$KV_NAME.vault.azure.net/secrets/$CERT_SECRET_NAME/$CERT_VERSION"
+            echo "✓ Found certificate secret. URL constructed."
 
             az deployment group create \
               --name api-gateway-deploy \
               --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
               --template-file infra/api-gateway.bicep \
+              --parameters infra/parameters/api-gateway-dev.json \
               --parameters \
-                apimName="apim-hivespace-dev" \
                 userServiceUrl="${{ steps.fetch-resources.outputs.user_url }}" \
                 catalogServiceUrl="${{ steps.fetch-resources.outputs.catalog_url }}" \
                 mediaServiceUrl="${{ steps.fetch-resources.outputs.media_url }}" \
-                appInsightsName="appi-hivespace-dev" \
-                appInsightsId="${{ steps.fetch-resources.outputs.app_insights_id }}" \
-                appInsightsInstrumentationKey="${{ steps.fetch-resources.outputs.app_insights_key }}" \
-                customDomainCertificateUrl="$CERT_SECRET_URL"
+                customDomainCertificateUrl="$CERT_SECRET_URL" \
+                customDomainHostName="${{ vars.API_GATEWAY_CUSTOM_DOMAIN }}"

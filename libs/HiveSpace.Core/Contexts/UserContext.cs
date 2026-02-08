@@ -13,10 +13,27 @@ public sealed class UserContext(IHttpContextAccessor httpContextAccessor)
     private ClaimsPrincipal User => _httpContextAccessor.HttpContext?.User
         ?? throw new UnauthorizedException([]);
 
-    public Guid UserId =>
-        Guid.TryParse(User.FindFirstValue("sub"), out Guid userId)
-        ? userId
-        : throw new UnauthorizedException([]);
+    public Guid UserId
+    {
+        get
+        {
+            // ASP.NET Core maps the JWT 'sub' claim to ClaimTypes.NameIdentifier
+            var subClaim = User.FindFirstValue(ClaimTypes.NameIdentifier) 
+                        ?? User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+                        
+            if (string.IsNullOrEmpty(subClaim))
+            {
+                throw new UnauthorizedException([new(CommonErrorCode.SubClaimMissing, nameof(UserId))]);
+            }
+            
+            if (!Guid.TryParse(subClaim, out Guid userId))
+            {
+                throw new UnauthorizedException([new(CommonErrorCode.SubClaimInvalid, nameof(UserId))]);
+            }
+            
+            return userId;
+        }
+    }
 
     public string PhoneNumber => User.FindFirstValue(JwtRegisteredClaimNames.PhoneNumber) ?? "";
     public string Email => User.FindFirstValue(JwtRegisteredClaimNames.Email) ?? throw new UnauthorizedException([]);
