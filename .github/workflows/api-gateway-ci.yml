@@ -144,7 +144,8 @@ jobs:
 
             echo "Checking for Certificate Secret: $CERT_SECRET_NAME"
             # Get latest secret version ID to constructing versioned URL
-            CERT_VERSION=$(az keyvault secret show --vault-name "$KV_NAME" --name "$CERT_SECRET_NAME" --query "id" --output tsv | awk -F'/' '{print $NF}')
+            CERT_ID=$(az keyvault secret show --vault-name "$KV_NAME" --name "$CERT_SECRET_NAME" --query "id" --output tsv)
+            CERT_VERSION=${CERT_ID##*/}
 
             if [ -z "$CERT_VERSION" ]; then
               echo "❌ Error: Secret '$CERT_SECRET_NAME' not found in Key Vault '$KV_NAME'!"
