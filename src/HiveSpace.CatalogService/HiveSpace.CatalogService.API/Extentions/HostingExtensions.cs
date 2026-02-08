@@ -19,8 +19,11 @@ namespace HiveSpace.CatalogService.API.Extentions
             // Add Core services for UserContext and other core functionality
             builder.Services.AddCoreServices();
             
+            builder.Services.AddAppAuthentication(configuration);
+
             // Add Persistence services for TransactionService
             builder.Services.AddPersistenceInfrastructure<CatalogDbContext>();
+
 
             //builder.Services.AddMassTransitWithKafka(configuration,
             //    rider =>
@@ -59,6 +62,7 @@ namespace HiveSpace.CatalogService.API.Extentions
             }
 
             app.UseHttpsRedirection();
+            app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();
 

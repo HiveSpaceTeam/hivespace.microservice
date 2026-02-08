@@ -21,4 +21,6 @@ public class CommonErrorCode(int id, string name, string code) : Enumeration(id,
     public static readonly CommonErrorCode InvalidRoleFilter = new(14, "InvalidRoleFilter", "APP0012");
     public static readonly CommonErrorCode InvalidStatusFilter = new(15, "InvalidStatusFilter", "APP0013");
     public static readonly CommonErrorCode InvalidSortFormat = new(17, "InvalidSortFormat", "APP0015");
+    public static readonly CommonErrorCode SubClaimMissing = new(18, "SubClaimMissing", "APP0016");
+    public static readonly CommonErrorCode SubClaimInvalid = new(19, "SubClaimInvalid", "APP0017");
 }

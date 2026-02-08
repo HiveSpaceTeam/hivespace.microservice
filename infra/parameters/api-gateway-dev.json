@@ -1,0 +1,33 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "apimName": {
+      "value": "apim-hivespace-dev"
+    },
+    "sku": {
+      "value": "Consumption"
+    },
+    "skuCount": {
+      "value": 0
+    },
+    "userServiceUrl": {
+      "value": "https://dev.auth.hivespace.site"
+    },
+    "catalogServiceUrl": {
+      "value": "https://app-hivespace-catalog-dev.azurewebsites.net"
+    },
+    "mediaServiceUrl": {
+      "value": "https://func-hivespace-media-svc-dev.azurewebsites.net"
+    },
+    "appInsightsName": {
+      "value": "appi-hivespace-dev"
+    },
+    "customDomainCertificateUrl": {
+      "value": "<key-vault-secret-url>"
+    },
+    "customDomainHostName": {
+      "value": "dev.api.hivespace.site"
+    }
+  }
+}

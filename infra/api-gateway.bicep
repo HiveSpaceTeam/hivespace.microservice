@@ -31,19 +31,15 @@ param mediaServiceUrl string
 @description('Application Insights Name')
 param appInsightsName string
 
-@description('Application Insights Resource ID')
-param appInsightsId string
-
-@secure()
-@description('Application Insights Instrumentation Key')
-param appInsightsInstrumentationKey string
-
 @description('Key Vault Secret URI for Custom Domain Certificate')
 param customDomainCertificateUrl string
 
 @description('Custom Domain Hostname')
 param customDomainHostName string = 'dev.api.hivespace.site'
 
+resource applicationInsights 'Microsoft.Insights/components@2020-02-02' existing = {
+  name: appInsightsName
+}
 
 resource apimService 'Microsoft.ApiManagement/service@2021-08-01' = {
   name: apimName
@@ -79,13 +75,31 @@ resource apimService 'Microsoft.ApiManagement/service@2021-08-01' = {
   }
 }
 
+// Key Vault Access for Custom Domain Certificate
+// Extract Key Vault name from the certificate URL: https://{vault-name}.vault.azure.net/secrets/{secret-name}/{version}
+var keyVaultName = split(split(customDomainCertificateUrl, '/')[2], '.')[0]
+
+resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
+  name: keyVaultName
+}
+
+resource apimKeyVaultAccess 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: keyVault
+  name: guid(keyVault.id, apimService.id, 'Key Vault Secrets User')
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4633458b-17de-408a-b874-0445c86b69e6') // Key Vault Secrets User
+    principalId: apimService.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
 // Named Values
 resource appInsightsKeyNamedValue 'Microsoft.ApiManagement/service/namedValues@2021-08-01' = {
   parent: apimService
   name: 'appinsights-key'
   properties: {
     displayName: 'AppInsightsKey'
-    value: appInsightsInstrumentationKey
+    value: applicationInsights.properties.InstrumentationKey
     secret: true
   }
 }
@@ -100,7 +114,7 @@ resource appInsightsLogger 'Microsoft.ApiManagement/service/loggers@2021-08-01' 
       instrumentationKey: '{{AppInsightsKey}}'
     }
     isBuffered: true
-    resourceId: appInsightsId
+    resourceId: applicationInsights.id
   }
   dependsOn: [
     appInsightsKeyNamedValue
