@@ -23,9 +23,6 @@
     "appInsightsName": {
       "value": "appi-hivespace-dev"
     },
-    "customDomainCertificateUrl": {
-      "value": "<key-vault-secret-url>"
-    },
     "customDomainHostName": {
       "value": "dev.api.hivespace.site"
     }
