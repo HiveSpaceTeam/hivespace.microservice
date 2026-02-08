@@ -28,9 +28,6 @@
     },
     "customDomainHostName": {
       "value": "dev.api.hivespace.site"
-    },
-    "keyVaultName": {
-      "value": "kv-hivespace-dev"
     }
   }
 }

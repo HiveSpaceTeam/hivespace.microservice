@@ -37,9 +37,6 @@ param customDomainCertificateUrl string
 @description('Custom Domain Hostname')
 param customDomainHostName string = 'dev.api.hivespace.site'
 
-@description('Key Vault Name')
-param keyVaultName string
-
 resource applicationInsights 'Microsoft.Insights/components@2020-02-02' existing = {
   name: appInsightsName
 }
@@ -75,23 +72,6 @@ resource apimService 'Microsoft.ApiManagement/service@2021-08-01' = {
         certificateSource: 'KeyVault'
       }
     ]
-  }
-}
-
-// Key Vault Access for Custom Domain Certificate
-
-
-resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
-  name: keyVaultName
-}
-
-resource apimKeyVaultAccess 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  scope: keyVault
-  name: guid(keyVault.id, apimService.id, 'Key Vault Secrets User')
-  properties: {
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4633458b-17de-408a-b874-0445c86b69e6') // Key Vault Secrets User
-    principalId: apimService.identity.principalId
-    principalType: 'ServicePrincipal'
   }
 }
 
