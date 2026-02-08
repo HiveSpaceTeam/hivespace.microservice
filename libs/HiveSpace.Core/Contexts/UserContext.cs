@@ -23,12 +23,12 @@ public sealed class UserContext(IHttpContextAccessor httpContextAccessor)
                         
             if (string.IsNullOrEmpty(subClaim))
             {
-                throw new UnauthorizedException([new(CommonErrorCode.SubClaimMissing, "UserId")]);
+                throw new UnauthorizedException([new(CommonErrorCode.SubClaimMissing, nameof(UserId))]);
             }
             
             if (!Guid.TryParse(subClaim, out Guid userId))
             {
-                throw new UnauthorizedException([new(CommonErrorCode.SubClaimInvalid, "UserId")]);
+                throw new UnauthorizedException([new(CommonErrorCode.SubClaimInvalid, nameof(UserId))]);
             }
             
             return userId;
