@@ -2,6 +2,7 @@ name: API Gateway CI
 
 on:
   push:
+    branches: [master]
     paths:
       - 'infra/api-gateway.bicep'
       - 'infra/parameters/api-gateway-dev.json'
