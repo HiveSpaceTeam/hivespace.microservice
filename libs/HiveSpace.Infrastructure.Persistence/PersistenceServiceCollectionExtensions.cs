@@ -47,7 +47,6 @@ public static class PersistenceServiceCollectionExtensions
 
     public static ModelBuilder AddPersistenceBuilder(this ModelBuilder builder)
     {
-        builder.ApplyConfiguration(new OutboxMessageEntityConfiguration());
         builder.ApplyConfiguration(new IncomingRequestEntityConfiguration());
         return builder;
     }

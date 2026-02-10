@@ -12,7 +12,9 @@ namespace HiveSpace.CatalogService.Infrastructure.Queries
 
         public async Task<List<CategoryViewModel>> GetCategoryViewModelsAsync()
         {
+            // Return only categories that have attributes linked to them via CategoryAttributes
             return await _dbContext.Categories
+                .Where(c => c.CategoryAttributes.Any())
                 .Select(c => new CategoryViewModel(
                     c.Id,
                     c.Name,
