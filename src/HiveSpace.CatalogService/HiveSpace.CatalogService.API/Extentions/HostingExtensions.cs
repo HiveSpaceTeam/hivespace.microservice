@@ -46,10 +46,10 @@ namespace HiveSpace.CatalogService.API.Extentions
             //        });
             //    });
 
-            // builder.Services.AddMassTransitWithRabbitMq<CatalogDbContext>(configuration, cfg =>
-            // {
-            //     cfg.AddConsumer<StoreCreatedConsumer>();
-            // });
+            builder.Services.AddMassTransitWithRabbitMq<CatalogDbContext>(configuration, cfg =>
+            {
+                cfg.AddConsumer<StoreCreatedConsumer>();
+            });
 
             return builder.Build();
         }

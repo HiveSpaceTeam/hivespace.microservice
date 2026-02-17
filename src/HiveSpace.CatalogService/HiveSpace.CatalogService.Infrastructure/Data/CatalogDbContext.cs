@@ -4,6 +4,8 @@ using HiveSpace.CatalogService.Domain.Aggregates.External;
 using HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate;
 using HiveSpace.CatalogService.Infrastructure.Data.Configurations;
 using HiveSpace.Infrastructure.Messaging.Extensions;
+using HiveSpace.Infrastructure.Persistence;
+using HiveSpace.Infrastructure.Persistence.Idempotence;
 using Microsoft.EntityFrameworkCore;
 
 namespace HiveSpace.CatalogService.Infrastructure.Data
@@ -19,11 +21,15 @@ namespace HiveSpace.CatalogService.Infrastructure.Data
         public DbSet<Sku> Skus { get; set; }
         public DbSet<ProductAttribute> ProductAttributes { get; set; }
         public DbSet<AttributeValue> AttributeValues { get; set; }
+
         #endregion
 
         #region ReadModels
         public DbSet<StoreRef> StoreRef { get; set; }
         #endregion
+
+        public DbSet<IncomingRequest> IncomingRequest { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -37,8 +43,8 @@ namespace HiveSpace.CatalogService.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new AttributeValueConfiguration());
 
             modelBuilder.ApplyConfiguration(new StoreRefValueConfiguration());
-
-            MassTransitExtensions.AddEntityOutBox(modelBuilder);
+            modelBuilder.AddPersistenceBuilder();
+            modelBuilder.AddEntityOutBox();
         }
     }
 }
