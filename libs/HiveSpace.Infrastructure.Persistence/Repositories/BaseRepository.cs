@@ -15,7 +15,7 @@ public abstract class BaseRepository<TEntity, TKey>(DbContext context) : IReposi
 
     public void Add(TEntity entity)
     {
-        _dbSet.AddAsync(entity);
+        _dbSet.Add(entity);
     }
 
     public async Task<List<TEntity>> GetAllAsync()

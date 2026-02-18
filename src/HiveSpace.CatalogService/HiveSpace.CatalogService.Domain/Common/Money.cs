@@ -1,8 +1,6 @@
-﻿using HiveSpace.CatalogService.Domain.Common.Enums;
+﻿using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.CatalogService.Domain.Exceptions;
 using HiveSpace.Domain.Shared.Entities;
-using HiveSpace.Domain.Shared.Exceptions;
-using System.Text.Json.Serialization;
 
 namespace HiveSpace.CatalogService.Domain.Common
 {

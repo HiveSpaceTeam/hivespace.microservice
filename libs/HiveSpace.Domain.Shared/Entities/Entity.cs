@@ -17,20 +17,18 @@ public abstract class Entity<TKey>
         }
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
-        if (obj == null || obj is not Entity<TKey>)
+        if (obj is not Entity<TKey> item)
             return false;
 
-        if (Object.ReferenceEquals(this, obj))
+        if (ReferenceEquals(this, item))
             return true;
 
-        if (this.GetType() != obj.GetType())
+        if (GetType() != item.GetType())
             return false;
 
-        Entity<TKey> item = (Entity<TKey>)obj;
-
-        return item.Id.ToString() == this.Id.ToString();
+        return item.Id.Equals(Id);
     }
 
     public override int GetHashCode()
