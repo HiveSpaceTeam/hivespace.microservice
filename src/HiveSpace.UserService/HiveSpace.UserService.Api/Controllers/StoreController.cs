@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using HiveSpace.Core;
 using HiveSpace.Core.Helpers;
 using HiveSpace.Infrastructure.Authorization;

@@ -1,11 +1,13 @@
-﻿using HiveSpace.CatalogService.Application.Interfaces;
+﻿using Asp.Versioning;
+using HiveSpace.CatalogService.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
 namespace HiveSpace.CatalogService.Api.Controllers
 {
-    [Route("api/v1/categories")]
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/categories")]
     [ApiController]
     [AllowAnonymous]
     public class CategoryController(ICategoryService categoryService) : ControllerBase

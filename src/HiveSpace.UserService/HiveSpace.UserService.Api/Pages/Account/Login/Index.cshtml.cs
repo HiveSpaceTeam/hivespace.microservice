@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Logging;
 using System.Web;
 
 namespace HiveSpace.UserService.Api.Pages.Account.Login;
@@ -26,6 +27,7 @@ public class Index : PageModel
     private readonly IIdentityProviderStore _identityProviderStore;
     private readonly IConfiguration _configuration;
     private readonly ILocalizationService _localizer;
+    private readonly ILogger<Index> _logger;
 
     public ViewModel View { get; set; } = default!;
 
@@ -40,7 +42,8 @@ public class Index : PageModel
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
         IConfiguration configuration,
-        ILocalizationService localizer)
+        ILocalizationService localizer,
+        ILogger<Index> logger)
     {
         _userManager = userManager;
         _signInManager = signInManager;
@@ -50,6 +53,7 @@ public class Index : PageModel
         _events = events;
         _configuration = configuration;
         _localizer = localizer;
+        _logger = logger;
     }
 
     public async Task<IActionResult> OnGet(string? returnUrl)
@@ -237,8 +241,22 @@ public class Index : PageModel
                 // successful login
                 if (result.Succeeded)
                 {
-                    user.LastLoginAt = DateTimeOffset.UtcNow;
-                    await _userManager.UpdateAsync(user);
+                    // Best-effort: persist LastLoginAt without affecting the authenticated response.
+                    // Failures are logged but do not trigger an error page for the signed-in user.
+                    try
+                    {
+                        user.LastLoginAt = DateTimeOffset.UtcNow;
+                        var updateResult = await _userManager.UpdateAsync(user);
+                        if (!updateResult.Succeeded)
+                        {
+                            var errors = string.Join("; ", updateResult.Errors.Select(e => e.Description));
+                            _logger.LogWarning("Failed to persist LastLoginAt for user {UserId}: {Errors}", user.Id, errors);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Exception while persisting LastLoginAt for user {UserId}", user.Id);
+                    }
                     await _events.RaiseAsync(new UserLoginSuccessEvent(
                         user.UserName,
                         user.Id.ToString(),

@@ -1,4 +1,5 @@
-﻿using HiveSpace.CatalogService.Application;
+﻿using Asp.Versioning;
+using HiveSpace.CatalogService.Application;
 using HiveSpace.CatalogService.Application.Commands;
 using HiveSpace.CatalogService.Application.Interfaces;
 using HiveSpace.CatalogService.Application.Queries;
@@ -38,6 +39,16 @@ namespace HiveSpace.CatalogService.Api.Extentions
             // Add MediatR and register handlers
             services.AddApplication();
             services.AddScoped<ICategoryService, CategoryService>();
+        }
+
+        public static void AddAppApiVersioning(this IServiceCollection services)
+        {
+            services.AddApiVersioning(options =>
+            {
+                options.DefaultApiVersion = new ApiVersion(1, 0);
+                options.AssumeDefaultVersionWhenUnspecified = true;
+                options.ReportApiVersions = true;
+            });
         }
     }
 }

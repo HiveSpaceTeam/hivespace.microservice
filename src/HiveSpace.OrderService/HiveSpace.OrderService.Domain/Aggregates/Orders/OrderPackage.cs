@@ -257,6 +257,6 @@ public class OrderPackage : Entity<Guid>, IAuditable
         TotalDiscount = Money.Sum(_discounts.Select(d => d.DiscountAmount));
         
         var buyerShippingFee = IsShippingPaidBySeller ? Money.Zero() : ShippingFee;
-        TotalAmount = SubTotal - TotalDiscount + buyerShippingFee;
+        TotalAmount = SubTotal.ApplyDiscount(TotalDiscount) + buyerShippingFee;
     }
 }

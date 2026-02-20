@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using FluentValidation;
 using HiveSpace.Core.Helpers;
 using HiveSpace.UserService.Application.DTOs.UserAddress;

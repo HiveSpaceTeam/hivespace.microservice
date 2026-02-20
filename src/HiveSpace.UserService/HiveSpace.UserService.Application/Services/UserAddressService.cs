@@ -9,23 +9,12 @@ using HiveSpace.UserService.Domain.Repositories;
 
 namespace HiveSpace.UserService.Application.Services;
 
-public class UserAddressService : IUserAddressService
+public class UserAddressService(IUserContext userContext, IUserRepository userRepository) : IUserAddressService
 {
-    private readonly IUserContext _userContext;
-    private readonly IUserRepository _userRepository;
-
-    public UserAddressService(
-        IUserContext userContext,
-        IUserRepository userRepository)
-    {
-        _userContext = userContext;
-        _userRepository = userRepository;
-    }
-
     public async Task<List<UserAddressDto>> GetUserAddressAsync(CancellationToken cancellationToken = default)
     {
-        var userId = _userContext.UserId;
-        var user = await _userRepository.GetByIdAsync(userId, includeDetail: true);
+        var userId = userContext.UserId;
+        var user = await userRepository.GetByIdAsync(userId, includeDetail: true);
             
         if (user == null)
             throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
@@ -35,13 +24,11 @@ public class UserAddressService : IUserAddressService
 
     public async Task<UserAddressDto> CreateUserAddressAsync(UserAddressRequestDto param, CancellationToken cancellationToken = default)
     {
-        var userId = _userContext.UserId;
-        var user = await _userRepository.GetByIdAsync(userId, includeDetail: true);
+        var userId = userContext.UserId;
+        var user = await userRepository.GetByIdAsync(userId, includeDetail: true) 
+            ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
 
-        if (user == null)
-            throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
-
-        user.AddAddress(
+        var createdAddress = user.AddAddress(
             param.FullName,
             param.PhoneNumber,
             param.Street,
@@ -53,20 +40,16 @@ public class UserAddressService : IUserAddressService
             param.IsDefault
         );
 
-        await _userRepository.UpdateUserAddressesAsync(user, cancellationToken);
+        await userRepository.UpdateUserAddressesAsync(user, cancellationToken);
 
-        // Return the newly created address mapped to DTO
-        var createdAddress = user.Addresses.Last();
         return MapToDto(createdAddress);
     }
 
     public async Task UpdateUserAddressAsync(UserAddressRequestDto param, Guid userAddressId, CancellationToken cancellationToken = default)
     {
-        var userId = _userContext.UserId;
-        var user = await _userRepository.GetByIdAsync(userId, includeDetail: true);
-
-        if (user == null)
-            throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
+        var userId = userContext.UserId;
+        var user = await userRepository.GetByIdAsync(userId, includeDetail: true)
+            ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
 
         user.UpdateAddress(
             userAddressId,
@@ -85,31 +68,27 @@ public class UserAddressService : IUserAddressService
             user.MarkAddressAsDefault(userAddressId);
         }
 
-        await _userRepository.UpdateUserAddressesAsync(user, cancellationToken);
+        await userRepository.UpdateUserAddressesAsync(user, cancellationToken);
     }
 
     public async Task SetDefaultUserAddressAsync(Guid userAddressId, CancellationToken cancellationToken = default)
     {
-        var userId = _userContext.UserId;
-        var user = await _userRepository.GetByIdAsync(userId, includeDetail: true);
-
-        if (user == null)
-            throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
+        var userId = userContext.UserId;
+        var user = await userRepository.GetByIdAsync(userId, includeDetail: true)
+            ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
 
         user.MarkAddressAsDefault(userAddressId);
-        await _userRepository.UpdateUserAddressesAsync(user, cancellationToken);
+        await userRepository.UpdateUserAddressesAsync(user, cancellationToken);
     }
 
     public async Task DeleteUserAddressAsync(Guid userAddressId, CancellationToken cancellationToken = default)
     {
-        var userId = _userContext.UserId;
-        var user = await _userRepository.GetByIdAsync(userId, includeDetail: true);
-
-        if (user == null)
-            throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
+        var userId = userContext.UserId;
+        var user = await userRepository.GetByIdAsync(userId, includeDetail: true)
+            ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
 
         user.RemoveAddress(userAddressId);
-        await _userRepository.UpdateUserAddressesAsync(user, cancellationToken);
+        await userRepository.UpdateUserAddressesAsync(user, cancellationToken);
     }
 
     private static UserAddressDto MapToDto(Address address)
