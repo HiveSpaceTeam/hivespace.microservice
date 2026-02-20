@@ -6,7 +6,7 @@ using HiveSpace.CatalogService.Application.Services;
 using HiveSpace.Core.Filters;
 using HiveSpace.Infrastructure.Authorization.Extensions;
 
-namespace HiveSpace.CatalogService.API.Extentions
+namespace HiveSpace.CatalogService.Api.Extentions
 {
     internal static class ServiceCollectionExtensions
     {

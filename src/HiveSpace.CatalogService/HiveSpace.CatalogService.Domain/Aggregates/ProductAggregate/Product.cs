@@ -3,6 +3,8 @@ using HiveSpace.Domain.Shared.Interfaces;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Domain.Shared.Errors;
 using HiveSpace.CatalogService.Domain.Exceptions;
+using HiveSpace.CatalogService.Domain.ValueObjects;
+using HiveSpace.CatalogService.Domain.Enums;
 using System.Text.Json.Serialization;
 
 namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
@@ -10,9 +12,20 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
     public class Product : AggregateRoot<Guid>, IAuditable
     {
         #region Properties
+        public Guid SellerId { get; private set; }
         public string Name { get; private set; }
+        public string Slug { get; private set; }
         public string Description { get; private set; }
+        public string? ShortDescription { get; private set; }
+        
+        public Guid? BrandId { get; private set; }
+        
         public ProductStatus Status { get; private set; }
+        public bool Featured { get; private set; }
+        public ProductCondition Condition { get; private set; }
+
+        public Weight? Weight { get; private set; }
+        public Dimensions? Dimensions { get; private set; }
 
         private readonly List<ProductCategory> _categories = new();
         public IReadOnlyCollection<ProductCategory> Categories => _categories.AsReadOnly();
@@ -43,6 +56,7 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
         private Product()
         {
             Name = string.Empty;
+            Slug = string.Empty;
             Description = string.Empty;
             CreatedBy = string.Empty;
         }
@@ -50,6 +64,7 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
         public Product(string name, string description, ProductStatus status, List<ProductCategory> categories, List<ProductAttribute> attributes, List<ProductImage> images, List<Sku> skus, List<ProductVariant> variants, DateTimeOffset createdAt, DateTimeOffset? updatedAt, string createdBy, string? updatedBy)
         {
             Name = name;
+            Slug = string.Empty;
             Description = description;
             Status = status;
             if (categories is not null) _categories.AddRange(categories);
@@ -67,6 +82,7 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
         {
             Id = id;
             Name = name;
+            Slug = string.Empty;
             Description = description;
             Status = status;
             if (categories is not null) _categories.AddRange(categories);
@@ -85,6 +101,7 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
         {
             Id = Guid.NewGuid();
             Name = name;
+            Slug = string.Empty;
             Description = description;
             Status = status;
             CreatedAt = createdAt;

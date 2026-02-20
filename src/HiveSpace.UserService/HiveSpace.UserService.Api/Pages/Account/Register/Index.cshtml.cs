@@ -130,6 +130,8 @@ public class Index : PageModel
                 UserName = Input.Email,
                 Email = Input.Email,
                 FullName = Input.FullName ?? string.Empty,
+                CreatedAt = DateTimeOffset.UtcNow,
+                UpdatedAt = DateTimeOffset.UtcNow,
             };
 
             var result = await _userManager.CreateAsync(newUser, Input.Password!);

@@ -1,4 +1,4 @@
-using HiveSpace.CatalogService.API.Extentions;
+using HiveSpace.CatalogService.Api.Extentions;
 using HiveSpace.CatalogService.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);

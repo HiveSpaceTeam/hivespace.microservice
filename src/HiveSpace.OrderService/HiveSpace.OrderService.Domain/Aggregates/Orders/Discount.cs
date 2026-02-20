@@ -1,6 +1,6 @@
 using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.OrderService.Domain.Enumerations;
-using HiveSpace.OrderService.Domain.ValueObjects;
+using HiveSpace.Domain.Shared.ValueObjects;
 
 namespace HiveSpace.OrderService.Domain.Aggregates.Orders;
 

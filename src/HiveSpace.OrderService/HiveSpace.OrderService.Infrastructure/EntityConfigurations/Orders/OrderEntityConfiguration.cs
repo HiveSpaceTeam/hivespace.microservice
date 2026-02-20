@@ -1,5 +1,5 @@
 using HiveSpace.OrderService.Domain.Aggregates.Orders;
-using HiveSpace.OrderService.Domain.ValueObjects;
+using HiveSpace.Domain.Shared.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

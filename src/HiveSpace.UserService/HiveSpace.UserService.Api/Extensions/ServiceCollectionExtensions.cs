@@ -71,6 +71,7 @@ internal static class ServiceCollectionExtensions
         services.AddScoped<IAdminService, AdminService>();
         services.AddScoped<IStoreService, StoreService>();
         services.AddScoped<IUserService, Application.Services.UserService>();
+        services.AddScoped<IUserAddressService, UserAddressService>();
     }
 
     public static void AddAppDomainServices(this IServiceCollection services)

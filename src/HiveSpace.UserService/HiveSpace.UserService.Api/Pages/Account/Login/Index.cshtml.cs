@@ -237,6 +237,8 @@ public class Index : PageModel
                 // successful login
                 if (result.Succeeded)
                 {
+                    user.LastLoginAt = DateTimeOffset.UtcNow;
+                    await _userManager.UpdateAsync(user);
                     await _events.RaiseAsync(new UserLoginSuccessEvent(
                         user.UserName,
                         user.Id.ToString(),

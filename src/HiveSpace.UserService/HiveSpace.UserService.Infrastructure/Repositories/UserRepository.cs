@@ -100,18 +100,32 @@ public class UserRepository : IUserRepository
 
     public async Task<User> UpdateUserAsync(User domainUser, CancellationToken cancellationToken = default)
     {
-
         var appUser = await _context.Users
             .Include(u => u.Addresses)
             .FirstOrDefaultAsync(u => u.Id == domainUser.Id, cancellationToken)
             ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
 
-        var updatedUser = domainUser.ToApplicationUser();
-
+        // Update the tracked entity with values from the domain object
         appUser.UpdateApplicationUser(domainUser);
 
-        var result = await _context.SaveChangesAsync(cancellationToken);
-        return domainUser;
+        await _context.SaveChangesAsync(cancellationToken);
+        
+        return domainUser; 
+    }
+
+    public async Task<User> UpdateUserAddressesAsync(User domainUser, CancellationToken cancellationToken = default)
+    {
+        var appUser = await _context.Users
+            .Include(u => u.Addresses)
+            .FirstOrDefaultAsync(u => u.Id == domainUser.Id, cancellationToken)
+            ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
+
+        // Update ONLY the addresses from the domain object
+        appUser.UpdateApplicationUserAddresses(domainUser);
+
+        await _context.SaveChangesAsync(cancellationToken);
+        
+        return domainUser; 
     }
 
     /// <summary>

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
-namespace HiveSpace.CatalogService.API.Controllers
+namespace HiveSpace.CatalogService.Api.Controllers
 {
     [Route("api/v1/categories")]
     [ApiController]

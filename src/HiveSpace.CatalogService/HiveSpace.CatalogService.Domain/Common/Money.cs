@@ -1,4 +1,4 @@
-﻿using HiveSpace.Domain.Shared.Enumerations;
+using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.CatalogService.Domain.Exceptions;
 using HiveSpace.Domain.Shared.Entities;
 

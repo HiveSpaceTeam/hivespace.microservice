@@ -1,11 +1,11 @@
-using HiveSpace.CatalogService.API.Consumers;
+using HiveSpace.CatalogService.Api.Consumers;
 using HiveSpace.CatalogService.Infrastructure;
 using HiveSpace.CatalogService.Infrastructure.Data;
 using HiveSpace.Core;
 using HiveSpace.Infrastructure.Messaging.Extensions;
 using HiveSpace.Infrastructure.Persistence;
 
-namespace HiveSpace.CatalogService.API.Extentions
+namespace HiveSpace.CatalogService.Api.Extentions
 {
     internal static class HostingExtensions
     {

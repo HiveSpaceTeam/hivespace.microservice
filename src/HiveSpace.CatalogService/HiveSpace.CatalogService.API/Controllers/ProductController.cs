@@ -7,7 +7,7 @@ using System.Net;
 using MediatR;
 using HiveSpace.Infrastructure.Authorization;
 
-namespace HiveSpace.CatalogService.API.Controllers;
+namespace HiveSpace.CatalogService.Api.Controllers;
 
 [Route("api/v1/products")]
 [ApiController]

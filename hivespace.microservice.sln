@@ -35,7 +35,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.UserService.Appli
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "HiveSpace.CatalogService", "HiveSpace.CatalogService", "{17EF53D8-2BD8-436D-928E-85A1108F6781}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.CatalogService.API", "src\HiveSpace.CatalogService\HiveSpace.CatalogService.API\HiveSpace.CatalogService.API.csproj", "{5711BA4D-01E8-434F-9BE3-02D13EA3C77F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.CatalogService.Api", "src\HiveSpace.CatalogService\HiveSpace.CatalogService.Api\HiveSpace.CatalogService.Api.csproj", "{5711BA4D-01E8-434F-9BE3-02D13EA3C77F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.CatalogService.Application", "src\HiveSpace.CatalogService\HiveSpace.CatalogService.Application\HiveSpace.CatalogService.Application.csproj", "{6CDA8617-AAF5-4151-B86A-50762094859E}"
 EndProject
