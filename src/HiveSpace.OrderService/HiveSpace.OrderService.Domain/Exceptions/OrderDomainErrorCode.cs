@@ -19,19 +19,7 @@ public class OrderDomainErrorCode : DomainErrorCode
     public static readonly OrderDomainErrorCode AddressProvinceRequired =
         new(1005, "AddressProvinceRequired", "ORD1005");
 
-    // Money errors (ORD2xxx)
-    public static readonly OrderDomainErrorCode MoneyNegativeAmount =
-        new(2001, "MoneyNegativeAmount", "ORD2001");
-    public static readonly OrderDomainErrorCode MoneyMissingCurrency =
-        new(2002, "MoneyMissingCurrency", "ORD2002");
-    public static readonly OrderDomainErrorCode MoneyInvalidFeeRate =
-        new(2003, "MoneyInvalidFeeRate", "ORD2003");
-    public static readonly OrderDomainErrorCode MoneyInvalidPercentage =
-        new(2004, "MoneyInvalidPercentage", "ORD2004");
-    public static readonly OrderDomainErrorCode MoneyCurrencyMismatch =
-        new(2005, "MoneyCurrencyMismatch", "ORD2005");
-    public static readonly OrderDomainErrorCode MoneyDivideByZero =
-        new(2006, "MoneyDivideByZero", "ORD2006");
+
 
     // PackageDimensions errors (ORD3xxx)
     public static readonly OrderDomainErrorCode DimensionsInvalidWidth =

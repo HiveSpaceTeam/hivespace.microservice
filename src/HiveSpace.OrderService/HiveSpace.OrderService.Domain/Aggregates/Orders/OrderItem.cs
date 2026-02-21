@@ -1,6 +1,7 @@
 using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.OrderService.Domain.Exceptions;
+using HiveSpace.Domain.Shared.ValueObjects;
 using HiveSpace.OrderService.Domain.ValueObjects;
 
 namespace HiveSpace.OrderService.Domain.Aggregates.Orders;

@@ -99,6 +99,10 @@ public static class UserMapper
     /// Update ApplicationUser with changes from Domain User
     /// Preserves EF Core change tracking
     /// </summary>
+    /// <summary>
+    /// Update ApplicationUser with changes from Domain User
+    /// Preserves EF Core change tracking and updates related collections
+    /// </summary>
     public static void UpdateApplicationUser(this ApplicationUser applicationUser, User domainUser)
     {
         applicationUser.UserName = domainUser.UserName;
@@ -114,6 +118,52 @@ public static class UserMapper
         applicationUser.RoleName = domainUser.Role?.Name; // Update role name directly
         applicationUser.Theme = domainUser.Settings.Theme;
         applicationUser.Culture = domainUser.Settings.Culture;
-        // Note: Addresses are updated separately via EF Core change tracking
+
+        // Synchronize addresses collection
+        applicationUser.UpdateApplicationUserAddresses(domainUser);
+    }
+
+    /// <summary>
+    /// Update only the addresses collection of ApplicationUser from Domain User
+    /// </summary>
+    public static void UpdateApplicationUserAddresses(this ApplicationUser applicationUser, User domainUser)
+    {
+        // 1. Remove addresses that are no longer in the domain user
+        var addressesToRemove = applicationUser.Addresses
+            .Where(a => !domainUser.Addresses.Any(da => da.Id == a.Id))
+            .ToList();
+
+        foreach (var address in addressesToRemove)
+        {
+            applicationUser.Addresses.Remove(address);
+        }
+
+        // 2. Add or Update addresses
+        foreach (var domainAddress in domainUser.Addresses)
+        {
+            var existingAddress = applicationUser.Addresses
+                .FirstOrDefault(a => a.Id == domainAddress.Id);
+
+            if (existingAddress is null)
+            {
+                applicationUser.Addresses.Add(domainAddress);
+            }
+            else
+            {
+                existingAddress.UpdateDetails(
+                    domainAddress.FullName,
+                    domainAddress.PhoneNumber,
+                    domainAddress.Street,
+                    domainAddress.District,
+                    domainAddress.Province,
+                    domainAddress.Country,
+                    domainAddress.ZipCode,
+                    domainAddress.AddressType
+                );
+                
+                if (domainAddress.IsDefault) existingAddress.SetAsDefault();
+                else existingAddress.RemoveDefaultStatus();
+            }
+        }
     }
 }

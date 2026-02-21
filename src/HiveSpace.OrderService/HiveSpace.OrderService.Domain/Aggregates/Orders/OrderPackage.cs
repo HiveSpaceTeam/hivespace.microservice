@@ -3,6 +3,7 @@ using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Domain.Shared.Interfaces;
 using HiveSpace.OrderService.Domain.Enumerations;
 using HiveSpace.OrderService.Domain.Exceptions;
+using HiveSpace.Domain.Shared.ValueObjects;
 using HiveSpace.OrderService.Domain.ValueObjects;
 using HiveSpace.OrderService.Domain.Aggregates.Coupons;
 
@@ -256,6 +257,6 @@ public class OrderPackage : Entity<Guid>, IAuditable
         TotalDiscount = Money.Sum(_discounts.Select(d => d.DiscountAmount));
         
         var buyerShippingFee = IsShippingPaidBySeller ? Money.Zero() : ShippingFee;
-        TotalAmount = SubTotal - TotalDiscount + buyerShippingFee;
+        TotalAmount = SubTotal.ApplyDiscount(TotalDiscount) + buyerShippingFee;
     }
 }

@@ -6,10 +6,12 @@ using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using MediatR;
 using HiveSpace.Infrastructure.Authorization;
+using Asp.Versioning;
 
-namespace HiveSpace.CatalogService.API.Controllers;
+namespace HiveSpace.CatalogService.Api.Controllers;
 
-[Route("api/v1/products")]
+[Route("api/v{version:apiVersion}/products")]
+[ApiVersion("1.0")]
 [ApiController]
 [RequireSeller]
 public class ProductController(IMediator mediator) : ControllerBase

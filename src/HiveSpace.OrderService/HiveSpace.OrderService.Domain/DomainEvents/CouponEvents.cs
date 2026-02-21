@@ -1,5 +1,5 @@
 using HiveSpace.Domain.Shared.Interfaces;
-using HiveSpace.OrderService.Domain.ValueObjects;
+using HiveSpace.Domain.Shared.ValueObjects;
 
 namespace HiveSpace.OrderService.Domain.DomainEvents;
 

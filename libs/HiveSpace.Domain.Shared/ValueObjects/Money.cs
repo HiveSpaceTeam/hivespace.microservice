@@ -1,9 +1,9 @@
 using HiveSpace.Domain.Shared.Entities;
-using HiveSpace.Domain.Shared.Exceptions;
-using HiveSpace.OrderService.Domain.Exceptions;
 using HiveSpace.Domain.Shared.Enumerations;
+using HiveSpace.Domain.Shared.Errors;
+using HiveSpace.Domain.Shared.Exceptions;
 
-namespace HiveSpace.OrderService.Domain.ValueObjects
+namespace HiveSpace.Domain.Shared.ValueObjects
 {
     /// <summary>
     /// Money value object - UPDATED to handle multiple currencies
@@ -22,7 +22,7 @@ namespace HiveSpace.OrderService.Domain.ValueObjects
         public Money(long amount, Currency currency = Currency.VND)
         {
             if (amount < 0)
-                throw new InvalidFieldException(OrderDomainErrorCode.MoneyNegativeAmount, nameof(amount));
+                throw new InvalidFieldException(DomainErrorCode.MoneyNegativeAmount, nameof(amount));
 
             Amount = amount;
             Currency = currency;
@@ -74,9 +74,9 @@ namespace HiveSpace.OrderService.Domain.ValueObjects
 
         /// <summary>
         /// Get decimal representation for display/calculation
-        /// VND: 50000 → 50000.00
-        /// USD: 1050 → 10.50
-        /// EUR: 1050 → 10.50
+        /// VND: 50000 -> 50000.00
+        /// USD: 1050 -> 10.50
+        /// EUR: 1050 -> 10.50
         /// </summary>
         public decimal ToDecimal()
         {
@@ -129,7 +129,7 @@ namespace HiveSpace.OrderService.Domain.ValueObjects
         public Money ApplyServiceFee(decimal feeRate = 0.099m)
         {
             if (feeRate < 0 || feeRate > 1)
-                throw new InvalidFieldException(OrderDomainErrorCode.MoneyInvalidFeeRate, nameof(feeRate));
+                throw new InvalidFieldException(DomainErrorCode.MoneyInvalidFeeRate, nameof(feeRate));
 
             var feeAmount = (long)(Amount * feeRate);
             return new Money(Amount - feeAmount, Currency);
@@ -141,7 +141,7 @@ namespace HiveSpace.OrderService.Domain.ValueObjects
         public Money CalculateServiceFee(decimal feeRate = 0.099m)
         {
             if (feeRate < 0 || feeRate > 1)
-                throw new InvalidFieldException(OrderDomainErrorCode.MoneyInvalidFeeRate, nameof(feeRate));
+                throw new InvalidFieldException(DomainErrorCode.MoneyInvalidFeeRate, nameof(feeRate));
 
             var feeAmount = (long)(Amount * feeRate);
             return new Money(feeAmount, Currency);
@@ -153,7 +153,7 @@ namespace HiveSpace.OrderService.Domain.ValueObjects
         public Money ApplyPercentageDiscount(decimal percentage)
         {
             if (percentage < 0 || percentage > 100)
-                throw new InvalidFieldException(OrderDomainErrorCode.MoneyInvalidPercentage, nameof(percentage));
+                throw new InvalidFieldException(DomainErrorCode.MoneyInvalidPercentage, nameof(percentage));
 
             var discountAmount = (long)(Amount * (percentage / 100m));
             return new Money(Amount - discountAmount, Currency);
@@ -165,7 +165,7 @@ namespace HiveSpace.OrderService.Domain.ValueObjects
         public Money ApplyDiscount(Money discount)
         {
             if (discount.Currency != Currency)
-                throw new InvalidFieldException(OrderDomainErrorCode.MoneyCurrencyMismatch, nameof(discount));
+                throw new InvalidFieldException(DomainErrorCode.MoneyCurrencyMismatch, nameof(discount));
 
             var newAmount = Amount - discount.Amount;
             return new Money(newAmount < 0 ? 0 : newAmount, Currency);
@@ -179,7 +179,7 @@ namespace HiveSpace.OrderService.Domain.ValueObjects
         public static Money operator +(Money a, Money b)
         {
             if (a.Currency != b.Currency)
-                throw new InvalidFieldException(OrderDomainErrorCode.MoneyCurrencyMismatch, nameof(Currency));
+                throw new InvalidFieldException(DomainErrorCode.MoneyCurrencyMismatch, nameof(Currency));
 
             return new Money(a.Amount + b.Amount, a.Currency);
         }
@@ -187,7 +187,7 @@ namespace HiveSpace.OrderService.Domain.ValueObjects
         public static Money operator -(Money a, Money b)
         {
             if (a.Currency != b.Currency)
-                throw new InvalidFieldException(OrderDomainErrorCode.MoneyCurrencyMismatch, nameof(Currency));
+                throw new InvalidFieldException(DomainErrorCode.MoneyCurrencyMismatch, nameof(Currency));
 
             return new Money(a.Amount - b.Amount, a.Currency);
         }
@@ -206,7 +206,7 @@ namespace HiveSpace.OrderService.Domain.ValueObjects
         public static Money operator /(Money money, decimal divisor)
         {
             if (divisor == 0)
-                throw new InvalidFieldException(OrderDomainErrorCode.MoneyDivideByZero, nameof(divisor));
+                throw new InvalidFieldException(DomainErrorCode.MoneyDivideByZero, nameof(divisor));
 
             var newAmount = (long)Math.Round(money.Amount / divisor, MidpointRounding.AwayFromZero);
             return new Money(newAmount, money.Currency);
@@ -215,7 +215,7 @@ namespace HiveSpace.OrderService.Domain.ValueObjects
         public static bool operator >(Money a, Money b)
         {
             if (a.Currency != b.Currency)
-                throw new InvalidFieldException(OrderDomainErrorCode.MoneyCurrencyMismatch, nameof(Currency));
+                throw new InvalidFieldException(DomainErrorCode.MoneyCurrencyMismatch, nameof(Currency));
 
             return a.Amount > b.Amount;
         }
@@ -223,7 +223,7 @@ namespace HiveSpace.OrderService.Domain.ValueObjects
         public static bool operator <(Money a, Money b)
         {
             if (a.Currency != b.Currency)
-                throw new InvalidFieldException(OrderDomainErrorCode.MoneyCurrencyMismatch, nameof(Currency));
+                throw new InvalidFieldException(DomainErrorCode.MoneyCurrencyMismatch, nameof(Currency));
 
             return a.Amount < b.Amount;
         }
@@ -231,7 +231,7 @@ namespace HiveSpace.OrderService.Domain.ValueObjects
         public static bool operator >=(Money a, Money b)
         {
             if (a.Currency != b.Currency)
-                throw new InvalidFieldException(OrderDomainErrorCode.MoneyCurrencyMismatch, nameof(Currency));
+                throw new InvalidFieldException(DomainErrorCode.MoneyCurrencyMismatch, nameof(Currency));
 
             return a.Amount >= b.Amount;
         }
@@ -239,7 +239,7 @@ namespace HiveSpace.OrderService.Domain.ValueObjects
         public static bool operator <=(Money a, Money b)
         {
             if (a.Currency != b.Currency)
-                throw new InvalidFieldException(OrderDomainErrorCode.MoneyCurrencyMismatch, nameof(Currency));
+                throw new InvalidFieldException(DomainErrorCode.MoneyCurrencyMismatch, nameof(Currency));
 
             return a.Amount <= b.Amount;
         }
@@ -258,7 +258,7 @@ namespace HiveSpace.OrderService.Domain.ValueObjects
             var currency = moneyList.First().Currency;
             
             if (moneyList.Any(m => m.Currency != currency))
-                throw new InvalidFieldException(OrderDomainErrorCode.MoneyCurrencyMismatch, nameof(Currency));
+                throw new InvalidFieldException(DomainErrorCode.MoneyCurrencyMismatch, nameof(Currency));
 
             var totalAmount = moneyList.Sum(m => m.Amount);
             return new Money(totalAmount, currency);
@@ -267,7 +267,7 @@ namespace HiveSpace.OrderService.Domain.ValueObjects
         public static Money Min(Money a, Money b)
         {
             if (a.Currency != b.Currency)
-                throw new InvalidFieldException(OrderDomainErrorCode.MoneyCurrencyMismatch, nameof(Currency));
+                throw new InvalidFieldException(DomainErrorCode.MoneyCurrencyMismatch, nameof(Currency));
 
             return a.Amount <= b.Amount ? a : b;
         }
@@ -275,7 +275,7 @@ namespace HiveSpace.OrderService.Domain.ValueObjects
         public static Money Max(Money a, Money b)
         {
             if (a.Currency != b.Currency)
-                throw new InvalidFieldException(OrderDomainErrorCode.MoneyCurrencyMismatch, nameof(Currency));
+                throw new InvalidFieldException(DomainErrorCode.MoneyCurrencyMismatch, nameof(Currency));
 
             return a.Amount >= b.Amount ? a : b;
         }

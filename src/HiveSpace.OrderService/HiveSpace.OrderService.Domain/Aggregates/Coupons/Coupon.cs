@@ -3,7 +3,7 @@ using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Domain.Shared.Interfaces;
 using HiveSpace.OrderService.Domain.Enumerations;
 using HiveSpace.OrderService.Domain.Exceptions;
-using HiveSpace.OrderService.Domain.ValueObjects;
+using HiveSpace.Domain.Shared.ValueObjects;
 using HiveSpace.OrderService.Domain.DomainEvents;
 
 namespace HiveSpace.OrderService.Domain.Aggregates.Coupons;
