@@ -4,12 +4,14 @@ on:
   pull_request:
     branches: [master]
     paths:
-      - 'src/HiveSpace.MediaService/**'
+      - 'src/HiveSpace.MediaService/HiveSpace.MediaService.Func/**'
+      - 'src/HiveSpace.MediaService/HiveSpace.MediaService.Core/**'
       - '.github/workflows/media-service-func-ci.yml'
   push:
     branches: [master]
     paths:
-      - 'src/HiveSpace.MediaService/**'
+      - 'src/HiveSpace.MediaService/HiveSpace.MediaService.Func/**'
+      - 'src/HiveSpace.MediaService/HiveSpace.MediaService.Core/**'
       - '.github/workflows/media-service-func-ci.yml'
   workflow_dispatch:
     inputs:

@@ -12,33 +12,34 @@ public static class Config
 
     public static IEnumerable<ApiScope> ApiScopes =>
         [
-            new ApiScope("user.fullaccess", "User API Full Access"),
-            new ApiScope("order.fullaccess", "Order API Full Access"),
-            new ApiScope("basket.fullaccess", "Basket API Full Access"),
-            new ApiScope("catalog.fullaccess", "Catalog API Full Access"),
-            new ApiScope("hivespace-backend.fullaccess", "Hivespace Backend API Full access")
+            new ApiScope("user.fullaccess", "User API Full Access") { UserClaims = { "sub", "name", "email", "role" } },
+            new ApiScope("order.fullaccess", "Order API Full Access") { UserClaims = { "sub", "name", "email", "role" } },
+            new ApiScope("basket.fullaccess", "Basket API Full Access") { UserClaims = { "sub", "name", "email", "role" } },
+            new ApiScope("catalog.fullaccess", "Catalog API Full Access") { UserClaims = { "sub", "name", "email", "role" } },
+            new ApiScope("hivespace-backend.fullaccess", "Hivespace Backend API Full access") { UserClaims = { "sub", "name", "email", "role" } }
         ];
 
     public static IEnumerable<ApiResource> ApiResources =>
         [
             new ApiResource("user", "User API")
             {
-                Scopes = { "user.fullaccess" }
+                Scopes = { "user.fullaccess" },
+                UserClaims = { "sub", "name", "email", "role" }
             },
             new ApiResource("order", "Order API")
             {
                 Scopes = { "order.fullaccess" },
-                UserClaims = { "sub", "name", "email", "phone_number" }
+                UserClaims = { "sub", "name", "email", "phone_number", "role" }
             },
             new ApiResource("basket", "Basket API")
             {
                 Scopes = { "basket.fullaccess" },
-                UserClaims = { "sub", "name", "email" }
+                UserClaims = { "sub", "name", "email", "role" }
             },
             new ApiResource("catalog", "Catalog API")
             {
                 Scopes = { "catalog.fullaccess" },
-                UserClaims = { "sub", "name", "email" }
+                UserClaims = { "sub", "name", "email", "role" }
             },
         ];
 
@@ -65,6 +66,7 @@ public static class Config
                 RequireConsent = adminPortalConfig.RequireConsent,
                 AllowOfflineAccess = adminPortalConfig.AllowOfflineAccess,
                 AlwaysIncludeUserClaimsInIdToken = adminPortalConfig.AlwaysIncludeUserClaimsInIdToken,
+                UpdateAccessTokenClaimsOnRefresh = true,
                 RequirePkce = adminPortalConfig.RequirePkce,
                 RedirectUris = adminPortalConfig.RedirectUris ?? [],
                 PostLogoutRedirectUris = adminPortalConfig.PostLogoutRedirectUris ?? [],
@@ -115,6 +117,7 @@ public static class Config
                 RequireConsent = sellerCenterConfig.RequireConsent,
                 AllowOfflineAccess = sellerCenterConfig.AllowOfflineAccess,
                 AlwaysIncludeUserClaimsInIdToken = sellerCenterConfig.AlwaysIncludeUserClaimsInIdToken,
+                UpdateAccessTokenClaimsOnRefresh = true,
                 RequirePkce = sellerCenterConfig.RequirePkce,
                 RedirectUris = sellerCenterConfig.RedirectUris ?? new List<string>(),
                 PostLogoutRedirectUris = sellerCenterConfig.PostLogoutRedirectUris ?? new List<string>(),
@@ -176,6 +179,7 @@ public static class Config
                 RequireConsent = webUiConfig.RequireConsent,
                 AllowOfflineAccess = webUiConfig.AllowOfflineAccess,
                 AlwaysIncludeUserClaimsInIdToken = webUiConfig.AlwaysIncludeUserClaimsInIdToken,
+                UpdateAccessTokenClaimsOnRefresh = true,
                 RequirePkce = webUiConfig.RequirePkce,
                 RedirectUris = webUiConfig.RedirectUris ?? new List<string>(),
                 PostLogoutRedirectUris = webUiConfig.PostLogoutRedirectUris ?? new List<string>(),

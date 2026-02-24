@@ -1,16 +1,15 @@
 using System.Text.Json;
-using HiveSpace.MediaService.Func.Infrastructure.Data;
-using HiveSpace.MediaService.Func.Core.DomainModels;
-using HiveSpace.MediaService.Func.Core.Configuration;
+using HiveSpace.MediaService.Core.Infrastructure.Data;
+using HiveSpace.MediaService.Core.DomainModels;
+using HiveSpace.MediaService.Core.Configuration;
+using HiveSpace.MediaService.Core.Contracts;
+using HiveSpace.MediaService.Core.Interfaces;
+using HiveSpace.Domain.Shared.Exceptions;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
-using HiveSpace.MediaService.Func.Core.Exceptions;
-using HiveSpace.MediaService.Func.Core.Contracts;
-using HiveSpace.MediaService.Func.Core.Interfaces;
-using HiveSpace.Domain.Shared.Exceptions;
 
 namespace HiveSpace.MediaService.Func.Functions.Queue;
 
@@ -33,7 +32,7 @@ public class ImageProcessingFunction(
         if (queueMessage == null || queueMessage.MediaAssetId == Guid.Empty)
         {
             logger.LogError("Invalid message format or missing MediaAssetId.");
-            return; 
+            return;
         }
 
         var mediaAsset = await dbContext.MediaAssets.FindAsync(queueMessage.MediaAssetId);
@@ -51,17 +50,14 @@ public class ImageProcessingFunction(
         try
         {
             using var originalStream = await storageService.DownloadBlobAsync(storageConfig.TempContainer, mediaAsset.StoragePath);
-            
+
             if (originalStream.CanSeek && originalStream.Length == 0)
             {
                 logger.LogError("Stream is empty! Blob {StoragePath} has 0 bytes.", mediaAsset.StoragePath);
                 return;
             }
 
-            // 2. Process and Upload
             await ProcessAndUploadAsync(originalStream, mediaAsset);
-
-            // 3. Update DB with URLs
             await UpdateMediaAssetUrlsAsync(mediaAsset);
 
             logger.LogInformation("Successfully processed image {MediaAssetId}", mediaAsset.Id);
@@ -78,7 +74,6 @@ public class ImageProcessingFunction(
     {
         if (IsImage(mediaAsset))
         {
-            // Setup buffering to MemoryStream to avoid ImageSharp issues with Network/Blob streams
             using var memoryStream = new MemoryStream();
             if (originalStream.CanSeek && originalStream.Position != 0) originalStream.Position = 0;
             await originalStream.CopyToAsync(memoryStream);
@@ -86,28 +81,22 @@ public class ImageProcessingFunction(
 
             if (memoryStream.Length == 0)
             {
-                logger.LogError("MemoryStream is empty after copy! Original Stream Length: {Length}", 
+                logger.LogError("MemoryStream is empty after copy! Original Stream Length: {Length}",
                     originalStream.CanSeek ? originalStream.Length : -1);
                 return;
             }
 
-
             using var image = await Image.LoadAsync(memoryStream);
-            
-            // Standardize to WebP for everything (Outcome of user request)
-            
-            // Upload Main Image (Resized if needed, converted to WebP)
-            await UploadMainImageAsync(image, mediaAsset);
 
-            // Create and Upload Thumbnail (WebP)
+            await UploadMainImageAsync(image, mediaAsset);
             await UploadThumbnailAsync(image, mediaAsset);
         }
         else
         {
             logger.LogInformation("Asset {MediaAssetId} is not an image ({MimeType}). Uploading original.", mediaAsset.Id, mediaAsset.MimeType);
-            
+
             if (originalStream.CanSeek) originalStream.Position = 0;
-            
+
             await storageService.UploadBlobAsync(storageConfig.PublicContainer, mediaAsset.StoragePath, originalStream, mediaAsset.MimeType ?? "application/octet-stream");
         }
     }
@@ -124,13 +113,11 @@ public class ImageProcessingFunction(
         }
 
         using var outputStream = new MemoryStream();
-        await image.SaveAsWebpAsync(outputStream); 
+        await image.SaveAsWebpAsync(outputStream);
         outputStream.Position = 0;
 
-        // Update Path definition to WebP
         var newPath = Path.ChangeExtension(mediaAsset.StoragePath, ".webp");
         mediaAsset.UpdateStorageDetails(newPath, "image/webp");
-        
         mediaAsset.UpdateFileSize(outputStream.Length);
 
         await storageService.UploadBlobAsync(storageConfig.PublicContainer, mediaAsset.StoragePath, outputStream, "image/webp");
@@ -138,7 +125,6 @@ public class ImageProcessingFunction(
 
     private async Task UploadThumbnailAsync(Image image, MediaAsset mediaAsset)
     {
-        // Clone or mutate? Since we are done with the main image, we can mutate the current instance for thumbnail
         image.Mutate(x => x.Resize(new ResizeOptions
         {
             Size = new Size(150, 0),
@@ -172,7 +158,7 @@ public class ImageProcessingFunction(
     {
         var url = $"{storageService.GetContainerUrl(storageConfig.PublicContainer)}/{path}";
         var cdnHost = configuration["AzureStorage:CdnHost"];
-        
+
         if (!string.IsNullOrEmpty(cdnHost))
         {
             return GetCdnUrl(url, cdnHost);
@@ -184,9 +170,7 @@ public class ImageProcessingFunction(
     private static string GetThumbnailPath(string originalPath)
     {
         if (string.IsNullOrWhiteSpace(originalPath))
-        {
             return string.Empty;
-        }
 
         var directory = Path.GetDirectoryName(originalPath);
         var fileNameNoExt = Path.GetFileNameWithoutExtension(originalPath);
@@ -196,9 +180,8 @@ public class ImageProcessingFunction(
             ? thumbFileName
             : Path.Combine(directory, thumbFileName);
 
-        // Preserve usage of forward slashes if detected in original path
-        return originalPath.Contains('/') 
-            ? result.Replace('\\', '/') 
+        return originalPath.Contains('/')
+            ? result.Replace('\\', '/')
             : result;
     }
 

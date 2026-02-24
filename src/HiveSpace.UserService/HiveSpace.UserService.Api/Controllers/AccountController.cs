@@ -56,36 +56,27 @@ public class AccountController : ControllerBase
 
     /// <summary>
     /// Verify email address using verification token.
+    /// The endpoint is unauthenticated — userId and token embedded in the link prove identity.
     /// </summary>
-    /// <param name="request">Verification request containing the token</param>
+    /// <param name="request">Verification request containing userId and token</param>
     /// <param name="cancellationToken">Optional cancellation token</param>
     /// <returns>
-    /// - Redirect (302) to returnUrl if provided
-    /// - NoContent (204) if successful without returnUrl
+    /// - NoContent (204) if verified successfully
     /// </returns>
     /// <response code="204">Email verified successfully</response>
-    /// <response code="302">Email verified and redirecting to return URL</response>
-    /// <response code="400">Invalid verification token</response>
+    /// <response code="400">Invalid or expired verification token</response>
     /// <response code="409">Email already verified</response>
     [HttpPost("email-verification/verify")]
-    [RequireAdminOrUser]
+    [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status302Found)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult> VerifyEmail(
-        ConfirmEmailVerificationRequestDto request,
+        [FromBody] ConfirmEmailVerificationRequestDto request,
         CancellationToken cancellationToken = default)
     {
         ValidationHelper.ValidateResult(new ConfirmEmailVerificationValidator().Validate(request));
         await _accountService.ConfirmEmailVerificationAsync(request, cancellationToken);
-
-        // If returnUrl is provided, redirect after successful verification
-        if (!string.IsNullOrEmpty(request.ReturnUrl))
-        {
-            return Redirect(request.ReturnUrl);
-        }
-        
         return NoContent();
     }
 }

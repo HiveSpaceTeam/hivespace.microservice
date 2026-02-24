@@ -14,10 +14,8 @@ public class UserAddressService(IUserContext userContext, IUserRepository userRe
     public async Task<List<UserAddressDto>> GetUserAddressAsync(CancellationToken cancellationToken = default)
     {
         var userId = userContext.UserId;
-        var user = await userRepository.GetByIdAsync(userId, includeDetail: true);
-            
-        if (user == null)
-            throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
+        var user = await userRepository.GetByIdAsync(userId, includeDetail: true) 
+            ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
 
         return user.Addresses.Select(MapToDto).ToList();
     }
