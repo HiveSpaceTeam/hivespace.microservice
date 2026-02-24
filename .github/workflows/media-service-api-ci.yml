@@ -61,7 +61,7 @@ jobs:
       - name: Run Unit Tests
         run: |
           echo "Searching for test projects..."
-          TEST_PROJECTS=$(find src/HiveSpace.MediaService -name "*.Tests.csproj" -o -name "*.Test.csproj" -o -name "*Tests.csproj" 2>/dev/null | head -10)
+          TEST_PROJECTS=$(find src/HiveSpace.MediaService -name "*.Tests.csproj" -o -name "*.Test.csproj" -o -name "*Tests.csproj" 2>/dev/null)
 
           if [ -z "$TEST_PROJECTS" ]; then
             echo "📝 No test projects found - skipping tests"
@@ -79,7 +79,7 @@ jobs:
             echo "$TEST_PROJECTS" | xargs -I {} dotnet build {} -c Release --no-restore
             
             echo "Running unit tests..."
-            if dotnet test --configuration Release --no-build --verbosity normal src/HiveSpace.MediaService; then
+            if echo "$TEST_PROJECTS" | xargs -I {} dotnet test {} --configuration Release --no-build --verbosity normal; then
               echo "✅ All tests passed"
               echo "TEST_STATUS=passed" >> $GITHUB_ENV
             else
@@ -89,9 +89,9 @@ jobs:
             fi
           fi
 
-      # --- Container Registry Operations (Push Events Only) ---
+      # --- Container Registry Operations (Push and Workflow Dispatch Events) ---
       - name: Validate ACR configuration
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
         run: |
           echo "Validating Azure Container Registry configuration..."
           if [ -z "${{ secrets.AZURE_CREDENTIALS_SERVICE }}" ]; then
@@ -106,13 +106,13 @@ jobs:
           echo "Registry: ${{ vars.AZURE_ACR_NAME }}.azurecr.io"
 
       - name: Login to Azure
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS_SERVICE }}
 
       - name: Login to ACR
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
         run: |
           echo "Logging in to Azure Container Registry..."
           az acr login --name ${{ vars.AZURE_ACR_NAME }}
@@ -123,14 +123,14 @@ jobs:
         run: echo "sha=${GITHUB_SHA::8}" >> $GITHUB_OUTPUT
 
       - name: Set up Docker Buildx
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
         uses: docker/setup-buildx-action@v3
         with:
           driver-opts: image=moby/buildkit:buildx-stable-1
 
       - name: Build and push image to ACR
         id: push_image_acr
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -153,7 +153,7 @@ jobs:
 
       - name: Set image output (ACR)
         id: set_image_acr
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
         run: |
           IMAGE_TAG=${{ vars.AZURE_ACR_NAME }}.azurecr.io/hivespace/media-service:${{ steps.short-sha.outputs.sha }}
           echo "image=$IMAGE_TAG" >> $GITHUB_OUTPUT
@@ -167,7 +167,7 @@ jobs:
           echo "   • Service: MediaService"
           echo "   • Tests: ${{ env.TEST_STATUS }}"
           echo "   • Commit: ${{ steps.short-sha.outputs.sha }}"
-          if [ "${{ github.event_name }}" == "push" ]; then
+          if [ "${{ github.event_name }}" == "push" ] || [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             echo "   • Container Image: ${{ vars.AZURE_ACR_NAME }}.azurecr.io/hivespace/media-service:${{ steps.short-sha.outputs.sha }}"
           else
             echo "   • Container Image: Build skipped (PR/manual trigger)"

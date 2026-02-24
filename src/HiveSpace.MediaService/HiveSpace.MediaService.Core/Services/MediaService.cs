@@ -38,7 +38,7 @@ public class MediaService(
         var sasUri = _storageService.GeneratePresignedUrl(
             containerName,
             storagePath,
-            StoragePermissions.Write | StoragePermissions.Create,
+            StoragePermissions.Create, // 'Create' allows creating a new blob but strictly rejects overwriting an existing one
             expiryMinutes
         ).ToString();
 

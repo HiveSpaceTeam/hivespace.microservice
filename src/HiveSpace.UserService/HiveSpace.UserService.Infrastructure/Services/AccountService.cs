@@ -4,6 +4,7 @@ using HiveSpace.Core.Exceptions.Models;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.UserService.Application.Interfaces.Services;
 using HiveSpace.UserService.Application.Models.Requests.Account;
+using HiveSpace.UserService.Domain.Aggregates.User;
 using HiveSpace.UserService.Domain.Exceptions;
 using HiveSpace.UserService.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
@@ -79,14 +80,14 @@ public class AccountService : IAccountService
         _logger.LogInformation("Email verification sent to user {UserId} at {Email}", userId, user.Email);
     }
 
-    public async Task VerifyEmailAsync(
+    private async Task VerifyEmailAsync(
         string userId,
         string token,
         CancellationToken cancellationToken = default)
     {
         // Get user by the userId embedded in the verification link (no JWT required)
         var user = await _userManager.FindByIdAsync(userId)
-            ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, "user");
+            ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
 
         // Check if already verified
         var isEmailConfirmed = await _userManager.IsEmailConfirmedAsync(user);

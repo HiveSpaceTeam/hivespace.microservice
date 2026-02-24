@@ -16,6 +16,7 @@ public static class Config
             new ApiScope("order.fullaccess", "Order API Full Access") { UserClaims = { "sub", "name", "email", "role" } },
             new ApiScope("basket.fullaccess", "Basket API Full Access") { UserClaims = { "sub", "name", "email", "role" } },
             new ApiScope("catalog.fullaccess", "Catalog API Full Access") { UserClaims = { "sub", "name", "email", "role" } },
+            new ApiScope("media.fullaccess", "Media API Full Access") { UserClaims = { "sub", "name", "email", "role" } },
             new ApiScope("hivespace-backend.fullaccess", "Hivespace Backend API Full access") { UserClaims = { "sub", "name", "email", "role" } }
         ];
 
@@ -41,6 +42,11 @@ public static class Config
                 Scopes = { "catalog.fullaccess" },
                 UserClaims = { "sub", "name", "email", "role" }
             },
+            new ApiResource("media", "Media API")
+            {
+                Scopes = { "media.fullaccess" },
+                UserClaims = { "sub", "name", "email", "role" }
+            }
         ];
 
     public static IEnumerable<Client> GetClients(IConfiguration configuration)

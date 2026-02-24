@@ -57,8 +57,11 @@ public class ImageProcessingFunction(
                 return;
             }
 
-            await ProcessAndUploadAsync(originalStream, mediaAsset);
-            await UpdateMediaAssetUrlsAsync(mediaAsset);
+            var success = await ProcessAndUploadAsync(originalStream, mediaAsset);
+            if (success)
+            {
+                await UpdateMediaAssetUrlsAsync(mediaAsset);
+            }
 
             logger.LogInformation("Successfully processed image {MediaAssetId}", mediaAsset.Id);
         }
@@ -70,8 +73,25 @@ public class ImageProcessingFunction(
         }
     }
 
-    private async Task ProcessAndUploadAsync(Stream originalStream, MediaAsset mediaAsset)
+    private async Task<bool> ProcessAndUploadAsync(Stream originalStream, MediaAsset mediaAsset)
     {
+        var actualLength = originalStream.CanSeek ? originalStream.Length : -1;
+
+        // 1. Prevent SAS bypass attacks: Reject files larger than what was originally declared
+        if (actualLength > 0 && actualLength > mediaAsset.FileSize)
+        {
+            logger.LogError("Validation failed: Uploaded file size ({ActualLength} bytes) exceeds the originally declared size ({DeclaredSize} bytes) for Asset {MediaAssetId}.", actualLength, mediaAsset.FileSize, mediaAsset.Id);
+            return false;
+        }
+
+        // 2. Prevent OOM attacks: Hard absolute system maximum of 25MB
+        const long maxSystemLimit = 25 * 1024 * 1024; // 25 MB
+        if (actualLength > maxSystemLimit)
+        {
+            logger.LogError("Validation failed: File size ({ActualLength} bytes) exceeds system maximum limit of 25MB for Asset {MediaAssetId}.", actualLength, mediaAsset.Id);
+            return false;
+        }
+
         if (IsImage(mediaAsset))
         {
             using var memoryStream = new MemoryStream();
@@ -83,7 +103,7 @@ public class ImageProcessingFunction(
             {
                 logger.LogError("MemoryStream is empty after copy! Original Stream Length: {Length}",
                     originalStream.CanSeek ? originalStream.Length : -1);
-                return;
+                return false;
             }
 
             using var image = await Image.LoadAsync(memoryStream);
@@ -99,6 +119,8 @@ public class ImageProcessingFunction(
 
             await storageService.UploadBlobAsync(storageConfig.PublicContainer, mediaAsset.StoragePath, originalStream, mediaAsset.MimeType ?? "application/octet-stream");
         }
+
+        return true;
     }
 
     private async Task UploadMainImageAsync(Image image, MediaAsset mediaAsset)

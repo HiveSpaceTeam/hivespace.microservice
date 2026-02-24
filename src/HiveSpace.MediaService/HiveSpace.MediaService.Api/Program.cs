@@ -10,6 +10,15 @@ builder.Services.AddAppServices();
 builder.Services.AddAppValidators();
 builder.Services.AddAppDatabase(builder.Configuration);
 
+builder.Services.AddAuthentication("Bearer")
+    .AddJwtBearer("Bearer", options =>
+    {
+        options.Authority = builder.Configuration["Authentication:Authority"];
+        options.Audience = builder.Configuration["Authentication:Audience"];
+        options.RequireHttpsMetadata = builder.Configuration.GetValue<bool>("Authentication:RequireHttpsMetadata", true);
+    });
+builder.Services.AddAuthorization();
+
 var app = builder.Build();
 
 app.ConfigurePipeline();

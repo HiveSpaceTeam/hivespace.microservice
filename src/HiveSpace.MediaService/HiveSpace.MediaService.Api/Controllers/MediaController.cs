@@ -1,9 +1,11 @@
 using HiveSpace.MediaService.Core.Contracts;
 using HiveSpace.MediaService.Core.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HiveSpace.MediaService.Api.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/v1/media")]
 public class MediaController(IMediaService mediaService) : ControllerBase
