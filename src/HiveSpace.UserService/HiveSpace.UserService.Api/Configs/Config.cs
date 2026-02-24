@@ -13,7 +13,7 @@ public static class Config
     public static IEnumerable<ApiScope> ApiScopes =>
         [
             new ApiScope("user.fullaccess", "User API Full Access") { UserClaims = { "sub", "name", "email", "role" } },
-            new ApiScope("order.fullaccess", "Order API Full Access") { UserClaims = { "sub", "name", "email", "role" } },
+            new ApiScope("order.fullaccess", "Order API Full Access") { UserClaims = { "sub", "name", "email", "phone_number", "role" } },
             new ApiScope("basket.fullaccess", "Basket API Full Access") { UserClaims = { "sub", "name", "email", "role" } },
             new ApiScope("catalog.fullaccess", "Catalog API Full Access") { UserClaims = { "sub", "name", "email", "role" } },
             new ApiScope("media.fullaccess", "Media API Full Access") { UserClaims = { "sub", "name", "email", "role" } },

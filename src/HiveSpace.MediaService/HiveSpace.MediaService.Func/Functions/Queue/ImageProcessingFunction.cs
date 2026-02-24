@@ -61,9 +61,12 @@ public class ImageProcessingFunction(
             if (success)
             {
                 await UpdateMediaAssetUrlsAsync(mediaAsset);
+                logger.LogInformation("Successfully processed image {MediaAssetId}", mediaAsset.Id);
             }
-
-            logger.LogInformation("Successfully processed image {MediaAssetId}", mediaAsset.Id);
+            else
+            {
+                logger.LogWarning("Skipped/failed processing media asset {MediaAssetId}", mediaAsset.Id);
+            }
         }
         catch (Exception ex)
         {
