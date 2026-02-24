@@ -14,7 +14,7 @@ namespace HiveSpace.CatalogService.Api.Extentions
             builder.Services.AddAppApiControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddAppApiVersioning();
-            builder.Services.AddAppApplicationServices();
+             builder.Services.AddAppApplicationServices();
             builder.Services.AddCatalogDbContext(configuration);
             
             // Add Core services for UserContext and other core functionality

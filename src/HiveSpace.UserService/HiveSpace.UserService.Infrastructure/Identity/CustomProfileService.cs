@@ -89,6 +89,11 @@ public class CustomProfileService : IProfileService
             claims.Add(new Claim("gender", genderName));
         }
 
+        if (!string.IsNullOrEmpty(user.PhoneNumber))
+        {
+            claims.Add(new Claim("phone_number", user.PhoneNumber));
+        }
+
         // Finally, issue the claims to the token.
         context.IssuedClaims = claims;
     }
