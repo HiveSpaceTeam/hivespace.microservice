@@ -1,10 +1,10 @@
 ﻿using HiveSpace.CatalogService.Application.Commands;
-using HiveSpace.CatalogService.Application.Queries;
 using HiveSpace.CatalogService.Application.Models.Dtos.Request.Product;
 using HiveSpace.CatalogService.Application.Models.Requests;
+using HiveSpace.CatalogService.Application.Queries;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
-using MediatR;
 
 namespace HiveSpace.CatalogService.API.Controllers;
 

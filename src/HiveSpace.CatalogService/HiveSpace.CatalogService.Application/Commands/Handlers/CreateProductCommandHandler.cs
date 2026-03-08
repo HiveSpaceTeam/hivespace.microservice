@@ -11,7 +11,7 @@ namespace HiveSpace.CatalogService.Application.Commands.Handlers;
 
 public class CreateProductCommandHandler : ICommandHandler<CreateProductCommand, Guid>
 {
-    private readonly IUserContext _userContext;
+    //private readonly IUserContext _userContext;
     private readonly IProductRepository _productRepository;
     private readonly ITransactionService _transactionService;
     public CreateProductCommandHandler(IProductRepository productRepository,
@@ -20,15 +20,15 @@ public class CreateProductCommandHandler : ICommandHandler<CreateProductCommand,
     {
         _productRepository = productRepository;
         _transactionService = transactionService;
-        _userContext = userContext;
+        //_userContext = userContext;
     }
 
-    private string GetCurrentUserId() => _userContext.UserId.ToString();
+    //private string GetCurrentUserId() => _userContext.UserId.ToString();
     public async Task<Guid> Handle(CreateProductCommand request, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var currentUserId = GetCurrentUserId();
+        var currentUserId = Guid.Empty;
 
         var payload = request.Payload;
 
@@ -38,8 +38,7 @@ public class CreateProductCommandHandler : ICommandHandler<CreateProductCommand,
             payload.Description,
             ProductStatus.Available,
             DateTimeOffset.UtcNow,
-           currentUserId
-
+           currentUserId.ToString()
         );
 
         // Build related entities using shared factory methods (synchronous operations)
