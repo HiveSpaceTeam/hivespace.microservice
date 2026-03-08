@@ -701,12 +701,48 @@ public async Task<ActionResult<GetUsersResponseDto>> GetUsers(
    }
    ```
 
-5. **Error Handling**: Multi-layered exception strategy
+5. **Error Handling**: Use HiveSpace.Domain.Shared exceptions exclusively
 
-   a. **Domain Exceptions**: For business rule violations
+   **CRITICAL RULE**: Always throw exceptions from `HiveSpace.Domain.Shared.Exceptions` namespace. Never use System exceptions (ArgumentException, InvalidOperationException, etc.) in domain or application code.
+
+   a. **Available Exception Types** (all in `HiveSpace.Domain.Shared.Exceptions`)
 
    ```csharp
-   // ✅ DO: Create specific domain exceptions with error codes
+   // Base exception - use for general domain violations
+   public class DomainException(int httpCode, DomainErrorCode errorCode, string? source) : Exception
+
+   // Specific exception types (all inherit from DomainException)
+   public class NotFoundException(DomainErrorCode errorCode, string source)        // 404
+   public class InvalidFieldException(DomainErrorCode errorCode, string source)   // 400
+   public class ConflictException(DomainErrorCode errorCode, string source)       // 409
+   public class ForbiddenException(DomainErrorCode errorCode, string source)      // 403
+   ```
+
+   **Note**: You can extend these base exceptions to create domain-specific exception types when needed.
+
+   b. **Extending HiveSpace Exceptions** (Optional - for domain-specific exceptions)
+
+   ```csharp
+   // ✅ DO: Extend from HiveSpace.Domain.Shared exceptions for domain-specific types
+   using HiveSpace.Domain.Shared.Exceptions;
+   using HiveSpace.UserService.Domain.Exceptions;
+
+   namespace HiveSpace.UserService.Domain.Exceptions;
+
+   /// <summary>
+   /// Exception thrown when user information provided is invalid.
+   /// </summary>
+   public class InvalidUserInformationException : DomainException
+   {
+       public InvalidUserInformationException()
+           : base(400, UserDomainErrorCode.InvalidUserInformation, nameof(User))
+       {
+       }
+   }
+
+   /// <summary>
+   /// Exception thrown when email format is invalid.
+   /// </summary>
    public class InvalidEmailException : DomainException
    {
        public InvalidEmailException()
@@ -715,20 +751,182 @@ public async Task<ActionResult<GetUsersResponseDto>> GetUsers(
        }
    }
 
+   /// <summary>
+   /// Exception thrown when attempting to remove the default address.
+   /// </summary>
+   public class CannotRemoveDefaultAddressException : DomainException
+   {
+       public CannotRemoveDefaultAddressException()
+           : base(400, UserDomainErrorCode.CannotRemoveDefaultAddress, nameof(Address))
+       {
+       }
+   }
+
+   // ✅ DO: Use the extended exceptions in your domain
+   public static Email Create(string value)
+   {
+       if (string.IsNullOrWhiteSpace(value))
+           throw new InvalidEmailException();
+
+       if (!IsValidEmailFormat(value))
+           throw new InvalidEmailException();
+
+       return new Email(value);
+   }
+
+   public void RemoveAddress(Guid addressId)
+   {
+       var address = _addresses.FirstOrDefault(a => a.Id == addressId);
+       if (address == null)
+           throw new NotFoundException(UserDomainErrorCode.AddressNotFound, nameof(Address));
+
+       if (address.IsDefault)
+           throw new CannotRemoveDefaultAddressException();
+
+       _addresses.Remove(address);
+   }
+
+   // ❌ DON'T: Extend from System exceptions
+   public class InvalidUserException : ArgumentException  // WRONG!
+   {
+   }
+
+   // ❌ DON'T: Create exceptions that don't inherit from HiveSpace exceptions
+   public class CustomException : Exception  // WRONG!
+   {
+   }
+   ```
+
+   **When to extend exceptions:**
+   - ✅ When you need a more specific exception name for your domain (e.g., `InvalidEmailException`, `CannotRemoveDefaultAddressException`)
+   - ✅ When you want to encapsulate specific error codes with descriptive exception names
+   - ✅ When you want to simplify throwing common domain exceptions (parameterless constructors)
+   - ✅ When you want to group related error scenarios under a common exception type
+   - ❌ Don't extend if the base HiveSpace exceptions are sufficient (prefer simplicity)
+   - ❌ Don't create exceptions that bypass the error code system
+   - ❌ Don't add unnecessary complexity - use base exceptions directly when possible
+
+   c. **Exception Throwing Pattern** - Always use `nameof()` for source field
+
+   ```csharp
+   // ✅ DO: Use HiveSpace exceptions with nameof() for source
+   using HiveSpace.Domain.Shared.Exceptions;
+   using HiveSpace.UserService.Domain.Exceptions;
+
+   public async Task<User> GetUserAsync(Guid userId)
+   {
+       var user = await _repository.GetByIdAsync(userId);
+       if (user == null)
+           throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
+
+       if (user.Status != UserStatus.Active)
+           throw new ForbiddenException(UserDomainErrorCode.UserInactive, nameof(User));
+
+       return user;
+   }
+
+   // ✅ DO: Use nameof() with property names for field-specific errors
+   public void ValidateEmail(Email email)
+   {
+       if (email == null)
+           throw new InvalidFieldException(UserDomainErrorCode.EmailRequired, nameof(User.Email));
+
+       if (!await IsEmailAvailableAsync(email))
+           throw new ConflictException(UserDomainErrorCode.EmailAlreadyExists, nameof(User.Email));
+   }
+
+   // ✅ DO: Use nameof() with parameter names for validation errors
+   public OrderPackage Create(Guid storeId, Guid buyerId)
+   {
+       if (storeId == Guid.Empty)
+           throw new DomainException(400, OrderDomainErrorCode.PackageStoreIdRequired, nameof(storeId));
+
+       if (buyerId == Guid.Empty)
+           throw new DomainException(400, OrderDomainErrorCode.PackageBuyerIdRequired, nameof(buyerId));
+
+       return new OrderPackage(storeId, buyerId);
+   }
+
+   // ❌ DON'T: Use System exceptions
+   if (userId == Guid.Empty)
+       throw new ArgumentNullException(nameof(userId));  // WRONG!
+
+   if (email == null)
+       throw new InvalidOperationException("Email is required");  // WRONG!
+
+   // ❌ DON'T: Use hardcoded strings for source
+   throw new NotFoundException(UserDomainErrorCode.UserNotFound, "User");  // WRONG!
+
+   // ❌ DON'T: Omit source parameter
+   throw new NotFoundException(UserDomainErrorCode.UserNotFound, null);  // WRONG!
+   ```
+
+   c. **Real-World Example from UserManager.cs**
+
+   ```csharp
+   public async Task<User> ValidateAdminUserAsync(
+       Guid actorUserId,
+       bool requireSystemAdmin = false,
+       CancellationToken cancellationToken = default)
+   {
+       // ✅ Throw NotFoundException with nameof(User) as source
+       var actorUser = await _userRepository.GetByIdAsync(actorUserId)
+           ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
+
+       // ✅ Throw ForbiddenException for business rule violations
+       if (actorUser.Status != UserStatus.Active)
+           throw new ForbiddenException(UserDomainErrorCode.UserInactive, nameof(User));
+
+       if (requireSystemAdmin && !actorUser.IsSystemAdmin)
+           throw new ForbiddenException(UserDomainErrorCode.InsufficientPrivileges, nameof(User));
+
+       return actorUser;
+   }
+
+   public async Task<bool> CanUserBeRegisteredAsync(
+       Email email,
+       string userName,
+       CancellationToken cancellationToken = default)
+   {
+       // ✅ Throw ConflictException with property name as source
+       if (!await IsEmailAvailableAsync(email, cancellationToken))
+           throw new ConflictException(UserDomainErrorCode.EmailAlreadyExists, nameof(User.Email));
+
+       if (!await IsUserNameAvailableAsync(userName, cancellationToken))
+           throw new ConflictException(UserDomainErrorCode.UserNameAlreadyExists, nameof(User.UserName));
+
+       return true;
+   }
+   ```
+
+   d. **Define Domain Error Codes**
+
+   ```csharp
    // ✅ DO: Define domain error codes with unique identifiers
+   using HiveSpace.Domain.Shared.Errors;
+
+   namespace HiveSpace.UserService.Domain.Exceptions;
+
    public class UserDomainErrorCode : DomainErrorCode
    {
        private UserDomainErrorCode(int id, string name, string code)
            : base(id, name, code) { }
 
+       // User errors (USR1xxx)
        public static readonly UserDomainErrorCode UserNotFound =
-           new(1, "UserNotFound", "USR0001");
-       public static readonly UserDomainErrorCode InvalidEmail =
-           new(4, "InvalidEmail", "USR0004");
+           new(1001, "UserNotFound", "USR1001");
+       public static readonly UserDomainErrorCode EmailAlreadyExists =
+           new(1002, "EmailAlreadyExists", "USR1002");
+       public static readonly UserDomainErrorCode UserNameAlreadyExists =
+           new(1003, "UserNameAlreadyExists", "USR1003");
+       public static readonly UserDomainErrorCode UserInactive =
+           new(1004, "UserInactive", "USR1004");
+       public static readonly UserDomainErrorCode InsufficientPrivileges =
+           new(1005, "InsufficientPrivileges", "USR1005");
    }
    ```
 
-   b. **Application Layer Validation**
+   e. **Application Layer Validation** (FluentValidation)
 
    ```csharp
    // ✅ DO: Use FluentValidation with error codes
@@ -751,7 +949,7 @@ public async Task<ActionResult<GetUsersResponseDto>> GetUsers(
    }
    ```
 
-   c. **Error Code Organization**
+   f. **Error Code Organization**
 
    ```csharp
    // ✅ DO: Organize error codes by domain
@@ -771,24 +969,28 @@ public async Task<ActionResult<GetUsersResponseDto>> GetUsers(
        public class UserDomainErrorCode  // Domain-specific error codes
        {
            public static readonly UserDomainErrorCode UserNotFound =
-               new(1, "UserNotFound", "USR0001");
+               new(1001, "UserNotFound", "USR1001");
            public static readonly UserDomainErrorCode InvalidEmail =
-               new(4, "InvalidEmail", "USR0004");
+               new(1004, "InvalidEmail", "USR1004");
        }
    }
    ```
 
-   d. **Best Practices**
-
-   - Always use error codes instead of hardcoded messages (supports localization)
-   - Domain exceptions for business rule violations
-   - Validation exceptions for input validation failures
-   - Common error codes for cross-cutting concerns
-   - Domain-specific error codes for domain rules
-   - Consistent HTTP status codes across the application
-   - Include source/field information in error responses
-   - Add trace IDs for error tracking
-   - Return standardized error response structure
+   g. **Best Practices Summary**
+   - ✅ **ALWAYS** use `HiveSpace.Domain.Shared.Exceptions` - never System exceptions
+   - ✅ **ALWAYS** use `nameof()` for the source parameter (field, property, or class name)
+   - ✅ **ALWAYS** define error codes in domain-specific `ErrorCode` classes
+   - ✅ Use `NotFoundException` for missing resources (404)
+   - ✅ Use `InvalidFieldException` for validation failures (400)
+   - ✅ Use `ConflictException` for duplicate/conflict errors (409)
+   - ✅ Use `ForbiddenException` for authorization failures (403)
+   - ✅ Use `DomainException` directly for custom HTTP codes
+   - ✅ Include descriptive error codes for localization support
+   - ✅ Organize error codes by domain (e.g., USR for User, ORD for Order)
+   - ✅ Use consistent error code numbering (e.g., USR1xxx, ORD7xxx)
+   - ❌ **NEVER** use `ArgumentException`, `ArgumentNullException`, `InvalidOperationException`, etc.
+   - ❌ **NEVER** use hardcoded strings for source - always use `nameof()`
+   - ❌ **NEVER** use generic exception messages - always use error codes
 
 - Include source/field information in error responses
 - Add trace IDs for error tracking

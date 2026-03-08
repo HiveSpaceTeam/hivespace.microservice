@@ -1,6 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using System.Linq.Expressions;
 using System.Reflection;
+using HiveSpace.Domain.Shared.Exceptions;
+using HiveSpace.Domain.Shared.Errors;
 
 namespace HiveSpace.UserService.Api.Helpers;
 
@@ -11,7 +13,7 @@ public static class ValidationRuleGenerator
         var memberExpression = GetMemberExpression(propertyExpression);
         var property = memberExpression.Member as PropertyInfo;
         if (property == null)
-            throw new ArgumentException("Expression must reference a property");
+            throw new DomainException(400, DomainErrorCode.InvalidExpression, "Expression must reference a property");
             
         var attributes = property.GetCustomAttributes<ValidationAttribute>();
         
@@ -75,7 +77,7 @@ public static class ValidationRuleGenerator
             return member;
         if (expression.Body is UnaryExpression unary && unary.Operand is MemberExpression unaryMember)
             return unaryMember;
-        throw new ArgumentException("Expression must be a member expression");
+        throw new DomainException(400, DomainErrorCode.InvalidExpression, "Expression must be a member expression");
     }
     
     public class ValidationResult

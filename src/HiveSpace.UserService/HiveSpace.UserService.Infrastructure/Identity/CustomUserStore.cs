@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using HiveSpace.UserService.Infrastructure.Data;
+using HiveSpace.UserService.Domain.Exceptions;
+using HiveSpace.Domain.Shared.Exceptions;
+using HiveSpace.Domain.Shared.Errors;
 using Microsoft.EntityFrameworkCore;
 
 namespace HiveSpace.UserService.Infrastructure.Identity;
@@ -22,7 +25,7 @@ public class CustomUserStore : UserStore<ApplicationUser, IdentityRole<Guid>, Us
     public override async Task<IList<string>> GetRolesAsync(ApplicationUser user, CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
-        ArgumentNullException.ThrowIfNull(user);
+        if (user == null) throw new InvalidFieldException(DomainErrorCode.ArgumentNull, nameof(user));
 
         // Return the role directly from the RoleName property
         var roles = new List<string>();
@@ -40,14 +43,14 @@ public class CustomUserStore : UserStore<ApplicationUser, IdentityRole<Guid>, Us
     public override async Task AddToRoleAsync(ApplicationUser user, string roleName, CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
-        ArgumentNullException.ThrowIfNull(user);
-        ArgumentException.ThrowIfNullOrEmpty(roleName);
+        if (user == null) throw new InvalidFieldException(DomainErrorCode.ArgumentNull, nameof(user));
+        if (string.IsNullOrEmpty(roleName)) throw new InvalidFieldException(DomainErrorCode.ParameterRequired, nameof(roleName));
 
         // Validate that the role exists
         var roleEntity = await FindRoleAsync(roleName, cancellationToken);
         if (roleEntity == null)
         {
-            throw new InvalidOperationException($"Role '{roleName}' does not exist.");
+            throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(roleName));
         }
 
         // Set the role directly on the user
@@ -60,8 +63,8 @@ public class CustomUserStore : UserStore<ApplicationUser, IdentityRole<Guid>, Us
     public override async Task RemoveFromRoleAsync(ApplicationUser user, string roleName, CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
-        ArgumentNullException.ThrowIfNull(user);
-        ArgumentException.ThrowIfNullOrEmpty(roleName);
+        if (user == null) throw new InvalidFieldException(DomainErrorCode.ArgumentNull, nameof(user));
+        if (string.IsNullOrEmpty(roleName)) throw new InvalidFieldException(DomainErrorCode.ParameterRequired, nameof(roleName));
 
         // Clear the role if it matches
         if (string.Equals(user.RoleName, roleName, StringComparison.OrdinalIgnoreCase))
@@ -78,8 +81,8 @@ public class CustomUserStore : UserStore<ApplicationUser, IdentityRole<Guid>, Us
     public override async Task<bool> IsInRoleAsync(ApplicationUser user, string roleName, CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
-        ArgumentNullException.ThrowIfNull(user);
-        ArgumentException.ThrowIfNullOrEmpty(roleName);
+        if (user == null) throw new InvalidFieldException(DomainErrorCode.ArgumentNull, nameof(user));
+        if (string.IsNullOrEmpty(roleName)) throw new InvalidFieldException(DomainErrorCode.ParameterRequired, nameof(roleName));
 
         return await Task.FromResult(string.Equals(user.RoleName, roleName, StringComparison.OrdinalIgnoreCase));
     }
@@ -90,7 +93,7 @@ public class CustomUserStore : UserStore<ApplicationUser, IdentityRole<Guid>, Us
     public override async Task<IList<ApplicationUser>> GetUsersInRoleAsync(string roleName, CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
-        ArgumentException.ThrowIfNullOrEmpty(roleName);
+        if (string.IsNullOrEmpty(roleName)) throw new InvalidFieldException(DomainErrorCode.ParameterRequired, nameof(roleName));
 
         return await Users
             .Where(u => u.RoleName != null && u.RoleName.Equals(roleName, StringComparison.OrdinalIgnoreCase))

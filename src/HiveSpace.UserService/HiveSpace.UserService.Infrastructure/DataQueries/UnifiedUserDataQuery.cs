@@ -6,6 +6,9 @@ using HiveSpace.UserService.Application.Models.Queries;
 using HiveSpace.UserService.Application.Models.Responses.Admin;
 using Microsoft.Data.SqlClient;
 
+using HiveSpace.Domain.Shared.Exceptions;
+using HiveSpace.Domain.Shared.Errors;
+
 namespace HiveSpace.UserService.Infrastructure.DataQueries;
 
 public class UnifiedUserDataQuery : IUnifiedUserDataQuery
@@ -14,7 +17,7 @@ public class UnifiedUserDataQuery : IUnifiedUserDataQuery
 
     public UnifiedUserDataQuery(string connectionString)
     {
-        _connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
+        _connectionString = connectionString ?? throw new InvalidFieldException(DomainErrorCode.ArgumentNull, nameof(connectionString));
     }
 
     public async Task<PagedResult<UnifiedUserDto>> GetPagingUsersAsync(AdminUserFilterRequest request, UserQueryType queryType, CancellationToken cancellationToken = default)
@@ -81,7 +84,7 @@ public class UnifiedUserDataQuery : IUnifiedUserDataQuery
         {
             UserQueryType.Users => "WHERE (u.RoleName NOT IN ('SystemAdmin', 'Admin') OR u.RoleName IS NULL)",
             UserQueryType.Admins => "WHERE u.RoleName IN ('Admin', 'SystemAdmin')",
-            _ => throw new ArgumentOutOfRangeException(nameof(queryType), queryType, null)
+            _ => throw new InvalidFieldException(DomainErrorCode.InvalidEnumerationValue, nameof(queryType))
         };
     }
 

@@ -1,5 +1,10 @@
 ﻿using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.Domain.Shared.Interfaces;
+using HiveSpace.Domain.Shared.Exceptions;
+using HiveSpace.Domain.Shared.Errors;
+using HiveSpace.CatalogService.Domain.Exceptions;
+using HiveSpace.CatalogService.Domain.ValueObjects;
+using HiveSpace.CatalogService.Domain.Enums;
 using System.Text.Json.Serialization;
 
 namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
@@ -7,9 +12,20 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
     public class Product : AggregateRoot<Guid>, IAuditable
     {
         #region Properties
+        public Guid SellerId { get; private set; }
         public string Name { get; private set; }
+        public string Slug { get; private set; }
         public string Description { get; private set; }
+        public string? ShortDescription { get; private set; }
+        
+        public Guid? BrandId { get; private set; }
+        
         public ProductStatus Status { get; private set; }
+        public bool Featured { get; private set; }
+        public ProductCondition Condition { get; private set; }
+
+        public Weight? Weight { get; private set; }
+        public Dimensions? Dimensions { get; private set; }
 
         private readonly List<ProductCategory> _categories = new();
         public IReadOnlyCollection<ProductCategory> Categories => _categories.AsReadOnly();
@@ -40,6 +56,7 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
         private Product()
         {
             Name = string.Empty;
+            Slug = string.Empty;
             Description = string.Empty;
             CreatedBy = string.Empty;
         }
@@ -47,6 +64,7 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
         public Product(string name, string description, ProductStatus status, List<ProductCategory> categories, List<ProductAttribute> attributes, List<ProductImage> images, List<Sku> skus, List<ProductVariant> variants, DateTimeOffset createdAt, DateTimeOffset? updatedAt, string createdBy, string? updatedBy)
         {
             Name = name;
+            Slug = string.Empty;
             Description = description;
             Status = status;
             if (categories is not null) _categories.AddRange(categories);
@@ -64,6 +82,7 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
         {
             Id = id;
             Name = name;
+            Slug = string.Empty;
             Description = description;
             Status = status;
             if (categories is not null) _categories.AddRange(categories);
@@ -82,6 +101,7 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
         {
             Id = Guid.NewGuid();
             Name = name;
+            Slug = string.Empty;
             Description = description;
             Status = status;
             CreatedAt = createdAt;
@@ -107,40 +127,40 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
 
         public void AddCategory(ProductCategory category)
         {
-            if (category == null) throw new ArgumentNullException(nameof(category));
+            if (category == null) throw new InvalidFieldException(DomainErrorCode.ParameterRequired, nameof(category));
             _categories.Add(category);
         }
 
         public void RemoveCategory(ProductCategory category)
         {
-            if (category == null) throw new ArgumentNullException(nameof(category));
+            if (category == null) throw new InvalidFieldException(DomainErrorCode.ParameterRequired, nameof(category));
             _categories.Remove(category);
         }
 
         public void UpdateCategories(List<ProductCategory> categories)
         {
-            if (categories == null) throw new ArgumentNullException(nameof(categories));
+            if (categories == null) throw new InvalidFieldException(DomainErrorCode.ParameterRequired, nameof(categories));
             _categories.Clear();
             _categories.AddRange(categories);
         }
 
         public void UpdateAttributes(List<ProductAttribute> attributes)
         {
-            if (attributes == null) throw new ArgumentNullException(nameof(attributes));
+            if (attributes == null) throw new InvalidFieldException(DomainErrorCode.ParameterRequired, nameof(attributes));
             _attributes.Clear();
             _attributes.AddRange(attributes);
         }
 
         public void UpdateVariants(List<ProductVariant> variants)
         {
-            if (variants == null) throw new ArgumentNullException(nameof(variants));
+            if (variants == null) throw new InvalidFieldException(DomainErrorCode.ParameterRequired, nameof(variants));
             _variants.Clear();
             _variants.AddRange(variants);
         }
 
         public void UpdateSkus(List<Sku> skus)
         {
-            if (skus == null) throw new ArgumentNullException(nameof(skus));
+            if (skus == null) throw new InvalidFieldException(DomainErrorCode.ParameterRequired, nameof(skus));
             _skus.Clear();
             _skus.AddRange(skus);
         }

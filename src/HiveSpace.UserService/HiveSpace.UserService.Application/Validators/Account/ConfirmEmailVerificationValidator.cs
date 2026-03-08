@@ -9,6 +9,10 @@ public class ConfirmEmailVerificationValidator : AbstractValidator<ConfirmEmailV
 {
     public ConfirmEmailVerificationValidator()
     {
+        RuleFor(x => x.UserId)
+            .NotEmpty()
+            .WithState(_ => new Error(CommonErrorCode.Required, nameof(ConfirmEmailVerificationRequestDto.UserId)));
+
         RuleFor(x => x.Token)
             .NotEmpty()
             .WithState(_ => new Error(CommonErrorCode.Required, nameof(ConfirmEmailVerificationRequestDto.Token)));

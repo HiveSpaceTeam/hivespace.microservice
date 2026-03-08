@@ -1,5 +1,6 @@
 using HiveSpace.Domain.Shared.Interfaces;
 using HiveSpace.Domain.Shared.Exceptions;
+using HiveSpace.Domain.Shared.Errors;
 using HiveSpace.UserService.Domain.Aggregates.Store;
 using HiveSpace.UserService.Domain.Aggregates.User;
 using HiveSpace.UserService.Domain.DomainEvents;
@@ -22,8 +23,8 @@ public class StoreManager : IDomainService
         IStoreRepository storeRepository,
         IUserRepository userRepository)
     {
-        _storeRepository = storeRepository ?? throw new ArgumentNullException(nameof(storeRepository));
-        _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+        _storeRepository = storeRepository ?? throw new InvalidFieldException(DomainErrorCode.ArgumentNull, nameof(storeRepository));
+        _userRepository = userRepository ?? throw new InvalidFieldException(DomainErrorCode.ArgumentNull, nameof(userRepository));
     }
     
     /// <summary>

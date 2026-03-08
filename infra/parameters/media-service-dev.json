@@ -12,19 +12,7 @@
       "value": "sthivespacedev"
     },
     "appServicePlanName": {
-      "value": "ASP-rghivespacedev-a3ca"
-    },
-    "managedIdentityName": {
-      "value": "func-hivespace-media-svc-dev-uami"
-    },
-    "tempContainerName": {
-      "value": "temp-media-upload"
-    },
-    "publicContainerName": {
-      "value": "public-assets"
-    },
-    "queueName": {
-      "value": "image-processing-queue"
+      "value": "asp-hivespace-flex-dev"
     },
     "appInsightsName": {
       "value": "appi-hivespace-dev"

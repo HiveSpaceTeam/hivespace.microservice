@@ -31,19 +31,15 @@ param mediaServiceUrl string
 @description('Application Insights Name')
 param appInsightsName string
 
-@description('Application Insights Resource ID')
-param appInsightsId string
-
-@secure()
-@description('Application Insights Instrumentation Key')
-param appInsightsInstrumentationKey string
-
 @description('Key Vault Secret URI for Custom Domain Certificate')
 param customDomainCertificateUrl string
 
 @description('Custom Domain Hostname')
 param customDomainHostName string = 'dev.api.hivespace.site'
 
+resource applicationInsights 'Microsoft.Insights/components@2020-02-02' existing = {
+  name: appInsightsName
+}
 
 resource apimService 'Microsoft.ApiManagement/service@2021-08-01' = {
   name: apimName
@@ -85,7 +81,7 @@ resource appInsightsKeyNamedValue 'Microsoft.ApiManagement/service/namedValues@2
   name: 'appinsights-key'
   properties: {
     displayName: 'AppInsightsKey'
-    value: appInsightsInstrumentationKey
+    value: applicationInsights.properties.InstrumentationKey
     secret: true
   }
 }
@@ -100,7 +96,7 @@ resource appInsightsLogger 'Microsoft.ApiManagement/service/loggers@2021-08-01' 
       instrumentationKey: '{{AppInsightsKey}}'
     }
     isBuffered: true
-    resourceId: appInsightsId
+    resourceId: applicationInsights.id
   }
   dependsOn: [
     appInsightsKeyNamedValue

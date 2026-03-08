@@ -7,9 +7,6 @@ param storageAccountName string
 @description('App Service Plan name')
 param appServicePlanName string
 
-@description('User Assigned Managed Identity Name')
-param managedIdentityName string
-
 @description('Environment name (dev, staging, prod)')
 @allowed(['dev', 'staging', 'prod'])
 param environmentName string = 'dev'
@@ -20,21 +17,11 @@ param location string = resourceGroup().location
 @description('Deployment timestamp')
 param deploymentTimestamp string = utcNow()
 
-resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
+resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {
   name: storageAccountName
-  location: location
-  sku: {
-    name: 'Standard_LRS'
-  }
-  kind: 'StorageV2'
-  properties: {
-    supportsHttpsTrafficOnly: true
-    defaultToOAuthAuthentication: true
-    minimumTlsVersion: 'TLS1_2'
-  }
 }
 
-resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2023-01-01' = {
+resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2023-01-01' existing = {
   parent: storageAccount
   name: 'default'
 }
@@ -60,15 +47,11 @@ resource publicContainer 'Microsoft.Storage/storageAccounts/blobServices/contain
   }
 }
 
-resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
-  name: managedIdentityName
-  location: location
-}
 
 resource appServicePlan 'Microsoft.Web/serverfarms@2023-12-01' = {
   name: appServicePlanName
   location: location
-  kind: 'linux'
+  kind: 'functionapp'
   sku: {
     name: 'FC1'
     tier: 'FlexConsumption'
@@ -94,14 +77,8 @@ param mediaDbConnectionString string
 @description('Application Insights Name')
 param appInsightsName string
 
-resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
+resource applicationInsights 'Microsoft.Insights/components@2020-02-02' existing = {
   name: appInsightsName
-  location: location
-  kind: 'web'
-  properties: {
-    Application_Type: 'web'
-    Request_Source: 'rest'
-  }
 }
 
 resource functionApp 'Microsoft.Web/sites@2024-11-01' = {
@@ -109,10 +86,7 @@ resource functionApp 'Microsoft.Web/sites@2024-11-01' = {
   location: location
   kind: 'functionapp,linux'
   identity: {
-    type: 'UserAssigned'
-    userAssignedIdentities: {
-      '${managedIdentity.id}': {}
-    }
+    type: 'SystemAssigned'
   }
   properties: {
     serverFarmId: appServicePlan.id
@@ -129,16 +103,8 @@ resource functionApp 'Microsoft.Web/sites@2024-11-01' = {
       scmType: 'None'
       appSettings: [
         {
-          name: 'AzureWebJobsStorage__accountName'
-          value: storageAccount.name
-        }
-        {
-          name: 'AzureWebJobsStorage__credential'
-          value: 'managedidentity'
-        }
-        {
-          name: 'AzureWebJobsStorage__clientId'
-          value: managedIdentity.properties.clientId
+          name: 'AzureWebJobsStorage'
+          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};AccountKey=${storageAccount.listKeys().keys[0].value};EndpointSuffix=${environment().suffixes.storage}'
         }
         {
           name: 'AzureStorage__ConnectionString'
@@ -157,12 +123,32 @@ resource functionApp 'Microsoft.Web/sites@2024-11-01' = {
           value: queueName
         }
         {
+          name: 'AzureStorage__CdnHost'
+          value: '' // Optional: CDN host for serving public assets
+        }
+        {
           name: 'Database__MediaServiceDb'
           value: mediaDbConnectionString
         }
         {
+          name: 'MediaCleanup__ExpirationHours'
+          value: '24' // Clean up pending assets older than 24 hours
+        }
+        {
+          name: 'MediaCleanup__BatchSize'
+          value: '100' // Process 100 assets per batch
+        }
+        {
+          name: 'MediaService__PresignUrlExpiryMinutes'
+          value: '10' // Presigned URLs expire after 10 minutes
+        }
+        {
           name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
           value: applicationInsights.properties.ConnectionString
+        }
+        {
+          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
+          value: applicationInsights.properties.InstrumentationKey
         }
       ]
     }
@@ -172,8 +158,7 @@ resource functionApp 'Microsoft.Web/sites@2024-11-01' = {
           type: 'blobContainer'
           value: '${storageAccount.properties.primaryEndpoints.blob}${deploymentContainer.name}'
           authentication: {
-            type: 'UserAssignedIdentity'
-            userAssignedIdentityResourceId: managedIdentity.id
+            type: 'SystemAssignedIdentity'
           }
         }
       }
@@ -198,8 +183,8 @@ resource functionApp 'Microsoft.Web/sites@2024-11-01' = {
 @description('The name of the function app')
 output functionAppName string = functionApp.name
 
-@description('The resource ID of the User Assigned Identity')
-output managedIdentityId string = managedIdentity.id
+@description('The principal ID of the System Assigned Identity')
+output managedIdentityPrincipalId string = functionApp.identity.principalId
 
 @description('The name of the storage account')
 output storageAccountName string = storageAccount.name

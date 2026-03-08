@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using Duende.IdentityServer;
 using HiveSpace.Core.Contexts;
 using HiveSpace.Core.Filters;
@@ -71,6 +72,7 @@ internal static class ServiceCollectionExtensions
         services.AddScoped<IAdminService, AdminService>();
         services.AddScoped<IStoreService, StoreService>();
         services.AddScoped<IUserService, Application.Services.UserService>();
+        services.AddScoped<IUserAddressService, UserAddressService>();
     }
 
     public static void AddAppDomainServices(this IServiceCollection services)
@@ -212,7 +214,7 @@ internal static class ServiceCollectionExtensions
     {
         services.AddApiVersioning(options =>
         {
-            options.DefaultApiVersion = new Microsoft.AspNetCore.Mvc.ApiVersion(1, 0);
+            options.DefaultApiVersion = new ApiVersion(1, 0);
             options.AssumeDefaultVersionWhenUnspecified = true;
             options.ReportApiVersions = true;
         });

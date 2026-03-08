@@ -1,6 +1,4 @@
-﻿using HiveSpace.Domain.Shared.Interfaces;
-
-namespace HiveSpace.Domain.Shared.Interfaces;
+﻿namespace HiveSpace.Domain.Shared.Interfaces;
 
 public interface IRepository<TEntity> where TEntity : IAggregateRoot
 {

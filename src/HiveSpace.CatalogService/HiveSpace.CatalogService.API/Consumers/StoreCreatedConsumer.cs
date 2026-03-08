@@ -3,7 +3,7 @@ using HiveSpace.CatalogService.Domain.Repositories.External;
 using HiveSpace.Infrastructure.Messaging.Shared.Events.Stores;
 using MassTransit;
 
-namespace HiveSpace.CatalogService.API.Consumers;
+namespace HiveSpace.CatalogService.Api.Consumers;
 
 public class StoreCreatedConsumer : IConsumer<StoreCreatedIntegrationEvent>
 {

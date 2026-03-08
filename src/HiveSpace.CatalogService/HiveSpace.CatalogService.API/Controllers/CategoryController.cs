@@ -1,24 +1,23 @@
-﻿using HiveSpace.CatalogService.Application.Interfaces;
+﻿using Asp.Versioning;
+using HiveSpace.CatalogService.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
-namespace HiveSpace.CatalogService.API.Controllers
+namespace HiveSpace.CatalogService.Api.Controllers
 {
-    [Route("api/v1/categories")]
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/categories")]
     [ApiController]
-    public class CategoryController : ControllerBase
+    [AllowAnonymous]
+    public class CategoryController(ICategoryService categoryService) : ControllerBase
     {
-        private readonly ICategoryService _categoryService;
-        public CategoryController(ICategoryService categoryService)
-        {
-            _categoryService = categoryService;
-        }
 
         [HttpGet]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         public async Task<IActionResult> GetCategory()
         {
-            var result = await _categoryService.GetCategoryAsync();
+            var result = await categoryService.GetCategoryAsync();
             return Ok(result);
         }
 
@@ -26,7 +25,7 @@ namespace HiveSpace.CatalogService.API.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         public async Task<IActionResult> GetAttributeByCategoryId(int categoryId)
         {
-            var result = await _categoryService.GetAttributesByCategoryIdAsync(categoryId);
+            var result = await categoryService.GetAttributesByCategoryIdAsync(categoryId);
             return Ok(result);
         }
     }

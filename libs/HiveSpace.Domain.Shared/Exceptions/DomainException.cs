@@ -8,6 +8,6 @@ public class DomainException(int httpCode, DomainErrorCode errorCode, string? so
 
     private readonly DomainErrorCode _errorCode = errorCode;
     public DomainErrorCode ErrorCode => _errorCode;
-
+    // name of the field or class that lead to exception
     public override string? Source { get; set; } = source;
 }

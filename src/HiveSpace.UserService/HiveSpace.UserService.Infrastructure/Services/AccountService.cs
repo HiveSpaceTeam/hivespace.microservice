@@ -4,6 +4,7 @@ using HiveSpace.Core.Exceptions.Models;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.UserService.Application.Interfaces.Services;
 using HiveSpace.UserService.Application.Models.Requests.Account;
+using HiveSpace.UserService.Domain.Aggregates.User;
 using HiveSpace.UserService.Domain.Exceptions;
 using HiveSpace.UserService.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
@@ -36,8 +37,7 @@ public class AccountService : IAccountService
         ConfirmEmailVerificationRequestDto request,
         CancellationToken cancellationToken = default)
     {
-        // Use the existing verification logic but with the new DTO
-        await VerifyEmailAsync(request.Token, cancellationToken);
+        await VerifyEmailAsync(request.UserId, request.Token, cancellationToken);
     }
 
     public async Task SendEmailVerificationAsync(
@@ -63,8 +63,8 @@ public class AccountService : IAccountService
         // Encode the token for URL safety
         var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
 
-        // Build verification link
-        var verificationLink = $"{request.CallbackUrl}?token={encodedToken}";
+        // Build verification link — include userId so the verify endpoint is unauthenticated
+        var verificationLink = $"{request.CallbackUrl}?userId={Uri.EscapeDataString(userId.ToString())}&token={encodedToken}";
         if (!string.IsNullOrWhiteSpace(request.ReturnUrl))
         {
             verificationLink += $"&returnUrl={Uri.EscapeDataString(request.ReturnUrl)}";
@@ -80,14 +80,14 @@ public class AccountService : IAccountService
         _logger.LogInformation("Email verification sent to user {UserId} at {Email}", userId, user.Email);
     }
 
-    public async Task VerifyEmailAsync(
+    private async Task VerifyEmailAsync(
+        string userId,
         string token,
         CancellationToken cancellationToken = default)
     {
-        // Get current user using UserManager
-        var userId = _userContext.UserId.ToString();
+        // Get user by the userId embedded in the verification link (no JWT required)
         var user = await _userManager.FindByIdAsync(userId)
-            ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, "user");
+            ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
 
         // Check if already verified
         var isEmailConfirmed = await _userManager.IsEmailConfirmedAsync(user);

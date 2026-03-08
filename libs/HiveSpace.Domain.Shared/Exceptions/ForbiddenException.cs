@@ -5,12 +5,7 @@ namespace HiveSpace.Domain.Shared.Exceptions;
 /// <summary>
 /// Exception thrown when a user is not allowed to perform an action.
 /// </summary>
-public class ForbiddenException : DomainException
+public class ForbiddenException(DomainErrorCode errorCode, string source) : DomainException(_httpCode, errorCode, source)
 {
     private static readonly int _httpCode = 403;
-    
-    public ForbiddenException(DomainErrorCode errorCode, string source) 
-        : base(_httpCode, errorCode, source)
-    {
-    }
 }

@@ -5,25 +5,24 @@ using HiveSpace.CatalogService.Application.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
+using MediatR;
+using HiveSpace.Infrastructure.Authorization;
+using Asp.Versioning;
 
-namespace HiveSpace.CatalogService.API.Controllers;
+namespace HiveSpace.CatalogService.Api.Controllers;
 
-[Route("api/v1/products")]
+[Route("api/v{version:apiVersion}/products")]
+[ApiVersion("1.0")]
 [ApiController]
-public class ProductController : ControllerBase
+[RequireSeller]
+public class ProductController(IMediator mediator) : ControllerBase
 {
-    private readonly IMediator _mediator;
-
-    public ProductController(IMediator mediator)
-    {
-        _mediator = mediator;
-    }
 
     [HttpPost]
     [ProducesResponseType(typeof(Guid), (int)HttpStatusCode.Created)]
     public async Task<IActionResult> Create([FromBody] ProductUpsertRequestDto request, CancellationToken cancellationToken)
     {
-        var id = await _mediator.Send(new CreateProductCommand(request), cancellationToken);
+        var id = await mediator.Send(new CreateProductCommand(request), cancellationToken);
         return StatusCode((int)HttpStatusCode.Created, id);
     }
 
@@ -32,7 +31,7 @@ public class ProductController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     public async Task<IActionResult> Update(Guid id, [FromBody] ProductUpsertRequestDto request, CancellationToken cancellationToken)
     {
-        var updated = await _mediator.Send(new UpdateProductCommand(id, request), cancellationToken);
+        var updated = await mediator.Send(new UpdateProductCommand(id, request), cancellationToken);
         if (!updated) return NotFound();
         return NoContent();
     }
@@ -41,7 +40,7 @@ public class ProductController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.OK)]
     public async Task<IActionResult> GetList([FromQuery] ProductSearchRequestDto request, CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(new GetProductsQuery(request), cancellationToken);
+        var result = await mediator.Send(new GetProductsQuery(request), cancellationToken);
         return Ok(result);
     }
 
@@ -50,7 +49,7 @@ public class ProductController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     public async Task<IActionResult> GetDetail(Guid id, CancellationToken cancellationToken)
     {
-        var product = await _mediator.Send(new GetProductQuery(id), cancellationToken);
+        var product = await mediator.Send(new GetProductQuery(id), cancellationToken);
         return Ok(product);
     }
 
@@ -59,7 +58,7 @@ public class ProductController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        var deleted = await _mediator.Send(new DeleteProductCommand(id), cancellationToken);
+        var deleted = await mediator.Send(new DeleteProductCommand(id), cancellationToken);
         if (!deleted) return NotFound();
         return NoContent();
     }

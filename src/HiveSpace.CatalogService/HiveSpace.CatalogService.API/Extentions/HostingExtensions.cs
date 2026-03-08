@@ -1,11 +1,11 @@
-using HiveSpace.CatalogService.API.Consumers;
+using HiveSpace.CatalogService.Api.Consumers;
 using HiveSpace.CatalogService.Infrastructure;
 using HiveSpace.CatalogService.Infrastructure.Data;
 using HiveSpace.Core;
 using HiveSpace.Infrastructure.Messaging.Extensions;
 using HiveSpace.Infrastructure.Persistence;
 
-namespace HiveSpace.CatalogService.API.Extentions
+namespace HiveSpace.CatalogService.Api.Extentions
 {
     internal static class HostingExtensions
     {
@@ -13,14 +13,18 @@ namespace HiveSpace.CatalogService.API.Extentions
         {
             builder.Services.AddAppApiControllers();
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddAppApplicationServices();
+            builder.Services.AddAppApiVersioning();
+             builder.Services.AddAppApplicationServices();
             builder.Services.AddCatalogDbContext(configuration);
             
             // Add Core services for UserContext and other core functionality
             builder.Services.AddCoreServices();
             
+            builder.Services.AddAppAuthentication(configuration);
+
             // Add Persistence services for TransactionService
             builder.Services.AddPersistenceInfrastructure<CatalogDbContext>();
+
 
             //builder.Services.AddMassTransitWithKafka(configuration,
             //    rider =>
@@ -59,6 +63,7 @@ namespace HiveSpace.CatalogService.API.Extentions
             }
 
             app.UseHttpsRedirection();
+            app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();
 

@@ -1,4 +1,6 @@
 using System.Globalization;
+using HiveSpace.Domain.Shared.Exceptions;
+using HiveSpace.Domain.Shared.Errors;
 
 namespace HiveSpace.UserService.Api.Middleware;
 
@@ -19,8 +21,8 @@ public class CultureMiddleware
 
     public CultureMiddleware(RequestDelegate next, ILogger<CultureMiddleware> logger)
     {
-        _next = next ?? throw new ArgumentNullException(nameof(next));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _next = next ?? throw new InvalidFieldException(DomainErrorCode.ArgumentNull, nameof(next));
+        _logger = logger ?? throw new InvalidFieldException(DomainErrorCode.ArgumentNull, nameof(logger));
     }
 
     public async Task InvokeAsync(HttpContext context)

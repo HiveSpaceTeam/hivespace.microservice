@@ -1,6 +1,8 @@
 using FluentEmail.Core;
 using HiveSpace.UserService.Application.Interfaces.Services;
 using HiveSpace.UserService.Domain.Models;
+using HiveSpace.UserService.Domain.Exceptions;
+using HiveSpace.Domain.Shared.Exceptions;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using System.Net.Sockets;
@@ -55,7 +57,7 @@ public class EmailService : IEmailService
                 var errors = string.Join(", ", result.ErrorMessages);
                 Console.WriteLine($"[EmailService] Failed to send email verification to: {toEmail}. Errors: {errors}");
                 _logger.LogError("Failed to send email verification to {Email}. Errors: {Errors}", toEmail, errors);
-                throw new InvalidOperationException($"Failed to send email verification: {errors}");
+                throw new DomainException(500, UserDomainErrorCode.EmailSendFailed, nameof(toEmail));
             }
         }
         catch (Exception ex)
@@ -97,7 +99,7 @@ public class EmailService : IEmailService
                 var errors = string.Join(", ", result.ErrorMessages);
                 Console.WriteLine($"[EmailService] Failed to send email verification success notification to: {toEmail}. Errors: {errors}");
                 _logger.LogError("Failed to send email verification success notification to {Email}. Errors: {Errors}", toEmail, errors);
-                throw new InvalidOperationException($"Failed to send email verification success notification: {errors}");
+                throw new DomainException(500, UserDomainErrorCode.EmailSendFailed, nameof(toEmail));
             }
         }
         catch (Exception ex)

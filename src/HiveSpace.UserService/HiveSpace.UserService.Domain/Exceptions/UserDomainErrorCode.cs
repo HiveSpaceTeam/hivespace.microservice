@@ -34,4 +34,7 @@ public class UserDomainErrorCode : DomainErrorCode
     public static readonly UserDomainErrorCode CannotDeleteAdminAccount = new(32, "CannotDeleteAdminAccount", "USR0032");
     public static readonly UserDomainErrorCode EmailAlreadyVerified = new(29, "EmailAlreadyVerified", "USR0029");
     public static readonly UserDomainErrorCode EmailVerificationFailed = new(30, "EmailVerificationFailed", "USR0030");
+    public static readonly UserDomainErrorCode RoleNameRequired = new(33, "RoleNameRequired", "USR0033");
+    public static readonly UserDomainErrorCode UnknownRoleName = new(34, "UnknownRoleName", "USR0034");
+    public static readonly UserDomainErrorCode EmailSendFailed = new(35, "EmailSendFailed", "USR0035");
 }

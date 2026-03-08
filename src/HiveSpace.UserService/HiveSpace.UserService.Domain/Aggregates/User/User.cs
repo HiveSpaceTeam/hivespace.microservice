@@ -190,7 +190,7 @@ public class User : AggregateRoot<Guid>, IAuditable, ISoftDeletable
         StoreId = null;
     }
     
-    public void AddAddress(string fullName, string phoneNumber, string street, string district, 
+    public Address AddAddress(string fullName, string phoneNumber, string street, string district, 
         string province, string country, string? zipCode, AddressType addressType, bool setAsDefault = false)
     {
         var address = new Address(fullName, phoneNumber, street, district, province, country, zipCode, addressType);
@@ -205,6 +205,7 @@ public class User : AggregateRoot<Guid>, IAuditable, ISoftDeletable
         }
         
         _addresses.Add(address);
+        return address;
     }
     
     public void UpdateAddress(Guid addressId, string? fullName, string? phoneNumber, string? street, 
