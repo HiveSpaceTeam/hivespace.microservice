@@ -5,17 +5,18 @@ using Microsoft.EntityFrameworkCore;
 
 
 using HiveSpace.OrderService.Domain.Aggregates.Carts;
+using HiveSpace.OrderService.Infrastructure.EntityConfigurations.Coupons;
 
 namespace HiveSpace.OrderService.Infrastructure.Data;
 
 public class OrderDbContext : DbContext
 {
-    public DbSet<Order> Orders { get; set; } = null!;
-    public DbSet<OrderItem> OrderItems { get; set; } = null!;
+    // public DbSet<Order> Orders { get; set; } = null!;
+    // public DbSet<OrderItem> OrderItems { get; set; } = null!;
     public DbSet<Coupon> Coupons { get; set; } = null!;
     public DbSet<CouponUsage> CouponUsages { get; set; } = null!;
     public DbSet<CouponRule> CouponRules { get; set; } = null!;
-    public DbSet<Cart> Carts { get; set; } = null!;
+    // public DbSet<Cart> Carts { get; set; } = null!;
 
 
     public OrderDbContext(DbContextOptions<OrderDbContext> options) : base(options)
@@ -26,8 +27,10 @@ public class OrderDbContext : DbContext
     {
         base.OnModelCreating(builder);
 
-        // Only apply configurations from Infrastructure assembly (not Domain)
-        builder.ApplyConfigurationsFromAssembly(typeof(OrderDbContext).Assembly);
+        // Only apply configurations for Coupon aggregate to allow migrations
+        builder.ApplyConfiguration(new CouponEntityConfiguration());
+        builder.ApplyConfiguration(new CouponRuleEntityConfiguration());
+        builder.ApplyConfiguration(new CouponUsageEntityConfiguration());
 
         // Add MassTransit outbox entities
         MassTransitExtensions.AddEntityOutBox(builder);

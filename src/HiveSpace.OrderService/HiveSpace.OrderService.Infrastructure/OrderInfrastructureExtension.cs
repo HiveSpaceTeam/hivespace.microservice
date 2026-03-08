@@ -7,6 +7,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using HiveSpace.OrderService.Domain.Repositories;
+using HiveSpace.OrderService.Infrastructure.Repositories;
 
 namespace HiveSpace.OrderService.Infrastructure;
 
@@ -64,8 +66,8 @@ public static class OrderInfrastructureExtension
 
     public static void AddOrderServiceRepositories(this IServiceCollection services)
     {
-        // TODO: Register repositories here
-        // services.AddScoped<IOrderRepository, OrderRepository>();
+        // Register repositories here
+        services.AddScoped<ICouponRepository, SqlCouponRepository>();
     }
 
     public static void AddInfrastructureServices(this IServiceCollection services)

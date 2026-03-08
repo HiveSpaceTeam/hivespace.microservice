@@ -9,7 +9,7 @@ public class Discount : Entity<Guid>
     public Guid CouponId { get; private set; }
     public string CouponCode { get; private set; } = null!;
     public Money DiscountAmount { get; private set; } = null!;
-    public CouponScope Scope { get; private set; } = null!;
+    public CouponScope Scope { get; private set; }
     public CouponOwnerType CouponOwnerType { get; private set; }
     public DateTimeOffset AppliedAt { get; private set; }
 
