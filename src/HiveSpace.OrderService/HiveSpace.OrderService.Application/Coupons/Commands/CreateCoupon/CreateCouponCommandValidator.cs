@@ -24,7 +24,7 @@ public class CreateCouponCommandValidator : AbstractValidator<CreateCouponComman
         RuleFor(x => x.StartDateTime)
             .NotEmpty()
             .WithState(_ => new Error(CommonErrorCode.Required, nameof(CreateCouponCommand.StartDateTime)))
-            .GreaterThan(DateTime.UtcNow)
+            .Must(dt => dt > DateTimeOffset.UtcNow)
             .WithState(_ => new Error(OrderDomainErrorCode.CouponInvalidDates, nameof(CreateCouponCommand.StartDateTime)));
             
         RuleFor(x => x.EndDateTime)

@@ -302,26 +302,46 @@ public class Coupon : AggregateRoot<Guid>, IAuditable
         }
 
         // Check product applicability
-        if (_applicableProductIds.Count != 0 && productIds != null)
+        if (_applicableProductIds.Count != 0)
         {
-            var hasApplicableProduct = productIds.Any(p => _applicableProductIds.Contains(p));
-            if (!hasApplicableProduct)
+            if (productIds == null || !productIds.Any())
+            {
                 errors.Add(new(OrderDomainErrorCode.CouponProductNotApplicable, nameof(ApplicableProductIds)));
+            }
+            else
+            {
+                var hasApplicableProduct = productIds.Any(p => _applicableProductIds.Contains(p));
+                if (!hasApplicableProduct)
+                    errors.Add(new(OrderDomainErrorCode.CouponProductNotApplicable, nameof(ApplicableProductIds)));
+            }
         }
 
         // Check category applicability
-        if (_applicableCategoryIds.Count != 0 && categoryIds != null)
+        if (_applicableCategoryIds.Count != 0)
         {
-            var hasApplicableCategory = categoryIds.Any(c => _applicableCategoryIds.Contains(c));
-            if (!hasApplicableCategory)
+            if (categoryIds == null || !categoryIds.Any())
+            {
                 errors.Add(new(OrderDomainErrorCode.CouponProductNotApplicable, nameof(ApplicableCategoryIds)));
+            }
+            else
+            {
+                var hasApplicableCategory = categoryIds.Any(c => _applicableCategoryIds.Contains(c));
+                if (!hasApplicableCategory)
+                    errors.Add(new(OrderDomainErrorCode.CouponProductNotApplicable, nameof(ApplicableCategoryIds)));
+            }
         }
 
         // Check store applicability
-        if (StoreId.HasValue && storeId.HasValue)
+        if (StoreId.HasValue)
         {
-            if (StoreId.Value != storeId.Value)
+            if (!storeId.HasValue)
+            {
                 errors.Add(new(OrderDomainErrorCode.CouponStoreNotApplicable, nameof(StoreId)));
+            }
+            else if (StoreId.Value != storeId.Value)
+            {
+                errors.Add(new(OrderDomainErrorCode.CouponStoreNotApplicable, nameof(StoreId)));
+            }
         }
         
         // Store Owner Check - currently handled dynamically or via applicable store IDs

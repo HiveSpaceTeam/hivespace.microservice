@@ -56,7 +56,7 @@ public sealed class UserContext(IHttpContextAccessor httpContextAccessor)
         {
             var storeIdClaim = User.FindFirstValue("store_id");
             if (string.IsNullOrEmpty(storeIdClaim))
-                return null;
+                return IsSeller ? throw new UnauthorizedException([new(CommonErrorCode.SubClaimInvalid, nameof(StoreId))]) : null;
             return Guid.TryParse(storeIdClaim, out var storeId) 
                 ? storeId 
                 : (IsSeller ? throw new UnauthorizedException([new(CommonErrorCode.SubClaimInvalid, nameof(StoreId))]) : null);
