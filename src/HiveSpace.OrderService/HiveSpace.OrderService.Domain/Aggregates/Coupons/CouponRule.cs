@@ -1,3 +1,4 @@
+using HiveSpace.Domain.Shared.IdGeneration;
 using HiveSpace.Domain.Shared.Entities;
 
 namespace HiveSpace.OrderService.Domain.Aggregates.Coupons;
@@ -14,9 +15,9 @@ public class CouponRule : Entity<Guid>
 
     private CouponRule() { }
 
-    private CouponRule(string ruleName, string ruleExpression, string errorMessage)
+    private CouponRule(Guid id, string ruleName, string ruleExpression, string errorMessage)
     {
-        Id = Guid.NewGuid();
+        Id = id;
         RuleName = ruleName;
         RuleExpression = ruleExpression;
         ErrorMessage = errorMessage;
@@ -25,6 +26,6 @@ public class CouponRule : Entity<Guid>
 
     public static CouponRule Create(string ruleName, string ruleExpression, string errorMessage)
     {
-        return new CouponRule(ruleName, ruleExpression, errorMessage);
+        return new CouponRule(IdGenerator.NewId<Guid>(), ruleName, ruleExpression, errorMessage);
     }
 }

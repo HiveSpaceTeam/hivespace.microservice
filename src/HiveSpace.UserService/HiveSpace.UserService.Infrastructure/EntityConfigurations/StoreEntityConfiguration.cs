@@ -30,6 +30,7 @@ public class StoreEntityConfiguration : IEntityTypeConfiguration<Store>
 
         builder.Property(s => s.Status)
             .HasConversion<string>()
+            .HasMaxLength(50)
             .IsRequired();
 
         builder.Property(s => s.CreatedAt)

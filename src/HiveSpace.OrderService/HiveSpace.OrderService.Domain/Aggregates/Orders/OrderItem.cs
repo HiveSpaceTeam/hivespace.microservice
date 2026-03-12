@@ -1,3 +1,4 @@
+using HiveSpace.Domain.Shared.IdGeneration;
 using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.OrderService.Domain.Exceptions;
@@ -15,7 +16,7 @@ public class OrderItem : Entity<Guid>
     public Money LineTotal { get; private set; } = null!;
     public bool IsCOD { get; private set; }
     public ProductSnapshot ProductSnapshot { get; private set; } = null!;
-    
+
     private OrderItem() { }
 
     public static OrderItem Create(
@@ -33,7 +34,7 @@ public class OrderItem : Entity<Guid>
 
         var item = new OrderItem
         {
-            Id = Guid.NewGuid(),
+            Id = IdGenerator.NewId<Guid>(),
             ProductId = productId,
             SkuId = skuId,
             Quantity = quantity,
@@ -41,7 +42,7 @@ public class OrderItem : Entity<Guid>
             ProductSnapshot = productSnapshot,
             IsCOD = isCOD
         };
-        
+
         item.CalculateLineTotal();
         return item;
     }

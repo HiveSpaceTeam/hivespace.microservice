@@ -1,10 +1,13 @@
 using HiveSpace.OrderService.Application.Coupons.Commands.CreateCoupon;
 using HiveSpace.OrderService.Api.Endpoints;
 using HiveSpace.OrderService.Infrastructure;
-using Microsoft.Extensions.Configuration;
+using HiveSpace.OrderService.Infrastructure.Data;
 using HiveSpace.Core;
 using HiveSpace.Core.Middlewares;
 using HiveSpace.Core.Filters;
+using HiveSpace.Infrastructure.Authorization.Extensions;
+using HiveSpace.Infrastructure.Messaging.Extensions;
+using HiveSpace.Infrastructure.Messaging.Configurations;
 
 // HiveSpace.OrderService API - Developed by Org
 // This is the main entry point for the HiveSpace.OrderService microservice
@@ -31,6 +34,14 @@ builder.Services.AddOrderDbContext(builder.Configuration);
 
 // Add Core Services
 builder.Services.AddCoreServices();
+builder.Services.AddIdGenerators(builder.Configuration);
+
+// Add Messaging
+var messagingOptions = builder.Configuration.GetSection(MessagingOptions.SectionName).Get<MessagingOptions>();
+if (messagingOptions?.EnableRabbitMq == true)
+{
+    builder.Services.AddMassTransitWithRabbitMq<OrderDbContext>(builder.Configuration);
+}
 
 // Setup Authentication from AppSettings
 builder.Services.AddAuthentication("Bearer")
@@ -40,7 +51,7 @@ builder.Services.AddAuthentication("Bearer")
         options.Audience = builder.Configuration["Authentication:Audience"];
         options.RequireHttpsMetadata = builder.Configuration.GetValue<bool>("Authentication:RequireHttpsMetadata", true);
     });
-builder.Services.AddAuthorization();
+builder.Services.AddHiveSpaceAuthorization("order.fullaccess");
 
 // Add MediatR from Application layer
 builder.Services.AddMediatR(cfg => {
@@ -103,5 +114,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapCouponEndpoints();
+app.MapCartEndpoints();
 
 await app.RunAsync();

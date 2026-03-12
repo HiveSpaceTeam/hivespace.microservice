@@ -1,3 +1,4 @@
+using HiveSpace.Domain.Shared.IdGeneration;
 using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Domain.Shared.Interfaces;
@@ -59,7 +60,7 @@ public class Order : AggregateRoot<Guid>, IAuditable
         if (deliveryAddress == null)
             throw new InvalidFieldException(OrderDomainErrorCode.OrderAddressRequired, nameof(deliveryAddress));
 
-        var orderId = Guid.NewGuid();
+        var orderId = IdGenerator.NewId<Guid>();
         var shortId = GenerateShortId();
 
         var order = new Order(orderId, shortId, userId, deliveryAddress);

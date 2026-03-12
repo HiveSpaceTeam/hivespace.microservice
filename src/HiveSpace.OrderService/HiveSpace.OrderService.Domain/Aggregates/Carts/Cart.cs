@@ -1,3 +1,4 @@
+using HiveSpace.Domain.Shared.IdGeneration;
 using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Domain.Shared.Interfaces;
@@ -16,9 +17,9 @@ public class Cart : AggregateRoot<Guid>, IAuditable
     // EF Core constructor
     private Cart() { }
 
-    private Cart(Guid userId)
+    private Cart(Guid id, Guid userId)
     {
-        Id = Guid.NewGuid();
+        Id = id;
         UserId = userId;
         CreatedAt = DateTimeOffset.UtcNow;
     }
@@ -28,20 +29,20 @@ public class Cart : AggregateRoot<Guid>, IAuditable
         if (userId == Guid.Empty)
             throw new InvalidFieldException(OrderDomainErrorCode.CartUserIdRequired, nameof(userId));
 
-        return new Cart(userId);
+        return new Cart(IdGenerator.NewId<Guid>(), userId);
     }
 
     /// <summary>
     /// Add item to cart or update quantity if already exists
     /// </summary>
-    public void AddItem(Guid productId, long skuId, int quantity)
+    public void AddItem(long productId, long skuId, int quantity)
     {
-        if (productId == Guid.Empty)
+        if (productId <= 0)
             throw new InvalidFieldException(OrderDomainErrorCode.CartProductIdRequired, nameof(productId));
-        
+
         if (skuId <= 0)
             throw new InvalidFieldException(OrderDomainErrorCode.CartSkuIdRequired, nameof(skuId));
-        
+
         if (quantity <= 0)
             throw new InvalidFieldException(OrderDomainErrorCode.CartInvalidQuantity, nameof(quantity));
 
@@ -50,12 +51,10 @@ public class Cart : AggregateRoot<Guid>, IAuditable
 
         if (existingItem is not null)
         {
-            // Update existing item
             existingItem.UpdateQuantity(existingItem.Quantity + quantity);
         }
         else
         {
-            // Add new item
             var item = CartItem.Create(productId, skuId, quantity);
             _items.Add(item);
         }
@@ -64,7 +63,7 @@ public class Cart : AggregateRoot<Guid>, IAuditable
     /// <summary>
     /// Update quantity of specific item
     /// </summary>
-    public void UpdateItemQuantity(Guid productId, long skuId, int newQuantity)
+    public void UpdateItemQuantity(long productId, long skuId, int newQuantity)
     {
         if (newQuantity <= 0)
             throw new InvalidFieldException(OrderDomainErrorCode.CartInvalidQuantity, nameof(newQuantity));
@@ -77,11 +76,48 @@ public class Cart : AggregateRoot<Guid>, IAuditable
     /// <summary>
     /// Remove item from cart
     /// </summary>
-    public void RemoveItem(Guid productId, long skuId)
+    public void RemoveItem(long productId, long skuId)
     {
         var item = _items.FirstOrDefault(i =>
             i.ProductId == productId && i.SkuId == skuId) ?? throw new NotFoundException(OrderDomainErrorCode.CartItemNotFound, nameof(CartItem));
         _items.Remove(item);
+    }
+
+    /// <summary>
+    /// Remove item by cart item ID
+    /// </summary>
+    public void RemoveItemById(Guid cartItemId)
+    {
+        var item = _items.FirstOrDefault(i => i.Id == cartItemId)
+            ?? throw new NotFoundException(OrderDomainErrorCode.CartItemNotFound, nameof(CartItem));
+        _items.Remove(item);
+    }
+
+    /// <summary>
+    /// Update quantity and/or selected state of a specific item
+    /// </summary>
+    public void UpdateItemById(Guid cartItemId, long? skuId, int? quantity, bool? isSelected)
+    {
+        var item = _items.FirstOrDefault(i => i.Id == cartItemId)
+            ?? throw new NotFoundException(OrderDomainErrorCode.CartItemNotFound, nameof(CartItem));
+
+        if (skuId.HasValue)
+            item.UpdateSku(skuId.Value);
+
+        if (quantity.HasValue)
+            item.UpdateQuantity(quantity.Value);
+
+        if (isSelected.HasValue)
+            item.UpdateSelection(isSelected.Value);
+    }
+
+    /// <summary>
+    /// Select or deselect all items in cart
+    /// </summary>
+    public void SelectAllItems(bool isSelected)
+    {
+        foreach (var item in _items)
+            item.UpdateSelection(isSelected);
     }
 
     /// <summary>

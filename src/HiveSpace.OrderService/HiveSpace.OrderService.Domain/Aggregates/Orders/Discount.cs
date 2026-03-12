@@ -1,3 +1,4 @@
+using HiveSpace.Domain.Shared.IdGeneration;
 using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.OrderService.Domain.Enumerations;
 using HiveSpace.Domain.Shared.ValueObjects;
@@ -19,7 +20,7 @@ public class Discount : Entity<Guid>
     {
         return new Discount
         {
-            Id = Guid.NewGuid(),
+            Id = IdGenerator.NewId<Guid>(),
             CouponId = couponId,
             CouponCode = couponCode,
             DiscountAmount = discountAmount,
@@ -33,7 +34,7 @@ public class Discount : Entity<Guid>
     {
         return new Discount
         {
-            Id = Guid.NewGuid(),
+            Id = IdGenerator.NewId<Guid>(),
             CouponId = couponId,
             CouponCode = couponCode,
             DiscountAmount = discountAmount,

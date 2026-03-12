@@ -5,9 +5,8 @@ using HiveSpace.OrderService.Application.Coupons.Commands.EndCoupon;
 using HiveSpace.OrderService.Application.Coupons.Dtos;
 using HiveSpace.OrderService.Application.Coupons.Queries.GetCouponById;
 using HiveSpace.OrderService.Application.Coupons.Queries.GetCouponList;
+using HiveSpace.Infrastructure.Authorization;
 using MediatR;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.OrderService.Domain.Exceptions;
 
@@ -19,7 +18,8 @@ public static class CouponEndpoints
     {
         var group = app.MapGroup("/api/v1/coupons")
             .WithTags("Coupons")
-            .WithOpenApi();
+            .WithOpenApi()
+            .RequireAuthorization(HiveSpaceAuthorizeAttribute.Seller.Policy);
 
         group.MapPost("/", async (CreateCouponCommand command, ISender sender) =>
         {
@@ -28,8 +28,7 @@ public static class CouponEndpoints
         })
         .Produces<CouponDto>(StatusCodes.Status201Created)
         .ProducesProblem(StatusCodes.Status400BadRequest)
-        .WithSummary("Create a new coupon")
-        .RequireAuthorization();
+        .WithSummary("Create a new coupon");
 
         group.MapGet("/", async ([AsParameters] GetCouponListQuery query, ISender sender) =>
         {
@@ -37,8 +36,7 @@ public static class CouponEndpoints
             return Results.Ok(result);
         })
         .Produces<GetCouponListResponse>(StatusCodes.Status200OK)
-        .WithSummary("Get paginated list of coupons")
-        .RequireAuthorization();
+        .WithSummary("Get paginated list of coupons");
 
         group.MapGet("/{id:guid}", async (Guid id, ISender sender) =>
         {
@@ -47,8 +45,7 @@ public static class CouponEndpoints
         })
         .Produces<CouponDto>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status404NotFound)
-        .WithSummary("Get a coupon by ID")
-        .RequireAuthorization();
+        .WithSummary("Get a coupon by ID");
 
         group.MapDelete("/{id:guid}", async (Guid id, ISender sender) =>
         {
@@ -58,8 +55,7 @@ public static class CouponEndpoints
         .Produces(StatusCodes.Status204NoContent)
         .ProducesProblem(StatusCodes.Status404NotFound)
         .ProducesProblem(StatusCodes.Status403Forbidden)
-        .WithSummary("Delete a coupon by ID")
-        .RequireAuthorization();
+        .WithSummary("Delete a coupon by ID");
 
         group.MapPost("/{id:guid}/end", async (Guid id, ISender sender) =>
         {
@@ -70,8 +66,7 @@ public static class CouponEndpoints
         .ProducesProblem(StatusCodes.Status404NotFound)
         .ProducesProblem(StatusCodes.Status403Forbidden)
         .ProducesProblem(StatusCodes.Status400BadRequest)
-        .WithSummary("End an upcoming coupon")
-        .RequireAuthorization();
+        .WithSummary("End an upcoming coupon");
 
         group.MapPut("/{id:guid}", async (Guid id, UpdateCouponCommand command, ISender sender) =>
         {
@@ -86,7 +81,6 @@ public static class CouponEndpoints
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status404NotFound)
         .ProducesProblem(StatusCodes.Status403Forbidden)
-        .WithSummary("Update a coupon by ID")
-        .RequireAuthorization();
+        .WithSummary("Update a coupon by ID");
     }
 }
