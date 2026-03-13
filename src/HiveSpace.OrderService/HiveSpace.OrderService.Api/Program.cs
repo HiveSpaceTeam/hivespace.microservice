@@ -1,3 +1,5 @@
+using FluentValidation;
+using HiveSpace.OrderService.Application.Cart.Queries.GetCartItems;
 using HiveSpace.OrderService.Application.Coupons.Commands.CreateCoupon;
 using HiveSpace.OrderService.Api.Endpoints;
 using HiveSpace.OrderService.Infrastructure;
@@ -57,6 +59,9 @@ builder.Services.AddHiveSpaceAuthorization("order.fullaccess");
 builder.Services.AddMediatR(cfg => {
     cfg.RegisterServicesFromAssemblyContaining<CreateCouponCommand>();
 });
+
+// Register validators
+builder.Services.AddScoped<IValidator<GetCartItemsQuery>, GetCartItemsQueryValidator>();
 
 var app = builder.Build();
 

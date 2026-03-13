@@ -60,48 +60,65 @@ public class SeedData
         const long product2Id = 1002L;
         const long product3Id = 1003L;
 
-        if (!await context.ProductRefs.AnyAsync(p => p.Id == product1Id, cancellationToken))
+        var expectedProductIds = new[] { product1Id, product2Id, product3Id };
+        var existingProductIds = await context.ProductRefs
+            .Where(p => expectedProductIds.Contains(p.Id))
+            .Select(p => p.Id)
+            .ToListAsync(cancellationToken);
+
+        var missingProductIds = expectedProductIds.Except(existingProductIds).ToList();
+        if (missingProductIds.Count > 0)
         {
-            var products = new[]
+            var productsById = new Dictionary<long, ProductRef>
             {
-                new ProductRef(product1Id, storeId, "Wireless Bluetooth Headphones", "https://example.com/images/headphones.jpg", ProductStatus.Available),
-                new ProductRef(product2Id, storeId, "Mechanical Gaming Keyboard", "https://example.com/images/keyboard.jpg", ProductStatus.Available),
-                new ProductRef(product3Id, storeId, "USB-C Laptop Stand", "https://example.com/images/stand.jpg", ProductStatus.Available),
+                [product1Id] = new ProductRef(product1Id, storeId, "Wireless Bluetooth Headphones", "https://example.com/images/headphones.jpg", ProductStatus.Available),
+                [product2Id] = new ProductRef(product2Id, storeId, "Mechanical Gaming Keyboard", "https://example.com/images/keyboard.jpg", ProductStatus.Available),
+                [product3Id] = new ProductRef(product3Id, storeId, "USB-C Laptop Stand", "https://example.com/images/stand.jpg", ProductStatus.Available),
             };
-            context.ProductRefs.AddRange(products);
+
+            var missingProducts = missingProductIds.Select(id => productsById[id]).ToList();
+            context.ProductRefs.AddRange(missingProducts);
             await context.SaveChangesAsync(cancellationToken);
-            logger.LogInformation("Seeded {Count} ProductRefs", products.Length);
+            logger.LogInformation("Seeded {Count} missing ProductRefs", missingProducts.Count);
         }
         else
         {
-            logger.LogInformation("ProductRefs already exist, skipping.");
+            logger.LogInformation("All expected ProductRefs already exist, skipping.");
         }
 
         // Seed SkuRefs
-        if (!await context.SkuRefs.AnyAsync(s => s.ProductId == product1Id, cancellationToken))
+        var expectedSkuIds = new[]
         {
-            var skus = new[]
+            10001L, 10002L, 10003L, 10004L, 10005L, 10006L, 10007L
+        };
+
+        var existingSkuIds = await context.SkuRefs
+            .Where(s => expectedSkuIds.Contains(s.Id))
+            .Select(s => s.Id)
+            .ToListAsync(cancellationToken);
+
+        var missingSkuIds = expectedSkuIds.Except(existingSkuIds).ToList();
+        if (missingSkuIds.Count > 0)
+        {
+            var skusById = new Dictionary<long, SkuRef>
             {
-                // Headphones variants
-                new SkuRef(10001L, product1Id, "HP-BT-BLK-001", 4999L, "USD", "https://example.com/images/headphones-black.jpg", "{\"Color\":\"Black\"}"),
-                new SkuRef(10002L, product1Id, "HP-BT-WHT-001", 4999L, "USD", "https://example.com/images/headphones-white.jpg", "{\"Color\":\"White\"}"),
-                new SkuRef(10003L, product1Id, "HP-BT-RED-001", 5499L, "USD", "https://example.com/images/headphones-red.jpg", "{\"Color\":\"Red\"}"),
-
-                // Keyboard variants
-                new SkuRef(10004L, product2Id, "KB-MEC-BLK-US", 8999L, "USD", "https://example.com/images/keyboard-black.jpg", "{\"Color\":\"Black\",\"Layout\":\"US\"}"),
-                new SkuRef(10005L, product2Id, "KB-MEC-WHT-US", 8999L, "USD", "https://example.com/images/keyboard-white.jpg", "{\"Color\":\"White\",\"Layout\":\"US\"}"),
-
-                // Stand variants
-                new SkuRef(10006L, product3Id, "ST-USB-SLV-001", 2999L, "USD", "https://example.com/images/stand-silver.jpg", "{\"Color\":\"Silver\"}"),
-                new SkuRef(10007L, product3Id, "ST-USB-BLK-001", 2999L, "USD", "https://example.com/images/stand-black.jpg", "{\"Color\":\"Black\"}"),
+                [10001L] = new SkuRef(10001L, product1Id, "HP-BT-BLK-001", 4999L, "USD", "https://example.com/images/headphones-black.jpg", "{\"Color\":\"Black\"}"),
+                [10002L] = new SkuRef(10002L, product1Id, "HP-BT-WHT-001", 4999L, "USD", "https://example.com/images/headphones-white.jpg", "{\"Color\":\"White\"}"),
+                [10003L] = new SkuRef(10003L, product1Id, "HP-BT-RED-001", 5499L, "USD", "https://example.com/images/headphones-red.jpg", "{\"Color\":\"Red\"}"),
+                [10004L] = new SkuRef(10004L, product2Id, "KB-MEC-BLK-US", 8999L, "USD", "https://example.com/images/keyboard-black.jpg", "{\"Color\":\"Black\",\"Layout\":\"US\"}"),
+                [10005L] = new SkuRef(10005L, product2Id, "KB-MEC-WHT-US", 8999L, "USD", "https://example.com/images/keyboard-white.jpg", "{\"Color\":\"White\",\"Layout\":\"US\"}"),
+                [10006L] = new SkuRef(10006L, product3Id, "ST-USB-SLV-001", 2999L, "USD", "https://example.com/images/stand-silver.jpg", "{\"Color\":\"Silver\"}"),
+                [10007L] = new SkuRef(10007L, product3Id, "ST-USB-BLK-001", 2999L, "USD", "https://example.com/images/stand-black.jpg", "{\"Color\":\"Black\"}"),
             };
-            context.SkuRefs.AddRange(skus);
+
+            var missingSkus = missingSkuIds.Select(id => skusById[id]).ToList();
+            context.SkuRefs.AddRange(missingSkus);
             await context.SaveChangesAsync(cancellationToken);
-            logger.LogInformation("Seeded {Count} SkuRefs", skus.Length);
+            logger.LogInformation("Seeded {Count} missing SkuRefs", missingSkus.Count);
         }
         else
         {
-            logger.LogInformation("SkuRefs already exist, skipping.");
+            logger.LogInformation("All expected SkuRefs already exist, skipping.");
         }
     }
 }

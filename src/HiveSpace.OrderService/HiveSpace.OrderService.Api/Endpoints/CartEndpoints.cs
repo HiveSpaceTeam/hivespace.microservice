@@ -1,6 +1,8 @@
 using HiveSpace.OrderService.Application.Cart.Commands.AddCartItem;
 using HiveSpace.OrderService.Application.Cart.Commands.RemoveCartItem;
 using HiveSpace.OrderService.Application.Cart.Commands.UpdateCartItems;
+using FluentValidation;
+using HiveSpace.Core.Helpers;
 using HiveSpace.OrderService.Application.Cart.Queries.GetCartItems;
 using HiveSpace.Infrastructure.Authorization;
 using MediatR;
@@ -44,8 +46,9 @@ public static class CartEndpoints
         .ProducesProblem(StatusCodes.Status404NotFound)
         .WithSummary("Update cart items (quantity, selection, or select all)");
 
-        group.MapGet("/", async ([AsParameters] GetCartItemsQuery query, ISender sender) =>
+        group.MapGet("/", async ([AsParameters] GetCartItemsQuery query, IValidator<GetCartItemsQuery> validator, ISender sender) =>
         {
+            ValidationHelper.ValidateResult(validator.Validate(query));
             var result = await sender.Send(query);
             return Results.Ok(result);
         })

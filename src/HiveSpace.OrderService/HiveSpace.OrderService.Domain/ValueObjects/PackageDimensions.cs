@@ -109,7 +109,7 @@ namespace HiveSpace.OrderService.Domain.ValueObjects
 
             if (declaredChargeableWeight == 0) return 0;
 
-            return (decimal)actualChargeableWeight - declaredChargeableWeight / declaredChargeableWeight * 100;
+            return ((actualChargeableWeight - declaredChargeableWeight) / (decimal)declaredChargeableWeight) * 100;
         }
 
         private int CalculateDeclaredVolumetricWeight()

@@ -1,5 +1,7 @@
 using HiveSpace.Core.Exceptions;
 using HiveSpace.Core.Exceptions.Models;
+using HiveSpace.Domain.Shared.Errors;
+using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Domain.Shared.IdGeneration;
 using Microsoft.Extensions.Options;
 
@@ -66,8 +68,7 @@ public sealed class SnowflakeIdGenerator : IIdGenerator<long>
             var timestamp = CurrentTimestamp();
 
             if (timestamp < _lastTimestamp)
-                throw new InvalidOperationException(
-                    $"Clock moved backwards by {_lastTimestamp - timestamp} ms. Refusing to generate ID.");
+                throw new DomainException(500, DomainErrorCode.InvalidExpression, nameof(SnowflakeIdGenerator));
 
             if (timestamp == _lastTimestamp)
             {
