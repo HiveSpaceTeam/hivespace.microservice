@@ -21,6 +21,12 @@ public static class IdGenerator
     /// </summary>
     public static void Initialize(IIdGenerator<Guid> guidGen, IIdGenerator<long> longGen)
     {
+        if (guidGen is null)
+            throw new DomainException(500, DomainErrorCode.ParameterRequired, $"{nameof(Initialize)}.{nameof(guidGen)}");
+
+        if (longGen is null)
+            throw new DomainException(500, DomainErrorCode.ParameterRequired, $"{nameof(Initialize)}.{nameof(longGen)}");
+
         var next = new Generators(guidGen, longGen);
         if (Interlocked.CompareExchange(ref _generators, next, null) != null)
             throw new DomainException(500, DomainErrorCode.InvalidExpression, nameof(IdGenerator));

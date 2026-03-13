@@ -21,7 +21,7 @@ public class Discount : Entity<Guid>
 
     public static Discount CreateStoreDiscount(Guid couponId, string couponCode, Money discountAmount, CouponScope scope)
     {
-        ValidateFactoryInputs(couponId, couponCode, discountAmount);
+        ValidateFactoryInputs(scope, couponId, couponCode, discountAmount);
 
         return new Discount
         {
@@ -37,7 +37,7 @@ public class Discount : Entity<Guid>
 
     public static Discount CreatePlatformDiscount(Guid couponId, string couponCode, Money discountAmount, CouponScope scope)
     {
-        ValidateFactoryInputs(couponId, couponCode, discountAmount);
+        ValidateFactoryInputs(scope, couponId, couponCode, discountAmount);
 
         return new Discount
         {
@@ -51,8 +51,11 @@ public class Discount : Entity<Guid>
         };
     }
 
-    private static void ValidateFactoryInputs(Guid couponId, string couponCode, Money discountAmount)
+    private static void ValidateFactoryInputs(CouponScope scope, Guid couponId, string couponCode, Money discountAmount)
     {
+        if (scope is not CouponScope.ShippingFee and not CouponScope.ItemPrice)
+            throw new InvalidFieldException(DomainErrorCode.InvalidEnumerationValue, nameof(scope));
+
         if (couponId == Guid.Empty)
             throw new InvalidFieldException(DomainErrorCode.ParameterRequired, nameof(couponId));
 

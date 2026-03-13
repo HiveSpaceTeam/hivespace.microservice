@@ -39,20 +39,25 @@ public class SeedData
 
     private static async Task SeedReferenceDataAsync(OrderDbContext context, ILogger<SeedData> logger, CancellationToken cancellationToken)
     {
-        // Fixed IDs that match UserService seed data (seller's store)
-        var storeId = new Guid("11111111-1111-1111-1111-111111111111");
+        const string storeName = "John's Electronics Store";
 
-        // Seed StoreRef
-        if (!await context.StoreRefs.AnyAsync(s => s.Id == storeId, cancellationToken))
+        // Resolve existing StoreRef identity by business key (name) and only create if missing.
+        var existingStore = await context.StoreRefs
+            .SingleOrDefaultAsync(s => s.Name == storeName, cancellationToken);
+
+        Guid storeId;
+        if (existingStore is null)
         {
-            var store = new StoreRef(storeId, "John's Electronics Store", SellerStatus.Active);
+            var store = new StoreRef(Guid.NewGuid(), storeName, SellerStatus.Active);
             context.StoreRefs.Add(store);
             await context.SaveChangesAsync(cancellationToken);
-            logger.LogInformation("Seeded StoreRef: {StoreName}", store.Name);
+            storeId = store.Id;
+            logger.LogInformation("Seeded StoreRef: {StoreName} ({StoreId})", store.Name, store.Id);
         }
         else
         {
-            logger.LogInformation("StoreRef already exists, skipping.");
+            storeId = existingStore.Id;
+            logger.LogInformation("Reusing existing StoreRef: {StoreName} ({StoreId})", existingStore.Name, existingStore.Id);
         }
 
         // Seed ProductRefs
