@@ -38,6 +38,16 @@ public abstract class Enumeration : IComparable
 
     public override int GetHashCode() => Id.GetHashCode();
 
+    public static bool operator ==(Enumeration? left, Enumeration? right)
+    {
+        return Equals(left, right);
+    }
+
+    public static bool operator !=(Enumeration? left, Enumeration? right)
+    {
+        return !Equals(left, right);
+    }
+
     public static int AbsoluteDifference(Enumeration firstValue, Enumeration secondValue)
     {
         var absoluteDifference = Math.Abs(firstValue.Id - secondValue.Id);

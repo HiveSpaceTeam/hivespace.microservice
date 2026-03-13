@@ -4,6 +4,7 @@ using HiveSpace.CatalogService.Infrastructure.Data;
 using HiveSpace.Core;
 using HiveSpace.Infrastructure.Messaging.Extensions;
 using HiveSpace.Infrastructure.Persistence;
+using HiveSpace.Infrastructure.Messaging.Configurations;
 
 namespace HiveSpace.CatalogService.Api.Extentions
 {
@@ -26,31 +27,39 @@ namespace HiveSpace.CatalogService.Api.Extentions
             builder.Services.AddPersistenceInfrastructure<CatalogDbContext>();
 
 
-            //builder.Services.AddMassTransitWithKafka(configuration,
-            //    rider =>
-            //    {
-            //        //rider.AddConsumer<ProductAnalyticsConsumer>();
-            //        rider.AddConsumer<ProductAuditConsumer>();
-            //    },
-            //    (kafka, ctx) =>
-            //    {
-            //        var kafkaOptions = ctx.GetRequiredService<IOptions<KafkaOptions>>().Value;
+            var messagingOptions = configuration.GetSection(MessagingOptions.SectionName).Get<MessagingOptions>();
 
-            //        //kafka.TopicEndpoint<Ignore, ProductCreatedIntegrationEvent>("catalog-product-created", kafkaOptions.ConsumerGroup, e =>
-            //        //{
-            //        //    e.ConfigureConsumer<ProductAnalyticsConsumer>(ctx);
-            //        //});
-
-            //        kafka.TopicEndpoint<Ignore, ProductUpdatedIntegrationEvent>("catalog-product-updated", kafkaOptions.ConsumerGroup, e =>
-            //        {
-            //            e.ConfigureConsumer<ProductAuditConsumer>(ctx);
-            //        });
-            //    });
-
-            builder.Services.AddMassTransitWithRabbitMq<CatalogDbContext>(configuration, cfg =>
+            if (messagingOptions?.EnableKafka == true)
             {
-                cfg.AddConsumer<StoreCreatedConsumer>();
-            });
+                //builder.Services.AddMassTransitWithKafka(configuration,
+                //    rider =>
+                //    {
+                //        //rider.AddConsumer<ProductAnalyticsConsumer>();
+                //        rider.AddConsumer<ProductAuditConsumer>();
+                //    },
+                //    (kafka, ctx) =>
+                //    {
+                //        var kafkaOptions = ctx.GetRequiredService<IOptions<KafkaOptions>>().Value;
+
+                //        //kafka.TopicEndpoint<Ignore, ProductCreatedIntegrationEvent>("catalog-product-created", kafkaOptions.ConsumerGroup, e =>
+                //        //{
+                //        //    e.ConfigureConsumer<ProductAnalyticsConsumer>(ctx);
+                //        //});
+
+                //        kafka.TopicEndpoint<Ignore, ProductUpdatedIntegrationEvent>("catalog-product-updated", kafkaOptions.ConsumerGroup, e =>
+                //        {
+                //            e.ConfigureConsumer<ProductAuditConsumer>(ctx);
+                //        });
+                //    });
+            }
+
+            if (messagingOptions?.EnableRabbitMq == true)
+            {
+                builder.Services.AddMassTransitWithRabbitMq<CatalogDbContext>(configuration, cfg =>
+                {
+                    cfg.AddConsumer<StoreCreatedConsumer>();
+                });
+            }
 
             return builder.Build();
         }

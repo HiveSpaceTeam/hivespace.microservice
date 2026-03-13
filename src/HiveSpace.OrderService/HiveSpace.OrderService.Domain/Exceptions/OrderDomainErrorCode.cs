@@ -128,6 +128,10 @@ public class OrderDomainErrorCode : DomainErrorCode
         new(9005, "CartItemNotFound", "ORD9005");
     public static readonly OrderDomainErrorCode CartEmpty =
         new(9006, "CartEmpty", "ORD9006");
+    public static readonly OrderDomainErrorCode CartNotFound =
+        new(9007, "CartNotFound", "ORD9007");
+    public static readonly OrderDomainErrorCode CartSkuNotBelongToProduct =
+        new(9008, "CartSkuNotBelongToProduct", "ORD9008");
 
     // Coupon aggregate errors (ORD10xxx)
     public static readonly OrderDomainErrorCode CouponInvalidDiscountAmount =

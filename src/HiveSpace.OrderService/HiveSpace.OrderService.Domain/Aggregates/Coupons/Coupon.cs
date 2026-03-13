@@ -1,3 +1,4 @@
+using HiveSpace.Domain.Shared.IdGeneration;
 using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Domain.Shared.Interfaces;
@@ -55,6 +56,7 @@ public class Coupon : AggregateRoot<Guid>, IAuditable
     private Coupon() { }
 
     private Coupon(
+        Guid id,
         string code,
         string name,
         DiscountType discountType,
@@ -66,7 +68,7 @@ public class Coupon : AggregateRoot<Guid>, IAuditable
         CouponOwnerType ownerType,
         string createdBy)
     {
-        Id = Guid.NewGuid();
+        Id = id;
         Code = code.ToUpperInvariant();
         Name = name;
         DiscountType = discountType;
@@ -110,7 +112,7 @@ public class Coupon : AggregateRoot<Guid>, IAuditable
         //    if (!code.StartsWith($"STORE{storeId}-", StringComparison.InvariantCultureIgnoreCase))
         //         throw new InvalidFieldException(OrderDomainErrorCode.CouponCodeInvalidPrefix, nameof(code));
 
-        var coupon = new Coupon(code, name, discountType, scope, startDateTime, endDateTime, earlySaveDateTime, isHidden, CouponOwnerType.Store, storeOwnerId.ToString());
+        var coupon = new Coupon(IdGenerator.NewId<Guid>(), code, name, discountType, scope, startDateTime, endDateTime, earlySaveDateTime, isHidden, CouponOwnerType.Store, storeOwnerId.ToString());
         coupon.StoreId = storeId;
         
         if (discountType == DiscountType.FixedAmount)
@@ -161,7 +163,7 @@ public class Coupon : AggregateRoot<Guid>, IAuditable
         Money? maxDiscountAmount = null,
         Money? minOrderAmount = null)
     {
-        var coupon = new Coupon(code, name, discountType, scope, startDateTime, endDateTime, earlySaveDateTime, isHidden, CouponOwnerType.Platform, adminId);
+        var coupon = new Coupon(IdGenerator.NewId<Guid>(), code, name, discountType, scope, startDateTime, endDateTime, earlySaveDateTime, isHidden, CouponOwnerType.Platform, adminId);
         
         if (discountType == DiscountType.FixedAmount)
         {

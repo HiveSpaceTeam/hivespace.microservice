@@ -1,3 +1,4 @@
+using HiveSpace.Domain.Shared.IdGeneration;
 using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.OrderService.Domain.Enumerations;
 
@@ -21,7 +22,7 @@ public class OrderTracking : Entity<Guid>
     {
         return new OrderTracking
         {
-            Id = Guid.NewGuid(),
+            Id = IdGenerator.NewId<Guid>(),
             Type = type,
             ExecutorType = executorType,
             ExecutorId = executorId,
