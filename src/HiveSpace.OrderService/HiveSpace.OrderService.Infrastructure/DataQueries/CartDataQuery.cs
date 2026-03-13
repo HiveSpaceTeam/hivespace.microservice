@@ -33,7 +33,7 @@ public class CartDataQuery(string connectionString) : ICartDataQuery
             FROM carts c
             INNER JOIN cart_items ci  ON ci.CartId    = c.Id
             LEFT JOIN  product_refs pr ON pr.Id       = ci.ProductId
-            LEFT JOIN  store_refs sr  ON sr.Id        = pr.SellerId
+            LEFT JOIN  store_refs sr  ON sr.Id        = pr.StoreId
             LEFT JOIN  sku_refs skr   ON skr.Id       = ci.SkuId
             WHERE c.UserId = @UserId
             ORDER BY ci.CreatedAt DESC
