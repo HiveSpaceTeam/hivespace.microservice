@@ -50,6 +50,8 @@ public sealed class UserContext(IHttpContextAccessor httpContextAccessor)
 
     public bool IsSeller => Roles.Contains("Seller", StringComparer.OrdinalIgnoreCase);
 
+    public bool IsCustomer => Roles.Contains("Customer", StringComparer.OrdinalIgnoreCase);
+
     public Guid? StoreId
     {
         get
