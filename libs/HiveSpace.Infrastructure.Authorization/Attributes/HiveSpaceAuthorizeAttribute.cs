@@ -56,32 +56,6 @@ public class HiveSpaceAuthorizeAttribute : AuthorizeAttribute
         public const string Policy = "RequireAdminOrUser";
     }
 
-    /// <summary>
-    /// Base policy - requires valid scope only (scope varies per service)
-    /// </summary>
-    public static class Authenticated
-    {
-        /// <summary>
-        /// User service authentication policy
-        /// </summary>
-        public const string UserService = "RequireUserFullAccessScope";
-        
-        /// <summary>
-        /// Order service authentication policy
-        /// </summary>
-        public const string OrderService = "RequireOrderFullAccessScope";
-        
-        /// <summary>
-        /// Basket service authentication policy
-        /// </summary>
-        public const string BasketService = "RequireBasketFullAccessScope";
-        
-        /// <summary>
-        /// Catalog service authentication policy
-        /// </summary>
-        public const string CatalogService = "RequireCatalogFullAccessScope";
-    }
-
     public HiveSpaceAuthorizeAttribute(string policy) : base(policy) { }
 }
 

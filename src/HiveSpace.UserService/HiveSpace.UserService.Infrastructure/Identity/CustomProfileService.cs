@@ -54,12 +54,8 @@ public class CustomProfileService : IProfileService
             new("email_verified", user.EmailConfirmed.ToString().ToLower(), ClaimValueTypes.Boolean)
         };
 
-        // 1. Get and add role directly from the user's RoleName property.
-        // These are the roles like "Admin", "SystemAdmin", and "Seller".
-        if (!string.IsNullOrEmpty(user.RoleName))
-        {
-            claims.Add(new Claim("role", user.RoleName));
-        }
+        // 1. Add role claim — always present. Defaults to "Customer" when no explicit role is assigned.
+        claims.Add(new Claim("role", string.IsNullOrEmpty(user.RoleName) ? "Customer" : user.RoleName));
         
         // 2. Check for the "Store Owner" business role from the domain layer.
         // This links a user's identity to a business-specific role (the Store Owner).
