@@ -1,13 +1,14 @@
-﻿using HiveSpace.CatalogService.Application.Commands;
+﻿using Asp.Versioning;
+using HiveSpace.CatalogService.Application.Commands;
 using HiveSpace.CatalogService.Application.Models.Dtos.Request.Product;
 using HiveSpace.CatalogService.Application.Models.Requests;
 using HiveSpace.CatalogService.Application.Queries;
+using HiveSpace.Infrastructure.Authorization;
 using MediatR;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
-using MediatR;
-using HiveSpace.Infrastructure.Authorization;
-using Asp.Versioning;
 
 namespace HiveSpace.CatalogService.Api.Controllers;
 
@@ -44,6 +45,7 @@ public class ProductController(IMediator mediator) : ControllerBase
         return Ok(result);
     }
 
+    [AllowAnonymous]
     [HttpGet("{id}")]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -62,4 +64,15 @@ public class ProductController(IMediator mediator) : ControllerBase
         if (!deleted) return NotFound();
         return NoContent();
     }
+
+    [AllowAnonymous]
+    [HttpGet("summaries")]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    public async Task<IActionResult> GetListSummary([FromQuery] ProductSearchRequestDto request, CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(new GetProductSummariesQuery(request), cancellationToken);
+        return Ok(result);
+    }
+
+ 
 }

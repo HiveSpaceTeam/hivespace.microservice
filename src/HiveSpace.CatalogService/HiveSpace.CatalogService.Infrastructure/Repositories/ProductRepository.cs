@@ -93,5 +93,34 @@ namespace HiveSpace.CatalogService.Infrastructure.Repositories
             var items = await pagedQuery.ToListAsync(cancellationToken);
             return (items, total);
         }
+
+        public async Task<(IReadOnlyList<Product> Items, int Total)> GetSummariesPagedAsync(string keyword, int pageIndex, int pageSize, string sort, CancellationToken cancellationToken = default)
+        {
+            if (pageIndex < 1) pageIndex = 1;
+            if (pageSize <= 0) pageSize = 10;
+
+            var baseQuery = _context.Products.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                baseQuery = baseQuery.Where(p => p.Name.Contains(keyword));
+            }
+
+            baseQuery = (sort?.ToUpperInvariant() == "DESC")
+                ? baseQuery.OrderByDescending(p => p.CreatedAt)
+                : baseQuery.OrderBy(p => p.CreatedAt);
+
+            var total = await baseQuery.CountAsync(cancellationToken);
+
+            var pagedQuery = baseQuery
+                .Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
+                .Include(p => p.Categories)
+                .Include(p => p.Skus)
+                    .ThenInclude(s => s.Images);
+
+            var items = await pagedQuery.ToListAsync(cancellationToken);
+            return (items, total);
+        }
     }
 }
