@@ -5,7 +5,6 @@ using HiveSpace.CatalogService.Application.Models.Requests;
 using HiveSpace.CatalogService.Application.Queries;
 using HiveSpace.Infrastructure.Authorization;
 using MediatR;
-using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
@@ -45,7 +44,6 @@ public class ProductController(IMediator mediator) : ControllerBase
         return Ok(result);
     }
 
-    [AllowAnonymous]
     [HttpGet("{id}")]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]

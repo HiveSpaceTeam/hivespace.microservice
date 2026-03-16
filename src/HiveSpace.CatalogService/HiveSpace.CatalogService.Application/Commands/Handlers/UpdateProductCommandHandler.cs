@@ -28,8 +28,7 @@ public class UpdateProductCommandHandler : ICommandHandler<UpdateProductCommand,
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        //var currentUserId = GetCurrentUserId();
-        var currentUserId = Guid.Empty.ToString();
+        var currentUserId = GetCurrentUserId();
         var wasUpdated = false;
 
         await _transactionService.InTransactionScopeAsync(async transaction =>
