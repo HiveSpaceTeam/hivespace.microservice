@@ -74,5 +74,15 @@ public class ProductController(IMediator mediator) : ControllerBase
         return Ok(result);
     }
 
- 
+    [AllowAnonymous]
+    [HttpGet("detail/{id}")]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.NotFound)]
+    public async Task<IActionResult> GetProductDetail(Guid id, CancellationToken cancellationToken)
+    {
+        var product = await mediator.Send(new GetProductDetailQuery(id), cancellationToken);
+        return Ok(product);
+    }
+
+
 }

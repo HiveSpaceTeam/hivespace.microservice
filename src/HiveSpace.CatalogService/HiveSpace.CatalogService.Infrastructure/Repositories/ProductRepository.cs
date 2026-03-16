@@ -1,3 +1,4 @@
+using HiveSpace.CatalogService.Application.Models.ViewModels;
 using HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate;
 using HiveSpace.CatalogService.Domain.Repositories;
 using HiveSpace.CatalogService.Infrastructure.Data;
@@ -55,9 +56,9 @@ namespace HiveSpace.CatalogService.Infrastructure.Repositories
                 .Include(p => p.Skus)
                     .ThenInclude(s => s.SkuVariants);
 
-            Console.WriteLine(query.ToQueryString());
             return await query.FirstOrDefaultAsync(cancellationToken);
         }
+
 
         public async Task<(IReadOnlyList<Product> Items, int Total)> GetPagedAsync(string keyword, int pageIndex, int pageSize, string sort, CancellationToken cancellationToken = default)
         {

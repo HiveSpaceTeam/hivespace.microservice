@@ -1,5 +1,4 @@
 using HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate;
-
 namespace HiveSpace.CatalogService.Domain.Repositories
 {
     public interface IProductRepository
