@@ -28,6 +28,7 @@ namespace HiveSpace.CatalogService.Api.Extentions
                     options.Authority = configuration["Authentication:Authority"];
                     options.Audience = configuration["Authentication:Audience"];
                     options.RequireHttpsMetadata = configuration.GetValue<bool>("Authentication:RequireHttpsMetadata", true);
+                    options.MapInboundClaims = false;
                 });
 
             // 2. Configure Authorization (Check Permissions)
