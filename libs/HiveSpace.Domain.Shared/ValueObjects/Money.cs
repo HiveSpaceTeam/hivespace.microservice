@@ -68,6 +68,21 @@ namespace HiveSpace.Domain.Shared.ValueObjects
         /// </summary>
         public static Money Zero(Currency currency = Currency.VND) => new(0, currency);
 
+        /// <summary>
+        /// Create money from amount and currency code
+        /// </summary>
+        public static Money Create(long amount, string currencyCode)
+        {
+            var currency = CurrencyExtensions.FromCode(currencyCode);
+            return currency switch
+            {
+                Currency.USD => FromUSD(amount),
+                Currency.EUR => FromEUR(amount),
+                Currency.VND => FromVND(amount),
+                _ => FromVND(amount) // Default
+            };
+        }
+
         #endregion
 
         #region Conversion Methods

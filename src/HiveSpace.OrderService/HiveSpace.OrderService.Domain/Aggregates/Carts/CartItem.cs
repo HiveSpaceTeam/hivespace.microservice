@@ -1,48 +1,52 @@
+using HiveSpace.Domain.Shared.IdGeneration;
 using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Domain.Shared.Interfaces;
 using HiveSpace.OrderService.Domain.Exceptions;
-using System.Text.Json.Serialization;
 
 namespace HiveSpace.OrderService.Domain.Aggregates.Carts;
 
 public class CartItem : Entity<Guid>, IAuditable
 {
-    [JsonInclude]
-    public Guid ProductId { get; private set; }
-    [JsonInclude]
+    public long ProductId { get; private set; }
     public long SkuId { get; private set; }
-    [JsonInclude]
     public int Quantity { get; private set; }
-    [JsonInclude]
+    public bool IsSelected { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
-    [JsonInclude]
     public DateTimeOffset? UpdatedAt { get; private set; }
 
     // EF Core constructor
     private CartItem() { }
 
-    [JsonConstructor]
-    private CartItem(Guid productId, long skuId, int quantity)
+    private CartItem(Guid id, long productId, long skuId, int quantity)
     {
-        Id = Guid.NewGuid();
+        Id = id;
         ProductId = productId;
         SkuId = skuId;
         Quantity = quantity;
+        IsSelected = true;
     }
 
-    public static CartItem Create(Guid productId, long skuId, int quantity)
+    public static CartItem Create(long productId, long skuId, int quantity)
     {
-        if (productId == Guid.Empty)
+        if (productId <= 0)
             throw new InvalidFieldException(OrderDomainErrorCode.CartProductIdRequired, nameof(productId));
-        
+
         if (skuId <= 0)
             throw new InvalidFieldException(OrderDomainErrorCode.CartSkuIdRequired, nameof(skuId));
-        
+
         if (quantity <= 0)
             throw new InvalidFieldException(OrderDomainErrorCode.CartInvalidQuantity, nameof(quantity));
 
-        return new CartItem(productId, skuId, quantity);
+        return new CartItem(IdGenerator.NewId<Guid>(), productId, skuId, quantity);
+    }
+
+    public void UpdateSku(long newSkuId)
+    {
+        if (newSkuId <= 0)
+            throw new InvalidFieldException(OrderDomainErrorCode.CartSkuIdRequired, nameof(newSkuId));
+
+        SkuId = newSkuId;
     }
 
     public void UpdateQuantity(int newQuantity)
@@ -52,4 +56,10 @@ public class CartItem : Entity<Guid>, IAuditable
 
         Quantity = newQuantity;
     }
+
+    public void UpdateSelection(bool isSelected)
+    {
+        IsSelected = isSelected;
+    }
 }
+

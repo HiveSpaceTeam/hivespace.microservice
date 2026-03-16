@@ -128,12 +128,12 @@ public class OrderDomainErrorCode : DomainErrorCode
         new(9005, "CartItemNotFound", "ORD9005");
     public static readonly OrderDomainErrorCode CartEmpty =
         new(9006, "CartEmpty", "ORD9006");
+    public static readonly OrderDomainErrorCode CartNotFound =
+        new(9007, "CartNotFound", "ORD9007");
+    public static readonly OrderDomainErrorCode CartSkuNotBelongToProduct =
+        new(9008, "CartSkuNotBelongToProduct", "ORD9008");
 
     // Coupon aggregate errors (ORD10xxx)
-    public static readonly OrderDomainErrorCode CouponCodeRequired =
-        new(10001, "CouponCodeRequired", "ORD10001");
-    public static readonly OrderDomainErrorCode CouponNameRequired =
-        new(10002, "CouponNameRequired", "ORD10002");
     public static readonly OrderDomainErrorCode CouponInvalidDiscountAmount =
         new(10003, "CouponInvalidDiscountAmount", "ORD10003");
     public static readonly OrderDomainErrorCode CouponInvalidDates =
@@ -168,4 +168,32 @@ public class OrderDomainErrorCode : DomainErrorCode
         new(10018, "CouponNotStoreOwned", "ORD10018");
     public static readonly OrderDomainErrorCode CouponInvalidStatus =
         new(10019, "CouponInvalidStatus", "ORD10019");
+    public static readonly OrderDomainErrorCode CouponCodeInvalidLength =
+        new(10020, "CouponCodeInvalidLength", "ORD10020");
+    public static readonly OrderDomainErrorCode CouponNameInvalidLength =
+        new(10021, "CouponNameInvalidLength", "ORD10021");
+    public static readonly OrderDomainErrorCode CouponInvalidMinOrderAmount =
+        new(10022, "CouponInvalidMinOrderAmount", "ORD10022");
+    public static readonly OrderDomainErrorCode CouponInvalidUsageLimit =
+        new(10023, "CouponInvalidUsageLimit", "ORD10023");
+    public static readonly OrderDomainErrorCode CouponInvalidUsageLimitPerUser =
+        new(10024, "CouponInvalidUsageLimitPerUser", "ORD10024");
+    public static readonly OrderDomainErrorCode CouponNotFound =
+        new(10025, "CouponNotFound", "ORD10025");
+    public static readonly OrderDomainErrorCode CouponInvalidName =
+        new(10026, "CouponInvalidName", "ORD10026");
+    public static readonly OrderDomainErrorCode CouponMaxDiscountTooSmall =
+        new(10027, "CouponMaxDiscountTooSmall", "ORD10027");
+    public static readonly OrderDomainErrorCode CouponEarlySaveAfterStart =
+        new(10028, "CouponEarlySaveAfterStart", "ORD10028");
+    public static readonly OrderDomainErrorCode CouponStartTimeInPast =
+        new(10030, "CouponStartTimeInPast", "ORD10030");
+    public static readonly OrderDomainErrorCode CouponEndTimeBeforeStart =
+        new(10031, "CouponEndTimeBeforeStart", "ORD10031");
+    public static readonly OrderDomainErrorCode CouponCannotUpdateOngoingStart =
+        new(10032, "CouponCannotUpdateOngoingStart", "ORD10032");
+    public static readonly OrderDomainErrorCode CouponCannotUpdateExpired =
+        new(10033, "CouponCannotUpdateExpired", "ORD10033");
+    public static readonly OrderDomainErrorCode CouponEarlySaveAlreadyStarted =
+        new(10034, "CouponEarlySaveAlreadyStarted", "ORD10034");
 }

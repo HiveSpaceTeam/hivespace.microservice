@@ -19,6 +19,7 @@ public static class MassTransitExtensions
         services.Configure<MessagingOptions>(configuration.GetSection(MessagingOptions.SectionName));
         services.Configure<RabbitMqOptions>(configuration.GetSection(RabbitMqOptions.SectionName));
         services.Configure<KafkaOptions>(configuration.GetSection(KafkaOptions.SectionName));
+        services.Configure<AzureServiceBusOptions>(configuration.GetSection(AzureServiceBusOptions.SectionName));
 
         services.TryAddScoped<IMessageBus, MassTransitMessageBus>();
         services.TryAddScoped<IEventPublisher>(sp => (IEventPublisher)sp.GetRequiredService<IMessageBus>());

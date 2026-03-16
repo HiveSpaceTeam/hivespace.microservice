@@ -1,3 +1,4 @@
+using HiveSpace.Domain.Shared.IdGeneration;
 using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.Domain.Shared.ValueObjects;
 
@@ -8,7 +9,6 @@ namespace HiveSpace.OrderService.Domain.Aggregates.Coupons;
 /// </summary>
 public class CouponUsage : Entity<Guid>
 {
-
     public Guid UserId { get; private set; }
     public Guid OrderId { get; private set; }
     public Money DiscountAmount { get; private set; } = null!;
@@ -16,9 +16,9 @@ public class CouponUsage : Entity<Guid>
 
     private CouponUsage() { }
 
-    private CouponUsage(Guid userId, Guid orderId, Money discountAmount)
+    private CouponUsage(Guid id, Guid userId, Guid orderId, Money discountAmount)
     {
-        Id = Guid.NewGuid();
+        Id = id;
         UserId = userId;
         OrderId = orderId;
         DiscountAmount = discountAmount;
@@ -27,6 +27,6 @@ public class CouponUsage : Entity<Guid>
 
     public static CouponUsage Create(Guid userId, Guid orderId, Money discountAmount)
     {
-        return new CouponUsage(userId, orderId, discountAmount);
+        return new CouponUsage(IdGenerator.NewId<Guid>(), userId, orderId, discountAmount);
     }
 }

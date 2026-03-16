@@ -1,3 +1,4 @@
+using HiveSpace.Domain.Shared.IdGeneration;
 using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.OrderService.Domain.Enumerations;
 using HiveSpace.Domain.Shared.ValueObjects;
@@ -16,7 +17,7 @@ public class Checkout : Entity<Guid>
     {
         return new Checkout
         {
-            Id = Guid.NewGuid(),
+            Id = IdGenerator.NewId<Guid>(),
             PaymentMethod = paymentMethod,
             Amount = amount,
             CreatedAt = DateTimeOffset.UtcNow

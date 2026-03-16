@@ -1,8 +1,6 @@
-using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.Domain.Shared.Interfaces;
-using HiveSpace.Domain.Shared.Errors;
+using HiveSpace.Domain.Shared.Specifications;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace HiveSpace.Infrastructure.Persistence.Repositories;
 
@@ -13,14 +11,51 @@ public abstract class BaseRepository<TEntity, TKey>(DbContext context) : IReposi
     protected readonly DbContext _context = context;
     protected readonly DbSet<TEntity> _dbSet = context.Set<TEntity>();
 
+    public IQueryable<TEntity> GetQueryable()
+    {
+        return _dbSet.AsNoTracking();
+    }
+
     public void Add(TEntity entity)
     {
         _dbSet.Add(entity);
     }
 
-    public async Task<List<TEntity>> GetAllAsync()
+    public void Remove(TEntity entity)
     {
-        return await _dbSet.AsNoTracking().ToListAsync();
+        _dbSet.Remove(entity);
+    }
+
+    public async Task<List<TEntity>> GetListAsync(CancellationToken cancellationToken = default)
+    {
+        return await _dbSet.AsNoTracking().ToListAsync(cancellationToken);
+    }
+
+    public async Task<List<TEntity>> GetListAsync(Specification<TEntity> specification, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet.AsNoTracking()
+            .Where(specification.ToExpression())
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<int> GetCountAsync(Specification<TEntity> specification, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet.AsNoTracking()
+            .Where(specification.ToExpression())
+            .CountAsync(cancellationToken);
+    }
+
+    public async Task<List<TEntity>> GetPagedAsync(
+        Specification<TEntity> specification,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbSet.AsNoTracking()
+            .Where(specification.ToExpression())
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
     }
 
     protected virtual IQueryable<TEntity> ApplyIncludeDetail(IQueryable<TEntity> query)
@@ -28,7 +63,7 @@ public abstract class BaseRepository<TEntity, TKey>(DbContext context) : IReposi
         return query; // Default implementation returns query without includes
     }
 
-    public async Task<TEntity?> GetByIdAsync(object id, bool includeDetail = false)
+    public async Task<TEntity?> GetByIdAsync(object id, bool includeDetail = false, CancellationToken cancellationToken = default)
     {
         IQueryable<TEntity> query = _context.Set<TEntity>();
         if (includeDetail)
@@ -36,7 +71,7 @@ public abstract class BaseRepository<TEntity, TKey>(DbContext context) : IReposi
             query = ApplyIncludeDetail(query);
         }
 
-        return await query.FirstOrDefaultAsync(entity => EF.Property<object>(entity, "Id") == id);
+        return await query.FirstOrDefaultAsync(entity => EF.Property<object>(entity, "Id") == id, cancellationToken);
     }
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
@@ -55,4 +90,4 @@ public abstract class BaseRepository<TEntity, TKey>(DbContext context) : IReposi
     {
         UpdateWithConcurrency(entity, originalDateTimeUpdated, DateTimeOffset.UtcNow);
     }
-} 
+}

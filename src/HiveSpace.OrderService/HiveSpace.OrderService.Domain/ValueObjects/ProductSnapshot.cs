@@ -120,6 +120,18 @@ namespace HiveSpace.OrderService.Domain.ValueObjects
         {
             yield return ProductId;
             yield return SkuId;
+            yield return ProductName;
+            yield return SkuName;
+            yield return Price;
+            yield return ImageUrl;
+
+            foreach (var attribute in Attributes.OrderBy(kvp => kvp.Key, StringComparer.Ordinal)
+                                               .ThenBy(kvp => kvp.Value, StringComparer.Ordinal))
+            {
+                yield return attribute.Key;
+                yield return attribute.Value;
+            }
+
             yield return CapturedAt;
         }
 

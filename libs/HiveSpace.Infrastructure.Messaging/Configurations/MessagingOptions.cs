@@ -11,9 +11,13 @@ public class MessagingOptions
 
     public bool EnableKafka { get; set; } = false;
 
+    public bool EnableAzureServiceBus { get; set; } = false;
+
     public RabbitMqOptions RabbitMq { get; set; } = new();
 
     public KafkaOptions Kafka { get; set; } = new();
+
+    public AzureServiceBusOptions AzureServiceBus { get; set; } = new();
 }
 
 

@@ -48,7 +48,7 @@ namespace HiveSpace.OrderService.Domain.ValueObjects
             // Vietnam phone number patterns:
             // - Mobile: starts with 03, 05, 07, 08, 09 followed by 8 digits
             // - Can start with +84 or 84 or 0
-            var pattern = @"^(\+84|84|0)[3|5|7|8|9][0-9]{8}$";
+            var pattern = @"^(\+84|84|0)[35789][0-9]{8}$";
             return Regex.IsMatch(phoneNumber, pattern);
         }
 
@@ -85,6 +85,6 @@ namespace HiveSpace.OrderService.Domain.ValueObjects
 
         public override string ToString() => GetDisplayFormat();
 
-        public static implicit operator string(PhoneNumber phoneNumber) => phoneNumber ?? "";
+        public static implicit operator string(PhoneNumber? phoneNumber) => phoneNumber?.Value ?? string.Empty;
     }
 }

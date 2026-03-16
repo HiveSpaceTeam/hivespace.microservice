@@ -2,6 +2,7 @@ using HiveSpace.Core;
 using HiveSpace.Infrastructure.Messaging.Extensions;
 using HiveSpace.UserService.Infrastructure;
 using HiveSpace.UserService.Infrastructure.Data;
+using HiveSpace.Infrastructure.Messaging.Configurations;
 using Serilog;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
@@ -40,30 +41,38 @@ internal static class HostingExtensions
         builder.Services.AddAppAuthorization();
         builder.Services.AddAppApiVersioning();
 
-        //builder.Services.AddMassTransitWithKafka(configuration,
-        //    rider =>
-        //    {
-        //        rider.AddConsumer<UserAnalyticsConsumer>();
-        //        rider.AddConsumer<UserAuditConsumer>();
-        //    },
-        //    (kafka, ctx) =>
-        //    {
-        //        var kafkaOptions = ctx.GetRequiredService<IOptions<KafkaOptions>>().Value;
-                
-        //        kafka.TopicEndpoint<Ignore, UserCreatedIntegrationEvent>("user-created", kafkaOptions.ConsumerGroup, e =>
-        //        {
-        //            e.ConfigureConsumer<UserAnalyticsConsumer>(ctx);
-        //        });
+        var messagingOptions = configuration.GetSection(MessagingOptions.SectionName).Get<MessagingOptions>();
 
-        //        kafka.TopicEndpoint<Ignore, UserUpdatedIntegrationEvent>("user-updated", kafkaOptions.ConsumerGroup, e =>
-        //        {
-        //            e.ConfigureConsumer<UserAuditConsumer>(ctx);
-        //        });
-        //    });
-
-        builder.Services.AddMassTransitWithRabbitMq<UserDbContext>(configuration, cfg =>
+        if (messagingOptions?.EnableKafka == true)
         {
-        });
+            //builder.Services.AddMassTransitWithKafka(configuration,
+            //    rider =>
+            //    {
+            //        rider.AddConsumer<UserAnalyticsConsumer>();
+            //        rider.AddConsumer<UserAuditConsumer>();
+            //    },
+            //    (kafka, ctx) =>
+            //    {
+            //        var kafkaOptions = ctx.GetRequiredService<IOptions<KafkaOptions>>().Value;
+                    
+            //        kafka.TopicEndpoint<Ignore, UserCreatedIntegrationEvent>("user-created", kafkaOptions.ConsumerGroup, e =>
+            //        {
+            //            e.ConfigureConsumer<UserAnalyticsConsumer>(ctx);
+            //        });
+
+            //        kafka.TopicEndpoint<Ignore, UserUpdatedIntegrationEvent>("user-updated", kafkaOptions.ConsumerGroup, e =>
+            //        {
+            //            e.ConfigureConsumer<UserAuditConsumer>(ctx);
+            //        });
+            //    });
+        }
+
+        if (messagingOptions?.EnableRabbitMq == true)
+        {
+            builder.Services.AddMassTransitWithRabbitMq<UserDbContext>(configuration, cfg =>
+            {
+            });
+        }
 
         return builder.Build();
     }
