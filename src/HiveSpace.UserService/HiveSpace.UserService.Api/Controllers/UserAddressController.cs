@@ -13,7 +13,7 @@ namespace HiveSpace.UserService.Api.Controllers;
 [Route("api/v{version:apiVersion}/users/address")]
 [ApiController]
 [ApiVersion("1.0")]
-[Authorize(Policy = "RequireUserFullAccessScope")]
+[Authorize]
 public class UserAddressController : ControllerBase
 {
     private readonly IUserAddressService _userAddressService;
