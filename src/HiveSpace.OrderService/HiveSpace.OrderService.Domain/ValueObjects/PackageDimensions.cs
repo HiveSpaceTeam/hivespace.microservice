@@ -60,8 +60,17 @@ namespace HiveSpace.OrderService.Domain.ValueObjects
         /// </summary>
         public PackageDimensions WithActualMeasurements(int extraWidth, int extraHeight, int extraLength, int extraWeight)
         {
-            if (extraWidth < 0 || extraHeight < 0 || extraLength < 0 || extraWeight < 0)
+            if (extraWidth < 0)
                 throw new InvalidFieldException(OrderDomainErrorCode.DimensionsInvalidExtras, nameof(extraWidth));
+
+            if (extraHeight < 0)
+                throw new InvalidFieldException(OrderDomainErrorCode.DimensionsInvalidExtras, nameof(extraHeight));
+
+            if (extraLength < 0)
+                throw new InvalidFieldException(OrderDomainErrorCode.DimensionsInvalidExtras, nameof(extraLength));
+
+            if (extraWeight < 0)
+                throw new InvalidFieldException(OrderDomainErrorCode.DimensionsInvalidExtras, nameof(extraWeight));
 
             return new PackageDimensions(Width, Height, Length, Weight)
             {
@@ -109,7 +118,7 @@ namespace HiveSpace.OrderService.Domain.ValueObjects
 
             if (declaredChargeableWeight == 0) return 0;
 
-            return (decimal)actualChargeableWeight - declaredChargeableWeight / declaredChargeableWeight * 100;
+            return ((actualChargeableWeight - declaredChargeableWeight) / (decimal)declaredChargeableWeight) * 100;
         }
 
         private int CalculateDeclaredVolumetricWeight()

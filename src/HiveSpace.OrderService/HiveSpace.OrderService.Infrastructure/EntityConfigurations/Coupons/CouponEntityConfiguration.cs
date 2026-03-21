@@ -17,9 +17,13 @@ public class CouponEntityConfiguration : IEntityTypeConfiguration<Coupon>
         builder.HasIndex(c => c.Code).IsUnique();
 
         builder.Property(c => c.Name).HasMaxLength(255).IsRequired();
-        builder.Property(c => c.Description).HasMaxLength(1000);
         builder.Property(c => c.DiscountType).HasConversion<string>().HasMaxLength(50).IsRequired();
         builder.Property(c => c.Scope).HasConversion<string>().HasMaxLength(50).IsRequired();
+        
+        builder.Property(c => c.StartDateTime).IsRequired();
+        builder.Property(c => c.EndDateTime).IsRequired();
+        builder.Property(c => c.EarlySaveDateTime);
+        builder.Property(c => c.IsHidden).HasDefaultValue(false);
 
         // Money VOs
         builder.OwnsOne(c => c.DiscountAmount, money =>
@@ -40,24 +44,31 @@ public class CouponEntityConfiguration : IEntityTypeConfiguration<Coupon>
             money.Property(m => m.Currency).HasColumnName("MinOrderCurrency").HasConversion<string>().HasMaxLength(3);
         });
 
-        var guidListComparer = new ValueComparer<IReadOnlyCollection<Guid>>(
-            (c1, c2) => (c1 ?? new List<Guid>()).SequenceEqual(c2 ?? new List<Guid>()),
+        var longListComparer = new ValueComparer<IReadOnlyCollection<long>>(
+            (c1, c2) => (c1 ?? new List<long>()).SequenceEqual(c2 ?? new List<long>()),
             c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
-            c => (IReadOnlyCollection<Guid>)c.ToList());
+            c => (IReadOnlyCollection<long>)c.ToList());
 
         builder.Property(c => c.ApplicableProductIds)
             .HasColumnName("ApplicableProductIds")
             .HasConversion(
                 v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                v => JsonSerializer.Deserialize<List<Guid>>(v, (JsonSerializerOptions?)null) ?? new List<Guid>(),
-                guidListComparer);
+                v => JsonSerializer.Deserialize<List<long>>(v, (JsonSerializerOptions?)null) ?? new List<long>(),
+                longListComparer);
 
-        builder.Property(c => c.ApplicableStoreIds)
-            .HasColumnName("ApplicableStoreIds")
+        builder.Property(c => c.StoreId);
+
+        var intListComparer = new ValueComparer<IReadOnlyCollection<int>>(
+            (c1, c2) => (c1 ?? new List<int>()).SequenceEqual(c2 ?? new List<int>()),
+            c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v)),
+            c => (IReadOnlyCollection<int>)c.ToList());
+
+        builder.Property(c => c.ApplicableCategoryIds)
+            .HasColumnName("ApplicableCategoryIds")
             .HasConversion(
                 v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                v => JsonSerializer.Deserialize<List<Guid>>(v, (JsonSerializerOptions?)null) ?? new List<Guid>(),
-                guidListComparer);
+                v => JsonSerializer.Deserialize<List<int>>(v, (JsonSerializerOptions?)null) ?? new List<int>(),
+                intListComparer);
 
         // Rules Collection - configured in CouponRuleEntityConfiguration
         builder.HasMany(c => c.Rules)

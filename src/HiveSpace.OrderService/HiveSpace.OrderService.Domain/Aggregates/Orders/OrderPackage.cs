@@ -1,3 +1,4 @@
+using HiveSpace.Domain.Shared.IdGeneration;
 using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Domain.Shared.Interfaces;
@@ -50,7 +51,7 @@ public class OrderPackage : Entity<Guid>, IAuditable
         Guid storeId,
         Guid buyerId)
     {
-        Id = Guid.NewGuid();
+        Id = IdGenerator.NewId<Guid>();
         StoreId = storeId;
         BuyerId = buyerId;
         Status = OrderPackageStatus.Pending;

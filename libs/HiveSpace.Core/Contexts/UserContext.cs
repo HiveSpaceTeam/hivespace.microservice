@@ -37,6 +37,33 @@ public sealed class UserContext(IHttpContextAccessor httpContextAccessor)
 
     public string PhoneNumber => User.FindFirstValue(JwtRegisteredClaimNames.PhoneNumber) ?? "";
     public string Email => User.FindFirstValue(JwtRegisteredClaimNames.Email) ?? throw new UnauthorizedException([]);
+    
+    public IReadOnlyList<string> Roles => User.Claims
+        .Where(c => c.Type == ClaimTypes.Role || c.Type == "role")
+        .Select(c => c.Value)
+        .ToList();
+
+    public bool IsSystemAdmin => Roles.Contains("SystemAdmin", StringComparer.OrdinalIgnoreCase);
+
+    public bool IsAdmin => Roles.Contains("Admin", StringComparer.OrdinalIgnoreCase) || 
+                           Roles.Contains("SystemAdmin", StringComparer.OrdinalIgnoreCase);
+
+    public bool IsSeller => Roles.Contains("Seller", StringComparer.OrdinalIgnoreCase);
+
+    public bool IsCustomer => Roles.Contains("Customer", StringComparer.OrdinalIgnoreCase);
+
+    public Guid? StoreId
+    {
+        get
+        {
+            var storeIdClaim = User.FindFirstValue("store_id");
+            if (string.IsNullOrEmpty(storeIdClaim))
+                return IsSeller ? throw new UnauthorizedException([new(CommonErrorCode.SubClaimInvalid, nameof(StoreId))]) : null;
+            return Guid.TryParse(storeIdClaim, out var storeId) 
+                ? storeId 
+                : (IsSeller ? throw new UnauthorizedException([new(CommonErrorCode.SubClaimInvalid, nameof(StoreId))]) : null);
+        }
+    }
 
     public bool IsAuthenticated => User.Identity?.IsAuthenticated ?? throw new UnauthorizedException([]);
 

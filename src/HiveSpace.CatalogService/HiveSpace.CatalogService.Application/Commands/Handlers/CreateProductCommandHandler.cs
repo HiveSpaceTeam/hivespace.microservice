@@ -39,7 +39,6 @@ public class CreateProductCommandHandler : ICommandHandler<CreateProductCommand,
             ProductStatus.Available,
             DateTimeOffset.UtcNow,
            currentUserId
-
         );
 
         // Build related entities using shared factory methods (synchronous operations)

@@ -150,6 +150,12 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("BrandId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Condition")
+                        .HasColumnType("int");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -161,9 +167,25 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("Featured")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<Guid>("SellerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ShortDescription")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -175,6 +197,9 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Slug")
+                        .IsUnique();
 
                     b.ToTable("Products", (string)null);
                 });
@@ -562,9 +587,63 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                                 .HasForeignKey("ProductId");
                         });
 
+                    b.OwnsOne("HiveSpace.CatalogService.Domain.ValueObjects.Dimensions", "Dimensions", b1 =>
+                        {
+                            b1.Property<Guid>("ProductId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<decimal>("Height")
+                                .HasColumnType("decimal(18,2)")
+                                .HasColumnName("DimensionsHeight");
+
+                            b1.Property<decimal>("Length")
+                                .HasColumnType("decimal(18,2)")
+                                .HasColumnName("DimensionsLength");
+
+                            b1.Property<int>("Unit")
+                                .HasColumnType("int")
+                                .HasColumnName("DimensionsUnit");
+
+                            b1.Property<decimal>("Width")
+                                .HasColumnType("decimal(18,2)")
+                                .HasColumnName("DimensionsWidth");
+
+                            b1.HasKey("ProductId");
+
+                            b1.ToTable("Products");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ProductId");
+                        });
+
+                    b.OwnsOne("HiveSpace.CatalogService.Domain.ValueObjects.Weight", "Weight", b1 =>
+                        {
+                            b1.Property<Guid>("ProductId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<int>("Unit")
+                                .HasColumnType("int")
+                                .HasColumnName("WeightUnit");
+
+                            b1.Property<decimal>("Value")
+                                .HasColumnType("decimal(18,2)")
+                                .HasColumnName("WeightValue");
+
+                            b1.HasKey("ProductId");
+
+                            b1.ToTable("Products");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ProductId");
+                        });
+
                     b.Navigation("Categories");
 
+                    b.Navigation("Dimensions");
+
                     b.Navigation("Images");
+
+                    b.Navigation("Weight");
                 });
 
             modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.ProductAttribute", b =>

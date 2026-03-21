@@ -1,12 +1,15 @@
 using HiveSpace.Core.Exceptions.Models;
 using HiveSpace.Core.Exceptions;
 using HiveSpace.Infrastructure.Persistence;
-using HiveSpace.Infrastructure.Persistence.Interceptors;
+using HiveSpace.OrderService.Application.Cart;
 using HiveSpace.OrderService.Infrastructure.Data;
+using HiveSpace.OrderService.Infrastructure.DataQueries;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using HiveSpace.OrderService.Domain.Repositories;
+using HiveSpace.OrderService.Infrastructure.Repositories;
 
 namespace HiveSpace.OrderService.Infrastructure;
 
@@ -20,11 +23,6 @@ public static class OrderInfrastructureExtension
             var error = new Error(CommonErrorCode.ConfigurationMissing, "OrderServiceDb");
             throw new HiveSpace.Core.Exceptions.ApplicationException([error], 500, false);
         }
-
-        // Register interceptors manually
-        services.AddScoped<ISaveChangesInterceptor, AuditableInterceptor>();
-        services.AddScoped<ISaveChangesInterceptor, SoftDeleteInterceptor>();
-        services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventInterceptor>();
 
         // Add persistence infrastructure to register other services
         services.AddPersistenceInfrastructure<OrderDbContext>();
@@ -44,7 +42,7 @@ public static class OrderInfrastructureExtension
         // services.AddEventPublisherServices();
 
         // Register OrderService queries
-        // services.AddOrderServiceQueries(connectionString);
+        services.AddOrderServiceQueries(connectionString);
 
         services.AddDbContext<OrderDbContext>((serviceProvider, options) =>
         {
@@ -64,8 +62,14 @@ public static class OrderInfrastructureExtension
 
     public static void AddOrderServiceRepositories(this IServiceCollection services)
     {
-        // TODO: Register repositories here
-        // services.AddScoped<IOrderRepository, OrderRepository>();
+        services.AddScoped<ICouponRepository, SqlCouponRepository>();
+        services.AddScoped<ICartRepository, SqlCartRepository>();
+        services.AddScoped<ISkuRefRepository, SqlSkuRefRepository>();
+    }
+
+    public static void AddOrderServiceQueries(this IServiceCollection services, string connectionString)
+    {
+        services.AddScoped<ICartDataQuery>(_ => new CartDataQuery(connectionString));
     }
 
     public static void AddInfrastructureServices(this IServiceCollection services)

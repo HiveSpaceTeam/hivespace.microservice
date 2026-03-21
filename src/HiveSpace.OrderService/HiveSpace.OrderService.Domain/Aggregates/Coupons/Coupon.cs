@@ -1,3 +1,4 @@
+using HiveSpace.Domain.Shared.IdGeneration;
 using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Domain.Shared.Interfaces;
@@ -16,33 +17,33 @@ public class Coupon : AggregateRoot<Guid>, IAuditable
 {
     public string Code { get; private set; } = null!;
     public string Name { get; private set; } = null!;
-    public string? Description { get; private set; }
     public DiscountType DiscountType { get; private set; }
     public Money? DiscountAmount { get; private set; }
-    public decimal DiscountPercentage { get; private set; }
+    public decimal? DiscountPercentage { get; private set; }
     public Money? MaxDiscountAmount { get; private set; }
     public Money MinOrderAmount { get; private set; } = null!;
-    public CouponScope Scope { get; private set; } = null!;
-    public DateTimeOffset StartDate { get; private set; }
-    public DateTimeOffset EndDate { get; private set; }
-    public int? MaxUsageCount { get; private set; }
+    public CouponScope Scope { get; private set; }
+    public DateTimeOffset StartDateTime { get; private set; }
+    public DateTimeOffset EndDateTime { get; private set; }
+    public DateTimeOffset? EarlySaveDateTime { get; private set; }
+    public bool IsHidden { get; private set; }
+    public int MaxUsageCount { get; private set; }
     public int CurrentUsageCount { get; private set; }
-    public int? MaxUsagePerUser { get; private set; }
+    public int MaxUsagePerUser { get; private set; }
     public CouponOwnerType OwnerType { get; private set; }
-    public Guid? StoreId { get; private set; }
-    public Guid CreatedBy { get; private set; }
-    public CouponStatus Status { get; private set; }
-    public DateTimeOffset? ApprovedAt { get; private set; }
-    public Guid? ApprovedBy { get; private set; }
+    public string CreatedBy { get; private set; }
+    public bool IsActive { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset? UpdatedAt { get; private set; }
 
     // Applicable products/stores (if limited)
-    private readonly List<Guid> _applicableProductIds = [];
-    public IReadOnlyCollection<Guid> ApplicableProductIds => _applicableProductIds.AsReadOnly();
+    private readonly List<long> _applicableProductIds = [];
+    public IReadOnlyCollection<long> ApplicableProductIds => _applicableProductIds.AsReadOnly();
 
-    private readonly List<Guid> _applicableStoreIds = [];
-    public IReadOnlyCollection<Guid> ApplicableStoreIds => _applicableStoreIds.AsReadOnly();
+    public Guid? StoreId { get; private set; }
+
+    private readonly List<int> _applicableCategoryIds = [];
+    public IReadOnlyCollection<int> ApplicableCategoryIds => _applicableCategoryIds.AsReadOnly();
 
     // Usage tracking
     private readonly List<CouponUsage> _usages = [];
@@ -55,31 +56,32 @@ public class Coupon : AggregateRoot<Guid>, IAuditable
     private Coupon() { }
 
     private Coupon(
+        Guid id,
         string code,
         string name,
         DiscountType discountType,
         CouponScope scope,
-        DateTimeOffset startDate,
-        DateTimeOffset endDate,
+        DateTimeOffset startDateTime,
+        DateTimeOffset endDateTime,
+        DateTimeOffset? earlySaveDateTime,
+        bool isHidden,
         CouponOwnerType ownerType,
-        Guid createdBy,
-        Guid? storeId = null)
+        string createdBy)
     {
-        Id = Guid.NewGuid();
+        Id = id;
         Code = code.ToUpperInvariant();
         Name = name;
         DiscountType = discountType;
         Scope = scope;
-        StartDate = startDate;
-        EndDate = endDate;
+        StartDateTime = startDateTime;
+        EndDateTime = endDateTime;
+        EarlySaveDateTime = earlySaveDateTime;
+        IsHidden = isHidden;
         OwnerType = ownerType;
         CreatedBy = createdBy;
-        StoreId = storeId;
         
-        // Initial status based on owner type
-        Status = ownerType == CouponOwnerType.Store 
-            ? CouponStatus.PendingApproval 
-            : CouponStatus.Active;
+        // Initial status is Active by default
+        IsActive = true;
 
         CurrentUsageCount = 0;
         CreatedAt = DateTimeOffset.UtcNow;
@@ -100,31 +102,42 @@ public class Coupon : AggregateRoot<Guid>, IAuditable
         decimal? percentage,
         Money? discountAmount,
         CouponScope scope,
-        DateTimeOffset startDate,
-        DateTimeOffset endDate,
+        DateTimeOffset startDateTime,
+        DateTimeOffset endDateTime,
+        DateTimeOffset? earlySaveDateTime = null,
+        bool isHidden = false,
         Money? maxDiscountAmount = null,
         Money? minOrderAmount = null)
     {
-        if (!code.StartsWith($"STORE{storeId}-", StringComparison.InvariantCultureIgnoreCase))
-             throw new InvalidFieldException(OrderDomainErrorCode.CouponCodeInvalidPrefix, nameof(code));
+        //    if (!code.StartsWith($"STORE{storeId}-", StringComparison.InvariantCultureIgnoreCase))
+        //         throw new InvalidFieldException(OrderDomainErrorCode.CouponCodeInvalidPrefix, nameof(code));
 
-        var coupon = new Coupon(code, name, discountType, scope, startDate, endDate, CouponOwnerType.Store, storeOwnerId, storeId);
+        var coupon = new Coupon(IdGenerator.NewId<Guid>(), code, name, discountType, scope, startDateTime, endDateTime, earlySaveDateTime, isHidden, CouponOwnerType.Store, storeOwnerId.ToString());
+        coupon.StoreId = storeId;
         
         if (discountType == DiscountType.FixedAmount)
         {
-             if (discountAmount is null || discountAmount.Amount <= 0)
-                 throw new InvalidFieldException(OrderDomainErrorCode.CouponInvalidDiscountAmount, nameof(discountAmount));
-             coupon.DiscountAmount = discountAmount;
+            if (discountAmount is null || discountAmount.Amount <= 0)
+                throw new InvalidFieldException(OrderDomainErrorCode.CouponInvalidDiscountAmount, nameof(discountAmount));
+            coupon.DiscountAmount = discountAmount;
         }
         else
         {
-             if (percentage is null || percentage <= 0 || percentage > 100)
-                 throw new InvalidFieldException(OrderDomainErrorCode.CouponInvalidPercentage, nameof(percentage));
-             coupon.DiscountPercentage = percentage.Value;
-             coupon.MaxDiscountAmount = maxDiscountAmount;
+            if (percentage is null || percentage <= 0 || percentage > 100)
+                throw new InvalidFieldException(OrderDomainErrorCode.CouponInvalidPercentage, nameof(percentage));
+            coupon.DiscountPercentage = percentage.Value;
+            coupon.MaxDiscountAmount = maxDiscountAmount;
         }
 
         coupon.MinOrderAmount = minOrderAmount ?? Money.Zero();
+
+        if (discountType == DiscountType.Percentage && maxDiscountAmount != null)
+        {
+            if (maxDiscountAmount.Amount < (coupon.MinOrderAmount.Amount * (percentage!.Value / 100m)))
+            {
+                throw new InvalidFieldException(OrderDomainErrorCode.CouponMaxDiscountTooSmall, nameof(maxDiscountAmount));
+            }
+        }
 
         // coupon.AddDomainEvent(new StoreCouponCreatedEvent(coupon.Id, storeId)); // Assuming event exists or sticking to geneic
         coupon.AddDomainEvent(new CouponCreatedDomainEvent(coupon.Id, code, discountAmount ?? Money.Zero())); // Reusing existing event for now
@@ -136,35 +149,45 @@ public class Coupon : AggregateRoot<Guid>, IAuditable
     /// Create Platform Coupon (Active)
     /// </summary>
     public static Coupon CreateByPlatform(
-        Guid adminId,
+        string adminId,
         string code,
         string name,
         DiscountType discountType,
         decimal? percentage,
         Money? discountAmount,
         CouponScope scope,
-        DateTimeOffset startDate,
-        DateTimeOffset endDate,
+        DateTimeOffset startDateTime,
+        DateTimeOffset endDateTime,
+        DateTimeOffset? earlySaveDateTime = null,
+        bool isHidden = false,
         Money? maxDiscountAmount = null,
         Money? minOrderAmount = null)
     {
-        var coupon = new Coupon(code, name, discountType, scope, startDate, endDate, CouponOwnerType.Platform, adminId);
+        var coupon = new Coupon(IdGenerator.NewId<Guid>(), code, name, discountType, scope, startDateTime, endDateTime, earlySaveDateTime, isHidden, CouponOwnerType.Platform, adminId);
         
         if (discountType == DiscountType.FixedAmount)
         {
-             if (discountAmount is null || discountAmount.Amount <= 0)
-                 throw new InvalidFieldException(OrderDomainErrorCode.CouponInvalidDiscountAmount, nameof(discountAmount));
-             coupon.DiscountAmount = discountAmount;
+            if (discountAmount is null || discountAmount.Amount <= 0)
+                throw new InvalidFieldException(OrderDomainErrorCode.CouponInvalidDiscountAmount, nameof(discountAmount));
+            coupon.DiscountAmount = discountAmount;
         }
         else
         {
-             if (percentage is null || percentage <= 0 || percentage > 100)
-                 throw new InvalidFieldException(OrderDomainErrorCode.CouponInvalidPercentage, nameof(percentage));
-             coupon.DiscountPercentage = percentage.Value;
-             coupon.MaxDiscountAmount = maxDiscountAmount;
+            if (percentage is null || percentage <= 0 || percentage > 100)
+                throw new InvalidFieldException(OrderDomainErrorCode.CouponInvalidPercentage, nameof(percentage));
+            coupon.DiscountPercentage = percentage.Value;
+            coupon.MaxDiscountAmount = maxDiscountAmount;
         }
 
         coupon.MinOrderAmount = minOrderAmount ?? Money.Zero();
+
+        if (discountType == DiscountType.Percentage && maxDiscountAmount != null)
+        {
+            if (maxDiscountAmount.Amount < (coupon.MinOrderAmount.Amount * (percentage!.Value / 100m)))
+            {
+                throw new InvalidFieldException(OrderDomainErrorCode.CouponMaxDiscountTooSmall, nameof(maxDiscountAmount));
+            }
+        }
 
         coupon.AddDomainEvent(new CouponCreatedDomainEvent(coupon.Id, code, discountAmount ?? Money.Zero()));
 
@@ -198,29 +221,31 @@ public class Coupon : AggregateRoot<Guid>, IAuditable
     /// <summary>
     /// Set description
     /// </summary>
-    public void SetDescription(string description)
+    public void SetIsHidden(bool isHidden)
     {
-        Description = description;
+        IsHidden = isHidden;
 
     }
 
     /// <summary>
     /// Limit coupon to specific products
     /// </summary>
-    public void LimitToProducts(IEnumerable<Guid> productIds)
+    public void LimitToProducts(IEnumerable<long> productIds)
     {
         _applicableProductIds.Clear();
         _applicableProductIds.AddRange(productIds);
 
     }
 
+
+
     /// <summary>
-    /// Limit coupon to specific stores
+    /// Limit coupon to specific categories
     /// </summary>
-    public void LimitToStores(IEnumerable<Guid> storeIds)
+    public void LimitToCategories(IEnumerable<int> categoryIds)
     {
-        _applicableStoreIds.Clear();
-        _applicableStoreIds.AddRange(storeIds);
+        _applicableCategoryIds.Clear();
+        _applicableCategoryIds.AddRange(categoryIds);
 
     }
 
@@ -237,39 +262,7 @@ public class Coupon : AggregateRoot<Guid>, IAuditable
     /// <summary>
     /// Validate if coupon can be used for an order
     /// </summary>
-    /// <summary>
-    /// Approve Pending Store Coupon
-    /// </summary>
-    public void Approve(Guid approvedBy)
-    {
-        if (OwnerType != CouponOwnerType.Store)
-            throw new InvalidFieldException(OrderDomainErrorCode.CouponNotStoreOwned, nameof(OwnerType));
-        
-        if (Status != CouponStatus.PendingApproval)
-            throw new InvalidFieldException(OrderDomainErrorCode.CouponInvalidStatus, nameof(Status));
-        
-        Status = CouponStatus.Active;
-        ApprovedAt = DateTimeOffset.UtcNow;
-        ApprovedBy = approvedBy;
-        
-        // AddDomainEvent(new CouponApprovedEvent(Id, approvedBy));
-    }
 
-    /// <summary>
-    /// Reject Pending Store Coupon
-    /// </summary>
-    public void Reject(Guid rejectedBy, string reason)
-    {
-        if (OwnerType != CouponOwnerType.Store)
-             throw new InvalidFieldException(OrderDomainErrorCode.CouponNotStoreOwned, nameof(OwnerType));
-        
-        if (Status != CouponStatus.PendingApproval)
-             throw new InvalidFieldException(OrderDomainErrorCode.CouponInvalidStatus, nameof(Status));
-        
-        Status = CouponStatus.Rejected;
-        
-        // AddDomainEvent(new CouponRejectedEvent(Id, rejectedBy, reason));
-    }
 
     /// <summary>
     /// Validate if coupon can be used for an order
@@ -277,61 +270,90 @@ public class Coupon : AggregateRoot<Guid>, IAuditable
     public CouponValidationResult Validate(
         Guid userId,
         Money orderTotal,
-        IEnumerable<Guid>? productIds = null,
-        Guid? storeId = null)
+        IEnumerable<long>? productIds = null,
+        Guid? storeId = null,
+        IEnumerable<int>? categoryIds = null)
     {
-        var errors = new List<string>();
+        var errors = new List<CouponValidationError>();
 
         // Check if active
-        if (Status != CouponStatus.Active)
-            errors.Add($"Coupon is not active (Status: {Status})");
+        if (!IsActive)
+            errors.Add(new(OrderDomainErrorCode.CouponNotActive, nameof(IsActive)));
 
         // Check date range
         var now = DateTimeOffset.UtcNow;
-        if (now < StartDate)
-            errors.Add($"Coupon not valid until {StartDate:yyyy-MM-dd}");
-        if (now > EndDate)
-            errors.Add($"Coupon expired on {EndDate:yyyy-MM-dd}");
+        if (now < StartDateTime)
+            errors.Add(new(OrderDomainErrorCode.CouponInvalidDates, nameof(StartDateTime)));
+        if (now > EndDateTime)
+            errors.Add(new(OrderDomainErrorCode.CouponExpired, nameof(EndDateTime)));
 
         // Check minimum order amount
         if (orderTotal < MinOrderAmount)
-            errors.Add($"Minimum order amount is {MinOrderAmount}");
+            errors.Add(new(OrderDomainErrorCode.CouponMinOrderAmountNotMet, nameof(MinOrderAmount)));
 
         // Check total usage limit
-        if (MaxUsageCount.HasValue && CurrentUsageCount >= MaxUsageCount.Value)
-            errors.Add("Coupon usage limit reached");
+        if (MaxUsageCount > 0 && CurrentUsageCount >= MaxUsageCount)
+            errors.Add(new(OrderDomainErrorCode.CouponUsageLimitReached, nameof(MaxUsageCount)));
 
         // Check per-user usage limit
-        if (MaxUsagePerUser.HasValue)
+        if (MaxUsagePerUser > 0)
         {
             var userUsageCount = _usages.Count(u => u.UserId == userId);
-            if (userUsageCount >= MaxUsagePerUser.Value)
-                errors.Add($"You have already used this coupon {MaxUsagePerUser.Value} time(s)");
+            if (userUsageCount >= MaxUsagePerUser)
+                errors.Add(new(OrderDomainErrorCode.CouponUserLimitReached, nameof(MaxUsagePerUser)));
         }
 
         // Check product applicability
-        if (_applicableProductIds.Count != 0 && productIds != null)
+        if (_applicableProductIds.Count != 0)
         {
-            var hasApplicableProduct = productIds.Any(p => _applicableProductIds.Contains(p));
-            if (!hasApplicableProduct)
-                errors.Add("Coupon not applicable to products in cart");
+            if (productIds == null || !productIds.Any())
+            {
+                errors.Add(new(OrderDomainErrorCode.CouponProductNotApplicable, nameof(ApplicableProductIds)));
+            }
+            else
+            {
+                var hasApplicableProduct = productIds.Any(p => _applicableProductIds.Contains(p));
+                if (!hasApplicableProduct)
+                    errors.Add(new(OrderDomainErrorCode.CouponProductNotApplicable, nameof(ApplicableProductIds)));
+            }
+        }
+
+        // Check category applicability
+        if (_applicableCategoryIds.Count != 0)
+        {
+            if (categoryIds == null || !categoryIds.Any())
+            {
+                errors.Add(new(OrderDomainErrorCode.CouponProductNotApplicable, nameof(ApplicableCategoryIds)));
+            }
+            else
+            {
+                var hasApplicableCategory = categoryIds.Any(c => _applicableCategoryIds.Contains(c));
+                if (!hasApplicableCategory)
+                    errors.Add(new(OrderDomainErrorCode.CouponProductNotApplicable, nameof(ApplicableCategoryIds)));
+            }
         }
 
         // Check store applicability
-        if (_applicableStoreIds.Count != 0 && storeId.HasValue)
+        if (StoreId.HasValue)
         {
-            if (!_applicableStoreIds.Contains(storeId.Value))
-                errors.Add("Coupon not applicable to this store");
-        }
-        
-        // Store Owner Check - if coupon is a Store coupon, it must only be used for that Store
-        if (OwnerType == CouponOwnerType.Store)
-        {
-            if (storeId == null || storeId != StoreId)
+            if (!storeId.HasValue)
             {
-                errors.Add($"This coupon is only valid for store {StoreId}");
+                errors.Add(new(OrderDomainErrorCode.CouponStoreNotApplicable, nameof(StoreId)));
+            }
+            else if (StoreId.Value != storeId.Value)
+            {
+                errors.Add(new(OrderDomainErrorCode.CouponStoreNotApplicable, nameof(StoreId)));
             }
         }
+        
+        // Store Owner Check - currently handled dynamically or via applicable store IDs
+        // if (OwnerType == CouponOwnerType.Store)
+        // {
+        //     if (storeId == null || !_applicableStoreIds.Contains(storeId.Value))
+        //     {
+        //         errors.Add(new(OrderDomainErrorCode.CouponStoreNotApplicable, nameof(ApplicableStoreIds)));
+        //     }
+        // }
 
         return new CouponValidationResult(errors.Count == 0, errors);
     }
@@ -349,7 +371,7 @@ public class Coupon : AggregateRoot<Guid>, IAuditable
         else // Percentage
         {
             // Calculate percentage discount
-            var discountAmount = orderTotal * (DiscountPercentage / 100m);
+            var discountAmount = orderTotal * (DiscountPercentage!.Value / 100m);
             
             // Cap at max discount if specified
             if (MaxDiscountAmount != null && discountAmount > MaxDiscountAmount)
@@ -388,13 +410,13 @@ public class Coupon : AggregateRoot<Guid>, IAuditable
         if (!IsCurrentlyValid())
              throw new InvalidFieldException(OrderDomainErrorCode.CouponInvalid, nameof(Coupon));
 
-        if (MaxUsageCount.HasValue && CurrentUsageCount >= MaxUsageCount.Value)
+        if (MaxUsageCount > 0 && CurrentUsageCount >= MaxUsageCount)
              throw new InvalidFieldException(OrderDomainErrorCode.CouponUsageLimitReached, nameof(MaxUsageCount));
 
-        if (MaxUsagePerUser.HasValue)
+        if (MaxUsagePerUser > 0)
         {
             var userUsageCount = _usages.Count(u => u.UserId == userId);
-            if (userUsageCount >= MaxUsagePerUser.Value)
+            if (userUsageCount >= MaxUsagePerUser)
                  throw new InvalidFieldException(OrderDomainErrorCode.CouponUserLimitReached, nameof(MaxUsagePerUser));
         }
 
@@ -411,7 +433,81 @@ public class Coupon : AggregateRoot<Guid>, IAuditable
     /// </summary>
     public void Activate()
     {
-        Status = CouponStatus.Active;
+        IsActive = true;
+    }
+
+    /// <summary>
+    /// Update coupon details based on current status
+    /// </summary>
+    public void Update(
+        string name,
+        string code,
+        DateTimeOffset startDateTime,
+        DateTimeOffset endDateTime,
+        DateTimeOffset? earlySaveDateTime,
+        int maxUsageCount,
+        Money? discountAmount = null,
+        decimal? discountPercentage = null,
+        Money? maxDiscountAmount = null,
+        Money? minOrderAmount = null,
+        IEnumerable<long>? applicableProductIds = null)
+    {
+        if (this.IsExpired())
+             throw new InvalidFieldException(OrderDomainErrorCode.CouponCannotUpdateExpired, nameof(Coupon));
+
+        var now = DateTimeOffset.UtcNow;
+        var isUpcoming = StartDateTime > now;
+
+        if (isUpcoming)
+        {
+            UpdateName(name);
+            UpdateCode(code);
+            UpdateStartDateTime(startDateTime);
+            UpdateEndDateTime(endDateTime);
+            UpdateEarlySaveDateTime(earlySaveDateTime);
+            
+            if (maxUsageCount > 0) UpdateMaxUsageCount(maxUsageCount);
+
+            // Update Discount Amounts
+            if (DiscountType == DiscountType.FixedAmount)
+            {
+                if (discountAmount is null || discountAmount.Amount <= 0)
+                    throw new InvalidFieldException(OrderDomainErrorCode.CouponInvalidDiscountAmount, nameof(discountAmount));
+                DiscountAmount = discountAmount;
+            }
+            else
+            {
+                if (discountPercentage is null || discountPercentage <= 0 || discountPercentage > 100)
+                    throw new InvalidFieldException(OrderDomainErrorCode.CouponInvalidPercentage, nameof(discountPercentage));
+                DiscountPercentage = discountPercentage.Value;
+                
+                if (maxDiscountAmount != null && minOrderAmount != null && 
+                    maxDiscountAmount.Amount < (minOrderAmount.Amount * (discountPercentage.Value / 100m)))
+                {
+                    throw new InvalidFieldException(OrderDomainErrorCode.CouponMaxDiscountTooSmall, nameof(maxDiscountAmount));
+                }
+                
+                MaxDiscountAmount = maxDiscountAmount;
+            }
+
+            MinOrderAmount = minOrderAmount ?? Money.Zero();
+
+            // Update Applicable Products if any
+            if (applicableProductIds != null)
+            {
+                LimitToProducts(applicableProductIds);
+            }
+        }
+        else // Ongoing
+        {
+            UpdateName(name);
+            UpdateCode(code);
+            UpdateEndDateTime(endDateTime);
+            
+            if (maxUsageCount > 0) UpdateMaxUsageCount(maxUsageCount);
+
+            UpdateEarlySaveDateTime(earlySaveDateTime);
+        }
     }
 
     /// <summary>
@@ -419,26 +515,126 @@ public class Coupon : AggregateRoot<Guid>, IAuditable
     /// </summary>
     public void Deactivate()
     {
-        Status = CouponStatus.Deactivated;
+        IsActive = false;
         AddDomainEvent(new CouponDeactivatedDomainEvent(Id, Code));
     }
 
     /// <summary>
-    /// Extend expiration date
+    /// End coupon (only for ongoing coupons)
     /// </summary>
-    public void ExtendExpiration(DateTimeOffset newEndDate)
+    public void End()
     {
-        if (newEndDate <= EndDate)
-            throw new InvalidFieldException(OrderDomainErrorCode.CouponInvalidExtension, nameof(EndDate));
+        var now = DateTimeOffset.UtcNow;
+        if (!IsCurrentlyValid())
+        {
+            throw new InvalidFieldException(OrderDomainErrorCode.CouponInvalidStatus, nameof(Coupon));
+        }
 
-        EndDate = newEndDate;
+        EndDateTime = now;
+    }
 
+    /// <summary>
+    /// Update name
+    /// </summary>
+    public void UpdateName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new InvalidFieldException(OrderDomainErrorCode.CouponInvalidName, nameof(name));
+        Name = name;
+    }
+
+    /// <summary>
+    /// Update code
+    /// </summary>
+    public void UpdateCode(string code)
+    {
+        if (string.IsNullOrWhiteSpace(code))
+            throw new InvalidFieldException(OrderDomainErrorCode.CouponInvalidName, nameof(code));
+        Code = code.ToUpperInvariant();
+    }
+
+    /// <summary>
+    /// Update start date time (only allowed when upcoming)
+    /// </summary>
+    public void UpdateStartDateTime(DateTimeOffset newStartDateTime)
+    {
+        var now = DateTimeOffset.UtcNow;
+        if (StartDateTime <= now)
+            throw new InvalidFieldException(OrderDomainErrorCode.CouponCannotUpdateOngoingStart, nameof(StartDateTime)); // Coupon is already ongoing or expired
+
+        if (newStartDateTime <= now)
+            throw new InvalidFieldException(OrderDomainErrorCode.CouponStartTimeInPast, nameof(StartDateTime)); // New time must be in the future
+
+        if (newStartDateTime >= EndDateTime)
+            throw new InvalidFieldException(OrderDomainErrorCode.CouponEndTimeBeforeStart, nameof(StartDateTime)); // Start must be before end
+
+        // If it had an early save time that is now after the new start time, invalidate the early save time or throw
+        if (EarlySaveDateTime.HasValue && EarlySaveDateTime.Value >= newStartDateTime)
+            throw new InvalidFieldException(OrderDomainErrorCode.CouponEarlySaveAfterStart, nameof(StartDateTime));
+
+        StartDateTime = newStartDateTime;
+    }
+
+    /// <summary>
+    /// Update end date time (allowed for upcoming and ongoing)
+    /// </summary>
+    public void UpdateEndDateTime(DateTimeOffset newEndDateTime)
+    {
+        var now = DateTimeOffset.UtcNow;
+        if (this.IsExpired())
+            throw new InvalidFieldException(OrderDomainErrorCode.CouponCannotUpdateExpired, nameof(EndDateTime)); // Coupon is already expired
+
+        if (newEndDateTime <= now)
+            throw new InvalidFieldException(OrderDomainErrorCode.CouponInvalidDates, nameof(EndDateTime)); // New time must be in the future (using generic Dates or specific if needed, but Dates is ORD10004 which is fine)
+            // Let's use generic dates here or add one more if we want to be super specific. 
+            // Actually, I'll stick to what I have or use the existing ones if they fit.
+            // ORD10004 is "Coupon dates are invalid".
+            // Let's keep ORD10004 for general date errors.
+
+        if (newEndDateTime <= StartDateTime)
+            throw new InvalidFieldException(OrderDomainErrorCode.CouponEndTimeBeforeStart, nameof(EndDateTime)); // End must be after start
+
+        EndDateTime = newEndDateTime;
+    }
+
+    /// <summary>
+    /// Update early save time (only allowed when it hasn't started yet or in upcoming)
+    /// </summary>
+    public void UpdateEarlySaveDateTime(DateTimeOffset? newEarlySaveDateTime)
+    {
+        if (EarlySaveDateTime == newEarlySaveDateTime)
+            return;
+
+        var now = DateTimeOffset.UtcNow;
+
+        // If it was already displaying (EarlySaveDateTime was in the past), we can't change it
+        if (EarlySaveDateTime.HasValue && EarlySaveDateTime.Value <= now)
+            throw new InvalidFieldException(OrderDomainErrorCode.CouponEarlySaveAlreadyStarted, nameof(EarlySaveDateTime));
+
+        if (newEarlySaveDateTime.HasValue)
+        {
+            if (newEarlySaveDateTime.Value >= StartDateTime)
+                throw new InvalidFieldException(OrderDomainErrorCode.CouponEarlySaveAfterStart, nameof(EarlySaveDateTime)); // Must be before start time
+        }
+
+        EarlySaveDateTime = newEarlySaveDateTime;
+    }
+
+    /// <summary>
+    /// Update max usage count
+    /// </summary>
+    public void UpdateMaxUsageCount(int maxUsageCount)
+    {
+        if (maxUsageCount < CurrentUsageCount)
+             throw new InvalidFieldException(OrderDomainErrorCode.CouponInvalidMaxUsage, nameof(maxUsageCount));
+        
+        MaxUsageCount = maxUsageCount;
     }
 
     /// <summary>
     /// Check if coupon is expired
     /// </summary>
-    public bool IsExpired() => DateTimeOffset.UtcNow > EndDate;
+    public bool IsExpired() => DateTimeOffset.UtcNow > EndDateTime || !IsActive;
 
     /// <summary>
     /// Check if coupon is currently valid (active and within date range)
@@ -446,7 +642,7 @@ public class Coupon : AggregateRoot<Guid>, IAuditable
     public bool IsCurrentlyValid()
     {
         var now = DateTimeOffset.UtcNow;
-        return Status == CouponStatus.Active && now >= StartDate && now <= EndDate;
+        return IsActive && now >= StartDateTime && now <= EndDateTime;
     }
 
     /// <summary>
@@ -454,9 +650,9 @@ public class Coupon : AggregateRoot<Guid>, IAuditable
     /// </summary>
     public int? GetRemainingUsage()
     {
-        if (!MaxUsageCount.HasValue)
+        if (MaxUsageCount <= 0)
             return null; // Unlimited
         
-        return MaxUsageCount.Value - CurrentUsageCount;
+        return MaxUsageCount - CurrentUsageCount;
     }
 }
