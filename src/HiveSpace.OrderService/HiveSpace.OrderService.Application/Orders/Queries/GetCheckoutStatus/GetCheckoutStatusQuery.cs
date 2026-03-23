@@ -3,4 +3,4 @@ using MediatR;
 
 namespace HiveSpace.OrderService.Application.Orders.Queries.GetCheckoutStatus;
 
-public record GetCheckoutStatusQuery(Guid CorrelationId) : IRequest<CheckoutStatusDto?>;
+public record GetCheckoutStatusQuery(Guid OrderId) : IRequest<CheckoutStatusDto?>;

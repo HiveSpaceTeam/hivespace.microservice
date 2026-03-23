@@ -14,7 +14,7 @@ public class GetCheckoutStatusQueryHandler(OrderDbContext db)
     {
         var saga = await db.Set<CheckoutSagaState>()
             .AsNoTracking()
-            .FirstOrDefaultAsync(s => s.CorrelationId == request.CorrelationId, cancellationToken);
+            .FirstOrDefaultAsync(s => s.OrderId == request.OrderId || s.CorrelationId == request.OrderId, cancellationToken);
 
         if (saga is null) return null;
 

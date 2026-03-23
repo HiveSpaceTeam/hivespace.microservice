@@ -41,7 +41,7 @@ public static class OrderEndpoints
         .WithName("InitiateCheckout")
         .WithTags("Order")
         .WithSummary("Initiate a checkout")
-        .WithDescription("Starts the checkout saga for the given cart. Returns a correlationId to poll for status.");
+        .WithDescription("Starts the checkout saga for the given cart.");
 
         app.MapGet("/api/v1/orders/checkout/{orderId:guid}", async (
             Guid orderId,
@@ -55,7 +55,7 @@ public static class OrderEndpoints
         .WithName("GetCheckoutStatus")
         .WithTags("Order")
         .WithSummary("Get checkout status")
-        .WithDescription("Polls the checkout saga state by orderId (correlationId) returned from the initiate endpoint.");
+        .WithDescription("Returns the checkout saga status by orderId. The orderId is the correlationId returned when checkout is initiated.");
 
         app.MapGet("/api/v1/orders", async (
             ISender sender,
@@ -134,6 +134,7 @@ public static class OrderEndpoints
             PackageRejectionRequest request,
             ISender sender,
             IPublishEndpoint bus,
+            OrderDbContext db,
             CancellationToken ct) =>
         {
             var result = await sender.Send(new RejectPackageCommand(packageId, request.Reason), ct);
@@ -146,7 +147,7 @@ public static class OrderEndpoints
                 result.Reason,
                 PackageAmount = result.PackageAmount
             }, ct);
-
+            await db.SaveChangesAsync(ct);
             return Results.NoContent();
         })
         .RequireAuthorization(HiveSpaceAuthorizeAttribute.Seller.Policy)

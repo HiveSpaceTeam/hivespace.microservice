@@ -1,6 +1,5 @@
 using HiveSpace.Domain.Shared.ValueObjects;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Commands;
-using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Dtos;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Events;
 using HiveSpace.OrderService.Domain.Aggregates.Orders;
 using HiveSpace.OrderService.Domain.Repositories;
@@ -8,7 +7,6 @@ using HiveSpace.OrderService.Domain.ValueObjects;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 using DomainPaymentMethod = HiveSpace.OrderService.Domain.Enumerations.PaymentMethod;
-using SharedPaymentMethod = HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.PaymentMethod;
 
 namespace HiveSpace.OrderService.Api.Consumers.Saga.CheckoutSaga;
 
@@ -33,34 +31,36 @@ public class CreateOrderConsumer(
 
         var order = Order.Create(message.UserId, address, id: message.CorrelationId);
 
-        var domainPaymentMethod = message.PaymentMethod == SharedPaymentMethod.COD
-            ? DomainPaymentMethod.COD
-            : DomainPaymentMethod.COD;
+        var itemsByStore  = message.Items.GroupBy(i => i.StoreId).ToList();
+        var totalShipping = (long)message.ShippingFee;
+        var baseShipping  = itemsByStore.Count > 0 ? totalShipping / itemsByStore.Count : 0;
+        var remainder     = itemsByStore.Count > 0 ? totalShipping % itemsByStore.Count : 0;
 
-        var itemsByStore = message.Items.GroupBy(i => i.StoreId);
-        foreach (var storeGroup in itemsByStore)
+        for (int i = 0; i < itemsByStore.Count; i++)
         {
-            var package = OrderPackage.Create(storeGroup.Key, message.UserId);
+            var storeGroup  = itemsByStore[i];
+            var pkgShipping = baseShipping + (i == 0 ? remainder : 0);
+            var package     = OrderPackage.Create(storeGroup.Key, message.UserId);
+
             foreach (var item in storeGroup)
             {
-                var productGuid = ToGuid(item.ProductId);
-                var skuGuid     = ToGuid(item.SkuId);
-                var unitPrice       = Money.FromVND((long)item.Price);
-                var snapshotPrice   = Money.FromVND((long)item.Price);
+                var unitPrice     = Money.FromVND((long)item.Price);
+                var snapshotPrice = Money.FromVND((long)item.Price);
 
                 var snapshot = ProductSnapshot.Capture(
-                    productGuid,
-                    skuGuid,
+                    item.ProductId,
+                    item.SkuId,
                     item.ProductName,
                     item.SkuName,
                     snapshotPrice,
                     item.ImageUrl,
                     new Dictionary<string, string>());
 
-                package.AddItem(productGuid, skuGuid, item.Quantity, unitPrice, snapshot, isCOD: true);
+                package.AddItem(item.ProductId, item.SkuId, item.Quantity, unitPrice, snapshot, isCOD: true);
             }
-            package.SetShippingFee(Money.FromVND(0), isShippingPaidBySeller: false);
-            package.AddCheckout(domainPaymentMethod, package.GetCODAmount());
+
+            package.SetShippingFee(Money.FromVND(pkgShipping), isShippingPaidBySeller: false);
+            package.AddCheckout(DomainPaymentMethod.COD, package.GetCODAmount());
             order.AddPackage(package);
         }
 
@@ -79,10 +79,4 @@ public class CreateOrderConsumer(
         });
     }
 
-    private static Guid ToGuid(long value)
-    {
-        var bytes = new byte[16];
-        BitConverter.GetBytes(value).CopyTo(bytes, 0);
-        return new Guid(bytes);
-    }
 }

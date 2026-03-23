@@ -9,8 +9,8 @@ namespace HiveSpace.OrderService.Domain.Aggregates.Orders;
 
 public class OrderItem : Entity<Guid>
 {
-    public Guid ProductId { get; private set; }
-    public Guid SkuId { get; private set; }
+    public long ProductId { get; private set; }
+    public long SkuId { get; private set; }
     public int Quantity { get; private set; }
     public Money UnitPrice { get; private set; } = null!;
     public Money LineTotal { get; private set; } = null!;
@@ -20,8 +20,8 @@ public class OrderItem : Entity<Guid>
     private OrderItem() { }
 
     public static OrderItem Create(
-        Guid productId,
-        Guid skuId,
+        long productId,
+        long skuId,
         int quantity,
         Money unitPrice,
         ProductSnapshot productSnapshot,

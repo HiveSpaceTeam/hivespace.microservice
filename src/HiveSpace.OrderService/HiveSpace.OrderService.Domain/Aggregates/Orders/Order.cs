@@ -266,7 +266,7 @@ public class Order : AggregateRoot<Guid>, IAuditable
     private static string GenerateShortId()
     {
         var timestamp = DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmss");
-        var random = new Random().Next(1000, 9999);
+        var random = Random.Shared.Next(100_000, 999_999);
         return $"ORD-{timestamp}-{random}";
     }
 }
