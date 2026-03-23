@@ -2,14 +2,18 @@ using FluentValidation;
 using HiveSpace.OrderService.Application.Cart.Queries.GetCartItems;
 using HiveSpace.OrderService.Application.Coupons.Commands.CreateCoupon;
 using HiveSpace.OrderService.Api.Endpoints;
+using HiveSpace.OrderService.Api.Sagas.CheckoutSaga;
+using HiveSpace.OrderService.Api.Consumers.Saga.CheckoutSaga;
 using HiveSpace.OrderService.Infrastructure;
 using HiveSpace.OrderService.Infrastructure.Data;
+using HiveSpace.OrderService.Infrastructure.Sagas;
 using HiveSpace.Core;
 using HiveSpace.Core.Middlewares;
 using HiveSpace.Core.Filters;
 using HiveSpace.Infrastructure.Authorization.Extensions;
 using HiveSpace.Infrastructure.Messaging.Extensions;
 using HiveSpace.Infrastructure.Messaging.Configurations;
+using MassTransit;
 
 // HiveSpace.OrderService API - Developed by Org
 // This is the main entry point for the HiveSpace.OrderService microservice
@@ -42,7 +46,22 @@ builder.Services.AddIdGenerators(builder.Configuration);
 var messagingOptions = builder.Configuration.GetSection(MessagingOptions.SectionName).Get<MessagingOptions>();
 if (messagingOptions?.EnableRabbitMq == true)
 {
-    builder.Services.AddMassTransitWithRabbitMq<OrderDbContext>(builder.Configuration);
+    builder.Services.AddMassTransitWithRabbitMq<OrderDbContext>(builder.Configuration, cfg =>
+    {
+        cfg.AddSagaStateMachine<CheckoutSagaStateMachine, CheckoutSagaState>()
+           .EntityFrameworkRepository(r =>
+           {
+               r.ConcurrencyMode = ConcurrencyMode.Pessimistic;
+               r.ExistingDbContext<OrderDbContext>();
+               r.UseSqlServer();
+           });
+        cfg.AddConsumer<ValidateCheckoutConsumer>();
+        cfg.AddConsumer<CreateOrderConsumer>();
+        cfg.AddConsumer<MarkOrderAsCODConsumer>();
+        cfg.AddConsumer<CancelOrderConsumer>();
+        cfg.AddConsumer<NotifySellersConsumer>();
+        cfg.AddConsumer<NotifyCustomerConsumer>();
+    });
 }
 
 // Setup Authentication from AppSettings
@@ -56,9 +75,10 @@ builder.Services.AddAuthentication("Bearer")
     });
 builder.Services.AddHiveSpaceAuthorization("order.fullaccess");
 
-// Add MediatR from Application layer
+// Add MediatR from Application + Infrastructure layers
 builder.Services.AddMediatR(cfg => {
     cfg.RegisterServicesFromAssemblyContaining<CreateCouponCommand>();
+    cfg.RegisterServicesFromAssemblyContaining<OrderDbContext>();
 });
 
 // Register validators
@@ -121,5 +141,6 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapCouponEndpoints();
 app.MapCartEndpoints();
+app.MapOrderEndpoints();
 
 await app.RunAsync();

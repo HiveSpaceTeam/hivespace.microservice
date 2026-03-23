@@ -13,7 +13,7 @@ namespace HiveSpace.OrderService.Domain.ValueObjects
         public string RecipientName { get; private set; }
         public PhoneNumber Phone { get; private set; }
         public string StreetAddress { get; private set; }
-        public string Ward { get; private set; }
+        public string Commune { get; private set; }
         public string Province { get; private set; }
         public string Country { get; private set; }
         public string Notes { get; private set; }
@@ -23,7 +23,7 @@ namespace HiveSpace.OrderService.Domain.ValueObjects
             RecipientName = null!;
             Phone = null!;
             StreetAddress = null!;
-            Ward = null!;
+            Commune = null!;
             Province = null!;
             Country = null!;
             Notes = null!;
@@ -33,7 +33,7 @@ namespace HiveSpace.OrderService.Domain.ValueObjects
             string recipientName,
             PhoneNumber phone,
             string streetAddress,
-            string ward,
+            string commune,
             string province,
             string country = "Vietnam",
             string notes = "")
@@ -47,8 +47,8 @@ namespace HiveSpace.OrderService.Domain.ValueObjects
             if (string.IsNullOrWhiteSpace(streetAddress))
                 throw new InvalidFieldException(OrderDomainErrorCode.AddressStreetRequired, nameof(streetAddress));
 
-            if (string.IsNullOrWhiteSpace(ward))
-                throw new InvalidFieldException(OrderDomainErrorCode.AddressWardRequired, nameof(ward));
+            if (string.IsNullOrWhiteSpace(commune))
+                throw new InvalidFieldException(OrderDomainErrorCode.AddressCommuneRequired, nameof(commune));
 
             if (string.IsNullOrWhiteSpace(province))
                 throw new InvalidFieldException(OrderDomainErrorCode.AddressProvinceRequired, nameof(province));
@@ -56,7 +56,7 @@ namespace HiveSpace.OrderService.Domain.ValueObjects
             RecipientName = recipientName.Trim();
             Phone = phone;
             StreetAddress = streetAddress.Trim();
-            Ward = ward.Trim();
+            Commune = commune.Trim();
             Province = province.Trim();
             Country = string.IsNullOrWhiteSpace(country) ? "Vietnam" : country.Trim();
             Notes = notes;
@@ -70,7 +70,7 @@ namespace HiveSpace.OrderService.Domain.ValueObjects
             var parts = new List<string>
             {
                 StreetAddress,
-                Ward,
+                Commune,
                 Province,
                 Country
             };
@@ -100,7 +100,7 @@ namespace HiveSpace.OrderService.Domain.ValueObjects
                 RecipientName,
                 Phone,
                 StreetAddress,
-                Ward,
+                Commune,
                 Province,
                 Country,
                 notes
@@ -110,7 +110,7 @@ namespace HiveSpace.OrderService.Domain.ValueObjects
         protected override IEnumerable<object> GetEqualityComponents()
         {
             yield return StreetAddress.ToLowerInvariant();
-            yield return Ward.ToLowerInvariant();
+            yield return Commune.ToLowerInvariant();
             yield return Province.ToLowerInvariant();
             yield return Country.ToLowerInvariant();
         }
