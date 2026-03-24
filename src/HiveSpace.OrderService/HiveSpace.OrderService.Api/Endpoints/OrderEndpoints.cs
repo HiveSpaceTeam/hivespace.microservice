@@ -35,7 +35,7 @@ public static class OrderEndpoints
                 CouponCodes = request.CouponCodes ?? []
             }, ct);
             await db.SaveChangesAsync(ct);
-            return Results.NoContent();
+            return Results.Ok(new { correlationId });
         })
         .RequireAuthorization()
         .WithName("InitiateCheckout")
@@ -110,14 +110,17 @@ public static class OrderEndpoints
             OrderDbContext db,
             CancellationToken ct) =>
         {
+            if (userContext.StoreId is null)
+                return Results.Forbid();
+
             var result = await sender.Send(new ConfirmPackageCommand(packageId), ct);
 
             await bus.Publish<PackageConfirmed>(new
             {
-                CorrelationId = result.OrderId,
+                CorrelationId = result.CorrelationId,
                 OrderId       = result.OrderId,
                 PackageId     = result.PackageId,
-                StoreId       = userContext.StoreId ?? Guid.Empty,
+                StoreId       = userContext.StoreId.Value,
                 ConfirmedAt   = DateTimeOffset.UtcNow
             }, ct);
             await db.SaveChangesAsync(ct);
@@ -141,7 +144,7 @@ public static class OrderEndpoints
 
             await bus.Publish<PackageRejected>(new
             {
-                CorrelationId = result.OrderId,
+                CorrelationId = result.CorrelationId,
                 OrderId       = result.OrderId,
                 PackageId     = result.PackageId,
                 result.Reason,

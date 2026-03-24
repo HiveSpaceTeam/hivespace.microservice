@@ -15,11 +15,11 @@ public class ConfirmPackageCommandHandler(
     public async Task<ConfirmPackageResult> Handle(ConfirmPackageCommand request, CancellationToken cancellationToken)
     {
         var order = await orderRepository.GetOrderByPackageIdAsync(request.PackageId, cancellationToken)
-            ?? throw new NotFoundException(OrderDomainErrorCode.OrderPackageNotFound, request.PackageId.ToString());
+            ?? throw new NotFoundException(OrderDomainErrorCode.OrderPackageNotFound, nameof(request.PackageId));
 
         order.ConfirmPackage(request.PackageId, userContext.UserId);
         await orderRepository.SaveChangesAsync(cancellationToken);
 
-        return new ConfirmPackageResult(order.Id, request.PackageId);
+        return new ConfirmPackageResult(order.Id, order.Id, request.PackageId);
     }
 }

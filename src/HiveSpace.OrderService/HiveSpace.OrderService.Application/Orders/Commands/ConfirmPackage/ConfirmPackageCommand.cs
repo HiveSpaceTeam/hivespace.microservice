@@ -4,4 +4,4 @@ namespace HiveSpace.OrderService.Application.Orders.Commands.ConfirmPackage;
 
 public record ConfirmPackageCommand(Guid PackageId) : IRequest<ConfirmPackageResult>;
 
-public record ConfirmPackageResult(Guid OrderId, Guid PackageId);
+public record ConfirmPackageResult(Guid CorrelationId, Guid OrderId, Guid PackageId);

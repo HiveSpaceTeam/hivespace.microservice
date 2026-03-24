@@ -301,6 +301,21 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
                             ctx.Saga.ConfirmedPackages > 0,
                     binder => binder
                         .Unschedule(SellerConfirmationTimeout)
+                        .If(ctx => ctx.Saga.RejectedPackages > 0,
+                            inner => inner.PublishAsync(ctx =>
+                            {
+                                var reservationsToRelease = ctx.Saga.RejectedPackageIds
+                                    .SelectMany(pkgId => ctx.Saga.PackageReservationMap.TryGetValue(pkgId, out var ids)
+                                        ? ids
+                                        : Enumerable.Empty<Guid>())
+                                    .ToList();
+                                return ctx.Init<ReleaseInventory>(new
+                                {
+                                    ctx.Message.CorrelationId,
+                                    OrderId        = ctx.Saga.OrderId,
+                                    ReservationIds = reservationsToRelease
+                                });
+                            }))
                         .TransitionTo(NotifyingCustomer)
                         .PublishAsync(ctx => ctx.Init<NotifyCustomer>(new
                         {

@@ -19,6 +19,7 @@ public class CancelOrderCommandHandler(
         }
 
         order.Cancel(request.Reason, request.CancelledBy);
+        await orderRepository.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation("Order {OrderId} cancelled: {Reason}", request.OrderId, request.Reason);
         return new CancelOrderResult(OrderFound: true);

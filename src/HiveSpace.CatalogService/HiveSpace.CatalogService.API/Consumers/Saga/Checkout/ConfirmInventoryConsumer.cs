@@ -23,7 +23,14 @@ public class ConfirmInventoryConsumer : IConsumer<ConfirmInventory>
             "ConfirmInventory received for order {OrderId} — {Count} reservation(s)",
             message.OrderId, message.ReservationIds.Count);
 
-        // TODO: implement confirmation logic (Soft → Hard transition, check for expired reservations)
+        // TODO: implement confirmation logic (Soft → Hard transition, check for expired reservations).
+        // Until the real expiry-check is in place this consumer must NOT auto-confirm.
+        // Replace the throw below with the actual DB query before shipping to production.
+        throw new NotImplementedException(
+            "ConfirmInventoryConsumer is not yet implemented. " +
+            "Expiry check must be performed before publishing InventoryConfirmed.");
+
+        // --- placeholder below kept for reference; remove together with the throw above ---
         var expiredIds = new List<Guid>();
 
         var success = expiredIds.Count == 0;
