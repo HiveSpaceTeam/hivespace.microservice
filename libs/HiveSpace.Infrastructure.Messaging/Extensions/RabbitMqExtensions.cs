@@ -26,6 +26,8 @@ public static class RabbitMqExtensions
         {
             configure?.Invoke(bus);
 
+            bus.AddDelayedMessageScheduler();
+
             //foreach (var registration in kafkaRegistrations)
             //{
             //    bus.AddRider(rider =>
@@ -50,7 +52,11 @@ public static class RabbitMqExtensions
                 
             });
 
-            bus.AddConfigureEndpointsCallback((context, name, cfg) => { cfg.UseEntityFrameworkOutbox<TDbContext>(context); });
+            bus.AddConfigureEndpointsCallback((context, name, cfg) =>
+            {
+                cfg.UseMessageRetry(r => r.Intervals(500, 1000, 2000, 5000));
+                cfg.UseEntityFrameworkOutbox<TDbContext>(context);
+            });
 
             bus.UsingRabbitMq((context, cfg) =>
             {
@@ -70,6 +76,7 @@ public static class RabbitMqExtensions
                     }
                 });
 
+                cfg.UseDelayedMessageScheduler();
                 cfg.PrefetchCount = options.PrefetchCount;
                 cfg.ConfigureEndpoints(context);
             });

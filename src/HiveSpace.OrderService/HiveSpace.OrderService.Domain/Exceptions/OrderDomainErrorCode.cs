@@ -14,8 +14,8 @@ public class OrderDomainErrorCode : DomainErrorCode
         new(1002, "AddressPhoneRequired", "ORD1002");
     public static readonly OrderDomainErrorCode AddressStreetRequired =
         new(1003, "AddressStreetRequired", "ORD1003");
-    public static readonly OrderDomainErrorCode AddressWardRequired =
-        new(1004, "AddressWardRequired", "ORD1004");
+    public static readonly OrderDomainErrorCode AddressCommuneRequired =
+        new(1004, "AddressCommuneRequired", "ORD1004");
     public static readonly OrderDomainErrorCode AddressProvinceRequired =
         new(1005, "AddressProvinceRequired", "ORD1005");
 
