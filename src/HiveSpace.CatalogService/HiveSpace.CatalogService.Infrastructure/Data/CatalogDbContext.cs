@@ -38,7 +38,6 @@ namespace HiveSpace.CatalogService.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new CategoryConfiguration());
             modelBuilder.ApplyConfiguration(new AttributeConfiguration());
             modelBuilder.ApplyConfiguration(new SkuConfiguration());
-            modelBuilder.ApplyConfiguration(new ProductAttributeConfiguration());
             modelBuilder.ApplyConfiguration(new ProductVariantConfiguration());
             modelBuilder.ApplyConfiguration(new AttributeValueConfiguration());
 

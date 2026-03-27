@@ -12,9 +12,9 @@ public static class ProductFactory
     /// <summary>
     /// Creates a list of ProductCategory entities from a category ID.
     /// </summary>
-    public static List<ProductCategory> CreateProductCategories(Guid productId, int categoryId)
+    public static List<ProductCategory> CreateProductCategories(int categoryId)
     {
-        return categoryId > 0 ? [new ProductCategory(productId, categoryId)] : [];
+        return categoryId > 0 ? [new ProductCategory(categoryId)] : [];
     }
 
     /// <summary>
@@ -30,32 +30,35 @@ public static class ProductFactory
     /// </summary>
     public static ProductVariant CreateProductVariant(ProductVariantRequestDto v)
     {
-        var variantId = v.Id != Guid.Empty ? v.Id : Guid.NewGuid();
-        var options = v.Options?.Select(o => new ProductVariantOption(variantId, o.OptionId, o.Value ?? string.Empty)).ToList() ?? [];
-        return new ProductVariant(variantId, v.Name, options);
+        var variant = new ProductVariant(v.Name);
+
+        var options = v.Options?.Select(o => new ProductVariantOption(o.Value ?? string.Empty)).ToList() ?? [];
+
+        variant.AddOptions(options);
+        return variant;
     }
 
     /// <summary>
     /// Creates a list of Sku entities from SKU request DTOs.
     /// </summary>
-    public static List<Sku> CreateProductSkus(Guid productId, ICollection<ProductSkuRequestDto>? skuRequests)
+    public static List<Sku> CreateProductSkus(ICollection<ProductSkuRequestDto>? skuRequests)
     {
         if (skuRequests is null) return [];
 
         return [.. skuRequests.Select(s =>
         {
             var skuId = s.Id != Guid.Empty ? s.Id : Guid.NewGuid();
-            var skuVariants = s.SkuVariants?.Select(sv => new SkuVariant(skuId, sv.VariantId, sv.OptionId, sv.Value ?? string.Empty)).ToList() ?? [];
-            return new Sku(skuId, s.SkuNo ?? string.Empty, productId, skuVariants, [], s.Quantity, true, s.Price);
+            var skuVariants = s.SkuVariants?.Select(sv => new SkuVariant(sv.Value ?? string.Empty)).ToList() ?? [];
+            return new Sku(s.SkuNo ?? string.Empty, skuVariants, [], s.Quantity, true, s.Price);
         })];
     }
 
     /// <summary>
     /// Creates a list of ProductAttribute entities from attribute request DTOs.
     /// </summary>
-    public static List<ProductAttribute> CreateProductAttributes(Guid productId, ICollection<ProductAttributeRequestDto>? attributeRequests)
+    public static List<ProductAttribute> CreateProductAttributes(ICollection<ProductAttributeRequestDto>? attributeRequests)
     {
-        return attributeRequests?.Select(a => new ProductAttribute(a.AttributeId, productId, a.SelectedValueIds, a.FreeTextValue)).ToList() ?? [];
+        return attributeRequests?.Select(a => new ProductAttribute(a.AttributeId, a.SelectedValueIds, a.FreeTextValue)).ToList() ?? [];
     }
 }
 

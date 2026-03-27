@@ -1,7 +1,8 @@
 using HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
+using System.Text.Json;
 namespace HiveSpace.CatalogService.Infrastructure.Data.Configurations
 {
     public class ProductConfiguration : IEntityTypeConfiguration<Product>
@@ -55,20 +56,59 @@ namespace HiveSpace.CatalogService.Infrastructure.Data.Configurations
                 d.Property(p => p.Height).HasColumnName("DimensionsHeight");
                 d.Property(p => p.Unit).HasColumnName("DimensionsUnit");
             });
-
-            // Configure owned types (ValueObjects)
             builder.OwnsMany(p => p.Categories, pc =>
             {
-                pc.HasKey(x => new { x.CategoryId, x.ProductId });
                 pc.ToTable("ProductCategories");
-                pc.WithOwner().HasForeignKey(x => x.ProductId);
+
+                pc.WithOwner().HasForeignKey("ProductId"); // shadow FK
+
+                pc.Property<int>("Id");
+                pc.HasKey("Id");
+
+                pc.Property(x => x.CategoryId).IsRequired();
             });
+
+            builder.OwnsMany(p => p.Attributes, pa =>
+            {
+                pa.ToTable("ProductAttributes");
+
+                pa.WithOwner().HasForeignKey("ProductId"); // shadow FK
+
+                pa.Property<int>("Id");
+                pa.HasKey("Id");
+
+                pa.Property(x => x.AttributeId).IsRequired();
+
+                pa.Property<string>(nameof(ProductAttribute.FreeTextValue));
+
+                var comparer = new ValueComparer<List<int>>(
+                    (c1, c2) => (c1 == null && c2 == null) || (c1 != null && c2 != null && c1.SequenceEqual(c2)),
+                    c => c == null ? 0 : c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                    c => c == null ? new List<int>() : c.ToList());
+
+                pa.Property<List<int>>("_selectedValueIds")
+                    .HasColumnName("SelectedValueIds")
+                    .HasConversion(
+                        v => JsonSerializer.Serialize(v ?? new List<int>(), (JsonSerializerOptions?)null),
+                        v => JsonSerializer.Deserialize<List<int>>(v ?? "[]", (JsonSerializerOptions?)null) ?? new List<int>())
+                    .Metadata.SetValueComparer(comparer);
+            });
+
+
 
             builder.OwnsMany(p => p.Images, pi =>
             {
                 pi.ToTable("ProductImages");
                 pi.WithOwner().HasForeignKey(x => x.ProductId);
             });
+
+            builder.HasMany(p => p.Variants)
+               .WithOne()
+               .HasForeignKey("ProductId");
+
+            builder.HasMany(p => p.Skus)
+                   .WithOne()
+                   .HasForeignKey("ProductId");
         }
     }
 }

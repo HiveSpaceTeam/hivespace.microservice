@@ -14,7 +14,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<Product?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        public async Task<Product?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
         {
             return await _context.Products.FindAsync(new object?[] { id }, cancellationToken);
         }
@@ -40,7 +40,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Repositories
             // Don't call SaveChangesAsync here - let the transaction service handle it
         }
 
-        public async Task<Product?> GetDetailByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        public async Task<Product?> GetDetailByIdAsync(int id, CancellationToken cancellationToken = default)
         {
 
             var query = _context.Products

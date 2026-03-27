@@ -146,9 +146,11 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
 
             modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.Product", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<Guid?>("BrandId")
                         .HasColumnType("uniqueidentifier");
@@ -204,7 +206,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                     b.ToTable("Products", (string)null);
                 });
 
-            modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.ProductAttribute", b =>
+            modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.ProductVariant", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -212,39 +214,12 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("AttributeId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("FreeTextValue")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("ProductId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("_selectedValueIds")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("SelectedValueIds");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId");
-
-                    b.ToTable("ProductAttributes", (string)null);
-                });
-
-            modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.ProductVariant", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid?>("ProductId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int?>("ProductId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -255,15 +230,17 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
 
             modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.Sku", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<Guid>("ProductId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int?>("ProductId")
+                        .HasColumnType("int");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
@@ -543,18 +520,53 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
 
             modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.Product", b =>
                 {
-                    b.OwnsMany("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.ProductCategory", "Categories", b1 =>
+                    b.OwnsMany("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.ProductAttribute", "Attributes", b1 =>
                         {
-                            b1.Property<int>("CategoryId")
+                            b1.Property<int>("Id")
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("int");
 
-                            SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("CategoryId"));
+                            SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("Id"));
 
-                            b1.Property<Guid>("ProductId")
-                                .HasColumnType("uniqueidentifier");
+                            b1.Property<int>("AttributeId")
+                                .HasColumnType("int");
 
-                            b1.HasKey("CategoryId", "ProductId");
+                            b1.Property<string>("FreeTextValue")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<int>("ProductId")
+                                .HasColumnType("int");
+
+                            b1.Property<string>("_selectedValueIds")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("SelectedValueIds");
+
+                            b1.HasKey("Id");
+
+                            b1.HasIndex("ProductId");
+
+                            b1.ToTable("ProductAttributes", (string)null);
+
+                            b1.WithOwner()
+                                .HasForeignKey("ProductId");
+                        });
+
+                    b.OwnsMany("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.ProductCategory", "Categories", b1 =>
+                        {
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int");
+
+                            SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("Id"));
+
+                            b1.Property<int>("CategoryId")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("ProductId")
+                                .HasColumnType("int");
+
+                            b1.HasKey("Id");
 
                             b1.HasIndex("ProductId");
 
@@ -566,8 +578,8 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
 
                     b.OwnsMany("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.ProductImage", "Images", b1 =>
                         {
-                            b1.Property<Guid>("ProductId")
-                                .HasColumnType("uniqueidentifier");
+                            b1.Property<int>("ProductId")
+                                .HasColumnType("int");
 
                             b1.Property<int>("Id")
                                 .ValueGeneratedOnAdd()
@@ -589,8 +601,8 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
 
                     b.OwnsOne("HiveSpace.CatalogService.Domain.ValueObjects.Dimensions", "Dimensions", b1 =>
                         {
-                            b1.Property<Guid>("ProductId")
-                                .HasColumnType("uniqueidentifier");
+                            b1.Property<int>("ProductId")
+                                .HasColumnType("int");
 
                             b1.Property<decimal>("Height")
                                 .HasColumnType("decimal(18,2)")
@@ -618,8 +630,8 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
 
                     b.OwnsOne("HiveSpace.CatalogService.Domain.ValueObjects.Weight", "Weight", b1 =>
                         {
-                            b1.Property<Guid>("ProductId")
-                                .HasColumnType("uniqueidentifier");
+                            b1.Property<int>("ProductId")
+                                .HasColumnType("int");
 
                             b1.Property<int>("Unit")
                                 .HasColumnType("int")
@@ -637,6 +649,8 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                                 .HasForeignKey("ProductId");
                         });
 
+                    b.Navigation("Attributes");
+
                     b.Navigation("Categories");
 
                     b.Navigation("Dimensions");
@@ -646,38 +660,28 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                     b.Navigation("Weight");
                 });
 
-            modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.ProductAttribute", b =>
-                {
-                    b.HasOne("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.Product", null)
-                        .WithMany("Attributes")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.ProductVariant", b =>
                 {
                     b.HasOne("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.Product", null)
                         .WithMany("Variants")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("ProductId");
 
                     b.OwnsMany("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.ProductVariantOption", "Options", b1 =>
                         {
-                            b1.Property<Guid>("OptionId")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("uniqueidentifier");
+                            b1.Property<int>("ProductVariantId")
+                                .HasColumnType("int");
 
-                            b1.Property<Guid>("ProductVariantId")
-                                .HasColumnType("uniqueidentifier");
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int");
+
+                            SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("Id"));
 
                             b1.Property<string>("Value")
                                 .IsRequired()
                                 .HasColumnType("nvarchar(max)");
 
-                            b1.HasKey("OptionId", "ProductVariantId");
-
-                            b1.HasIndex("ProductVariantId");
+                            b1.HasKey("ProductVariantId", "Id");
 
                             b1.ToTable("ProductVariantOptions", (string)null);
 
@@ -692,21 +696,24 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                 {
                     b.HasOne("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.Product", null)
                         .WithMany("Skus")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ProductId");
 
                     b.OwnsMany("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.SkuImage", "Images", b1 =>
                         {
+                            b1.Property<int>("SkuId")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int");
+
+                            SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("Id"));
+
                             b1.Property<string>("FileId")
-                                .HasColumnType("nvarchar(450)");
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
 
-                            b1.Property<Guid>("SkuId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.HasKey("FileId", "SkuId");
-
-                            b1.HasIndex("SkuId");
+                            b1.HasKey("SkuId", "Id");
 
                             b1.ToTable("SkuImages", (string)null);
 
@@ -716,39 +723,37 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
 
                     b.OwnsMany("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.SkuVariant", "SkuVariants", b1 =>
                         {
-                            b1.Property<Guid>("SkuId")
-                                .HasColumnType("uniqueidentifier");
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int");
 
-                            b1.Property<Guid>("VariantId")
-                                .HasColumnType("uniqueidentifier");
+                            SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("Id"));
 
-                            b1.Property<Guid>("OptionId")
-                                .HasColumnType("uniqueidentifier");
+                            b1.Property<int>("SkuId")
+                                .HasColumnType("int");
 
                             b1.Property<string>("Value")
                                 .IsRequired()
                                 .HasColumnType("nvarchar(max)");
 
-                            b1.HasKey("SkuId", "VariantId", "OptionId");
+                            b1.Property<string>("VariantName")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
 
-                            b1.HasIndex("VariantId");
+                            b1.HasKey("Id");
+
+                            b1.HasIndex("SkuId");
 
                             b1.ToTable("SkuVariants", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("SkuId");
-
-                            b1.HasOne("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.ProductVariant", null)
-                                .WithMany()
-                                .HasForeignKey("VariantId")
-                                .OnDelete(DeleteBehavior.Restrict)
-                                .IsRequired();
                         });
 
                     b.OwnsOne("HiveSpace.CatalogService.Domain.Common.Money", "Price", b1 =>
                         {
-                            b1.Property<Guid>("SkuId")
-                                .HasColumnType("uniqueidentifier");
+                            b1.Property<int>("SkuId")
+                                .HasColumnType("int");
 
                             b1.Property<decimal>("Amount")
                                 .HasColumnType("decimal(18,2)");
@@ -791,8 +796,6 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
 
             modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.Product", b =>
                 {
-                    b.Navigation("Attributes");
-
                     b.Navigation("Skus");
 
                     b.Navigation("Variants");

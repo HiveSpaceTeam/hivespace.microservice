@@ -5,12 +5,10 @@ using HiveSpace.Domain.Shared.Entities;
 
 namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
 {
-    public class Sku : Entity<Guid>
+    public class Sku : Entity<int>
     {
         #region Properties
         public string SkuNo { get; private set; }
-
-        public Guid ProductId { get; private set; }
 
         private readonly List<SkuVariant> _skuVariants = [];
         public IReadOnlyCollection<SkuVariant> SkuVariants => _skuVariants.AsReadOnly();
@@ -33,10 +31,9 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
             Price = new Money(0m, Currency.USD);
         }
 
-        public Sku(string skuNo, Guid productId, List<SkuVariant> skuVariants, List<SkuImage> images, int quantity, bool isActive, Money price)
+        public Sku(string skuNo, List<SkuVariant> skuVariants, List<SkuImage> images, int quantity, bool isActive, Money price)
         {
             SkuNo = skuNo;
-            ProductId = productId;
             _skuVariants = new List<SkuVariant>(skuVariants);
             _images = new List<SkuImage>(images);
             Quantity = quantity;
@@ -44,11 +41,10 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
             Price = price;
         }
 
-        public Sku(Guid id, string skuNo, Guid productId, List<SkuVariant> skuVariants, List<SkuImage> images, int quantity, bool isActive, Money price)
+        public Sku(int id, string skuNo,List<SkuVariant> skuVariants, List<SkuImage> images, int quantity, bool isActive, Money price)
         {
             Id = id;
             SkuNo = skuNo;
-            ProductId = productId;
             _skuVariants = new List<SkuVariant>(skuVariants);
             _images = new List<SkuImage>(images);
             Quantity = quantity;

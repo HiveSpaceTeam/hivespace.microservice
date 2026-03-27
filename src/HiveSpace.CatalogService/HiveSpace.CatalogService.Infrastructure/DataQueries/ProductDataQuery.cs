@@ -7,7 +7,7 @@ namespace HiveSpace.CatalogService.Infrastructure.DataQueries
 {
     public class ProductDataQuery(CatalogDbContext dbContext) : IProductDataQuery
     {
-        public async Task<ProductDetailViewModel?> GetProductDetailViewModelAsync(Guid productId, CancellationToken cancellationToken = default)
+        public async Task<ProductDetailViewModel?> GetProductDetailViewModelAsync(int productId, CancellationToken cancellationToken = default)
         {
             var query = dbContext.Products
                 .AsNoTracking()
