@@ -53,14 +53,15 @@ public class Order : AggregateRoot<Guid>, IAuditable
 
     public static Order Create(
         Guid userId,
-        DeliveryAddress deliveryAddress)
+        DeliveryAddress deliveryAddress,
+        Guid? id = null)
     {
         if (userId == Guid.Empty)
             throw new InvalidFieldException(OrderDomainErrorCode.OrderUserRequired, nameof(userId));
         if (deliveryAddress == null)
             throw new InvalidFieldException(OrderDomainErrorCode.OrderAddressRequired, nameof(deliveryAddress));
 
-        var orderId = IdGenerator.NewId<Guid>();
+        var orderId = (id.HasValue && id.Value != Guid.Empty) ? id.Value : IdGenerator.NewId<Guid>();
         var shortId = GenerateShortId();
 
         var order = new Order(orderId, shortId, userId, deliveryAddress);
@@ -128,8 +129,9 @@ public class Order : AggregateRoot<Guid>, IAuditable
         if (Status != OrderStatus.Paid && Status != OrderStatus.COD)
             throw new InvalidFieldException(OrderDomainErrorCode.OrderInvalidStatusForConfirmation, nameof(Status));
 
-        // Check all packages are confirmed
-        if (!_packages.All(p => p.Status == OrderPackageStatus.Confirmed))
+        // All packages must be in a terminal state with at least one confirmed
+        if (!_packages.All(p => p.Status == OrderPackageStatus.Confirmed || p.Status == OrderPackageStatus.Rejected)
+            || !_packages.Any(p => p.Status == OrderPackageStatus.Confirmed))
             throw new InvalidFieldException(OrderDomainErrorCode.OrderPackagesNotConfirmed, nameof(Packages));
 
         Status = OrderStatus.Confirmed;
@@ -264,7 +266,7 @@ public class Order : AggregateRoot<Guid>, IAuditable
     private static string GenerateShortId()
     {
         var timestamp = DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmss");
-        var random = new Random().Next(1000, 9999);
+        var random = Random.Shared.Next(100_000, 999_999);
         return $"ORD-{timestamp}-{random}";
     }
 }

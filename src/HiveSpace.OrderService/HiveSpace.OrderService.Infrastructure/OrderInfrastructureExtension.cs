@@ -65,6 +65,8 @@ public static class OrderInfrastructureExtension
         services.AddScoped<ICouponRepository, SqlCouponRepository>();
         services.AddScoped<ICartRepository, SqlCartRepository>();
         services.AddScoped<ISkuRefRepository, SqlSkuRefRepository>();
+        services.AddScoped<IProductRefRepository, SqlProductRefRepository>();
+        services.AddScoped<IOrderRepository, SqlOrderRepository>();
     }
 
     public static void AddOrderServiceQueries(this IServiceCollection services, string connectionString)

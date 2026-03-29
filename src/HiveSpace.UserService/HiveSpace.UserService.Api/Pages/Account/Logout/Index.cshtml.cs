@@ -62,10 +62,15 @@ public class Index : PageModel
 
             _logger.LogDebug("Logout context for logoutId={LogoutId}: clientId={ClientId}, postLogoutRedirectUri={PostLogoutRedirectUri}", LogoutId, ClientId, PostLogoutRedirectUri);
 
-            // If the user is authenticated, sign them out now (preserve logout context for the view)
+            // Always clear both cookies unconditionally. SignOutAsync() is safe to call
+            // even when not signed in (it just expires the cookie). The IsAuthenticated
+            // check cannot be used here because the default auth scheme is LocalApi (Bearer),
+            // so browser requests to this Razor Page always have IsAuthenticated == false,
+            // which would silently skip the signout and leave cookies alive.
+            await _signInManager.SignOutAsync();
+            await HttpContext.SignOutAsync(Duende.IdentityServer.IdentityServerConstants.DefaultCookieAuthenticationScheme);
             if (User.Identity?.IsAuthenticated == true)
             {
-                await _signInManager.SignOutAsync();
                 await _events.RaiseAsync(new UserLogoutSuccessEvent(User.GetSubjectId(), User.GetDisplayName()));
             }
 
@@ -127,10 +132,10 @@ public class Index : PageModel
             ClientName = logoutRequest?.ClientName;
             PostLogoutRedirectUri = logoutRequest?.PostLogoutRedirectUri;
 
-            // If the user is authenticated, sign them out
+            await _signInManager.SignOutAsync();
+            await HttpContext.SignOutAsync(Duende.IdentityServer.IdentityServerConstants.DefaultCookieAuthenticationScheme);
             if (User.Identity?.IsAuthenticated == true)
             {
-                await _signInManager.SignOutAsync();
                 await _events.RaiseAsync(new UserLogoutSuccessEvent(User.GetSubjectId(), User.GetDisplayName()));
             }
 

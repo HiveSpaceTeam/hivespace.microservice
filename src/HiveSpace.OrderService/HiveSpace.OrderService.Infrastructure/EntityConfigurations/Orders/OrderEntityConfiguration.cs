@@ -1,5 +1,7 @@
-using HiveSpace.OrderService.Domain.Aggregates.Orders;
+using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.Domain.Shared.ValueObjects;
+using HiveSpace.OrderService.Domain.Aggregates.Orders;
+using HiveSpace.OrderService.Domain.Enumerations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -19,7 +21,9 @@ public class OrderEntityConfiguration : IEntityTypeConfiguration<Order>
             .IsUnique();
 
         builder.Property(o => o.Status)
-            .HasConversion<string>()
+            .HasConversion(
+                v => v.Name,
+                v => Enumeration.FromDisplayName<OrderStatus>(v))
             .HasMaxLength(50)
             .IsRequired();
 
@@ -28,7 +32,7 @@ public class OrderEntityConfiguration : IEntityTypeConfiguration<Order>
         {
             address.Property(a => a.RecipientName).HasMaxLength(100).IsRequired();
             address.Property(a => a.StreetAddress).HasMaxLength(255).IsRequired();
-            address.Property(a => a.Ward).HasMaxLength(100).IsRequired();
+            address.Property(a => a.Commune).HasMaxLength(100).IsRequired();
             address.Property(a => a.Province).HasMaxLength(100).IsRequired();
             address.Property(a => a.Country).HasMaxLength(100).IsRequired().HasDefaultValue("Vietnam");
             address.Property(a => a.Notes).HasMaxLength(500);

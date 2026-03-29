@@ -168,64 +168,64 @@ public static class Config
         }
 
         // Web UI client
-        var webUiConfig = clientsSection.GetSection("webui").Get<ClientConfig>();
-        if (webUiConfig != null)
+        var storefrontConfig = clientsSection.GetSection("storefront").Get<ClientConfig>();
+        if (storefrontConfig != null)
         {
-            var webUiClient = new Client
+            var storefrontClient = new Client
             {
-                ClientId = webUiConfig.ClientId,
-                ClientName = webUiConfig.ClientName,
-                ClientUri = webUiConfig.ClientUri,
-                ClientSecrets = !string.IsNullOrEmpty(webUiConfig.ClientSecret)
-                    ? new List<Secret> { new Secret(webUiConfig.ClientSecret.Sha256()) }
+                ClientId = storefrontConfig.ClientId,
+                ClientName = storefrontConfig.ClientName,
+                ClientUri = storefrontConfig.ClientUri,
+                ClientSecrets = !string.IsNullOrEmpty(storefrontConfig.ClientSecret)
+                    ? new List<Secret> { new Secret(storefrontConfig.ClientSecret.Sha256()) }
                     : new List<Secret>(),
-                RequireClientSecret = webUiConfig.RequireClientSecret,
-                AllowedGrantTypes = webUiConfig.AllowedGrantTypes ?? new List<string> { "authorization_code" },
-                AllowAccessTokensViaBrowser = webUiConfig.AllowAccessTokensViaBrowser,
-                RequireConsent = webUiConfig.RequireConsent,
-                AllowOfflineAccess = webUiConfig.AllowOfflineAccess,
-                AlwaysIncludeUserClaimsInIdToken = webUiConfig.AlwaysIncludeUserClaimsInIdToken,
+                RequireClientSecret = storefrontConfig.RequireClientSecret,
+                AllowedGrantTypes = storefrontConfig.AllowedGrantTypes ?? new List<string> { "authorization_code" },
+                AllowAccessTokensViaBrowser = storefrontConfig.AllowAccessTokensViaBrowser,
+                RequireConsent = storefrontConfig.RequireConsent,
+                AllowOfflineAccess = storefrontConfig.AllowOfflineAccess,
+                AlwaysIncludeUserClaimsInIdToken = storefrontConfig.AlwaysIncludeUserClaimsInIdToken,
                 UpdateAccessTokenClaimsOnRefresh = true,
-                RequirePkce = webUiConfig.RequirePkce,
-                RedirectUris = webUiConfig.RedirectUris ?? new List<string>(),
-                PostLogoutRedirectUris = webUiConfig.PostLogoutRedirectUris ?? new List<string>(),
-                AllowedCorsOrigins = webUiConfig.AllowedCorsOrigins ?? new List<string>(),
-                AllowedScopes = webUiConfig.AllowedScopes ?? new List<string>(),
-                AccessTokenLifetime = webUiConfig.AccessTokenLifetime,
-                IdentityTokenLifetime = webUiConfig.IdentityTokenLifetime
+                RequirePkce = storefrontConfig.RequirePkce,
+                RedirectUris = storefrontConfig.RedirectUris ?? new List<string>(),
+                PostLogoutRedirectUris = storefrontConfig.PostLogoutRedirectUris ?? new List<string>(),
+                AllowedCorsOrigins = storefrontConfig.AllowedCorsOrigins ?? new List<string>(),
+                AllowedScopes = storefrontConfig.AllowedScopes ?? new List<string>(),
+                AccessTokenLifetime = storefrontConfig.AccessTokenLifetime,
+                IdentityTokenLifetime = storefrontConfig.IdentityTokenLifetime
             };
 
             var oidcScopesWeb = new[] { "openid", "profile" };
-            webUiClient.AllowedScopes = (webUiClient.AllowedScopes ?? new List<string>())
+            storefrontClient.AllowedScopes = (storefrontClient.AllowedScopes ?? new List<string>())
                 .Concat(oidcScopesWeb)
                 .Distinct()
                 .ToList();
 
-            if (webUiConfig.AllowOfflineAccess)
+            if (storefrontConfig.AllowOfflineAccess)
             {
-                webUiClient.AllowedScopes ??= new List<string>();
-                var allowedScopes = webUiClient.AllowedScopes.ToList();
+                storefrontClient.AllowedScopes ??= new List<string>();
+                var allowedScopes = storefrontClient.AllowedScopes.ToList();
                 if (!allowedScopes.Contains("offline_access"))
                 {
                     allowedScopes.Add("offline_access");
-                    webUiClient.AllowedScopes = allowedScopes;
+                    storefrontClient.AllowedScopes = allowedScopes;
                 }
 
                 // Configure refresh token behavior for SPA using refresh tokens
-                webUiClient.RefreshTokenUsage = webUiConfig.RefreshTokenUsage?.ToLower() switch
+                storefrontClient.RefreshTokenUsage = storefrontConfig.RefreshTokenUsage?.ToLower() switch
                 {
                     "reuse" => TokenUsage.ReUse,
                     "onetimeonly" => TokenUsage.OneTimeOnly,
                     _ => TokenUsage.OneTimeOnly // Default to OneTimeOnly for security
                 };
-                webUiClient.RefreshTokenExpiration = TokenExpiration.Sliding;
-                if (webUiConfig.AbsoluteRefreshTokenLifetime.HasValue && webUiConfig.AbsoluteRefreshTokenLifetime.Value > 0)
-                    webUiClient.AbsoluteRefreshTokenLifetime = webUiConfig.AbsoluteRefreshTokenLifetime.Value;
-                if (webUiConfig.SlidingRefreshTokenLifetime.HasValue && webUiConfig.SlidingRefreshTokenLifetime.Value > 0)
-                    webUiClient.SlidingRefreshTokenLifetime = webUiConfig.SlidingRefreshTokenLifetime.Value;
+                storefrontClient.RefreshTokenExpiration = TokenExpiration.Sliding;
+                if (storefrontConfig.AbsoluteRefreshTokenLifetime.HasValue && storefrontConfig.AbsoluteRefreshTokenLifetime.Value > 0)
+                    storefrontClient.AbsoluteRefreshTokenLifetime = storefrontConfig.AbsoluteRefreshTokenLifetime.Value;
+                if (storefrontConfig.SlidingRefreshTokenLifetime.HasValue && storefrontConfig.SlidingRefreshTokenLifetime.Value > 0)
+                    storefrontClient.SlidingRefreshTokenLifetime = storefrontConfig.SlidingRefreshTokenLifetime.Value;
             }
 
-            clients.Add(webUiClient);
+            clients.Add(storefrontClient);
         }
 
         return clients;

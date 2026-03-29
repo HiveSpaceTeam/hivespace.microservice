@@ -1,4 +1,6 @@
+using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.OrderService.Domain.Aggregates.Orders;
+using HiveSpace.OrderService.Domain.Enumerations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -9,16 +11,16 @@ public class OrderTrackingEntityConfiguration : IEntityTypeConfiguration<OrderTr
     public void Configure(EntityTypeBuilder<OrderTracking> builder)
     {
         builder.ToTable("order_trackings");
-        
-        builder.HasKey(t => t.Id);
 
-        // Foreign Key
-        builder.HasOne<Order>()
-            .WithMany(o => o.Trackings)
-            .OnDelete(DeleteBehavior.Cascade);
-        
+        builder.HasKey(t => t.Id);
+        builder.Property(t => t.Id).ValueGeneratedNever();
+
         builder.Property(t => t.Type).IsRequired().HasMaxLength(50);
-        builder.Property(t => t.ExecutorType).HasConversion<string>().HasMaxLength(50);
+        builder.Property(t => t.ExecutorType)
+            .HasConversion(
+                v => v.Name,
+                v => Enumeration.FromDisplayName<ExecutorType>(v))
+            .HasMaxLength(50);
         builder.Property(t => t.Message).HasMaxLength(500);
     }
 }

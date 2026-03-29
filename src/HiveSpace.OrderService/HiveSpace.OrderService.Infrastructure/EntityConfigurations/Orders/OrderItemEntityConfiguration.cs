@@ -14,8 +14,8 @@ public class OrderItemEntityConfiguration : IEntityTypeConfiguration<OrderItem>
         
         builder.ToTable("order_items");
 
-        builder.Property(i => i.ProductId).IsRequired(); // Guid
-        builder.Property(i => i.SkuId).IsRequired(); // Guid
+        builder.Property(i => i.ProductId).IsRequired(); // long (catalog ID)
+        builder.Property(i => i.SkuId).IsRequired(); // long (catalog ID)
 
         builder.OwnsOne(i => i.UnitPrice, money =>
         {

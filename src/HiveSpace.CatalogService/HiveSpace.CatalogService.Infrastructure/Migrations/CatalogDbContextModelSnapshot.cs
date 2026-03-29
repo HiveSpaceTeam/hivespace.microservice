@@ -324,7 +324,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
 
                     b.HasIndex("Delivered");
 
-                    b.ToTable("InboxState");
+                    b.ToTable("InboxState", (string)null);
                 });
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.OutboxMessage", b =>
@@ -417,7 +417,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                         .IsUnique()
                         .HasFilter("[InboxMessageId] IS NOT NULL AND [InboxConsumerId] IS NOT NULL");
 
-                    b.ToTable("OutboxMessage");
+                    b.ToTable("OutboxMessage", (string)null);
                 });
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.OutboxState", b =>
@@ -447,7 +447,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
 
                     b.HasIndex("Created");
 
-                    b.ToTable("OutboxState");
+                    b.ToTable("OutboxState", (string)null);
                 });
 
             modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.AttributeAggregate.AttributeDefinition", b =>
@@ -475,7 +475,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
 
                             b1.HasKey("AttributeDefinitionId");
 
-                            b1.ToTable("Attributes");
+                            b1.ToTable("Attributes", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("AttributeDefinitionId");
@@ -571,6 +571,35 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                             b1.HasIndex("ProductId");
 
                             b1.ToTable("ProductCategories", (string)null);
+
+                            b1.WithOwner()
+                                .HasForeignKey("ProductId");
+                        });
+
+                    b.OwnsOne("HiveSpace.CatalogService.Domain.ValueObjects.Dimensions", "Dimensions", b1 =>
+                        {
+                            b1.Property<Guid>("ProductId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<decimal>("Height")
+                                .HasColumnType("decimal(18,2)")
+                                .HasColumnName("DimensionsHeight");
+
+                            b1.Property<decimal>("Length")
+                                .HasColumnType("decimal(18,2)")
+                                .HasColumnName("DimensionsLength");
+
+                            b1.Property<int>("Unit")
+                                .HasColumnType("int")
+                                .HasColumnName("DimensionsUnit");
+
+                            b1.Property<decimal>("Width")
+                                .HasColumnType("decimal(18,2)")
+                                .HasColumnName("DimensionsWidth");
+
+                            b1.HasKey("ProductId");
+
+                            b1.ToTable("Products", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("ProductId");
@@ -716,6 +745,25 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                             b1.HasKey("SkuId", "Id");
 
                             b1.ToTable("SkuImages", (string)null);
+
+                            b1.WithOwner()
+                                .HasForeignKey("SkuId");
+                        });
+
+                    b.OwnsOne("HiveSpace.CatalogService.Domain.Common.Money", "Price", b1 =>
+                        {
+                            b1.Property<Guid>("SkuId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<decimal>("Amount")
+                                .HasColumnType("decimal(18,2)");
+
+                            b1.Property<int>("Currency")
+                                .HasColumnType("int");
+
+                            b1.HasKey("SkuId");
+
+                            b1.ToTable("Skus", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("SkuId");
