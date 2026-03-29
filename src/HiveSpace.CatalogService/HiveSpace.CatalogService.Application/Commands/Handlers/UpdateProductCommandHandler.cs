@@ -34,7 +34,7 @@ public class UpdateProductCommandHandler : ICommandHandler<UpdateProductCommand,
         await _transactionService.InTransactionScopeAsync(async transaction =>
         {
             // Get the existing product within the transaction
-            var product = await _productRepository.GetDetailByIdAsync(request.ProductId, cancellationToken);
+            var product = await _productRepository.GetDetailByIdAsync(request.ProductId, false, cancellationToken);
             if (product is null) return;
 
             var isUpdated = false;

@@ -40,12 +40,17 @@ namespace HiveSpace.CatalogService.Infrastructure.Repositories
             // Don't call SaveChangesAsync here - let the transaction service handle it
         }
 
-        public async Task<Product?> GetDetailByIdAsync(int id, CancellationToken cancellationToken = default)
+        public async Task<Product?> GetDetailByIdAsync(int id, bool noTracking = true, CancellationToken cancellationToken = default)
         {
+            IQueryable<Product> query = _context.Products;
 
-            var query = _context.Products
-                .AsNoTracking()
-                .Where(p => p.Id == id)
+            if (noTracking)
+            {
+                query = query.AsNoTracking();
+            }
+
+            query = query
+             .Where(p => p.Id == id)
                 .Include(p => p.Categories)
                 .Include(p => p.Images)
                 .Include(p => p.Attributes)

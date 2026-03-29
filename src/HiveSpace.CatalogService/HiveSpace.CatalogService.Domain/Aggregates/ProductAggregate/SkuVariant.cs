@@ -8,11 +8,7 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
         public string VariantName { get; private set; }
         public string Value { get; private set; }
 
-        public SkuVariant(string value)
-        {
-            Value = value;
-        }
-
+  
         public SkuVariant(string variantName, string value)
         {
             VariantName = variantName;

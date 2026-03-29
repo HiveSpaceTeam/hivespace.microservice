@@ -100,7 +100,7 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
         public Product(string name, string description, ProductStatus status, DateTimeOffset createdAt, string createdBy)
         {
             Name = name;
-            Slug = string.Empty;
+            Slug = $"{name}-{Guid.NewGuid().ToString("N").Substring(0, 6)}";
             Description = description;
             Status = status;
             CreatedAt = createdAt;

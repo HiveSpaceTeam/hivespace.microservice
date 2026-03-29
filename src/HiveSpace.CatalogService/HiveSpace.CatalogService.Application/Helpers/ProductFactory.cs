@@ -47,8 +47,7 @@ public static class ProductFactory
 
         return [.. skuRequests.Select(s =>
         {
-            var skuId = s.Id != Guid.Empty ? s.Id : Guid.NewGuid();
-            var skuVariants = s.SkuVariants?.Select(sv => new SkuVariant(sv.Value ?? string.Empty)).ToList() ?? [];
+            var skuVariants = s.SkuVariants?.Select(sv => new SkuVariant(sv.VariantName ,sv.Value ?? string.Empty)).ToList() ?? [];
             return new Sku(s.SkuNo ?? string.Empty, skuVariants, [], s.Quantity, true, s.Price);
         })];
     }

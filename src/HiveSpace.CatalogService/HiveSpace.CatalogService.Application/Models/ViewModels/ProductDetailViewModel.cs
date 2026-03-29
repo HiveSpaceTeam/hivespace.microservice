@@ -18,5 +18,14 @@ namespace HiveSpace.CatalogService.Application.Models.ViewModels
         public List<Sku> Skus { get; set; }
 
         public List<ProductVariant> Variants { get; set; }
+
+        public CurrentSeller CurrentSeller { get; set; }
+    }
+
+    public class CurrentSeller
+    {
+        public Guid Id { get; set; }
+        public string StoreName { get; set; }
+        public string LogoUrl { get; set; }
     }
 }

@@ -5,7 +5,7 @@ namespace HiveSpace.CatalogService.Domain.Repositories
     {
         Task<Product?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
         Task<List<Product>> GetAllAsync(CancellationToken cancellationToken = default);
-        Task<Product?> GetDetailByIdAsync(int id, CancellationToken cancellationToken = default);
+        Task<Product?> GetDetailByIdAsync(int id, bool noTracking, CancellationToken cancellationToken = default);
         Task AddAsync(Product product, CancellationToken cancellationToken = default);
         Task UpdateAsync(Product product, CancellationToken cancellationToken = default);
         Task DeleteAsync(Product product, CancellationToken cancellationToken = default);
