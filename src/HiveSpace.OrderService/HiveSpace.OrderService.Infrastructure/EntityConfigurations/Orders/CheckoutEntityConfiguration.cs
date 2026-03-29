@@ -1,4 +1,6 @@
+using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.OrderService.Domain.Aggregates.Orders;
+using HiveSpace.OrderService.Domain.Enumerations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -9,7 +11,7 @@ public class CheckoutEntityConfiguration : IEntityTypeConfiguration<Checkout>
     public void Configure(EntityTypeBuilder<Checkout> builder)
     {
         builder.ToTable("order_checkouts");
-        
+
         builder.HasKey(c => c.Id);
 
         // Foreign Key
@@ -18,7 +20,9 @@ public class CheckoutEntityConfiguration : IEntityTypeConfiguration<Checkout>
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.Property(c => c.PaymentMethod)
-            .HasConversion<string>()
+            .HasConversion(
+                v => v.Name,
+                v => Enumeration.FromDisplayName<PaymentMethod>(v))
             .HasMaxLength(50);
             
         builder.OwnsOne(c => c.Amount, money =>

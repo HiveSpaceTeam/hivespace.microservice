@@ -14,8 +14,8 @@ namespace HiveSpace.OrderService.Domain.ValueObjects
     /// </summary>
     public class ProductSnapshot : ValueObject
     {
-        public Guid ProductId { get; private set; }
-        public Guid SkuId { get; private set; }
+        public long ProductId { get; private set; }
+        public long SkuId { get; private set; }
         public string ProductName { get; private set; }
         public string SkuName { get; private set; }
         public Money Price { get; private set; }
@@ -33,8 +33,8 @@ namespace HiveSpace.OrderService.Domain.ValueObjects
         }
 
         private ProductSnapshot(
-            Guid productId,
-            Guid skuId,
+            long productId,
+            long skuId,
             string productName,
             string skuName,
             Money price,
@@ -56,18 +56,18 @@ namespace HiveSpace.OrderService.Domain.ValueObjects
         /// Captures a snapshot of the product at the current moment.
         /// </summary>
         public static ProductSnapshot Capture(
-            Guid productId,
-            Guid skuId,
+            long productId,
+            long skuId,
             string productName,
             string skuName,
             Money price,
             string imageUrl,
             Dictionary<string, string>? attributes = null)
         {
-            if (productId == Guid.Empty)
+            if (productId <= 0)
                 throw new InvalidFieldException(OrderDomainErrorCode.SnapshotInvalidProductId, nameof(productId));
 
-            if (skuId == Guid.Empty)
+            if (skuId <= 0)
                 throw new InvalidFieldException(OrderDomainErrorCode.SnapshotInvalidSkuId, nameof(skuId));
 
             if (string.IsNullOrWhiteSpace(productName))

@@ -1,5 +1,7 @@
-using HiveSpace.OrderService.Domain.Aggregates.Orders;
+using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.Domain.Shared.ValueObjects;
+using HiveSpace.OrderService.Domain.Aggregates.Orders;
+using HiveSpace.OrderService.Domain.Enumerations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -16,7 +18,9 @@ public class OrderPackageEntityConfiguration : IEntityTypeConfiguration<OrderPac
         builder.Property(p => p.StoreId).IsRequired();
         builder.Property(p => p.BuyerId).IsRequired();
         builder.Property(p => p.Status)
-            .HasConversion<string>()
+            .HasConversion(
+                v => v.Name,
+                v => Enumeration.FromDisplayName<OrderPackageStatus>(v))
             .HasMaxLength(50)
             .IsRequired();
         

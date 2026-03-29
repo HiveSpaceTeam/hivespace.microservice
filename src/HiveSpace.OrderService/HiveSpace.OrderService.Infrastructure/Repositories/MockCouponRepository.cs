@@ -85,5 +85,12 @@ public class MockCouponRepository : ICouponRepository
     {
         _coupons.AddOrUpdate(entity.Id, entity, (_, _) => entity);
     }
+
+    public Task<List<Coupon>> GetByCodesAsync(IEnumerable<string> codes, CancellationToken ct = default)
+    {
+        var codeSet = codes.ToHashSet();
+        var result = _coupons.Values.Where(c => codeSet.Contains(c.Code)).ToList();
+        return Task.FromResult(result);
+    }
 }
 

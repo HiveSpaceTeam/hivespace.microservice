@@ -79,8 +79,8 @@ public class OrderPackage : Entity<Guid>, IAuditable
     }
 
     public void AddItem(
-        Guid productId,
-        Guid skuId,
+        long productId,
+        long skuId,
         int quantity,
         Money unitPrice,
         ProductSnapshot productSnapshot,
