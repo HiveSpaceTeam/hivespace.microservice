@@ -6,5 +6,5 @@ public record PackageRejected
     public Guid    OrderId       { get; init; }
     public Guid    PackageId     { get; init; }
     public string  Reason        { get; init; } = null!;
-    public decimal PackageAmount { get; init; }
+    public long    PackageAmount { get; init; }
 }

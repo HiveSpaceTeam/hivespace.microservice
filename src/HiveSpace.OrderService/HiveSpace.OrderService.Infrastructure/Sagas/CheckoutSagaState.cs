@@ -9,35 +9,44 @@ public class CheckoutSagaState : SagaStateMachineInstance
     public Guid   CorrelationId { get; set; }
     public string CurrentState  { get; set; } = null!;
 
+    // For responding back to the IRequestClient caller
+    public Guid? RequestId       { get; set; }
+    public Uri?  ResponseAddress { get; set; }
+
+    // User input
     public Guid               UserId          { get; set; }
     public DeliveryAddressDto DeliveryAddress { get; set; } = null!;
     public List<string>       CouponCodes     { get; set; } = new();
+    public PaymentMethod      PaymentMethod   { get; set; } = PaymentMethod.COD;
 
-    public Guid       OrderId           { get; set; }
-    public List<Guid> PackageIds        { get; set; } = new();
-    public int        TotalPackages     { get; set; }
-    public int        ConfirmedPackages { get; set; }
-    public int        RejectedPackages  { get; set; }
-    public List<Guid> RejectedPackageIds { get; set; } = new();
-
+    // Calculated during ValidateCheckout
     public List<OrderItemDto> Items          { get; set; } = new();
-    public decimal            Subtotal       { get; set; }
-    public decimal            ShippingFee    { get; set; }
-    public decimal            TaxAmount      { get; set; }
-    public decimal            DiscountAmount { get; set; }
-    public decimal            GrandTotal     { get; set; }
+    public long               Subtotal       { get; set; }
+    public long               ShippingFee    { get; set; }
+    public long               TaxAmount      { get; set; }
+    public long               DiscountAmount { get; set; }
+    public long               GrandTotal     { get; set; }
 
+    // Set after CreateOrder — CorrelationId IS the OrderId
+    public List<Guid> PackageIds { get; set; } = new();
+
+    // Set after ReserveInventory — carried into CheckoutPaymentSettled handoff
     public List<Guid>                   ReservationIds        { get; set; } = new();
     public Dictionary<Guid, List<Guid>> PackageReservationMap { get; set; } = new();
 
-    public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.COD;
+    // Phase 2 — online payment (unused for COD)
+    public string?         PaymentUrl       { get; set; }
+    public DateTimeOffset? PaymentExpiresAt { get; set; }
 
-    public string?         FailureReason { get; set; }
+    // Tracking
+    public DateTimeOffset  CreatedAt     { get; set; }
+    public DateTimeOffset? CompletedAt   { get; set; }
     public DateTimeOffset? FailedAt      { get; set; }
+    public string?         FailureReason { get; set; }
 
-    public DateTimeOffset  CreatedAt   { get; set; }
-    public DateTimeOffset? CompletedAt { get; set; }
-
-    public Guid? SellerConfirmationTimeoutTokenId { get; set; }
-    public Guid? SagaStepTimeoutTokenId           { get; set; }
+    // Internal Request() pending token IDs (MassTransit uses these to cancel scheduled timeouts)
+    public Guid? CartValidationPendingTokenId       { get; set; }
+    public Guid? OrderCreationPendingTokenId        { get; set; }
+    public Guid? InventoryReservationPendingTokenId { get; set; }
+    public Guid? CODMarkingPendingTokenId           { get; set; }
 }

@@ -5,6 +5,7 @@ using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Events;
 using HiveSpace.OrderService.Domain.Repositories;
 using MassTransit;
 using Microsoft.Extensions.Logging;
+using static HiveSpace.OrderService.Application.Cart.CheckoutCalculator;
 
 namespace HiveSpace.OrderService.Api.Consumers.Saga.CheckoutSaga;
 
@@ -23,7 +24,7 @@ public class ValidateCheckoutConsumer(
         var cart = await cartRepository.GetByUserIdAsync(message.UserId, ct);
         if (cart is null || cart.Items.Count == 0)
         {
-            await context.Publish<ValidationFailed>(new
+            await context.RespondAsync<ValidationFailed>(new
             {
                 message.CorrelationId,
                 Reason = "Cart is empty or not found",
@@ -35,7 +36,7 @@ public class ValidateCheckoutConsumer(
         var selectedItems = cart.Items.Where(i => i.IsSelected).ToList();
         if (selectedItems.Count == 0)
         {
-            await context.Publish<ValidationFailed>(new
+            await context.RespondAsync<ValidationFailed>(new
             {
                 message.CorrelationId,
                 Reason = "No items selected in cart",
@@ -55,7 +56,7 @@ public class ValidateCheckoutConsumer(
         var missingProductIds = productRefIds.Except(productRefMap.Keys).ToList();
         if (missingProductIds.Count > 0)
         {
-            await context.Publish<ValidationFailed>(new
+            await context.RespondAsync<ValidationFailed>(new
             {
                 message.CorrelationId,
                 Reason = $"Products not found: {string.Join(", ", missingProductIds)}",
@@ -67,7 +68,7 @@ public class ValidateCheckoutConsumer(
         var missingSkuIds = skuRefIds.Except(skuRefMap.Keys).ToList();
         if (missingSkuIds.Count > 0)
         {
-            await context.Publish<ValidationFailed>(new
+            await context.RespondAsync<ValidationFailed>(new
             {
                 message.CorrelationId,
                 Reason = $"SKUs not found: {string.Join(", ", missingSkuIds)}",
@@ -86,51 +87,44 @@ public class ValidateCheckoutConsumer(
                 SkuId       = i.SkuId,
                 StoreId     = productRef.StoreId,
                 Quantity    = i.Quantity,
-                Price       = (decimal)skuRef.Price,
+                Price       = skuRef.Price,
                 ProductName = productRef.Name,
                 SkuName     = string.Empty,
                 ImageUrl    = skuRef.ImageUrl ?? productRef.ThumbnailUrl ?? string.Empty
             };
         }).ToList();
 
-        var subtotal = items.Sum(i => i.Price * i.Quantity);
+        var subtotal       = items.Sum(i => i.Price * i.Quantity);
         var totalItemCount = items.Sum(i => i.Quantity);
-        var shippingFee = totalItemCount <= 5 ? 30_000m : 50_000m;
-        var discountAmount = 0m;
+        var shippingFee    = CalculateShippingFee(totalItemCount);
+        var discountAmount = 0L;
 
         if (message.CouponCodes.Count > 0)
         {
-            var coupons = await couponRepository.GetByCodesAsync(message.CouponCodes, ct);
-            var subtotalMoney = Money.FromVND((long)subtotal);
-            var productIds = items.Select(i => i.ProductId).Distinct();
-            var storeIds = items.Select(i => i.StoreId).Distinct().ToList();
+            var coupons    = await couponRepository.GetByCodesAsync(message.CouponCodes, ct);
+            var productIds = items.Select(i => i.ProductId).Distinct().ToList();
+            var storeIds   = items.Select(i => i.StoreId).Distinct().ToList();
+            var storeId    = storeIds.Count == 1 ? storeIds[0] : (Guid?)null;
 
             foreach (var coupon in coupons)
             {
-                var storeId = storeIds.Count == 1 ? storeIds[0] : (Guid?)null;
-                var result = coupon.Validate(message.UserId, subtotalMoney, productIds, storeId);
-                if (result.IsValid)
-                {
-                    var discount = coupon.CalculateDiscount(subtotalMoney);
-                    discountAmount += discount.Amount;
-                }
+                var (itemDiscount, _) = ApplyCoupon(coupon, message.UserId, subtotal, shippingFee, productIds, storeId);
+                if (itemDiscount > 0)
+                    discountAmount += itemDiscount;
                 else
-                {
-                    logger.LogWarning("Coupon {Code} invalid for user {UserId}: {Errors}",
-                        coupon.Code, message.UserId, string.Join(", ", result.Errors.Select(e => e.ErrorCode)));
-                }
+                    logger.LogWarning("Coupon {Code} invalid for user {UserId}", coupon.Code, message.UserId);
             }
         }
 
         var grandTotal = subtotal + shippingFee - discountAmount;
 
-        await context.Publish<ValidationCompleted>(new
+        await context.RespondAsync<ValidationCompleted>(new
         {
             message.CorrelationId,
             Items          = items,
             Subtotal       = subtotal,
             ShippingFee    = shippingFee,
-            TaxAmount      = 0m,
+            TaxAmount      = 0L,
             DiscountAmount = discountAmount,
             GrandTotal     = grandTotal
         });

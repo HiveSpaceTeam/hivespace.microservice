@@ -1,5 +1,7 @@
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Commands;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Events;
+using HiveSpace.OrderService.Api.Models;
+using HiveSpace.OrderService.Domain.Enumerations;
 using HiveSpace.OrderService.Infrastructure.Sagas;
 using MassTransit;
 
@@ -7,75 +9,81 @@ namespace HiveSpace.OrderService.Api.Sagas.CheckoutSaga;
 
 public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaState>
 {
+    // ── Requests (sync steps — consumers must RespondAsync) ──────────────────
+    public Request<CheckoutSagaState, ValidateCheckout, ValidationCompleted, ValidationFailed>         CartValidation       { get; private set; } = null!;
+    public Request<CheckoutSagaState, CreateOrder, OrderCreated>                                        OrderCreation        { get; private set; } = null!;
+    public Request<CheckoutSagaState, ReserveInventory, InventoryReserved, InventoryReservationFailed> InventoryReservation { get; private set; } = null!;
+    public Request<CheckoutSagaState, MarkOrderAsCOD, OrderMarkedAsCOD, MarkOrderAsCODFailed>          CODMarking           { get; private set; } = null!;
+
+    // ── Events (compensation — still pub/sub) ────────────────────────────────
+    public Event<CheckoutInitiated> CheckoutInitiated { get; private set; } = null!;
+    public Event<InventoryReleased> InventoryReleased { get; private set; } = null!;
+    public Event<OrderCancelled>    OrderCancelled    { get; private set; } = null!;
+
+    // ── States ────────────────────────────────────────────────────────────────
+    public State Compensating { get; private set; } = null!;
+    public State Completed    { get; private set; } = null!;
+    public State Failed       { get; private set; } = null!;
+
     public CheckoutSagaStateMachine()
     {
         InstanceState(x => x.CurrentState);
 
-        Event(() => CheckoutInitiated,           x => x.CorrelateById(m => m.Message.CorrelationId));
-        Event(() => ValidationCompleted,         x => x.CorrelateById(m => m.Message.CorrelationId));
-        Event(() => ValidationFailed,            x => x.CorrelateById(m => m.Message.CorrelationId));
-        Event(() => OrderCreated,                x => x.CorrelateById(m => m.Message.CorrelationId));
-        Event(() => InventoryReserved,           x => x.CorrelateById(m => m.Message.CorrelationId));
-        Event(() => InventoryReservationFailed,  x => x.CorrelateById(m => m.Message.CorrelationId));
-        Event(() => OrderMarkedAsCOD,            x => x.CorrelateById(m => m.Message.CorrelationId));
-        Event(() => InventoryConfirmed,          x => x.CorrelateById(m => m.Message.CorrelationId));
-        Event(() => InventoryConfirmationFailed, x => x.CorrelateById(m => m.Message.CorrelationId));
-        Event(() => SellersNotified,             x => x.CorrelateById(m => m.Message.CorrelationId));
-        Event(() => PackageConfirmed,            x => x.CorrelateById(m => m.Message.CorrelationId));
-        Event(() => PackageRejected,             x => x.CorrelateById(m => m.Message.CorrelationId));
-        Event(() => CustomerNotified,            x => x.CorrelateById(m => m.Message.CorrelationId));
-        Event(() => InventoryReleased,           x => x.CorrelateById(m => m.Message.CorrelationId));
-        Event(() => OrderCancelled,              x => x.CorrelateById(m => m.Message.CorrelationId));
-        Event(() => MarkOrderAsCODFailed,        x => x.CorrelateById(m => m.Message.CorrelationId));
+        // Configure requests — each has its own 30-min timeout
+        Request(() => CartValidation,       x => x.CartValidationPendingTokenId,       cfg => cfg.Timeout = TimeSpan.FromMinutes(30));
+        Request(() => OrderCreation,        x => x.OrderCreationPendingTokenId,        cfg => cfg.Timeout = TimeSpan.FromMinutes(30));
+        Request(() => InventoryReservation, x => x.InventoryReservationPendingTokenId, cfg => cfg.Timeout = TimeSpan.FromMinutes(30));
+        Request(() => CODMarking,           x => x.CODMarkingPendingTokenId,           cfg => cfg.Timeout = TimeSpan.FromMinutes(30));
 
-        Schedule(() => SellerConfirmationTimeout, x => x.SellerConfirmationTimeoutTokenId, s =>
-        {
-            s.Delay = TimeSpan.FromDays(3);
-        });
-
-        Schedule(() => SagaStepTimeout, x => x.SagaStepTimeoutTokenId, s =>
-        {
-            s.Delay = TimeSpan.FromMinutes(30);
-        });
+        Event(() => CheckoutInitiated, x => x.CorrelateById(m => m.Message.CorrelationId));
+        Event(() => InventoryReleased,  x => x.CorrelateById(m => m.Message.CorrelationId));
+        Event(() => OrderCancelled,     x => x.CorrelateById(m => m.Message.CorrelationId));
 
         // ── INITIAL ──────────────────────────────────────────────────────────
+        // After SetCompletedWhenFinalized() removes the saga row, the outbox may
+        // re-deliver responses or timeouts. MassTransit then creates a ghost
+        // Initial instance — finalize immediately to delete it and stop retries.
         Initially(
+            When(CartValidation.Completed).Finalize(),
+            When(CartValidation.Completed2).Finalize(),
+            When(CartValidation.Faulted).Finalize(),
+            When(CartValidation.TimeoutExpired).Finalize(),
+            When(OrderCreation.Completed).Finalize(),
+            When(OrderCreation.Faulted).Finalize(),
+            When(OrderCreation.TimeoutExpired).Finalize(),
+            When(InventoryReservation.Completed).Finalize(),
+            When(InventoryReservation.Completed2).Finalize(),
+            When(InventoryReservation.Faulted).Finalize(),
+            When(InventoryReservation.TimeoutExpired).Finalize(),
+            When(CODMarking.Completed).Finalize(),
+            When(CODMarking.Completed2).Finalize(),
+            When(CODMarking.Faulted).Finalize(),
+            When(CODMarking.TimeoutExpired).Finalize(),
+
             When(CheckoutInitiated)
                 .Then(ctx =>
                 {
+                    ctx.Saga.RequestId       = ctx.RequestId;
+                    ctx.Saga.ResponseAddress = ctx.ResponseAddress;
                     ctx.Saga.UserId          = ctx.Message.UserId;
                     ctx.Saga.DeliveryAddress = ctx.Message.DeliveryAddress;
                     ctx.Saga.CouponCodes     = ctx.Message.CouponCodes;
                     ctx.Saga.PaymentMethod   = ctx.Message.PaymentMethod;
                     ctx.Saga.CreatedAt       = DateTimeOffset.UtcNow;
                 })
-                .TransitionTo(Validating)
-                .Schedule(SagaStepTimeout, ctx => ctx.Init<SagaStepExpired>(new
+                .Request(CartValidation, ctx => ctx.Init<ValidateCheckout>(new
                 {
-                    CorrelationId = ctx.Saga.CorrelationId,
-                    OrderId       = Guid.Empty
+                    ctx.Saga.CorrelationId,
+                    ctx.Saga.UserId,
+                    ctx.Saga.CouponCodes,
+                    ctx.Saga.DeliveryAddress
                 }))
-                .PublishAsync(ctx => ctx.Init<ValidateCheckout>(new
-                {
-                    ctx.Message.CorrelationId,
-                    ctx.Message.UserId,
-                    ctx.Message.CouponCodes,
-                    ctx.Message.DeliveryAddress
-                }))
+                .TransitionTo(CartValidation.Pending)
         );
 
-        // ── VALIDATING ───────────────────────────────────────────────────────
-        During(Validating,
-            When(SagaStepTimeout.Received)
-                .Then(ctx =>
-                {
-                    ctx.Saga.FailureReason = $"Saga timed out waiting for validation (state: {ctx.Saga.CurrentState})";
-                    ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
-                })
-                .TransitionTo(Failed)
-                .Finalize(),
-
-            When(ValidationCompleted)
+        // ── CART VALIDATION ───────────────────────────────────────────────────
+        During(CartValidation.Pending,
+            When(CartValidation.Completed)
                 .Then(ctx =>
                 {
                     ctx.Saga.Items          = ctx.Message.Items;
@@ -85,10 +93,9 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
                     ctx.Saga.DiscountAmount = ctx.Message.DiscountAmount;
                     ctx.Saga.GrandTotal     = ctx.Message.GrandTotal;
                 })
-                .TransitionTo(CreatingOrder)
-                .PublishAsync(ctx => ctx.Init<CreateOrder>(new
+                .Request(OrderCreation, ctx => ctx.Init<CreateOrder>(new
                 {
-                    ctx.Message.CorrelationId,
+                    ctx.Saga.CorrelationId,
                     UserId          = ctx.Saga.UserId,
                     Items           = ctx.Saga.Items,
                     DeliveryAddress = ctx.Saga.DeliveryAddress,
@@ -98,314 +105,269 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
                     DiscountAmount  = ctx.Saga.DiscountAmount,
                     GrandTotal      = ctx.Saga.GrandTotal,
                     PaymentMethod   = ctx.Saga.PaymentMethod
-                })),
+                }))
+                .TransitionTo(OrderCreation.Pending),
 
-            When(ValidationFailed)
+            When(CartValidation.Completed2)   // ValidationFailed — no compensation needed
                 .Then(ctx =>
                 {
                     ctx.Saga.FailureReason = ctx.Message.Reason;
                     ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
                 })
+                .ThenAsync(ctx => RespondWithFailure(ctx,
+                    ctx.Saga.RequestId, ctx.Saga.ResponseAddress,
+                    CheckoutErrorType.ValidationFailed, ctx.Saga.FailureReason!, ctx.Message.Errors))
+                .TransitionTo(Failed)
+                .Finalize(),
+
+            When(CartValidation.Faulted)
+                .Then(ctx =>
+                {
+                    ctx.Saga.FailureReason = "Unexpected error during checkout validation";
+                    ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
+                })
+                .ThenAsync(ctx => RespondWithFailure(ctx,
+                    ctx.Saga.RequestId, ctx.Saga.ResponseAddress,
+                    CheckoutErrorType.InternalError, ctx.Saga.FailureReason!))
+                .TransitionTo(Failed)
+                .Finalize(),
+
+            When(CartValidation.TimeoutExpired)
+                .Then(ctx =>
+                {
+                    ctx.Saga.FailureReason = "Checkout validation timed out";
+                    ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
+                })
+                .ThenAsync(ctx => RespondWithFailure(ctx,
+                    ctx.Saga.RequestId, ctx.Saga.ResponseAddress,
+                    CheckoutErrorType.Timeout, ctx.Saga.FailureReason!))
                 .TransitionTo(Failed)
                 .Finalize()
         );
 
-        // ── CREATING ORDER ────────────────────────────────────────────────────
-        During(CreatingOrder,
-            When(SagaStepTimeout.Received)
+        // ── ORDER CREATION ────────────────────────────────────────────────────
+        During(OrderCreation.Pending,
+            When(OrderCreation.Completed)
                 .Then(ctx =>
                 {
-                    ctx.Saga.FailureReason = $"Saga timed out waiting for order creation (state: {ctx.Saga.CurrentState})";
+                    ctx.Saga.PackageIds = ctx.Message.PackageIds;
+                    // CorrelationId IS the OrderId — CreateOrderConsumer uses CorrelationId as Order.Id
+                })
+                .Request(InventoryReservation, ctx => ctx.Init<ReserveInventory>(new
+                {
+                    ctx.Saga.CorrelationId,
+                    OrderId           = ctx.Saga.CorrelationId,
+                    Items             = ctx.Saga.Items,
+                    ExpirationMinutes = 15
+                }))
+                .TransitionTo(InventoryReservation.Pending),
+
+            When(OrderCreation.Faulted)
+                .Then(ctx =>
+                {
+                    ctx.Saga.FailureReason = "Unexpected error during order creation";
                     ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
                 })
+                .ThenAsync(ctx => RespondWithFailure(ctx,
+                    ctx.Saga.RequestId, ctx.Saga.ResponseAddress,
+                    CheckoutErrorType.InternalError, ctx.Saga.FailureReason!))
                 .TransitionTo(Compensating)
                 .PublishAsync(ctx => ctx.Init<CancelOrder>(new
                 {
                     ctx.Saga.CorrelationId,
-                    OrderId = ctx.Saga.OrderId,
+                    OrderId = ctx.Saga.CorrelationId,
                     Reason  = ctx.Saga.FailureReason
                 })),
 
-            When(OrderCreated)
+            When(OrderCreation.TimeoutExpired)
                 .Then(ctx =>
                 {
-                    ctx.Saga.OrderId       = ctx.Message.OrderId;
-                    ctx.Saga.PackageIds    = ctx.Message.PackageIds;
-                    ctx.Saga.TotalPackages = ctx.Message.PackageIds.Count;
+                    ctx.Saga.FailureReason = "Order creation timed out";
+                    ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
                 })
-                .TransitionTo(ReservingInventory)
-                .PublishAsync(ctx => ctx.Init<ReserveInventory>(new
+                .ThenAsync(ctx => RespondWithFailure(ctx,
+                    ctx.Saga.RequestId, ctx.Saga.ResponseAddress,
+                    CheckoutErrorType.Timeout, ctx.Saga.FailureReason!))
+                .TransitionTo(Compensating)
+                .PublishAsync(ctx => ctx.Init<CancelOrder>(new
                 {
-                    ctx.Message.CorrelationId,
-                    OrderId           = ctx.Saga.OrderId,
-                    Items             = ctx.Saga.Items,
-                    ExpirationMinutes = 15
+                    ctx.Saga.CorrelationId,
+                    OrderId = ctx.Saga.CorrelationId,
+                    Reason  = ctx.Saga.FailureReason
                 }))
         );
 
-        // ── RESERVING INVENTORY ───────────────────────────────────────────────
-        During(ReservingInventory,
-            When(SagaStepTimeout.Received)
-                .Then(ctx =>
-                {
-                    ctx.Saga.FailureReason = $"Saga timed out waiting for inventory reservation (state: {ctx.Saga.CurrentState})";
-                    ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
-                })
-                .TransitionTo(Compensating)
-                .PublishAsync(ctx => ctx.Init<ReleaseInventory>(new
-                {
-                    ctx.Saga.CorrelationId,
-                    OrderId        = ctx.Saga.OrderId,
-                    ReservationIds = ctx.Saga.ReservationIds
-                })),
-
-            When(InventoryReserved)
+        // ── INVENTORY RESERVATION ─────────────────────────────────────────────
+        During(InventoryReservation.Pending,
+            When(InventoryReservation.Completed)
                 .Then(ctx =>
                 {
                     ctx.Saga.ReservationIds        = ctx.Message.ReservationIds;
                     ctx.Saga.PackageReservationMap = ctx.Message.PackageReservationMap;
                 })
-                .TransitionTo(MarkingAsCOD)
-                .PublishAsync(ctx => ctx.Init<MarkOrderAsCOD>(new
+                .Request(CODMarking, ctx => ctx.Init<MarkOrderAsCOD>(new
                 {
-                    ctx.Message.CorrelationId,
-                    OrderId = ctx.Saga.OrderId
-                })),
+                    ctx.Saga.CorrelationId,
+                    OrderId = ctx.Saga.CorrelationId
+                }))
+                .TransitionTo(CODMarking.Pending),
 
-            When(InventoryReservationFailed)
+            When(InventoryReservation.Completed2)   // InventoryReservationFailed
                 .Then(ctx =>
                 {
-                    ctx.Saga.FailureReason = $"Inventory reservation failed: {ctx.Message.Reason}";
+                    ctx.Saga.FailureReason = ctx.Message.Reason;
                     ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
                 })
+                .ThenAsync(ctx => RespondWithFailure(ctx,
+                    ctx.Saga.RequestId, ctx.Saga.ResponseAddress,
+                    CheckoutErrorType.InventoryUnavailable, ctx.Saga.FailureReason!))
                 .TransitionTo(Compensating)
                 .PublishAsync(ctx => ctx.Init<CancelOrder>(new
                 {
-                    ctx.Message.CorrelationId,
-                    OrderId = ctx.Saga.OrderId,
+                    ctx.Saga.CorrelationId,
+                    OrderId = ctx.Saga.CorrelationId,
+                    Reason  = ctx.Saga.FailureReason
+                })),
+
+            When(InventoryReservation.Faulted)
+                .Then(ctx =>
+                {
+                    ctx.Saga.FailureReason = "Unexpected error during inventory reservation";
+                    ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
+                })
+                .ThenAsync(ctx => RespondWithFailure(ctx,
+                    ctx.Saga.RequestId, ctx.Saga.ResponseAddress,
+                    CheckoutErrorType.InternalError, ctx.Saga.FailureReason!))
+                .TransitionTo(Compensating)
+                .PublishAsync(ctx => ctx.Init<CancelOrder>(new
+                {
+                    ctx.Saga.CorrelationId,
+                    OrderId = ctx.Saga.CorrelationId,
+                    Reason  = ctx.Saga.FailureReason
+                })),
+
+            When(InventoryReservation.TimeoutExpired)
+                .Then(ctx =>
+                {
+                    ctx.Saga.FailureReason = "Inventory reservation timed out";
+                    ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
+                })
+                .ThenAsync(ctx => RespondWithFailure(ctx,
+                    ctx.Saga.RequestId, ctx.Saga.ResponseAddress,
+                    CheckoutErrorType.Timeout, ctx.Saga.FailureReason!))
+                .TransitionTo(Compensating)
+                .PublishAsync(ctx => ctx.Init<CancelOrder>(new
+                {
+                    ctx.Saga.CorrelationId,
+                    OrderId = ctx.Saga.CorrelationId,
                     Reason  = ctx.Saga.FailureReason
                 }))
         );
 
-        // ── MARKING AS COD ────────────────────────────────────────────────────
-        During(MarkingAsCOD,
-            When(SagaStepTimeout.Received)
-                .Then(ctx =>
+        // ── COD MARKING ───────────────────────────────────────────────────────
+        During(CODMarking.Pending,
+            When(CODMarking.Completed)   // SUCCESS — respond to API, hand off to FulfillmentSaga
+                .ThenAsync(async ctx =>
                 {
-                    ctx.Saga.FailureReason = $"Saga timed out waiting for COD marking (state: {ctx.Saga.CurrentState})";
-                    ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
+                    ctx.Saga.CompletedAt = DateTimeOffset.UtcNow;
+                    if (ctx.Saga.ResponseAddress is not null)
+                    {
+                        var ep = await ctx.GetSendEndpoint(ctx.Saga.ResponseAddress);
+                        await ep.Send(new CheckoutResponse
+                        {
+                            OrderId    = ctx.Saga.CorrelationId,
+                            Status     = OrderStatus.COD.Name,
+                            GrandTotal = ctx.Saga.GrandTotal
+                        }, x => x.RequestId = ctx.Saga.RequestId);
+                    }
                 })
-                .TransitionTo(Compensating)
-                .PublishAsync(ctx => ctx.Init<ReleaseInventory>(new
+                .PublishAsync(ctx => ctx.Init<CheckoutPaymentSettled>(new
                 {
-                    ctx.Saga.CorrelationId,
-                    OrderId        = ctx.Saga.OrderId,
-                    ReservationIds = ctx.Saga.ReservationIds
-                })),
-
-            When(OrderMarkedAsCOD)
-                .TransitionTo(ConfirmingInventory)
-                .PublishAsync(ctx => ctx.Init<ConfirmInventory>(new
-                {
-                    ctx.Message.CorrelationId,
-                    OrderId        = ctx.Saga.OrderId,
-                    ReservationIds = ctx.Saga.ReservationIds
-                })),
-
-            When(MarkOrderAsCODFailed)
-                .Then(ctx =>
-                {
-                    ctx.Saga.FailureReason = ctx.Message.Reason;
-                    ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
-                })
-                .TransitionTo(Compensating)
-                .PublishAsync(ctx => ctx.Init<ReleaseInventory>(new
-                {
-                    ctx.Message.CorrelationId,
-                    OrderId        = ctx.Saga.OrderId,
-                    ReservationIds = ctx.Saga.ReservationIds
+                    CorrelationId        = ctx.Saga.CorrelationId,
+                    ctx.Saga.UserId,
+                    ctx.Saga.PackageIds,
+                    ctx.Saga.ReservationIds,
+                    ctx.Saga.PackageReservationMap,
+                    ctx.Saga.GrandTotal
                 }))
-        );
-
-        // ── CONFIRMING INVENTORY ──────────────────────────────────────────────
-        During(ConfirmingInventory,
-            When(InventoryConfirmationFailed)
-                .Then(ctx =>
-                {
-                    ctx.Saga.FailureReason = ctx.Message.Reason;
-                    ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
-                })
-                .TransitionTo(Compensating)
-                .PublishAsync(ctx => ctx.Init<ReleaseInventory>(new
-                {
-                    ctx.Message.CorrelationId,
-                    OrderId        = ctx.Saga.OrderId,
-                    ReservationIds = ctx.Saga.ReservationIds
-                })),
-
-            When(SagaStepTimeout.Received)
-                .Then(ctx =>
-                {
-                    ctx.Saga.FailureReason = $"Saga timed out waiting for inventory confirmation (state: {ctx.Saga.CurrentState})";
-                    ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
-                })
-                .TransitionTo(Compensating)
-                .PublishAsync(ctx => ctx.Init<ReleaseInventory>(new
-                {
-                    ctx.Saga.CorrelationId,
-                    OrderId        = ctx.Saga.OrderId,
-                    ReservationIds = ctx.Saga.ReservationIds
-                })),
-
-            When(InventoryConfirmed)
-                .TransitionTo(NotifyingSellers)
-                .PublishAsync(ctx => ctx.Init<NotifySellers>(new
-                {
-                    ctx.Message.CorrelationId,
-                    OrderId    = ctx.Saga.OrderId,
-                    PackageIds = ctx.Saga.PackageIds
-                }))
-        );
-
-        // ── NOTIFYING SELLERS ─────────────────────────────────────────────────
-        During(NotifyingSellers,
-            When(SagaStepTimeout.Received)
-                .Then(ctx =>
-                {
-                    ctx.Saga.FailureReason = $"Saga timed out waiting for seller notification (state: {ctx.Saga.CurrentState})";
-                    ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
-                })
-                .TransitionTo(Compensating)
-                .PublishAsync(ctx => ctx.Init<ReleaseInventory>(new
-                {
-                    ctx.Saga.CorrelationId,
-                    OrderId        = ctx.Saga.OrderId,
-                    ReservationIds = ctx.Saga.ReservationIds
-                })),
-
-            When(SellersNotified)
-                .Unschedule(SagaStepTimeout)
-                .Schedule(SellerConfirmationTimeout, ctx => ctx.Init<SellerConfirmationExpired>(new
-                {
-                    CorrelationId = ctx.Saga.CorrelationId,
-                    OrderId       = ctx.Saga.OrderId
-                }))
-                .TransitionTo(WaitingForPackageConfirmation)
-        );
-
-        // ── WAITING FOR PACKAGE CONFIRMATION ─────────────────────────────────
-        During(WaitingForPackageConfirmation,
-            When(PackageConfirmed)
-                .Then(ctx => ctx.Saga.ConfirmedPackages++)
-                .If(ctx => ctx.Saga.ConfirmedPackages + ctx.Saga.RejectedPackages >= ctx.Saga.TotalPackages &&
-                            ctx.Saga.ConfirmedPackages > 0,
-                    binder => binder
-                        .Unschedule(SellerConfirmationTimeout)
-                        .If(ctx => ctx.Saga.RejectedPackages > 0,
-                            inner => inner.PublishAsync(ctx =>
-                            {
-                                var reservationsToRelease = ctx.Saga.RejectedPackageIds
-                                    .SelectMany(pkgId => ctx.Saga.PackageReservationMap.TryGetValue(pkgId, out var ids)
-                                        ? ids
-                                        : Enumerable.Empty<Guid>())
-                                    .ToList();
-                                return ctx.Init<ReleaseInventory>(new
-                                {
-                                    ctx.Message.CorrelationId,
-                                    OrderId        = ctx.Saga.OrderId,
-                                    ReservationIds = reservationsToRelease
-                                });
-                            }))
-                        .TransitionTo(NotifyingCustomer)
-                        .PublishAsync(ctx => ctx.Init<NotifyCustomer>(new
-                        {
-                            ctx.Message.CorrelationId,
-                            OrderId              = ctx.Saga.OrderId,
-                            UserId               = ctx.Saga.UserId,
-                            IsPartialOrder       = ctx.Saga.RejectedPackages > 0,
-                            RejectedPackageCount = ctx.Saga.RejectedPackages
-                        }))),
-
-            When(PackageRejected)
-                .Then(ctx =>
-                {
-                    ctx.Saga.RejectedPackages++;
-                    ctx.Saga.RejectedPackageIds.Add(ctx.Message.PackageId);
-                })
-                .If(ctx => ctx.Saga.RejectedPackages >= ctx.Saga.TotalPackages,
-                    binder => binder
-                        .Then(ctx =>
-                        {
-                            ctx.Saga.FailureReason = "All packages were rejected by sellers";
-                            ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
-                        })
-                        .Unschedule(SellerConfirmationTimeout)
-                        .TransitionTo(Compensating)
-                        .PublishAsync(ctx => ctx.Init<ReleaseInventory>(new
-                        {
-                            ctx.Message.CorrelationId,
-                            OrderId        = ctx.Saga.OrderId,
-                            ReservationIds = ctx.Saga.ReservationIds
-                        })))
-                .If(ctx =>
-                    ctx.Saga.ConfirmedPackages + ctx.Saga.RejectedPackages >= ctx.Saga.TotalPackages &&
-                    ctx.Saga.ConfirmedPackages > 0,
-                    binder => binder
-                        .Unschedule(SellerConfirmationTimeout)
-                        .PublishAsync(ctx =>
-                        {
-                            var reservationsToRelease = ctx.Saga.RejectedPackageIds
-                                .SelectMany(pkgId => ctx.Saga.PackageReservationMap.TryGetValue(pkgId, out var ids)
-                                    ? ids
-                                    : Enumerable.Empty<Guid>())
-                                .ToList();
-                            return ctx.Init<ReleaseInventory>(new
-                            {
-                                ctx.Message.CorrelationId,
-                                OrderId        = ctx.Saga.OrderId,
-                                ReservationIds = reservationsToRelease
-                            });
-                        })
-                        .TransitionTo(NotifyingCustomer)
-                        .PublishAsync(ctx => ctx.Init<NotifyCustomer>(new
-                        {
-                            ctx.Message.CorrelationId,
-                            OrderId              = ctx.Saga.OrderId,
-                            UserId               = ctx.Saga.UserId,
-                            IsPartialOrder       = true,
-                            RejectedPackageCount = ctx.Saga.RejectedPackages
-                        }))),
-
-            When(SellerConfirmationTimeout.Received)
-                .Then(ctx =>
-                {
-                    ctx.Saga.FailureReason = "Seller confirmation timed out after 3 days";
-                    ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
-                })
-                .TransitionTo(Compensating)
-                .PublishAsync(ctx => ctx.Init<ReleaseInventory>(new
-                {
-                    ctx.Saga.CorrelationId,
-                    OrderId        = ctx.Saga.OrderId,
-                    ReservationIds = ctx.Saga.ReservationIds
-                }))
-        );
-
-        // ── NOTIFYING CUSTOMER ────────────────────────────────────────────────
-        During(NotifyingCustomer,
-            When(CustomerNotified)
-                .Then(ctx => ctx.Saga.CompletedAt = DateTimeOffset.UtcNow)
                 .TransitionTo(Completed)
-                .Finalize()
+                .Finalize(),
+
+            When(CODMarking.Completed2)   // MarkOrderAsCODFailed — release inventory then cancel
+                .Then(ctx =>
+                {
+                    ctx.Saga.FailureReason = ctx.Message.Reason;
+                    ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
+                })
+                .ThenAsync(ctx => RespondWithFailure(ctx,
+                    ctx.Saga.RequestId, ctx.Saga.ResponseAddress,
+                    CheckoutErrorType.CODLimitExceeded, ctx.Saga.FailureReason!))
+                .TransitionTo(Compensating)
+                .PublishAsync(ctx => ctx.Init<ReleaseInventory>(new
+                {
+                    ctx.Saga.CorrelationId,
+                    OrderId        = ctx.Saga.CorrelationId,
+                    ReservationIds = ctx.Saga.ReservationIds
+                })),
+
+            When(CODMarking.Faulted)
+                .Then(ctx =>
+                {
+                    ctx.Saga.FailureReason = "Unexpected error during COD marking";
+                    ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
+                })
+                .ThenAsync(ctx => RespondWithFailure(ctx,
+                    ctx.Saga.RequestId, ctx.Saga.ResponseAddress,
+                    CheckoutErrorType.InternalError, ctx.Saga.FailureReason!))
+                .TransitionTo(Compensating)
+                .PublishAsync(ctx => ctx.Init<ReleaseInventory>(new
+                {
+                    ctx.Saga.CorrelationId,
+                    OrderId        = ctx.Saga.CorrelationId,
+                    ReservationIds = ctx.Saga.ReservationIds
+                })),
+
+            When(CODMarking.TimeoutExpired)
+                .Then(ctx =>
+                {
+                    ctx.Saga.FailureReason = "COD marking timed out";
+                    ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
+                })
+                .ThenAsync(ctx => RespondWithFailure(ctx,
+                    ctx.Saga.RequestId, ctx.Saga.ResponseAddress,
+                    CheckoutErrorType.Timeout, ctx.Saga.FailureReason!))
+                .TransitionTo(Compensating)
+                .PublishAsync(ctx => ctx.Init<ReleaseInventory>(new
+                {
+                    ctx.Saga.CorrelationId,
+                    OrderId        = ctx.Saga.CorrelationId,
+                    ReservationIds = ctx.Saga.ReservationIds
+                }))
         );
 
         // ── COMPENSATING ──────────────────────────────────────────────────────
         During(Compensating,
+            When(CartValidation.Completed).Then(_ => {}),
+            When(CartValidation.Completed2).Then(_ => {}),
+            When(CartValidation.Faulted).Then(_ => {}),
+            When(CartValidation.TimeoutExpired).Then(_ => {}),
+            When(OrderCreation.Completed).Then(_ => {}),
+            When(OrderCreation.Faulted).Then(_ => {}),
+            When(OrderCreation.TimeoutExpired).Then(_ => {}),
+            When(InventoryReservation.Completed).Then(_ => {}),
+            When(InventoryReservation.Completed2).Then(_ => {}),
+            When(InventoryReservation.Faulted).Then(_ => {}),
+            When(InventoryReservation.TimeoutExpired).Then(_ => {}),
+            When(CODMarking.Completed).Then(_ => {}),
+            When(CODMarking.Completed2).Then(_ => {}),
+            When(CODMarking.Faulted).Then(_ => {}),
+            When(CODMarking.TimeoutExpired).Then(_ => {}),
+
             When(InventoryReleased)
                 .PublishAsync(ctx => ctx.Init<CancelOrder>(new
                 {
                     ctx.Message.CorrelationId,
-                    OrderId = ctx.Saga.OrderId,
+                    OrderId = ctx.Message.CorrelationId,
                     Reason  = ctx.Saga.FailureReason
                 })),
 
@@ -417,35 +379,21 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
         SetCompletedWhenFinalized();
     }
 
-    public State Validating                    { get; private set; } = null!;
-    public State CreatingOrder                 { get; private set; } = null!;
-    public State ReservingInventory            { get; private set; } = null!;
-    public State MarkingAsCOD                  { get; private set; } = null!;
-    public State ConfirmingInventory           { get; private set; } = null!;
-    public State NotifyingSellers              { get; private set; } = null!;
-    public State WaitingForPackageConfirmation { get; private set; } = null!;
-    public State NotifyingCustomer             { get; private set; } = null!;
-    public State Completed                     { get; private set; } = null!;
-    public State Failed                        { get; private set; } = null!;
-    public State Compensating                  { get; private set; } = null!;
-
-    public Event<CheckoutInitiated>           CheckoutInitiated          { get; private set; } = null!;
-    public Event<ValidationCompleted>         ValidationCompleted        { get; private set; } = null!;
-    public Event<ValidationFailed>            ValidationFailed           { get; private set; } = null!;
-    public Event<OrderCreated>                OrderCreated               { get; private set; } = null!;
-    public Event<InventoryReserved>           InventoryReserved          { get; private set; } = null!;
-    public Event<InventoryReservationFailed>  InventoryReservationFailed { get; private set; } = null!;
-    public Event<OrderMarkedAsCOD>            OrderMarkedAsCOD           { get; private set; } = null!;
-    public Event<InventoryConfirmed>          InventoryConfirmed         { get; private set; } = null!;
-    public Event<InventoryConfirmationFailed> InventoryConfirmationFailed { get; private set; } = null!;
-    public Event<SellersNotified>             SellersNotified            { get; private set; } = null!;
-    public Event<PackageConfirmed>            PackageConfirmed           { get; private set; } = null!;
-    public Event<PackageRejected>             PackageRejected            { get; private set; } = null!;
-    public Event<CustomerNotified>            CustomerNotified           { get; private set; } = null!;
-    public Event<InventoryReleased>           InventoryReleased          { get; private set; } = null!;
-    public Event<OrderCancelled>              OrderCancelled             { get; private set; } = null!;
-    public Event<MarkOrderAsCODFailed>        MarkOrderAsCODFailed       { get; private set; } = null!;
-
-    public Schedule<CheckoutSagaState, SellerConfirmationExpired> SellerConfirmationTimeout { get; private set; } = null!;
-    public Schedule<CheckoutSagaState, SagaStepExpired>           SagaStepTimeout           { get; private set; } = null!;
+    private static async Task RespondWithFailure(
+        ISendEndpointProvider sendEndpointProvider,
+        Guid? requestId,
+        Uri? responseAddress,
+        CheckoutErrorType errorType,
+        string reason,
+        IEnumerable<string>? errors = null)
+    {
+        if (responseAddress is null) return;
+        var ep = await sendEndpointProvider.GetSendEndpoint(responseAddress);
+        await ep.Send(new CheckoutFailed
+        {
+            Reason    = reason,
+            Errors    = errors?.ToList() ?? [],
+            ErrorType = errorType
+        }, x => x.RequestId = requestId);
+    }
 }

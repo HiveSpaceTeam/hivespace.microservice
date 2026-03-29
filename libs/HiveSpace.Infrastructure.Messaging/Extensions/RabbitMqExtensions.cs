@@ -46,10 +46,9 @@ public static class RabbitMqExtensions
             bus.SetKebabCaseEndpointNameFormatter();
             bus.AddEntityFrameworkOutbox<TDbContext>(o =>
             {
-                o.QueryDelay = TimeSpan.FromSeconds(1);
+                o.QueryDelay = TimeSpan.FromMilliseconds(200);
                 o.UseSqlServer();
                 o.UseBusOutbox();
-                
             });
 
             bus.AddConfigureEndpointsCallback((context, name, cfg) =>

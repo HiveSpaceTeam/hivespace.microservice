@@ -15,7 +15,7 @@ public record CheckoutStatusResponse
     {
         CorrelationId = saga.CorrelationId;
         CurrentState  = saga.CurrentState;
-        OrderId       = saga.OrderId == default ? null : saga.OrderId;
+        OrderId       = saga.CorrelationId;
         FailureReason = saga.FailureReason;
         IsCompleted   = saga.CurrentState == "Completed";
         IsFailed      = saga.CurrentState == "Failed";

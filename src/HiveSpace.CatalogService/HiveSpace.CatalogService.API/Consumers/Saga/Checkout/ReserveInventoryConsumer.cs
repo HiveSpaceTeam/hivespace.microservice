@@ -36,14 +36,14 @@ public class ReserveInventoryConsumer : IConsumer<ReserveInventory>
                 "Inventory reserved for order {OrderId} — {Count} reservation(s)",
                 message.OrderId, reservationIds.Count);
 
-            await context.Publish<InventoryReserved>(new
+            await context.RespondAsync<InventoryReserved>(new
             {
                 message.CorrelationId,
                 message.OrderId,
                 ReservationIds        = reservationIds,
                 ExpiresAt             = DateTimeOffset.UtcNow.AddMinutes(message.ExpirationMinutes),
                 PackageReservationMap = packageReservationMap
-            }, ct);
+            });
         }
         else
         {
@@ -51,13 +51,13 @@ public class ReserveInventoryConsumer : IConsumer<ReserveInventory>
                 "Inventory reservation failed for order {OrderId} — {FailureCount} failure(s)",
                 message.OrderId, failures.Count);
 
-            await context.Publish<InventoryReservationFailed>(new
+            await context.RespondAsync<InventoryReservationFailed>(new
             {
                 message.CorrelationId,
                 message.OrderId,
                 Reason   = "One or more items could not be reserved",
                 Failures = failures
-            }, ct);
+            });
         }
     }
 }

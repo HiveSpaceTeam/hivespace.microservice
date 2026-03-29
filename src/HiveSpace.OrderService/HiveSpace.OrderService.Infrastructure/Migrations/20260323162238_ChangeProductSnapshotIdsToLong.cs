@@ -11,37 +11,38 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<long>(
+            migrationBuilder.DropColumn(name: "SnapshotSkuId",    table: "order_items");
+            migrationBuilder.DropColumn(name: "SnapshotProductId", table: "order_items");
+            migrationBuilder.DropColumn(name: "SkuId",             table: "order_items");
+            migrationBuilder.DropColumn(name: "ProductId",         table: "order_items");
+
+            migrationBuilder.AddColumn<long>(
                 name: "SnapshotSkuId",
                 table: "order_items",
                 type: "bigint",
                 nullable: false,
-                oldClrType: typeof(Guid),
-                oldType: "uniqueidentifier");
+                defaultValue: 0L);
 
-            migrationBuilder.AlterColumn<long>(
+            migrationBuilder.AddColumn<long>(
                 name: "SnapshotProductId",
                 table: "order_items",
                 type: "bigint",
                 nullable: false,
-                oldClrType: typeof(Guid),
-                oldType: "uniqueidentifier");
+                defaultValue: 0L);
 
-            migrationBuilder.AlterColumn<long>(
+            migrationBuilder.AddColumn<long>(
                 name: "SkuId",
                 table: "order_items",
                 type: "bigint",
                 nullable: false,
-                oldClrType: typeof(Guid),
-                oldType: "uniqueidentifier");
+                defaultValue: 0L);
 
-            migrationBuilder.AlterColumn<long>(
+            migrationBuilder.AddColumn<long>(
                 name: "ProductId",
                 table: "order_items",
                 type: "bigint",
                 nullable: false,
-                oldClrType: typeof(Guid),
-                oldType: "uniqueidentifier");
+                defaultValue: 0L);
         }
 
         /// <inheritdoc />
