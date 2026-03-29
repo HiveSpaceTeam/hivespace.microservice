@@ -3,5 +3,5 @@ using HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate;
 
 namespace HiveSpace.CatalogService.Application.Queries;
 
-public record GetProductQuery(Guid ProductId) : IQuery<Product>;
+public record GetProductQuery(int ProductId) : IQuery<Product>;
 

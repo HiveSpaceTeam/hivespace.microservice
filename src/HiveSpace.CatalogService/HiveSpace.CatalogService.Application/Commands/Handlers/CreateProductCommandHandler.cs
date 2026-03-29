@@ -9,7 +9,7 @@ using HiveSpace.Infrastructure.Persistence.Transaction;
 
 namespace HiveSpace.CatalogService.Application.Commands.Handlers;
 
-public class CreateProductCommandHandler : ICommandHandler<CreateProductCommand, Guid>
+public class CreateProductCommandHandler : ICommandHandler<CreateProductCommand, int>
 {
     private readonly IUserContext _userContext;
     private readonly IProductRepository _productRepository;
@@ -24,7 +24,7 @@ public class CreateProductCommandHandler : ICommandHandler<CreateProductCommand,
     }
 
     private string GetCurrentUserId() => _userContext.UserId.ToString();
-    public async Task<Guid> Handle(CreateProductCommand request, CancellationToken cancellationToken)
+    public async Task<int> Handle(CreateProductCommand request, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -42,10 +42,10 @@ public class CreateProductCommandHandler : ICommandHandler<CreateProductCommand,
         );
 
         // Build related entities using shared factory methods (synchronous operations)
-        var categories = ProductFactory.CreateProductCategories(product.Id, payload.Category);
+        var categories = ProductFactory.CreateProductCategories(payload.Category);
         var variants = ProductFactory.CreateProductVariants(payload.Variants);
-        var skus = ProductFactory.CreateProductSkus(product.Id, payload.Skus);
-        var attributes = ProductFactory.CreateProductAttributes(product.Id, payload.Attributes);
+        var skus = ProductFactory.CreateProductSkus(payload.Skus);
+        var attributes = ProductFactory.CreateProductAttributes(payload.Attributes);
 
         // Update product with related entities
         product.UpdateCategories(categories);

@@ -1,5 +1,6 @@
 using HiveSpace.CatalogService.Application.DataQueries;
 using HiveSpace.CatalogService.Application.Models.ViewModels;
+using HiveSpace.CatalogService.Domain.Aggregates.External;
 using HiveSpace.CatalogService.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,7 +8,7 @@ namespace HiveSpace.CatalogService.Infrastructure.DataQueries
 {
     public class ProductDataQuery(CatalogDbContext dbContext) : IProductDataQuery
     {
-        public async Task<ProductDetailViewModel?> GetProductDetailViewModelAsync(Guid productId, CancellationToken cancellationToken = default)
+        public async Task<ProductDetailViewModel?> GetProductDetailViewModelAsync(int productId, CancellationToken cancellationToken = default)
         {
             var query = dbContext.Products
                 .AsNoTracking()
@@ -33,6 +34,9 @@ namespace HiveSpace.CatalogService.Infrastructure.DataQueries
             var attributeLookup = await dbContext.Attributes
                 .ToDictionaryAsync(ad => ad.Id, ad => ad.Name, cancellationToken);
 
+            StoreRef currentSeller = await dbContext.StoreRef
+              .Where(s => s.OwnerId == product.SellerId).FirstAsync();
+
             return new ProductDetailViewModel
             {
                 Id = product.Id,
@@ -50,7 +54,13 @@ namespace HiveSpace.CatalogService.Infrastructure.DataQueries
                     NameValue = a.SelectedValueIds.Select(id => attributeValueLookup.ContainsKey(id) ? attributeValueLookup[id] : "").ToList()
                 }).ToList(),
                 Skus = product.Skus.ToList(),
-                Variants = product.Variants.ToList()
+                Variants = product.Variants.ToList(),
+                CurrentSeller = new CurrentSeller
+                {
+                    Id = currentSeller.Id,
+                    StoreName = currentSeller.StoreName,
+                    LogoUrl = currentSeller.LogoUrl
+                }
             };
         }
     }

@@ -9,7 +9,6 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
     {
         #region Properties
         public int AttributeId { get; private set; }
-        public Guid ProductId { get; private set; }
 
         private readonly List<int> _selectedValueIds = [];
         public IReadOnlyCollection<int> SelectedValueIds => _selectedValueIds.AsReadOnly();
@@ -23,10 +22,9 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
         {
         }
 
-        public ProductAttribute(int attributeId, Guid productId, IEnumerable<int>? selectedValueIds = null, string? freeTextValue = null)
+        public ProductAttribute(int attributeId, IEnumerable<int>? selectedValueIds = null, string? freeTextValue = null)
         {
             AttributeId = attributeId;
-            ProductId = productId;
             if (selectedValueIds is not null) _selectedValueIds.AddRange(selectedValueIds);
             FreeTextValue = string.IsNullOrWhiteSpace(freeTextValue) ? null : freeTextValue.Trim();
             if (IsInvalid())
@@ -42,7 +40,6 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
         private bool IsInvalid()
         {
             return AttributeId == 0
-                || ProductId == Guid.Empty
                 || (_selectedValueIds.Count == 0 && string.IsNullOrWhiteSpace(FreeTextValue));
         }
 

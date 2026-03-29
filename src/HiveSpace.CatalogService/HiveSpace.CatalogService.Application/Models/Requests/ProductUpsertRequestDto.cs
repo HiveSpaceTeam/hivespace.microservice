@@ -12,18 +12,17 @@ public record ProductUpsertRequestDto(
 );
 
 public record ProductVariantRequestDto(
-	Guid Id,
+	int Id,
 	string Name,
 	List<ProductVariantOptionRequestDto>? Options = null
 );
 
 public record ProductVariantOptionRequestDto(
-	Guid OptionId,
 	string Value
 );
 
 public record ProductSkuRequestDto(
-	Guid Id,
+	int Id,
 	List<ProductSkuVariantRequestDto>? SkuVariants,
 	Money Price,
 	int Quantity,
@@ -31,8 +30,7 @@ public record ProductSkuRequestDto(
 );
 
 public record ProductSkuVariantRequestDto(
-	Guid VariantId,
-	Guid OptionId,
+    string VariantName,
 	string Value
 );
 

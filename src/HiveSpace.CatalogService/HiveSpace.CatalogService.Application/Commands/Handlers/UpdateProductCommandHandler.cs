@@ -34,7 +34,7 @@ public class UpdateProductCommandHandler : ICommandHandler<UpdateProductCommand,
         await _transactionService.InTransactionScopeAsync(async transaction =>
         {
             // Get the existing product within the transaction
-            var product = await _productRepository.GetDetailByIdAsync(request.ProductId, cancellationToken);
+            var product = await _productRepository.GetDetailByIdAsync(request.ProductId, false, cancellationToken);
             if (product is null) return;
 
             var isUpdated = false;
@@ -57,15 +57,15 @@ public class UpdateProductCommandHandler : ICommandHandler<UpdateProductCommand,
             // Update categories using shared factory method (synchronous operations)
             if (payload.Category > 0)
             {
-                var categories = ProductFactory.CreateProductCategories(product.Id, payload.Category);
+                var categories = ProductFactory.CreateProductCategories(payload.Category);
                 product.UpdateCategories(categories);
                 isUpdated = true;
             }
 
             // Build and update variants, SKUs, and attributes using shared factory methods
             var variants = ProductFactory.CreateProductVariants(payload.Variants);
-            var skus = ProductFactory.CreateProductSkus(product.Id, payload.Skus);
-            var attributes = ProductFactory.CreateProductAttributes(product.Id, payload.Attributes);
+            var skus = ProductFactory.CreateProductSkus(payload.Skus);
+            var attributes = ProductFactory.CreateProductAttributes(payload.Attributes);
 
             // Update collections if they have items
             isUpdated |= UpdateIfNotEmpty(variants, () => product.UpdateVariants(variants));

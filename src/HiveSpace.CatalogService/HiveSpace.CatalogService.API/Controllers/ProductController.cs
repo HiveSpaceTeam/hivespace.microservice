@@ -29,7 +29,7 @@ public class ProductController(IMediator mediator) : ControllerBase
     [HttpPut("{id}")]
     [ProducesResponseType((int)HttpStatusCode.NoContent)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public async Task<IActionResult> Update(Guid id, [FromBody] ProductUpsertRequestDto request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Update(int id, [FromBody] ProductUpsertRequestDto request, CancellationToken cancellationToken)
     {
         var updated = await mediator.Send(new UpdateProductCommand(id, request), cancellationToken);
         if (!updated) return NotFound();
@@ -47,7 +47,7 @@ public class ProductController(IMediator mediator) : ControllerBase
     [HttpGet("{id}")]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public async Task<IActionResult> GetDetail(Guid id, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetDetail(int id, CancellationToken cancellationToken)
     {
         var product = await mediator.Send(new GetProductQuery(id), cancellationToken);
         return Ok(product);
@@ -56,7 +56,7 @@ public class ProductController(IMediator mediator) : ControllerBase
     [HttpDelete("{id}")]
     [ProducesResponseType((int)HttpStatusCode.NoContent)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
     {
         var deleted = await mediator.Send(new DeleteProductCommand(id), cancellationToken);
         if (!deleted) return NotFound();
@@ -76,7 +76,7 @@ public class ProductController(IMediator mediator) : ControllerBase
     [HttpGet("detail/{id}")]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public async Task<IActionResult> GetProductDetail(Guid id, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetProductDetail(int id, CancellationToken cancellationToken)
     {
         var product = await mediator.Send(new GetProductDetailQuery(id), cancellationToken);
         return Ok(product);

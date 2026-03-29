@@ -9,7 +9,7 @@ using System.Text.Json.Serialization;
 
 namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
 {
-    public class Product : AggregateRoot<Guid>, IAuditable
+    public class Product : AggregateRoot<int>, IAuditable
     {
         #region Properties
         public Guid SellerId { get; private set; }
@@ -78,7 +78,7 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
             UpdatedBy = updatedBy;
         }
 
-        public Product(Guid id, string name, string description, ProductStatus status, List<ProductCategory> categories, List<ProductAttribute> attributes, List<ProductImage> images, List<Sku> skus, List<ProductVariant> variants, DateTimeOffset createdAt, DateTimeOffset? updatedAt, string createdBy, string? updatedBy)
+        public Product(int id, string name, string description, ProductStatus status, List<ProductCategory> categories, List<ProductAttribute> attributes, List<ProductImage> images, List<Sku> skus, List<ProductVariant> variants, DateTimeOffset createdAt, DateTimeOffset? updatedAt, string createdBy, string? updatedBy)
         {
             Id = id;
             Name = name;
@@ -99,9 +99,8 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
         // Simplified constructor for creating new products without collections
         public Product(string name, string description, ProductStatus status, DateTimeOffset createdAt, string createdBy)
         {
-            Id = Guid.NewGuid();
             Name = name;
-            Slug = string.Empty;
+            Slug = $"{name}-{Guid.NewGuid().ToString("N").Substring(0, 6)}";
             Description = description;
             Status = status;
             CreatedAt = createdAt;

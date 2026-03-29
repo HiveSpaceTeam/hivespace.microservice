@@ -4,6 +4,6 @@ namespace HiveSpace.CatalogService.Application.DataQueries
 {
     public interface IProductDataQuery
     {
-        Task<ProductDetailViewModel?> GetProductDetailViewModelAsync(Guid productId, CancellationToken cancellationToken = default);
+        Task<ProductDetailViewModel?> GetProductDetailViewModelAsync(int productId, CancellationToken cancellationToken = default);
     }
 }
