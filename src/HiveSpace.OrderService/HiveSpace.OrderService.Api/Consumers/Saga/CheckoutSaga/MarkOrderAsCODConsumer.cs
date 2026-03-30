@@ -29,13 +29,12 @@ public class MarkOrderAsCODConsumer(
         try
         {
             order.MarkAsCOD();
+            await orderRepository.SaveChangesAsync(ct);
             await PublishMarkedAsCOD(context, message.OrderId);
-            // MassTransit's EF outbox pipeline commits domain changes + outbox message atomically
         }
         catch (DomainException ex) when (ex.ErrorCode.Code == OrderDomainErrorCode.OrderExceedsCODLimit.Code)
         {
             logger.LogWarning("Order {OrderId} exceeds COD limit: {Message}", message.OrderId, ex.Message);
-
             await PublishCodFailed(context, message.OrderId, ex.Message);
         }
         catch (DomainException ex) when (ex.ErrorCode.Code == OrderDomainErrorCode.OrderInvalidStatusForCOD.Code)
@@ -54,7 +53,7 @@ public class MarkOrderAsCODConsumer(
 
     private static Task PublishMarkedAsCOD(ConsumeContext<MarkOrderAsCOD> context, Guid orderId)
     {
-        return context.Publish<OrderMarkedAsCOD>(new
+        return context.RespondAsync<OrderMarkedAsCOD>(new
         {
             context.Message.CorrelationId,
             OrderId = orderId,
@@ -64,7 +63,7 @@ public class MarkOrderAsCODConsumer(
 
     private static Task PublishCodFailed(ConsumeContext<MarkOrderAsCOD> context, Guid orderId, string reason)
     {
-        return context.Publish<MarkOrderAsCODFailed>(new
+        return context.RespondAsync<MarkOrderAsCODFailed>(new
         {
             context.Message.CorrelationId,
             OrderId = orderId,

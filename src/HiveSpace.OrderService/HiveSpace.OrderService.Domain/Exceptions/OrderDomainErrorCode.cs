@@ -82,6 +82,24 @@ public class OrderDomainErrorCode : DomainErrorCode
         new(7012, "OrderInvalidStatusForCancellation", "ORD7012");
     public static readonly OrderDomainErrorCode OrderInvalidStatusForExpiration =
         new(7013, "OrderInvalidStatusForExpiration", "ORD7013");
+    public static readonly OrderDomainErrorCode OrderNotFound =
+        new(7014, "OrderNotFound", "ORD7014");
+    public static readonly OrderDomainErrorCode NotOrderOwner =
+        new(7015, "NotOrderOwner", "ORD7015");
+    public static readonly OrderDomainErrorCode SellerStoreRequired =
+        new(7016, "SellerStoreRequired", "ORD7016");
+
+    // Checkout saga failure errors (ORD11xxx)
+    public static readonly OrderDomainErrorCode CheckoutValidationFailed =
+        new(11001, "CheckoutValidationFailed", "ORD11001");
+    public static readonly OrderDomainErrorCode CheckoutInventoryUnavailable =
+        new(11002, "CheckoutInventoryUnavailable", "ORD11002");
+    public static readonly OrderDomainErrorCode CheckoutCODLimitExceeded =
+        new(11003, "CheckoutCODLimitExceeded", "ORD11003");
+    public static readonly OrderDomainErrorCode CheckoutTimeout =
+        new(11004, "CheckoutTimeout", "ORD11004");
+    public static readonly OrderDomainErrorCode CheckoutInternalError =
+        new(11005, "CheckoutInternalError", "ORD11005");
 
     // OrderPackage errors (ORD8xxx)
     public static readonly OrderDomainErrorCode PackageStoreIdRequired =

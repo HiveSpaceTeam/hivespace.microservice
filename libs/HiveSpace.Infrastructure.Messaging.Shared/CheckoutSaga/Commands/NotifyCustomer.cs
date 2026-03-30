@@ -7,5 +7,5 @@ public record NotifyCustomer
     public Guid    UserId               { get; init; }
     public bool    IsPartialOrder       { get; init; }
     public int     RejectedPackageCount { get; init; }
-    public decimal RefundAmount         { get; init; }
+    public long    RefundAmount         { get; init; }
 }

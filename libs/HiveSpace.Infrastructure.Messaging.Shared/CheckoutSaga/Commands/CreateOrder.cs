@@ -8,10 +8,10 @@ public record CreateOrder
     public Guid               UserId          { get; init; }
     public List<OrderItemDto> Items           { get; init; } = new();
     public DeliveryAddressDto DeliveryAddress { get; init; } = null!;
-    public decimal            Subtotal        { get; init; }
-    public decimal            ShippingFee     { get; init; }
-    public decimal            TaxAmount       { get; init; }
-    public decimal            DiscountAmount  { get; init; }
-    public decimal            GrandTotal      { get; init; }
+    public long               Subtotal        { get; init; }
+    public long               ShippingFee     { get; init; }
+    public long               TaxAmount       { get; init; }
+    public long               DiscountAmount  { get; init; }
+    public long               GrandTotal      { get; init; }
     public PaymentMethod      PaymentMethod   { get; init; } = PaymentMethod.COD;
 }
