@@ -1,4 +1,4 @@
-﻿namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
+﻿namespace HiveSpace.Domain.Shared.Enumerations
 {
     public enum ProductStatus
     {
@@ -7,4 +7,5 @@
         Unpublish,
         Removed
     }
+
 }

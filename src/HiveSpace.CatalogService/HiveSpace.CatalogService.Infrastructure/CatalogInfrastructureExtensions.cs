@@ -1,9 +1,11 @@
 using HiveSpace.CatalogService.Application.DataQueries;
+using HiveSpace.CatalogService.Application.Interfaces.Messaging;
 using HiveSpace.CatalogService.Application.Queries;
 using HiveSpace.CatalogService.Domain.Repositories;
 using HiveSpace.CatalogService.Domain.Repositories.External;
 using HiveSpace.CatalogService.Infrastructure.Data;
 using HiveSpace.CatalogService.Infrastructure.DataQueries;
+using HiveSpace.CatalogService.Infrastructure.Messaging.Publishers;
 using HiveSpace.CatalogService.Infrastructure.Queries;
 using HiveSpace.CatalogService.Infrastructure.Repositories;
 using HiveSpace.CatalogService.Infrastructure.Repositories.Externals;
@@ -47,6 +49,7 @@ namespace HiveSpace.CatalogService.Infrastructure
             services.AddScoped<ICategoryDataQuery, CategoryDataQuery>();
             services.AddScoped<IProductDataQuery, ProductDataQuery>();
 
+            services.AddScoped<IProductEventPublisher, ProductEventPublisher>();
 
             services.AddScoped<IStoreRefRepository, StoreRefRepository>();
         }

@@ -6,6 +6,7 @@ using HiveSpace.CatalogService.Domain.Exceptions;
 using HiveSpace.CatalogService.Domain.ValueObjects;
 using HiveSpace.CatalogService.Domain.Enums;
 using System.Text.Json.Serialization;
+using HiveSpace.Domain.Shared.Enumerations;
 
 namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
 {

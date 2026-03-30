@@ -1,10 +1,12 @@
 using HiveSpace.Application.Shared.Handlers;
 using HiveSpace.CatalogService.Application.Helpers;
 using HiveSpace.CatalogService.Application.Interfaces;
+using HiveSpace.CatalogService.Application.Interfaces.Messaging;
 using HiveSpace.CatalogService.Application.Models.Requests;
 using HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate;
 using HiveSpace.CatalogService.Domain.Repositories;
 using HiveSpace.Core.Contexts;
+using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.Infrastructure.Persistence.Transaction;
 
 namespace HiveSpace.CatalogService.Application.Commands.Handlers;
@@ -14,13 +16,18 @@ public class CreateProductCommandHandler : ICommandHandler<CreateProductCommand,
     private readonly IUserContext _userContext;
     private readonly IProductRepository _productRepository;
     private readonly ITransactionService _transactionService;
-    public CreateProductCommandHandler(IProductRepository productRepository,
-            ITransactionService transactionService,
-            IUserContext userContext)
+    private readonly IProductEventPublisher _productEventPublisher;
+
+    public CreateProductCommandHandler(
+        IProductRepository productRepository,
+        ITransactionService transactionService,
+        IUserContext userContext,
+        IProductEventPublisher productEventPublisher)
     {
         _productRepository = productRepository;
         _transactionService = transactionService;
         _userContext = userContext;
+        _productEventPublisher = productEventPublisher;
     }
 
     private string GetCurrentUserId() => _userContext.UserId.ToString();
@@ -58,6 +65,9 @@ public class CreateProductCommandHandler : ICommandHandler<CreateProductCommand,
         {
             await _productRepository.AddAsync(product, cancellationToken);
         }, performIdempotenceCheck: true, actionName: nameof(CreateProductCommandHandler));
+
+        // Publish the created event after transaction commits
+        await _productEventPublisher.PublishProductCreatedAsync(product, cancellationToken);
 
         return product.Id;
     }

@@ -44,16 +44,16 @@ namespace HiveSpace.CatalogService.Infrastructure.Data.Configurations
             // Value Objects - Weight
             builder.OwnsOne(p => p.Weight, w =>
             {
-                w.Property(p => p.Value).HasColumnName("WeightValue");
+                w.Property(p => p.Value).HasColumnName("WeightValue").HasColumnType("decimal(18,2)");
                 w.Property(p => p.Unit).HasColumnName("WeightUnit");
             });
 
             // Value Objects - Dimensions
             builder.OwnsOne(p => p.Dimensions, d =>
             {
-                d.Property(p => p.Length).HasColumnName("DimensionsLength");
-                d.Property(p => p.Width).HasColumnName("DimensionsWidth");
-                d.Property(p => p.Height).HasColumnName("DimensionsHeight");
+                d.Property(p => p.Length).HasColumnName("DimensionsLength").HasColumnType("decimal(18,2)");
+                d.Property(p => p.Width).HasColumnName("DimensionsWidth").HasColumnType("decimal(18,2)");
+                d.Property(p => p.Height).HasColumnName("DimensionsHeight").HasColumnType("decimal(18,2)");
                 d.Property(p => p.Unit).HasColumnName("DimensionsUnit");
             });
             builder.OwnsMany(p => p.Categories, pc =>

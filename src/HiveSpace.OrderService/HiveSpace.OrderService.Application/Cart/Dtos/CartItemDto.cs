@@ -1,3 +1,4 @@
+using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.OrderService.Domain.Enumerations;
 
 namespace HiveSpace.OrderService.Application.Cart.Dtos;

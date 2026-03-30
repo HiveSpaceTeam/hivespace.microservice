@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HiveSpace.CatalogService.Infrastructure.Migrations
 {
     [DbContext(typeof(CatalogDbContext))]
-    [Migration("20260327154531_SkuVariant")]
-    partial class SkuVariant
+    [Migration("20260330145732_InitDatbase")]
+    partial class InitDatbase
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

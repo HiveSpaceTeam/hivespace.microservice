@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace HiveSpace.CatalogService.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class initdb : Migration
+    public partial class InitDatbase : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -383,6 +383,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    VariantName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Value = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     SkuId = table.Column<int>(type: "int", nullable: false)
                 },
