@@ -58,6 +58,13 @@ public class Index : PageModel
 
     public async Task<IActionResult> OnGet(string? returnUrl)
     {
+        // Check if the auth request intended to register
+        var context = await _interaction.GetAuthorizationContextAsync(returnUrl);
+        if (context?.Parameters["intent"] == "register")
+        {
+            return RedirectToPage("/Account/Register/Index", new { returnUrl });
+        }
+
         // Clear all error messages on page refresh/load
         ClearAllErrors();
 

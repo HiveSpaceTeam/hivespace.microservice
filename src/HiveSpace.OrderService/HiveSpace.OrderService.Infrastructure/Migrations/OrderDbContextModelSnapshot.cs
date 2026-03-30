@@ -548,11 +548,14 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("CODMarkingPendingTokenId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("CartValidationPendingTokenId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTimeOffset?>("CompletedAt")
                         .HasColumnType("datetimeoffset");
-
-                    b.Property<int>("ConfirmedPackages")
-                        .HasColumnType("int");
 
                     b.Property<string>("CouponCodes")
                         .IsRequired()
@@ -570,8 +573,8 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<decimal>("DiscountAmount")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<long>("DiscountAmount")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTimeOffset?>("FailedAt")
                         .HasColumnType("datetimeoffset");
@@ -580,14 +583,17 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<decimal>("GrandTotal")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<long>("GrandTotal")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid?>("InventoryReservationPendingTokenId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Items")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("OrderId")
+                    b.Property<Guid?>("OrderCreationPendingTokenId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("PackageIds")
@@ -598,8 +604,83 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTimeOffset?>("PaymentExpiresAt")
+                        .HasColumnType("datetimeoffset");
+
                     b.Property<int>("PaymentMethod")
                         .HasColumnType("int");
+
+                    b.Property<string>("PaymentUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("RequestId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ReservationIds")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ResponseAddress")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("ShippingFee")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("Subtotal")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("TaxAmount")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("CorrelationId");
+
+                    b.ToTable("checkout_saga_states", (string)null);
+                });
+
+            modelBuilder.Entity("HiveSpace.OrderService.Infrastructure.Sagas.FulfillmentSagaState", b =>
+                {
+                    b.Property<Guid>("CorrelationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("CompletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ConfirmedPackageIds")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ConfirmedPackages")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CurrentState")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTimeOffset?>("FailedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("FailureReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<long>("GrandTotal")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("PackageIds")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PackageReservationMap")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("RejectedPackageIds")
                         .IsRequired()
@@ -618,15 +699,6 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
                     b.Property<Guid?>("SellerConfirmationTimeoutTokenId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<decimal>("ShippingFee")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("Subtotal")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("TaxAmount")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<int>("TotalPackages")
                         .HasColumnType("int");
 
@@ -635,7 +707,7 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
 
                     b.HasKey("CorrelationId");
 
-                    b.ToTable("checkout_saga_states", (string)null);
+                    b.ToTable("fulfillment_saga_states", (string)null);
                 });
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.InboxState", b =>

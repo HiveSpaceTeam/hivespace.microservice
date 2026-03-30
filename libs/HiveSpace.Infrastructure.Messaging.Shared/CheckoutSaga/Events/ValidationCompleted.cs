@@ -6,9 +6,9 @@ public record ValidationCompleted
 {
     public Guid               CorrelationId  { get; init; }
     public List<OrderItemDto> Items          { get; init; } = new();
-    public decimal            Subtotal       { get; init; }
-    public decimal            ShippingFee    { get; init; }
-    public decimal            TaxAmount      { get; init; }
-    public decimal            DiscountAmount { get; init; }
-    public decimal            GrandTotal     { get; init; }
+    public long               Subtotal       { get; init; }
+    public long               ShippingFee    { get; init; }
+    public long               TaxAmount      { get; init; }
+    public long               DiscountAmount { get; init; }
+    public long               GrandTotal     { get; init; }
 }

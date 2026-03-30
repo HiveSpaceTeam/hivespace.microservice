@@ -29,12 +29,6 @@ public class CheckoutSagaStateEntityConfiguration : IEntityTypeConfiguration<Che
                 v => JsonSerializer.Deserialize<List<Guid>>(v, _jsonOptions) ?? new())
             .HasColumnType("nvarchar(max)");
 
-        builder.Property(s => s.RejectedPackageIds)
-            .HasConversion(
-                v => JsonSerializer.Serialize(v, _jsonOptions),
-                v => JsonSerializer.Deserialize<List<Guid>>(v, _jsonOptions) ?? new())
-            .HasColumnType("nvarchar(max)");
-
         builder.Property(s => s.ReservationIds)
             .HasConversion(
                 v => JsonSerializer.Serialize(v, _jsonOptions),

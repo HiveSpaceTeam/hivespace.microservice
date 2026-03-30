@@ -129,6 +129,14 @@ public class Cart : AggregateRoot<Guid>, IAuditable
     }
 
     /// <summary>
+    /// Clear only selected items from cart (after checkout of selected items)
+    /// </summary>
+    public void ClearSelectedItems()
+    {
+        _items.RemoveAll(i => i.IsSelected);
+    }
+
+    /// <summary>
     /// Get total number of items in cart
     /// </summary>
     public int GetTotalItemCount()

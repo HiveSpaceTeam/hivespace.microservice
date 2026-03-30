@@ -7,6 +7,7 @@ using HiveSpace.OrderService.Domain.ValueObjects;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 using DomainPaymentMethod = HiveSpace.OrderService.Domain.Enumerations.PaymentMethod;
+using static HiveSpace.OrderService.Application.Cart.CheckoutCalculator;
 
 namespace HiveSpace.OrderService.Api.Consumers.Saga.CheckoutSaga;
 
@@ -31,21 +32,19 @@ public class CreateOrderConsumer(
 
         var order = Order.Create(message.UserId, address, id: message.CorrelationId);
 
-        var itemsByStore  = message.Items.GroupBy(i => i.StoreId).ToList();
-        var totalShipping = (long)message.ShippingFee;
-        var baseShipping  = itemsByStore.Count > 0 ? totalShipping / itemsByStore.Count : 0;
-        var remainder     = itemsByStore.Count > 0 ? totalShipping % itemsByStore.Count : 0;
+        var itemsByStore       = message.Items.GroupBy(i => i.StoreId).ToList();
+        var shippingPerStore   = DistributeShippingFee(message.ShippingFee, itemsByStore.Count);
 
         for (int i = 0; i < itemsByStore.Count; i++)
         {
             var storeGroup  = itemsByStore[i];
-            var pkgShipping = baseShipping + (i == 0 ? remainder : 0);
+            var pkgShipping = shippingPerStore[i];
             var package     = OrderPackage.Create(storeGroup.Key, message.UserId);
 
             foreach (var item in storeGroup)
             {
-                var unitPrice     = Money.FromVND((long)item.Price);
-                var snapshotPrice = Money.FromVND((long)item.Price);
+                var unitPrice     = Money.FromVND(item.Price);
+                var snapshotPrice = Money.FromVND(item.Price);
 
                 var snapshot = ProductSnapshot.Capture(
                     item.ProductId,
@@ -70,7 +69,7 @@ public class CreateOrderConsumer(
         logger.LogInformation("Order {OrderId} created for user {UserId} with {PackageCount} packages",
             order.Id, message.UserId, order.Packages.Count);
 
-        await context.Publish<OrderCreated>(new
+        await context.RespondAsync<OrderCreated>(new
         {
             message.CorrelationId,
             OrderId    = order.Id,

@@ -13,13 +13,16 @@ public class RejectPackageCommandHandler(
 {
     public async Task<RejectPackageResult> Handle(RejectPackageCommand request, CancellationToken cancellationToken)
     {
+        if (userContext.StoreId is null)
+            throw new ForbiddenException(OrderDomainErrorCode.SellerStoreRequired, nameof(userContext.StoreId));
+
         var order = await orderRepository.GetOrderByPackageIdAsync(request.PackageId, cancellationToken)
             ?? throw new NotFoundException(OrderDomainErrorCode.OrderPackageNotFound, nameof(request.PackageId));
 
         var package = order.Packages.FirstOrDefault(p => p.Id == request.PackageId)
             ?? throw new NotFoundException(OrderDomainErrorCode.OrderPackageNotFound, nameof(request.PackageId));
 
-        var packageAmount = (decimal)package.TotalAmount.Amount;
+        var packageAmount = package.TotalAmount.Amount;
 
         order.RejectPackage(request.PackageId, request.Reason, userContext.UserId);
         await orderRepository.SaveChangesAsync(cancellationToken);

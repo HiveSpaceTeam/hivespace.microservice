@@ -2,8 +2,10 @@ using HiveSpace.Core.Exceptions.Models;
 using HiveSpace.Core.Exceptions;
 using HiveSpace.Infrastructure.Persistence;
 using HiveSpace.OrderService.Application.Cart;
+using HiveSpace.OrderService.Application.Interfaces.Messaging;
 using HiveSpace.OrderService.Infrastructure.Data;
 using HiveSpace.OrderService.Infrastructure.DataQueries;
+using HiveSpace.OrderService.Infrastructure.Messaging.Publishers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
@@ -39,7 +41,7 @@ public static class OrderInfrastructureExtension
         services.AddInfrastructureServices();
 
         // Register Event Publisher services
-        // services.AddEventPublisherServices();
+        services.AddEventPublisherServices();
 
         // Register OrderService queries
         services.AddOrderServiceQueries(connectionString);
@@ -47,12 +49,7 @@ public static class OrderInfrastructureExtension
         services.AddDbContext<OrderDbContext>((serviceProvider, options) =>
         {
             var interceptors = serviceProvider.GetServices<ISaveChangesInterceptor>();
-            options.UseSqlServer(
-                connectionString, sqlOptions => sqlOptions
-                .EnableRetryOnFailure(
-                    maxRetryCount: 5,
-                    maxRetryDelay: TimeSpan.FromSeconds(30),
-                    errorNumbersToAdd: null))
+            options.UseSqlServer(connectionString)
                 .AddInterceptors(interceptors);
         });
 
@@ -72,10 +69,16 @@ public static class OrderInfrastructureExtension
     public static void AddOrderServiceQueries(this IServiceCollection services, string connectionString)
     {
         services.AddScoped<ICartDataQuery>(_ => new CartDataQuery(connectionString));
+        services.AddScoped<ICheckoutPreviewQuery>(_ => new CheckoutPreviewQuery(connectionString));
     }
 
     public static void AddInfrastructureServices(this IServiceCollection services)
     {
         // TODO: Register Service Implementations here
+    }
+
+    public static void AddEventPublisherServices(this IServiceCollection services)
+    {
+        services.AddScoped<IOrderEventPublisher, OrderEventPublisher>();
     }
 }

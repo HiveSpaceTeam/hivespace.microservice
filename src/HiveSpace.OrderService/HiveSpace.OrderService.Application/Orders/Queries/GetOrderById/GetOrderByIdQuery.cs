@@ -3,4 +3,4 @@ using MediatR;
 
 namespace HiveSpace.OrderService.Application.Orders.Queries.GetOrderById;
 
-public record GetOrderByIdQuery(Guid OrderId) : IRequest<OrderDetailDto?>;
+public record GetOrderByIdQuery(Guid OrderId) : IRequest<OrderDetailDto>;

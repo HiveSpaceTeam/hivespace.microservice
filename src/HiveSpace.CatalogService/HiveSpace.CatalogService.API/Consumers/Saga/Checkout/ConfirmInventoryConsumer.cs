@@ -34,12 +34,12 @@ public class ConfirmInventoryConsumer : IConsumer<ConfirmInventory>
                 "Inventory confirmed for order {OrderId}",
                 message.OrderId);
 
-            await context.Publish<InventoryConfirmed>(new
+            await context.RespondAsync<InventoryConfirmed>(new
             {
                 message.CorrelationId,
                 message.OrderId,
                 message.ReservationIds
-            }, ct);
+            });
         }
         else
         {
@@ -47,13 +47,13 @@ public class ConfirmInventoryConsumer : IConsumer<ConfirmInventory>
                 "Inventory confirmation failed for order {OrderId} — {Count} reservation(s) expired",
                 message.OrderId, expiredIds.Count);
 
-            await context.Publish<InventoryConfirmationFailed>(new
+            await context.RespondAsync<InventoryConfirmationFailed>(new
             {
                 message.CorrelationId,
                 message.OrderId,
                 Reason     = $"{expiredIds.Count} reservation(s) expired before confirmation",
                 ExpiredIds = expiredIds
-            }, ct);
+            });
         }
     }
 }

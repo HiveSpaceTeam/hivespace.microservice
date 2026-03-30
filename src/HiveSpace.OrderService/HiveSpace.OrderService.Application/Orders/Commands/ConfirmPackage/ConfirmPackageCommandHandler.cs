@@ -14,6 +14,9 @@ public class ConfirmPackageCommandHandler(
 {
     public async Task<ConfirmPackageResult> Handle(ConfirmPackageCommand request, CancellationToken cancellationToken)
     {
+        if (userContext.StoreId is null)
+            throw new ForbiddenException(OrderDomainErrorCode.SellerStoreRequired, nameof(userContext.StoreId));
+
         var order = await orderRepository.GetOrderByPackageIdAsync(request.PackageId, cancellationToken)
             ?? throw new NotFoundException(OrderDomainErrorCode.OrderPackageNotFound, nameof(request.PackageId));
 
