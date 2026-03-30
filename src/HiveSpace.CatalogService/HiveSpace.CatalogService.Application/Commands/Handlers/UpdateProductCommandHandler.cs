@@ -1,5 +1,6 @@
 using HiveSpace.Application.Shared.Handlers;
 using HiveSpace.CatalogService.Application.Helpers;
+using HiveSpace.CatalogService.Application.Interfaces.Messaging;
 using HiveSpace.CatalogService.Application.Models.Requests;
 using HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate;
 using HiveSpace.CatalogService.Domain.Repositories;
@@ -13,14 +14,17 @@ public class UpdateProductCommandHandler : ICommandHandler<UpdateProductCommand,
     private readonly IUserContext _userContext;
     private readonly IProductRepository _productRepository;
     private readonly ITransactionService _transactionService;
+    private readonly IProductEventPublisher _productEventPublisher;
 
     public UpdateProductCommandHandler(IProductRepository productRepository,
             ITransactionService transactionService,
-            IUserContext userContext)
+            IUserContext userContext,
+            IProductEventPublisher productEventPublisher)
     {
         _productRepository = productRepository;
         _transactionService = transactionService;
         _userContext = userContext;
+        _productEventPublisher = productEventPublisher;
     }
     private string GetCurrentUserId() => _userContext.UserId.ToString();
 
@@ -80,6 +84,16 @@ public class UpdateProductCommandHandler : ICommandHandler<UpdateProductCommand,
                 wasUpdated = true;
             }
         }, performIdempotenceCheck: true, actionName: nameof(UpdateProductCommandHandler));
+
+        if (wasUpdated)
+        {
+            var product = await _productRepository.GetByIdAsync(request.ProductId, cancellationToken);
+            if (product != null)
+            {
+                await _productEventPublisher.PublishProductUpdatedAsync(product, cancellationToken);
+                await _productEventPublisher.PublishSkuUpdatedAsync(product, cancellationToken);
+            }
+        }
 
         return wasUpdated;
     }

@@ -1,5 +1,5 @@
+using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.Domain.Shared.Interfaces;
-using HiveSpace.OrderService.Domain.Enumerations;
 
 namespace HiveSpace.OrderService.Domain.External;
 

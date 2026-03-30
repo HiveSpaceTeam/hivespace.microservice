@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using HiveSpace.Domain.Shared.Enumerations;
 
 namespace HiveSpace.OrderService.Infrastructure;
 
