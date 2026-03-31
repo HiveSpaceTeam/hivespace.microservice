@@ -1,22 +1,19 @@
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using MediatR;
+using HiveSpace.Application.Shared.Handlers;
 using HiveSpace.Core.Contexts;
 using HiveSpace.Core.Models.Pagination;
 using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.Domain.Shared.Specifications;
 using HiveSpace.OrderService.Application.Coupons.Dtos;
+using HiveSpace.OrderService.Application.Coupons.Mappers;
 using HiveSpace.OrderService.Domain.Aggregates.Coupons;
+using HiveSpace.OrderService.Domain.Aggregates.Coupons.Specifications;
 using HiveSpace.OrderService.Domain.Enumerations;
 using HiveSpace.OrderService.Domain.Repositories;
-using HiveSpace.OrderService.Domain.Aggregates.Coupons.Specifications;
-using HiveSpace.OrderService.Application.Coupons.Mappers;
 
 namespace HiveSpace.OrderService.Application.Coupons.Queries.GetCouponList;
 
 public class GetCouponListQueryHandler(ICouponRepository couponRepository, IUserContext userContext)
-    : IRequestHandler<GetCouponListQuery, GetCouponListResponse>
+    : IQueryHandler<GetCouponListQuery, GetCouponListResponse>
 {
     public async Task<GetCouponListResponse> Handle(GetCouponListQuery request, CancellationToken cancellationToken)
     {

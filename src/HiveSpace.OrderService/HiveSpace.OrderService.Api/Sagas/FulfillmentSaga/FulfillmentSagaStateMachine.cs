@@ -15,21 +15,21 @@ public class FulfillmentSagaStateMachine : MassTransitStateMachine<FulfillmentSa
     public Schedule<FulfillmentSagaState, SellerConfirmationExpired> SellerConfirmationTimeout { get; private set; } = null!;
 
     // ── Events (pub/sub) ──────────────────────────────────────────────────────
-    public Event<CheckoutPaymentSettled> CheckoutPaymentSettled { get; private set; } = null!;
-    public Event<SellersNotified>        SellersNotified        { get; private set; } = null!;
-    public Event<PackageConfirmed>       PackageConfirmed       { get; private set; } = null!;
-    public Event<PackageRejected>        PackageRejected        { get; private set; } = null!;
-    public Event<CustomerNotified>       CustomerNotified       { get; private set; } = null!;
-    public Event<InventoryReleased>      InventoryReleased      { get; private set; } = null!;
-    public Event<OrderCancelled>         OrderCancelled         { get; private set; } = null!;
+    public Event<OrderReadyForFulfillment> OrderReadyForFulfillment { get; private set; } = null!;
+    public Event<SellerNotified>           SellerNotified           { get; private set; } = null!;
+    public Event<OrderConfirmedBySeller>   OrderConfirmedBySeller   { get; private set; } = null!;
+    public Event<OrderRejectedBySeller>    OrderRejectedBySeller    { get; private set; } = null!;
+    public Event<CustomerNotified>         CustomerNotified         { get; private set; } = null!;
+    public Event<InventoryReleased>        InventoryReleased        { get; private set; } = null!;
+    public Event<OrderCancelled>           OrderCancelled           { get; private set; } = null!;
 
     // ── States ────────────────────────────────────────────────────────────────
     public State ConfirmingInventory           { get; private set; } = null!;
-    public State NotifyingSellers              { get; private set; } = null!;
-    public State WaitingForPackageConfirmation { get; private set; } = null!;
+    public State NotifyingSeller               { get; private set; } = null!;
+    public State WaitingForSellerConfirmation  { get; private set; } = null!;
     public State NotifyingCustomer             { get; private set; } = null!;
-    public State Completed                     { get; private set; } = null!;
     public State Compensating                  { get; private set; } = null!;
+    public State Completed                     { get; private set; } = null!;
     public State Failed                        { get; private set; } = null!;
 
     public FulfillmentSagaStateMachine()
@@ -44,26 +44,24 @@ public class FulfillmentSagaStateMachine : MassTransitStateMachine<FulfillmentSa
             cfg.Received = e => e.CorrelateById(m => m.Message.CorrelationId);
         });
 
-        Event(() => CheckoutPaymentSettled, x => x.CorrelateById(m => m.Message.CorrelationId));
-        Event(() => SellersNotified,        x => x.CorrelateById(m => m.Message.CorrelationId));
-        Event(() => PackageConfirmed,       x => x.CorrelateById(m => m.Message.CorrelationId));
-        Event(() => PackageRejected,        x => x.CorrelateById(m => m.Message.CorrelationId));
-        Event(() => CustomerNotified,       x => x.CorrelateById(m => m.Message.CorrelationId));
-        Event(() => InventoryReleased,      x => x.CorrelateById(m => m.Message.CorrelationId));
-        Event(() => OrderCancelled,         x => x.CorrelateById(m => m.Message.CorrelationId));
+        Event(() => OrderReadyForFulfillment, x => x.CorrelateById(m => m.Message.CorrelationId));
+        Event(() => SellerNotified,           x => x.CorrelateById(m => m.Message.CorrelationId));
+        Event(() => OrderConfirmedBySeller,   x => x.CorrelateById(m => m.Message.CorrelationId));
+        Event(() => OrderRejectedBySeller,    x => x.CorrelateById(m => m.Message.CorrelationId));
+        Event(() => CustomerNotified,         x => x.CorrelateById(m => m.Message.CorrelationId));
+        Event(() => InventoryReleased,        x => x.CorrelateById(m => m.Message.CorrelationId));
+        Event(() => OrderCancelled,           x => x.CorrelateById(m => m.Message.CorrelationId));
 
         // ── INITIAL ──────────────────────────────────────────────────────────
         Initially(
-            When(CheckoutPaymentSettled)
+            When(OrderReadyForFulfillment)
                 .Then(ctx =>
                 {
-                    ctx.Saga.UserId                = ctx.Message.UserId;
-                    ctx.Saga.PackageIds            = ctx.Message.PackageIds;
-                    ctx.Saga.ReservationIds        = ctx.Message.ReservationIds;
-                    ctx.Saga.PackageReservationMap = ctx.Message.PackageReservationMap;
-                    ctx.Saga.GrandTotal            = ctx.Message.GrandTotal;
-                    ctx.Saga.TotalPackages         = ctx.Message.PackageIds.Count;
-                    ctx.Saga.CreatedAt             = DateTimeOffset.UtcNow;
+                    ctx.Saga.UserId         = ctx.Message.UserId;
+                    ctx.Saga.StoreId        = ctx.Message.StoreId;
+                    ctx.Saga.ReservationIds = ctx.Message.ReservationIds;
+                    ctx.Saga.GrandTotal     = ctx.Message.GrandTotal;
+                    ctx.Saga.CreatedAt      = DateTimeOffset.UtcNow;
                 })
                 .Request(InventoryConfirmation, ctx => ctx.Init<ConfirmInventory>(new
                 {
@@ -76,12 +74,12 @@ public class FulfillmentSagaStateMachine : MassTransitStateMachine<FulfillmentSa
         // ── CONFIRMING INVENTORY ─────────────────────────────────────────────
         During(InventoryConfirmation.Pending,
             When(InventoryConfirmation.Completed)   // InventoryConfirmed
-                .TransitionTo(NotifyingSellers)
-                .PublishAsync(ctx => ctx.Init<NotifySellers>(new
+                .TransitionTo(NotifyingSeller)
+                .PublishAsync(ctx => ctx.Init<NotifySeller>(new
                 {
                     ctx.Saga.CorrelationId,
-                    OrderId    = ctx.Saga.CorrelationId,
-                    PackageIds = ctx.Saga.PackageIds
+                    OrderId = ctx.Saga.CorrelationId,
+                    ctx.Saga.StoreId
                 })),
 
             When(InventoryConfirmation.Completed2)  // InventoryConfirmationFailed
@@ -127,140 +125,74 @@ public class FulfillmentSagaStateMachine : MassTransitStateMachine<FulfillmentSa
                 }))
         );
 
-        // ── NOTIFYING SELLERS ────────────────────────────────────────────────
-        During(NotifyingSellers,
-            When(SellersNotified)
+        // ── NOTIFYING SELLER ─────────────────────────────────────────────────
+        During(NotifyingSeller,
+            When(SellerNotified)
                 .Schedule(SellerConfirmationTimeout, ctx => ctx.Init<SellerConfirmationExpired>(new
                 {
                     ctx.Saga.CorrelationId,
                     OrderId = ctx.Saga.CorrelationId
                 }))
-                .TransitionTo(WaitingForPackageConfirmation)
+                .TransitionTo(WaitingForSellerConfirmation)
         );
 
-        // ── WAITING FOR PACKAGE CONFIRMATION ─────────────────────────────────
-        During(WaitingForPackageConfirmation,
-            When(PackageConfirmed)
-                .Then(ctx =>
+        // ── WAITING FOR SELLER CONFIRMATION ──────────────────────────────────
+        During(WaitingForSellerConfirmation,
+            When(OrderConfirmedBySeller)
+                .Then(ctx => ctx.Saga.OrderWasConfirmed = true)
+                .Unschedule(SellerConfirmationTimeout)
+                .TransitionTo(NotifyingCustomer)
+                .PublishAsync(ctx => ctx.Init<NotifyCustomer>(new
                 {
-                    ctx.Saga.ConfirmedPackages++;
-                    ctx.Saga.ConfirmedPackageIds.Add(ctx.Message.PackageId);
-                })
-                .If(ctx => AllPackagesResolved(ctx.Saga), resolved => resolved
-                    .Unschedule(SellerConfirmationTimeout)
-                    .If(ctx => ctx.Saga.RejectedPackages > 0, hasRejected => hasRejected
-                        .PublishAsync(ctx => ctx.Init<ReleaseInventory>(new
-                        {
-                            ctx.Saga.CorrelationId,
-                            OrderId        = ctx.Saga.CorrelationId,
-                            ReservationIds = GetRejectedReservationIds(ctx.Saga)
-                        }))
-                    )
-                    .TransitionTo(NotifyingCustomer)
-                    .PublishAsync(ctx => ctx.Init<NotifyCustomer>(new
-                    {
-                        ctx.Saga.CorrelationId,
-                        OrderId              = ctx.Saga.CorrelationId,
-                        UserId               = ctx.Saga.UserId,
-                        IsPartialOrder       = ctx.Saga.RejectedPackages > 0,
-                        RejectedPackageCount = ctx.Saga.RejectedPackages,
-                        RefundAmount         = 0L
-                    }))
-                ),
+                    ctx.Saga.CorrelationId,
+                    OrderId      = ctx.Saga.CorrelationId,
+                    ctx.Saga.UserId,
+                    WasConfirmed = true
+                })),
 
-            When(PackageRejected)
+            When(OrderRejectedBySeller)
                 .Then(ctx =>
                 {
-                    ctx.Saga.RejectedPackages++;
-                    if (!ctx.Saga.RejectedPackageIds.Contains(ctx.Message.PackageId))
-                        ctx.Saga.RejectedPackageIds.Add(ctx.Message.PackageId);
+                    ctx.Saga.FailureReason = ctx.Message.Reason;
+                    ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
                 })
-                .If(ctx => AllPackagesResolved(ctx.Saga), resolved => resolved
-                    .Unschedule(SellerConfirmationTimeout)
-                    .IfElse(ctx => ctx.Saga.ConfirmedPackages == 0,
-                        allRejected => allRejected
-                            .Then(ctx =>
-                            {
-                                ctx.Saga.FailureReason = "All packages rejected by sellers";
-                                ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
-                            })
-                            .TransitionTo(Compensating)
-                            .PublishAsync(ctx => ctx.Init<ReleaseInventory>(new
-                            {
-                                ctx.Saga.CorrelationId,
-                                OrderId        = ctx.Saga.CorrelationId,
-                                ReservationIds = ctx.Saga.ReservationIds
-                            })),
-                        partial => partial
-                            .PublishAsync(ctx => ctx.Init<ReleaseInventory>(new
-                            {
-                                ctx.Saga.CorrelationId,
-                                OrderId        = ctx.Saga.CorrelationId,
-                                ReservationIds = GetRejectedReservationIds(ctx.Saga)
-                            }))
-                            .TransitionTo(NotifyingCustomer)
-                            .PublishAsync(ctx => ctx.Init<NotifyCustomer>(new
-                            {
-                                ctx.Saga.CorrelationId,
-                                OrderId              = ctx.Saga.CorrelationId,
-                                UserId               = ctx.Saga.UserId,
-                                IsPartialOrder       = true,
-                                RejectedPackageCount = ctx.Saga.RejectedPackages,
-                                RefundAmount         = 0L
-                            }))
-                    )
-                ),
+                .Unschedule(SellerConfirmationTimeout)
+                .TransitionTo(Compensating)
+                .PublishAsync(ctx => ctx.Init<ReleaseInventory>(new
+                {
+                    ctx.Saga.CorrelationId,
+                    OrderId        = ctx.Saga.CorrelationId,
+                    ReservationIds = ctx.Saga.ReservationIds
+                })),
 
             When(SellerConfirmationTimeout.Received)
                 .Then(ctx =>
                 {
-                    var pending = ctx.Saga.PackageIds
-                        .Except(ctx.Saga.ConfirmedPackageIds)
-                        .Except(ctx.Saga.RejectedPackageIds)
-                        .ToList();
-                    ctx.Saga.RejectedPackageIds.AddRange(pending);
-                    ctx.Saga.RejectedPackages = ctx.Saga.TotalPackages - ctx.Saga.ConfirmedPackages;
+                    ctx.Saga.FailureReason = "Seller did not respond within the confirmation window";
+                    ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
                 })
-                .IfElse(ctx => ctx.Saga.ConfirmedPackages == 0,
-                    allExpired => allExpired
-                        .Then(ctx =>
-                        {
-                            ctx.Saga.FailureReason = "Seller confirmation window expired — no packages confirmed";
-                            ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
-                        })
-                        .TransitionTo(Compensating)
-                        .PublishAsync(ctx => ctx.Init<ReleaseInventory>(new
-                        {
-                            ctx.Saga.CorrelationId,
-                            OrderId        = ctx.Saga.CorrelationId,
-                            ReservationIds = ctx.Saga.ReservationIds
-                        })),
-                    partial => partial
-                        .PublishAsync(ctx => ctx.Init<ReleaseInventory>(new
-                        {
-                            ctx.Saga.CorrelationId,
-                            OrderId        = ctx.Saga.CorrelationId,
-                            ReservationIds = GetRejectedReservationIds(ctx.Saga)
-                        }))
-                        .TransitionTo(NotifyingCustomer)
-                        .PublishAsync(ctx => ctx.Init<NotifyCustomer>(new
-                        {
-                            ctx.Saga.CorrelationId,
-                            OrderId              = ctx.Saga.CorrelationId,
-                            UserId               = ctx.Saga.UserId,
-                            IsPartialOrder       = true,
-                            RejectedPackageCount = ctx.Saga.RejectedPackages,
-                            RefundAmount         = 0L
-                        }))
-                )
+                .TransitionTo(Compensating)
+                .PublishAsync(ctx => ctx.Init<ReleaseInventory>(new
+                {
+                    ctx.Saga.CorrelationId,
+                    OrderId        = ctx.Saga.CorrelationId,
+                    ReservationIds = ctx.Saga.ReservationIds
+                }))
         );
 
         // ── NOTIFYING CUSTOMER ───────────────────────────────────────────────
         During(NotifyingCustomer,
             When(CustomerNotified)
-                .Then(ctx => ctx.Saga.CompletedAt = DateTimeOffset.UtcNow)
-                .TransitionTo(Completed)
-                .Finalize()
+                .IfElse(ctx => ctx.Saga.OrderWasConfirmed,
+                    success => success
+                        .Then(ctx => ctx.Saga.CompletedAt = DateTimeOffset.UtcNow)
+                        .TransitionTo(Completed)
+                        .Finalize(),
+                    failure => failure
+                        .Then(ctx => ctx.Saga.FailedAt ??= DateTimeOffset.UtcNow)
+                        .TransitionTo(Failed)
+                        .Finalize()
+                )
         );
 
         // ── COMPENSATING ─────────────────────────────────────────────────────
@@ -268,28 +200,22 @@ public class FulfillmentSagaStateMachine : MassTransitStateMachine<FulfillmentSa
             When(InventoryReleased)
                 .PublishAsync(ctx => ctx.Init<CancelOrder>(new
                 {
-                    ctx.Message.CorrelationId,
-                    OrderId = ctx.Message.CorrelationId,
+                    ctx.Saga.CorrelationId,
+                    OrderId = ctx.Saga.CorrelationId,
                     Reason  = ctx.Saga.FailureReason
                 })),
 
             When(OrderCancelled)
-                .Then(ctx =>
+                .TransitionTo(NotifyingCustomer)
+                .PublishAsync(ctx => ctx.Init<NotifyCustomer>(new
                 {
-                    ctx.Saga.FailedAt ??= DateTimeOffset.UtcNow;
-                })
-                .TransitionTo(Failed)
-                .Finalize()
+                    ctx.Saga.CorrelationId,
+                    OrderId      = ctx.Saga.CorrelationId,
+                    ctx.Saga.UserId,
+                    WasConfirmed = false
+                }))
         );
 
         SetCompletedWhenFinalized();
     }
-
-    private static bool AllPackagesResolved(FulfillmentSagaState saga) =>
-        saga.ConfirmedPackages + saga.RejectedPackages >= saga.TotalPackages;
-
-    private static List<Guid> GetRejectedReservationIds(FulfillmentSagaState saga) =>
-        saga.RejectedPackageIds
-            .SelectMany(pkgId => saga.PackageReservationMap.TryGetValue(pkgId, out var ids) ? ids : [])
-            .ToList();
 }

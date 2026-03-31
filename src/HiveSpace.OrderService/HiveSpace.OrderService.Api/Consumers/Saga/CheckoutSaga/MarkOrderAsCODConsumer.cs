@@ -18,56 +18,46 @@ public class MarkOrderAsCODConsumer(
         var message = context.Message;
         var ct = context.CancellationToken;
 
-        var order = await orderRepository.GetByIdAsync(message.OrderId, cancellationToken: ct);
-        if (order is null)
+        foreach (var orderId in message.OrderIds)
         {
-            logger.LogWarning("Order {OrderId} not found for COD marking", message.OrderId);
-            await PublishCodFailed(context, message.OrderId, "Order not found for COD marking");
-            return;
-        }
-
-        try
-        {
-            order.MarkAsCOD();
-            await orderRepository.SaveChangesAsync(ct);
-            await PublishMarkedAsCOD(context, message.OrderId);
-        }
-        catch (DomainException ex) when (ex.ErrorCode.Code == OrderDomainErrorCode.OrderExceedsCODLimit.Code)
-        {
-            logger.LogWarning("Order {OrderId} exceeds COD limit: {Message}", message.OrderId, ex.Message);
-            await PublishCodFailed(context, message.OrderId, ex.Message);
-        }
-        catch (DomainException ex) when (ex.ErrorCode.Code == OrderDomainErrorCode.OrderInvalidStatusForCOD.Code)
-        {
-            if (order.Status.Name == OrderStatus.COD.Name)
+            var order = await orderRepository.GetByIdAsync(orderId, ct);
+            if (order is null)
             {
-                logger.LogInformation("Order {OrderId} is already COD, treating as idempotent success", message.OrderId);
-                await PublishMarkedAsCOD(context, message.OrderId);
+                logger.LogWarning("Order {OrderId} not found for COD marking", orderId);
+                await context.RespondAsync<MarkOrderAsCODFailed>(new
+                {
+                    message.CorrelationId,
+                    OrderId = orderId,
+                    Reason  = $"Order {orderId} not found"
+                });
                 return;
             }
 
-            logger.LogWarning("Order {OrderId} cannot be marked COD due to status {Status}", message.OrderId, order.Status.Name);
-            await PublishCodFailed(context, message.OrderId, ex.Message);
+            try
+            {
+                if (order.Status.Name != OrderStatus.COD.Name)
+                    order.MarkAsCOD();
+            }
+            catch (DomainException ex) when (ex.ErrorCode.Code == OrderDomainErrorCode.OrderExceedsCODLimit.Code)
+            {
+                logger.LogWarning("Order {OrderId} exceeds COD limit", orderId);
+                await context.RespondAsync<MarkOrderAsCODFailed>(new
+                {
+                    message.CorrelationId,
+                    OrderId = orderId,
+                    Reason  = ex.Message
+                });
+                return;
+            }
         }
-    }
 
-    private static Task PublishMarkedAsCOD(ConsumeContext<MarkOrderAsCOD> context, Guid orderId)
-    {
-        return context.RespondAsync<OrderMarkedAsCOD>(new
+        await orderRepository.SaveChangesAsync(ct);
+
+        await context.RespondAsync<OrderMarkedAsCOD>(new
         {
-            context.Message.CorrelationId,
-            OrderId = orderId,
+            message.CorrelationId,
+            OrderIds = message.OrderIds,
             MarkedAt = DateTimeOffset.UtcNow
-        });
-    }
-
-    private static Task PublishCodFailed(ConsumeContext<MarkOrderAsCOD> context, Guid orderId, string reason)
-    {
-        return context.RespondAsync<MarkOrderAsCODFailed>(new
-        {
-            context.Message.CorrelationId,
-            OrderId = orderId,
-            Reason = reason
         });
     }
 }

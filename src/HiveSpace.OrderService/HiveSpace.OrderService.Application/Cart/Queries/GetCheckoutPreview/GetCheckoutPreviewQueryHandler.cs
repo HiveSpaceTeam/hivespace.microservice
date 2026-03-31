@@ -1,4 +1,4 @@
-using MediatR;
+using HiveSpace.Application.Shared.Handlers;
 using HiveSpace.Core.Contexts;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.OrderService.Application.Cart.Dtos;
@@ -11,17 +11,17 @@ using static HiveSpace.OrderService.Application.Cart.CheckoutCalculator;
 namespace HiveSpace.OrderService.Application.Cart.Queries.GetCheckoutPreview;
 
 public class GetCheckoutPreviewQueryHandler(
-    ICheckoutPreviewQuery checkoutPreviewQuery,
+    ICheckoutQuery checkoutQuery,
     ICouponRepository couponRepository,
     IUserContext userContext)
-    : IRequestHandler<GetCheckoutPreviewQuery, CheckoutPreviewResponse>
+    : IQueryHandler<GetCheckoutPreviewQuery, CheckoutPreviewResponse>
 {
     public async Task<CheckoutPreviewResponse> Handle(
         GetCheckoutPreviewQuery request, CancellationToken cancellationToken)
     {
         var userId = userContext.UserId;
 
-        var result = await checkoutPreviewQuery.GetSelectedCartItemsAsync(userId, cancellationToken);
+        var result = await checkoutQuery.GetSelectedCartItemsAsync(userId, cancellationToken);
 
         if (!result.CartExists)
             throw new NotFoundException(OrderDomainErrorCode.CartNotFound,

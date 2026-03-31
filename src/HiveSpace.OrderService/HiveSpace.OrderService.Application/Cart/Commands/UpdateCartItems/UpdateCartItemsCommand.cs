@@ -1,11 +1,11 @@
-using MediatR;
+using HiveSpace.Application.Shared.Commands;
 
 namespace HiveSpace.OrderService.Application.Cart.Commands.UpdateCartItems;
 
-public record 
+public record
 CartItemUpdateRequest(Guid CartItemId, long? SkuId, int? Quantity, bool? IsSelected);
 
-public record UpdateCartItemsCommand : IRequest
+public record UpdateCartItemsCommand : ICommand
 {
     public bool? SelectAll { get; init; }
     public List<CartItemUpdateRequest> Items { get; init; } = [];

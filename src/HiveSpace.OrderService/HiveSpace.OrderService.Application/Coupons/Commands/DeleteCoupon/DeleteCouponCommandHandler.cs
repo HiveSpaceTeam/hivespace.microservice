@@ -1,17 +1,15 @@
-using System.Threading;
-using System.Threading.Tasks;
-using MediatR;
+using HiveSpace.Application.Shared.Handlers;
 using HiveSpace.Core.Contexts;
 using HiveSpace.Domain.Shared.Exceptions;
+using HiveSpace.Domain.Shared.Specifications;
 using HiveSpace.OrderService.Domain.Aggregates.Coupons.Specifications;
 using HiveSpace.OrderService.Domain.Exceptions;
 using HiveSpace.OrderService.Domain.Repositories;
-using HiveSpace.Domain.Shared.Specifications;
 
 namespace HiveSpace.OrderService.Application.Coupons.Commands.DeleteCoupon;
 
 public class DeleteCouponCommandHandler(ICouponRepository couponRepository, IUserContext userContext)
-    : IRequestHandler<DeleteCouponCommand>
+    : ICommandHandler<DeleteCouponCommand>
 {
     public async Task Handle(DeleteCouponCommand request, CancellationToken cancellationToken)
     {

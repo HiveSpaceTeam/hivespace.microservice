@@ -1,18 +1,16 @@
-using System.Threading;
-using System.Threading.Tasks;
-using MediatR;
+using HiveSpace.Application.Shared.Handlers;
 using HiveSpace.Core.Contexts;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.OrderService.Application.Coupons.Dtos;
 using HiveSpace.OrderService.Application.Coupons.Mappers;
+using HiveSpace.OrderService.Domain.Aggregates.Coupons.Specifications;
 using HiveSpace.OrderService.Domain.Exceptions;
 using HiveSpace.OrderService.Domain.Repositories;
-using HiveSpace.OrderService.Domain.Aggregates.Coupons.Specifications;
 
 namespace HiveSpace.OrderService.Application.Coupons.Queries.GetCouponById;
 
 public class GetCouponByIdQueryHandler(ICouponRepository couponRepository, IUserContext userContext)
-    : IRequestHandler<GetCouponByIdQuery, CouponDto>
+    : IQueryHandler<GetCouponByIdQuery, CouponDto>
 {
     public async Task<CouponDto> Handle(GetCouponByIdQuery request, CancellationToken cancellationToken)
     {

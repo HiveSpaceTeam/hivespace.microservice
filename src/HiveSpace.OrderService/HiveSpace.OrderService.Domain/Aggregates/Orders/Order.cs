@@ -1,33 +1,55 @@
-using HiveSpace.Domain.Shared.IdGeneration;
 using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.Domain.Shared.Exceptions;
+using HiveSpace.Domain.Shared.IdGeneration;
 using HiveSpace.Domain.Shared.Interfaces;
+using HiveSpace.Domain.Shared.ValueObjects;
+using HiveSpace.OrderService.Domain.Aggregates.Coupons;
 using HiveSpace.OrderService.Domain.Enumerations;
 using HiveSpace.OrderService.Domain.Exceptions;
-using HiveSpace.Domain.Shared.ValueObjects;
 using HiveSpace.OrderService.Domain.ValueObjects;
 
 namespace HiveSpace.OrderService.Domain.Aggregates.Orders;
 
-/// <summary>
-/// Order aggregate root
-/// Contains OrderPackage as entities within the aggregate boundary
-/// </summary>
 public class Order : AggregateRoot<Guid>, IAuditable
 {
     public string ShortId { get; private set; } = null!;
     public Guid UserId { get; private set; }
+    public Guid StoreId { get; private set; }
     public DeliveryAddress DeliveryAddress { get; private set; } = null!;
     public OrderStatus Status { get; private set; } = null!;
+
+    // Financial breakdown
+    public Money SubTotal { get; private set; } = null!;
+    public Money TotalDiscount { get; private set; } = null!;
+    public Money ShippingFee { get; private set; } = null!;
     public Money TotalAmount { get; private set; } = null!;
+    public bool IsShippingPaidBySeller { get; private set; }
+
+    // Shipping reference
+    public Guid? ShippingId { get; private set; }
+
+    // Rejection
+    public string? RejectionReason { get; private set; }
+
+    // Timestamps
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset? UpdatedAt { get; private set; }
     public DateTimeOffset? PaidAt { get; private set; }
+    public DateTimeOffset? ConfirmedAt { get; private set; }
+    public DateTimeOffset? RejectedAt { get; private set; }
     public DateTimeOffset? ExpiredAt { get; private set; }
 
-    // OrderPackage entities are INSIDE the aggregate
-    private readonly List<OrderPackage> _packages = [];
-    public IReadOnlyCollection<OrderPackage> Packages => _packages.AsReadOnly();
+    // Items owned by this order
+    private readonly List<OrderItem> _items = [];
+    public IReadOnlyCollection<OrderItem> Items => _items.AsReadOnly();
+
+    // Payment breakdown (value objects)
+    private readonly List<Checkout> _checkouts = [];
+    public IReadOnlyCollection<Checkout> Checkouts => _checkouts.AsReadOnly();
+
+    // Applied discounts (value objects)
+    private readonly List<Discount> _discounts = [];
+    public IReadOnlyCollection<Discount> Discounts => _discounts.AsReadOnly();
 
     // Audit trail
     private readonly List<OrderTracking> _trackings = [];
@@ -40,59 +62,95 @@ public class Order : AggregateRoot<Guid>, IAuditable
         Guid id,
         string shortId,
         Guid userId,
+        Guid storeId,
         DeliveryAddress deliveryAddress)
     {
         Id = id;
         ShortId = shortId;
         UserId = userId;
+        StoreId = storeId;
         DeliveryAddress = deliveryAddress;
         Status = OrderStatus.Created;
+        SubTotal = Money.Zero();
+        TotalDiscount = Money.Zero();
+        ShippingFee = Money.Zero();
         TotalAmount = Money.Zero();
+        IsShippingPaidBySeller = false;
+        CreatedAt = DateTimeOffset.UtcNow;
         ExpiredAt = DateTimeOffset.UtcNow.AddHours(24);
     }
 
     public static Order Create(
         Guid userId,
         DeliveryAddress deliveryAddress,
+        Guid storeId,
         Guid? id = null)
     {
         if (userId == Guid.Empty)
             throw new InvalidFieldException(OrderDomainErrorCode.OrderUserRequired, nameof(userId));
         if (deliveryAddress == null)
             throw new InvalidFieldException(OrderDomainErrorCode.OrderAddressRequired, nameof(deliveryAddress));
+        if (storeId == Guid.Empty)
+            throw new InvalidFieldException(OrderDomainErrorCode.OrderStoreIdRequired, nameof(storeId));
 
         var orderId = (id.HasValue && id.Value != Guid.Empty) ? id.Value : IdGenerator.NewId<Guid>();
         var shortId = GenerateShortId();
 
-        var order = new Order(orderId, shortId, userId, deliveryAddress);
+        var order = new Order(orderId, shortId, userId, storeId, deliveryAddress);
         order.AddTracking(OrderTrackingType.Created, ExecutorType.System, null, "Order created");
 
         return order;
     }
 
-    /// <summary>
-    /// Add package as entity within aggregate
-    /// </summary>
-    public void AddPackage(OrderPackage package)
-    {
-        if (package is null)
-            throw new InvalidFieldException(OrderDomainErrorCode.OrderPackageNull, nameof(package));
+    // ── Item management ───────────────────────────────────────────────────────
 
+    public void AddItem(
+        long productId,
+        long skuId,
+        int quantity,
+        Money unitPrice,
+        ProductSnapshot productSnapshot,
+        bool isCOD = false)
+    {
         if (Status != OrderStatus.Created)
             throw new InvalidFieldException(OrderDomainErrorCode.OrderInvalidStatus, nameof(Status));
 
-        _packages.Add(package);
-        RecalculateTotalAmount();
+        var item = OrderItem.Create(productId, skuId, quantity, unitPrice, productSnapshot, isCOD);
+        _items.Add(item);
+        RecalculateTotals();
     }
 
-    /// <summary>
-    /// Calculate total from internal packages
-    /// Maintains invariant: TotalAmount = sum of all package totals
-    /// </summary>
-    private void RecalculateTotalAmount()
+    public void SetShippingFee(Money shippingFee, bool isShippingPaidBySeller)
     {
-        TotalAmount = Money.Sum(_packages.Select(p => p.TotalAmount));
+        if (shippingFee == null || shippingFee.Amount < 0)
+            throw new InvalidFieldException(OrderDomainErrorCode.OrderInvalidShippingFee, nameof(shippingFee));
+
+        ShippingFee = shippingFee;
+        IsShippingPaidBySeller = isShippingPaidBySeller;
+        RecalculateTotals();
     }
+
+    public void AddCheckout(PaymentMethod paymentMethod, Money amount)
+    {
+        _checkouts.Add(Checkout.Create(paymentMethod, amount));
+    }
+
+    public void ApplyDiscount(Coupon coupon)
+    {
+        if (Status != OrderStatus.Created)
+            throw new InvalidFieldException(OrderDomainErrorCode.OrderInvalidStatus, nameof(Status));
+
+        var discountAmount = coupon.CalculateDiscount(SubTotal);
+
+        var discount = coupon.OwnerType == CouponOwnerType.Store
+            ? Discount.CreateStoreDiscount(coupon.Id, coupon.Code, discountAmount, coupon.Scope)
+            : Discount.CreatePlatformDiscount(coupon.Id, coupon.Code, discountAmount, coupon.Scope);
+
+        _discounts.Add(discount);
+        RecalculateTotals();
+    }
+
+    // ── Payment ───────────────────────────────────────────────────────────────
 
     public void MarkAsPaid(Guid paymentId)
     {
@@ -101,9 +159,7 @@ public class Order : AggregateRoot<Guid>, IAuditable
 
         Status = OrderStatus.Paid;
         PaidAt = DateTimeOffset.UtcNow;
-
         AddTracking(OrderTrackingType.Paid, ExecutorType.System, null, $"Order paid via payment {paymentId}");
-        // Domain event: OrderPaidDomainEvent
     }
 
     public void MarkAsCOD()
@@ -116,101 +172,71 @@ public class Order : AggregateRoot<Guid>, IAuditable
 
         Status = OrderStatus.COD;
         PaidAt = DateTimeOffset.UtcNow;
-
         AddTracking(OrderTrackingType.COD, ExecutorType.System, null, "Order marked as COD");
-        // Domain event: OrderMarkedAsCODDomainEvent
     }
 
-    /// <summary>
-    /// Confirms order when all packages are confirmed
-    /// </summary>
-    public void Confirm()
+    // ── Seller confirm / reject ───────────────────────────────────────────────
+
+    public void Confirm(Guid confirmedBy)
     {
-        if (Status != OrderStatus.Paid && Status != OrderStatus.COD)
+        if (!Status.CanBeConfirmed())
             throw new InvalidFieldException(OrderDomainErrorCode.OrderInvalidStatusForConfirmation, nameof(Status));
 
-        // All packages must be in a terminal state with at least one confirmed
-        if (!_packages.All(p => p.Status == OrderPackageStatus.Confirmed || p.Status == OrderPackageStatus.Rejected)
-            || !_packages.Any(p => p.Status == OrderPackageStatus.Confirmed))
-            throw new InvalidFieldException(OrderDomainErrorCode.OrderPackagesNotConfirmed, nameof(Packages));
+        if (_items.Count == 0)
+            throw new InvalidFieldException(OrderDomainErrorCode.OrderNoItems, nameof(_items));
 
         Status = OrderStatus.Confirmed;
-        AddTracking(OrderTrackingType.Confirmed, ExecutorType.System, null, "All packages confirmed");
-        // Domain event: OrderConfirmedDomainEvent
+        ConfirmedAt = DateTimeOffset.UtcNow;
+        AddTracking(OrderTrackingType.Confirmed, ExecutorType.User, confirmedBy, "Order confirmed by seller");
     }
 
-    /// <summary>
-    /// Update specific package within aggregate
-    /// </summary>
-    public void ConfirmPackage(Guid packageId, Guid confirmedBy)
+    public void Reject(string reason, Guid rejectedBy)
     {
-        var package = _packages.FirstOrDefault(p => p.Id == packageId) ?? 
-            throw new NotFoundException(OrderDomainErrorCode.OrderPackageNotFound, nameof(packageId));
-        package.Confirm(confirmedBy);
+        if (!Status.CanBeRejected())
+            throw new InvalidFieldException(OrderDomainErrorCode.OrderInvalidStatusForRejection, nameof(Status));
 
-        AddTracking(OrderTrackingType.PackageConfirmed, ExecutorType.User, confirmedBy, $"Package {packageId} confirmed");
+        if (string.IsNullOrWhiteSpace(reason))
+            throw new InvalidFieldException(OrderDomainErrorCode.OrderRejectionReasonRequired, nameof(reason));
 
-        // Check if all packages are confirmed
-        if (_packages.All(p => p.Status == OrderPackageStatus.Confirmed || p.Status == OrderPackageStatus.Rejected))
-        {
-            // Only proceed if at least one package is confirmed
-            if (_packages.Any(p => p.Status == OrderPackageStatus.Confirmed))
-            {
-                Confirm();
-            }
-        }
+        Status = OrderStatus.Rejected;
+        RejectionReason = reason;
+        RejectedAt = DateTimeOffset.UtcNow;
+        AddTracking(OrderTrackingType.PackageRejected, ExecutorType.User, rejectedBy, $"Order rejected: {reason}");
     }
 
-    /// <summary>
-    /// Reject specific package within aggregate
-    /// </summary>
-    public void RejectPackage(Guid packageId, string reason, Guid rejectedBy)
+    // ── Shipping lifecycle ────────────────────────────────────────────────────
+
+    public void AssignShipping(Guid shippingId)
     {
-        var package = _packages.FirstOrDefault(p => p.Id == packageId) ?? 
-            throw new NotFoundException(OrderDomainErrorCode.OrderPackageNotFound, nameof(packageId));
-        package.Reject(reason, rejectedBy);
+        if (Status != OrderStatus.Confirmed)
+            throw new InvalidFieldException(OrderDomainErrorCode.OrderInvalidStatusForShipping, nameof(Status));
 
-        AddTracking(OrderTrackingType.PackageRejected, ExecutorType.User, rejectedBy, $"Package {packageId} rejected: {reason}");
+        if (shippingId == Guid.Empty)
+            throw new InvalidFieldException(OrderDomainErrorCode.OrderShippingIdRequired, nameof(shippingId));
 
-        // Recalculate total excluding rejected packages
-        TotalAmount = Money.Sum(_packages
-            .Where(p => p.Status != OrderPackageStatus.Rejected)
-            .Select(p => p.TotalAmount));
-
-        // Check if all packages are rejected
-        if (_packages.All(p => p.Status == OrderPackageStatus.Rejected))
-        {
-            Cancel("All packages rejected", UserId);
-        }
+        ShippingId = shippingId;
+        Status = OrderStatus.ReadyToShip;
     }
 
-    /// <summary>
-    /// Assign shipping to package within aggregate
-    /// </summary>
-    public void AssignShippingToPackage(Guid packageId, Guid shippingId)
+    public void Ship()
     {
-        var package = _packages.FirstOrDefault(p => p.Id == packageId) ?? 
-            throw new NotFoundException(OrderDomainErrorCode.OrderPackageNotFound, nameof(packageId));
-        package.AssignShipping(shippingId);
+        if (!Status.CanBeShipped())
+            throw new InvalidFieldException(OrderDomainErrorCode.OrderInvalidStatusForShipping, nameof(Status));
+
+        if (ShippingId == null)
+            throw new InvalidFieldException(OrderDomainErrorCode.OrderMissingShipping, nameof(ShippingId));
+
+        Status = OrderStatus.Shipped;
+        AddTracking(OrderTrackingType.Shipped, ExecutorType.System, null, "Order shipped");
     }
 
-    /// <summary>
-    /// Mark package as delivered (triggered by shipping event)
-    /// </summary>
-    public void MarkPackageAsDelivered(Guid packageId)
+    public void MarkAsDelivered()
     {
-        var package = _packages.FirstOrDefault(p => p.Id == packageId) ?? 
-            throw new NotFoundException(OrderDomainErrorCode.OrderPackageNotFound, nameof(packageId));
-        package.MarkAsDelivered();
+        if (Status != OrderStatus.Shipped)
+            throw new InvalidFieldException(OrderDomainErrorCode.OrderInvalidStatusForDelivery, nameof(Status));
 
-        AddTracking(OrderTrackingType.PackageDelivered, ExecutorType.System, null, $"Package {packageId} delivered");
-
-        // Check if all packages are delivered
-        if (_packages.All(p => p.Status == OrderPackageStatus.Delivered || p.Status == OrderPackageStatus.Rejected))
-        {
-            Status = OrderStatus.Delivered;
-            // Domain event: OrderDeliveredDomainEvent
-        }
+        Status = OrderStatus.Delivered;
+        AddTracking(OrderTrackingType.Delivered, ExecutorType.System, null, "Order delivered");
     }
 
     public void Complete()
@@ -218,15 +244,8 @@ public class Order : AggregateRoot<Guid>, IAuditable
         if (Status != OrderStatus.Delivered)
             throw new InvalidFieldException(OrderDomainErrorCode.OrderInvalidStatusForCompletion, nameof(Status));
 
-        // Complete all packages
-        foreach (var package in _packages.Where(p => p.Status == OrderPackageStatus.Delivered))
-        {
-            package.Complete();
-        }
-
         Status = OrderStatus.Completed;
         AddTracking(OrderTrackingType.Completed, ExecutorType.System, null, "Order completed");
-        // Domain event: OrderCompletedDomainEvent
     }
 
     public void Cancel(string reason, Guid cancelledBy)
@@ -234,17 +253,8 @@ public class Order : AggregateRoot<Guid>, IAuditable
         if (!Status.CanBeCancelled())
             throw new InvalidFieldException(OrderDomainErrorCode.OrderInvalidStatusForCancellation, nameof(Status));
 
-        var previousStatus = Status;
-
-        // Cancel all active packages
-        foreach (var package in _packages.Where(p => p.Status.CanCancel()))
-        {
-            package.Cancel(reason, cancelledBy);
-        }
-
         Status = OrderStatus.Cancelled;
         AddTracking(OrderTrackingType.Cancelled, ExecutorType.User, cancelledBy, $"Order cancelled: {reason}");
-        // Domain event: OrderCancelledDomainEvent
     }
 
     public void MarkAsExpired()
@@ -254,13 +264,43 @@ public class Order : AggregateRoot<Guid>, IAuditable
 
         Status = OrderStatus.Expired;
         AddTracking(OrderTrackingType.Expired, ExecutorType.System, null, "Order payment expired");
-        // Domain event: OrderExpiredDomainEvent
+    }
+
+    // ── Financial helpers ─────────────────────────────────────────────────────
+
+    public Money GetCODAmount()
+    {
+        return Money.Sum(_items.Where(i => i.IsCOD).Select(i => i.LineTotal));
+    }
+
+    public bool HasCODItems() => _items.Any(i => i.IsCOD);
+
+    public Money CalculateSellerPayout()
+    {
+        const decimal SERVICE_FEE_RATE = 0.099m;
+        var serviceFee = SubTotal.CalculateServiceFee(SERVICE_FEE_RATE);
+        var payout = SubTotal - serviceFee;
+
+        if (IsShippingPaidBySeller)
+            payout -= ShippingFee;
+
+        return payout;
+    }
+
+    // ── Private helpers ───────────────────────────────────────────────────────
+
+    private void RecalculateTotals()
+    {
+        SubTotal = Money.Sum(_items.Select(i => i.LineTotal));
+        TotalDiscount = Money.Sum(_discounts.Select(d => d.DiscountAmount));
+
+        var buyerShippingFee = IsShippingPaidBySeller ? Money.Zero() : ShippingFee;
+        TotalAmount = SubTotal.ApplyDiscount(TotalDiscount) + buyerShippingFee;
     }
 
     private void AddTracking(string type, ExecutorType executorType, Guid? executorId, string message)
     {
-        var tracking = OrderTracking.Create(type, executorType, executorId, message);
-        _trackings.Add(tracking);
+        _trackings.Add(OrderTracking.Create(type, executorType, executorId, message));
     }
 
     private static string GenerateShortId()
@@ -270,4 +310,3 @@ public class Order : AggregateRoot<Guid>, IAuditable
         return $"ORD-{timestamp}-{random}";
     }
 }
- 

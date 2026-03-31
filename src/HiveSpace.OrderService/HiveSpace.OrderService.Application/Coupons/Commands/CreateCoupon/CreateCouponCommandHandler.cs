@@ -1,20 +1,15 @@
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using MediatR;
+using HiveSpace.Application.Shared.Handlers;
+using HiveSpace.Core.Contexts;
 using HiveSpace.Domain.Shared.ValueObjects;
-using HiveSpace.Domain.Shared.Enumerations;
+using HiveSpace.OrderService.Application.Coupons.Dtos;
+using HiveSpace.OrderService.Application.Coupons.Mappers;
 using HiveSpace.OrderService.Domain.Aggregates.Coupons;
 using HiveSpace.OrderService.Domain.Enumerations;
 using HiveSpace.OrderService.Domain.Repositories;
-using HiveSpace.OrderService.Application.Coupons.Dtos;
-using HiveSpace.Core.Contexts;
-using HiveSpace.OrderService.Application.Coupons.Mappers;
 
 namespace HiveSpace.OrderService.Application.Coupons.Commands.CreateCoupon;
 
-public class CreateCouponCommandHandler : IRequestHandler<CreateCouponCommand, CouponDto>
+public class CreateCouponCommandHandler : ICommandHandler<CreateCouponCommand, CouponDto>
 {
     private readonly ICouponRepository _couponRepository;
     private readonly IUserContext _userContext;

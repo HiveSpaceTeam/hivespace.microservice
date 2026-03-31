@@ -10,7 +10,9 @@ public static class OrderMapper
         Id            = order.Id,
         ShortId       = order.ShortId,
         UserId        = order.UserId,
+        StoreId       = order.StoreId,
         Status        = order.Status.Name,
+        SubTotal      = order.SubTotal.Amount,
         TotalAmount   = order.TotalAmount.Amount,
         Currency      = order.TotalAmount.Currency.ToString(),
         RecipientName = order.DeliveryAddress.RecipientName,
@@ -22,29 +24,32 @@ public static class OrderMapper
         Notes         = order.DeliveryAddress.Notes,
         CreatedAt     = order.CreatedAt,
         PaidAt        = order.PaidAt,
-        Packages      = order.Packages.Select(p => p.ToDetailDto()).ToList()
+        ConfirmedAt   = order.ConfirmedAt,
+        Items         = order.Items.Select(i => i.ToSummaryDto(order.TotalAmount.Currency.ToString())).ToList()
     };
 
-    public static PackageDetailDto ToDetailDto(this OrderPackage package) => new()
+    public static OrderItemSummaryDto ToSummaryDto(this OrderItem item, string currency) => new()
     {
-        Id          = package.Id,
-        StoreId     = package.StoreId,
-        Status      = package.Status.Name,
-        SubTotal    = package.SubTotal.Amount,
-        TotalAmount = package.TotalAmount.Amount,
-        Currency    = package.TotalAmount.Currency.ToString(),
-        ItemCount   = package.Items.Count,
-        CreatedAt   = package.CreatedAt
+        Id          = item.Id,
+        ProductId   = item.ProductId,
+        SkuId       = item.SkuId,
+        ProductName = item.ProductSnapshot.ProductName,
+        ImageUrl    = item.ProductSnapshot.ImageUrl,
+        Quantity    = item.Quantity,
+        UnitPrice   = item.UnitPrice.Amount,
+        LineTotal   = item.LineTotal.Amount,
+        Currency    = currency,
+        IsCOD       = item.IsCOD
     };
 
     public static OrderSummaryDto ToSummaryDto(this Order order) => new()
     {
-        Id           = order.Id,
-        ShortId      = order.ShortId,
-        Status       = order.Status.Name,
-        TotalAmount  = order.TotalAmount.Amount,
-        Currency     = order.TotalAmount.Currency.ToString(),
-        CreatedAt    = order.CreatedAt,
-        PackageCount = order.Packages.Count
+        Id          = order.Id,
+        ShortId     = order.ShortId,
+        Status      = order.Status.Name,
+        TotalAmount = order.TotalAmount.Amount,
+        Currency    = order.TotalAmount.Currency.ToString(),
+        CreatedAt   = order.CreatedAt,
+        ItemCount   = order.Items.Count
     };
 }

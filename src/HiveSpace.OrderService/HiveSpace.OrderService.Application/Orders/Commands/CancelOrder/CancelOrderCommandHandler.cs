@@ -1,5 +1,5 @@
+using HiveSpace.Application.Shared.Handlers;
 using HiveSpace.OrderService.Domain.Repositories;
-using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace HiveSpace.OrderService.Application.Orders.Commands.CancelOrder;
@@ -7,11 +7,11 @@ namespace HiveSpace.OrderService.Application.Orders.Commands.CancelOrder;
 public class CancelOrderCommandHandler(
     IOrderRepository orderRepository,
     ILogger<CancelOrderCommandHandler> logger)
-    : IRequestHandler<CancelOrderCommand, CancelOrderResult>
+    : ICommandHandler<CancelOrderCommand, CancelOrderResult>
 {
     public async Task<CancelOrderResult> Handle(CancelOrderCommand request, CancellationToken cancellationToken)
     {
-        var order = await orderRepository.GetByIdWithPackagesAsync(request.OrderId, cancellationToken);
+        var order = await orderRepository.GetByIdAsync(request.OrderId, cancellationToken);
         if (order is null)
         {
             logger.LogWarning("Order {OrderId} not found for cancellation — skipping", request.OrderId);

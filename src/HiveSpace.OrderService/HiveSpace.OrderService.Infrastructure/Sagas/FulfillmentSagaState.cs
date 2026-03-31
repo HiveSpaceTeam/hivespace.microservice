@@ -7,19 +7,14 @@ public class FulfillmentSagaState : SagaStateMachineInstance
     public Guid   CorrelationId { get; set; }   // = OrderId
     public string CurrentState  { get; set; } = null!;
 
-    // Carried from CheckoutPaymentSettled
-    public Guid               UserId                { get; set; }
-    public List<Guid>         PackageIds            { get; set; } = new();
-    public List<Guid>         ReservationIds        { get; set; } = new();
-    public Dictionary<Guid, List<Guid>> PackageReservationMap { get; set; } = new();
-    public long               GrandTotal            { get; set; }
+    // Carried from OrderReadyForFulfillment
+    public Guid       UserId         { get; set; }
+    public Guid       StoreId        { get; set; }
+    public List<Guid> ReservationIds { get; set; } = new();
+    public long       GrandTotal     { get; set; }
 
-    // Package confirmation tracking
-    public int        TotalPackages       { get; set; }
-    public int        ConfirmedPackages   { get; set; }
-    public int        RejectedPackages    { get; set; }
-    public List<Guid> ConfirmedPackageIds { get; set; } = new();
-    public List<Guid> RejectedPackageIds  { get; set; } = new();
+    // Outcome flag — set when we know whether seller confirmed or rejected
+    public bool OrderWasConfirmed { get; set; }
 
     // Tracking
     public DateTimeOffset  CreatedAt     { get; set; }
@@ -28,6 +23,6 @@ public class FulfillmentSagaState : SagaStateMachineInstance
     public string?         FailureReason { get; set; }
 
     // Scheduled message tokens
-    public Guid? SellerConfirmationTimeoutTokenId { get; set; }   // 3-day timeout
-    public Guid? SagaStepTimeoutTokenId           { get; set; }   // 30-min step timeout
+    public Guid? SellerConfirmationTimeoutTokenId { get; set; }
+    public Guid? SagaStepTimeoutTokenId           { get; set; }
 }

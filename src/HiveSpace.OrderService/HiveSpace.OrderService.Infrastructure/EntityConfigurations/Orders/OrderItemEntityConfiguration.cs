@@ -11,7 +11,7 @@ public class OrderItemEntityConfiguration : IEntityTypeConfiguration<OrderItem>
     public void Configure(EntityTypeBuilder<OrderItem> builder)
     {
         builder.HasKey(i => i.Id);
-        
+
         builder.ToTable("order_items");
 
         builder.Property(i => i.ProductId).IsRequired(); // long (catalog ID)

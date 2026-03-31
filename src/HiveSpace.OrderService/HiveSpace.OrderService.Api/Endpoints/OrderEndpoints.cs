@@ -7,12 +7,12 @@ using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Events;
 using HiveSpace.OrderService.Api.Models;
 using HiveSpace.OrderService.Application.Interfaces.Messaging;
 using HiveSpace.OrderService.Domain.Exceptions;
-using HiveSpace.OrderService.Application.Orders.Commands.ConfirmPackage;
-using HiveSpace.OrderService.Application.Orders.Commands.RejectPackage;
+using HiveSpace.OrderService.Application.Orders.Commands.ConfirmOrder;
+using HiveSpace.OrderService.Application.Orders.Commands.RejectOrder;
 using HiveSpace.OrderService.Application.Orders.Queries.GetCheckoutStatus;
 using HiveSpace.OrderService.Application.Orders.Queries.GetOrderById;
 using HiveSpace.OrderService.Application.Orders.Queries.GetOrderList;
-using HiveSpace.OrderService.Application.Orders.Queries.GetSellerPackages;
+using HiveSpace.OrderService.Application.Orders.Queries.GetSellerOrders;
 using HiveSpace.OrderService.Application.Cart.Queries.GetCheckoutPreview;
 using HiveSpace.Core.Contexts;
 using HiveSpace.OrderService.Infrastructure.Data;
@@ -120,61 +120,61 @@ public static class OrderEndpoints
         .WithName("GetOrderById")
         .WithTags("Order")
         .WithSummary("Get order by ID")
-        .WithDescription("Returns the full order detail including packages for the current user.");
+        .WithDescription("Returns the full order detail for the current user.");
 
-        app.MapGet("/api/v1/orders/seller/packages", async (
+        app.MapGet("/api/v1/orders/seller", async (
             ISender sender,
             CancellationToken ct,
             int page = 1,
             int pageSize = 20,
             string? status = null) =>
         {
-            var result = await sender.Send(new GetSellerPackagesQuery(page, pageSize, status), ct);
+            var result = await sender.Send(new GetSellerOrdersQuery(page, pageSize, status), ct);
             return Results.Ok(result);
         })
         .RequireAuthorization(HiveSpaceAuthorizeAttribute.Seller.Policy)
-        .WithName("GetSellerPackages")
+        .WithName("GetSellerOrders")
         .WithTags("Order")
-        .WithSummary("Get seller packages")
-        .WithDescription("Returns a paginated list of packages belonging to the seller's store.");
+        .WithSummary("Get seller orders")
+        .WithDescription("Returns a paginated list of orders belonging to the seller's store.");
 
-        app.MapPost("/api/v1/orders/packages/{packageId:guid}/confirm", async (
-            Guid packageId,
+        app.MapPost("/api/v1/orders/{orderId:guid}/confirm", async (
+            Guid orderId,
             ISender sender,
             IOrderEventPublisher orderEventPublisher,
             IUserContext userContext,
             OrderDbContext db,
             CancellationToken ct) =>
         {
-            var result = await sender.Send(new ConfirmPackageCommand(packageId), ct);
-            await orderEventPublisher.PublishPackageConfirmedAsync(result, userContext.StoreId!.Value, ct);
+            var result = await sender.Send(new ConfirmOrderCommand(orderId), ct);
+            await orderEventPublisher.PublishOrderConfirmedBySellerAsync(result, ct);
             await db.SaveChangesAsync(ct);
             return Results.NoContent();
         })
         .RequireAuthorization(HiveSpaceAuthorizeAttribute.Seller.Policy)
-        .WithName("ConfirmPackage")
+        .WithName("ConfirmOrder")
         .WithTags("Order")
-        .WithSummary("Confirm a package")
-        .WithDescription("Allows a seller to confirm their package within an order, advancing the checkout saga.");
+        .WithSummary("Confirm an order")
+        .WithDescription("Allows a seller to confirm their order, advancing the fulfillment saga.");
 
-        app.MapPost("/api/v1/orders/packages/{packageId:guid}/reject", async (
-            Guid packageId,
+        app.MapPost("/api/v1/orders/{orderId:guid}/reject", async (
+            Guid orderId,
             PackageRejectionRequest request,
             ISender sender,
             IOrderEventPublisher orderEventPublisher,
             OrderDbContext db,
             CancellationToken ct) =>
         {
-            var result = await sender.Send(new RejectPackageCommand(packageId, request.Reason), ct);
-            await orderEventPublisher.PublishPackageRejectedAsync(result, ct);
+            var result = await sender.Send(new RejectOrderCommand(orderId, request.Reason), ct);
+            await orderEventPublisher.PublishOrderRejectedBySellerAsync(result, ct);
             await db.SaveChangesAsync(ct);
             return Results.NoContent();
         })
         .RequireAuthorization(HiveSpaceAuthorizeAttribute.Seller.Policy)
-        .WithName("RejectPackage")
+        .WithName("RejectOrder")
         .WithTags("Order")
-        .WithSummary("Reject a package")
-        .WithDescription("Allows a seller to reject their package within an order with a reason, triggering partial compensation.");
+        .WithSummary("Reject an order")
+        .WithDescription("Allows a seller to reject their order with a reason, triggering compensation.");
 
         return app;
     }

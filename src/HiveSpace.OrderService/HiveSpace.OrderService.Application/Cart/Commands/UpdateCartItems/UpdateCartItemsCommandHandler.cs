@@ -1,4 +1,4 @@
-using MediatR;
+using HiveSpace.Application.Shared.Handlers;
 using HiveSpace.Core.Contexts;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.OrderService.Domain.Aggregates.Carts;
@@ -12,7 +12,7 @@ public class UpdateCartItemsCommandHandler(
     ICartRepository cartRepository,
     ISkuRefRepository skuRefRepository,
     IUserContext userContext)
-    : IRequestHandler<UpdateCartItemsCommand>
+    : ICommandHandler<UpdateCartItemsCommand>
 {
     public async Task Handle(UpdateCartItemsCommand request, CancellationToken cancellationToken)
     {

@@ -5,8 +5,10 @@ public record OrderDetailDto
     public Guid    Id            { get; init; }
     public string  ShortId       { get; init; } = null!;
     public Guid    UserId        { get; init; }
+    public Guid    StoreId       { get; init; }
     public string  Status        { get; init; } = null!;
-    public decimal TotalAmount   { get; init; }
+    public long    SubTotal      { get; init; }
+    public long    TotalAmount   { get; init; }
     public string  Currency      { get; init; } = null!;
 
     public string  RecipientName  { get; init; } = null!;
@@ -17,8 +19,9 @@ public record OrderDetailDto
     public string  Country        { get; init; } = null!;
     public string? Notes          { get; init; }
 
-    public DateTimeOffset  CreatedAt { get; init; }
-    public DateTimeOffset? PaidAt    { get; init; }
+    public DateTimeOffset  CreatedAt   { get; init; }
+    public DateTimeOffset? PaidAt      { get; init; }
+    public DateTimeOffset? ConfirmedAt { get; init; }
 
-    public List<PackageDetailDto> Packages { get; init; } = new();
+    public List<OrderItemSummaryDto> Items { get; init; } = new();
 }
