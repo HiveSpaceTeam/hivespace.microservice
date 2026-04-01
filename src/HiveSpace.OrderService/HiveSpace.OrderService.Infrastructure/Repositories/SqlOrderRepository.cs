@@ -14,6 +14,7 @@ public class SqlOrderRepository(OrderDbContext db)
             .Include(o => o.Items)
             .Include(o => o.Checkouts)
             .Include(o => o.Discounts)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(o => o.Id == orderId, ct);
 
     public async Task<Order?> GetByShortIdAsync(string shortId, CancellationToken ct = default)
@@ -25,5 +26,6 @@ public class SqlOrderRepository(OrderDbContext db)
         => await db.Orders
             .Include(o => o.Items)
             .Include(o => o.Trackings)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(o => o.Id == orderId && o.StoreId == storeId, ct);
 }

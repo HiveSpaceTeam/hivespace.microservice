@@ -1,3 +1,5 @@
+using HiveSpace.CatalogService.Domain.Exceptions;
+using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Commands;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Events;
 using MassTransit;
@@ -17,6 +19,9 @@ public class ReserveInventoryConsumer : IConsumer<ReserveInventory>
     public async Task Consume(ConsumeContext<ReserveInventory> context)
     {
         var message = context.Message;
+
+        if (message.OrderIds.Count == 0)
+            throw new InvalidFieldException(CatalogErrorCode.InvalidOrderIds, nameof(message.OrderIds));
 
         _logger.LogInformation(
             "ReserveInventory received for order {OrderIds} — {ItemCount} item(s), expiration {ExpirationMinutes}m",
@@ -39,23 +44,13 @@ public class ReserveInventoryConsumer : IConsumer<ReserveInventory>
             {
                 message.CorrelationId,
                 message.OrderIds,
-                ReservationIds        = reservationIds,
-                ExpiresAt             = DateTimeOffset.UtcNow.AddMinutes(message.ExpirationMinutes),
+                ReservationIds      = reservationIds,
+                ExpiresAt           = DateTimeOffset.UtcNow.AddMinutes(message.ExpirationMinutes),
                 OrderReservationMap = packageReservationMap
             });
         }
         else
         {
-            if (message.OrderIds.Count == 0)
-            {
-                _logger.LogError(
-                    "Inventory reservation failed for correlation {CorrelationId} but OrderIds is empty",
-                    message.CorrelationId);
-
-                throw new InvalidOperationException(
-                    "ReserveInventory message must contain at least one OrderId when publishing InventoryReservationFailed.");
-            }
-
             _logger.LogWarning(
                 "Inventory reservation failed for order {OrderId} — {FailureCount} failure(s)",
                 String.Join(",", message.OrderIds), failures.Count);
@@ -63,7 +58,7 @@ public class ReserveInventoryConsumer : IConsumer<ReserveInventory>
             await context.RespondAsync<InventoryReservationFailed>(new
             {
                 message.CorrelationId,
-                OrderId = message.OrderIds,
+                OrderIds = message.OrderIds,
                 Reason   = "One or more items could not be reserved",
                 Failures = failures
             });

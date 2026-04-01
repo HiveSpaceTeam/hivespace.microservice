@@ -38,9 +38,11 @@ public class MarkOrderAsCODConsumer(
                 if (order.Status.Name != OrderStatus.COD.Name)
                     order.MarkAsCOD();
             }
-            catch (DomainException ex) when (ex.ErrorCode.Code == OrderDomainErrorCode.OrderExceedsCODLimit.Code)
+            catch (DomainException ex) when (
+                ex.ErrorCode.Code == OrderDomainErrorCode.OrderExceedsCODLimit.Code ||
+                ex.ErrorCode.Code == OrderDomainErrorCode.OrderInvalidStatusForCOD.Code)
             {
-                logger.LogWarning("Order {OrderId} exceeds COD limit", orderId);
+                logger.LogWarning("Order {OrderId} cannot be marked as COD: {ErrorCode}", orderId, ex.ErrorCode.Code);
                 await context.RespondAsync<MarkOrderAsCODFailed>(new
                 {
                     message.CorrelationId,

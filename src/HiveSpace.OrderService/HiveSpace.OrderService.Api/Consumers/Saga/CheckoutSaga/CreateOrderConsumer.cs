@@ -1,13 +1,16 @@
+using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.Domain.Shared.ValueObjects;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Commands;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Dtos;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Events;
 using HiveSpace.OrderService.Domain.Aggregates.Orders;
+using HiveSpace.OrderService.Domain.Enumerations;
 using HiveSpace.OrderService.Domain.Repositories;
 using HiveSpace.OrderService.Domain.ValueObjects;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 using DomainPaymentMethod = HiveSpace.OrderService.Domain.Enumerations.PaymentMethod;
+using MessagingPaymentMethod = HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.PaymentMethod;
 using static HiveSpace.OrderService.Application.Cart.CheckoutCalculator;
 
 namespace HiveSpace.OrderService.Api.Consumers.Saga.CheckoutSaga;
@@ -17,6 +20,7 @@ public class CreateOrderConsumer(
     ICartRepository cartRepository,
     IProductRefRepository productRefRepository,
     ISkuRefRepository skuRefRepository,
+    ICouponRepository couponRepository,
     ILogger<CreateOrderConsumer> logger) : IConsumer<CreateOrder>
 {
     public async Task Consume(ConsumeContext<CreateOrder> context)
@@ -71,6 +75,12 @@ public class CreateOrderConsumer(
             message.DeliveryAddress.Country,
             message.DeliveryAddress.Notes ?? string.Empty);
 
+        var isCOD            = message.PaymentMethod == MessagingPaymentMethod.COD;
+        var domainPayment    = Enumeration.FromDisplayName<DomainPaymentMethod>(message.PaymentMethod.ToString());
+        var coupons          = message.CouponCodes.Count > 0
+            ? await couponRepository.GetByCodesAsync(message.CouponCodes, ct)
+            : [];
+
         var itemsByStore     = selectedItems.GroupBy(i => productRefs[i.ProductId].StoreId).ToList();
         var shippingPerStore = DistributeShippingFee(
             CalculateShippingFee(selectedItems.Sum(i => i.Quantity)), itemsByStore.Count);
@@ -101,7 +111,7 @@ public class CreateOrderConsumer(
                     skuRef.ImageUrl ?? productRef.ThumbnailUrl ?? string.Empty,
                     new Dictionary<string, string>());
 
-                order.AddItem(cartItem.ProductId, cartItem.SkuId, cartItem.Quantity, unitPrice, snapshot, isCOD: true);
+                order.AddItem(cartItem.ProductId, cartItem.SkuId, cartItem.Quantity, unitPrice, snapshot, isCOD: isCOD);
 
                 allItemDtos.Add(new OrderItemDto
                 {
@@ -117,7 +127,15 @@ public class CreateOrderConsumer(
             }
 
             order.SetShippingFee(Money.FromVND(pkgShipping), isShippingPaidBySeller: false);
-            order.AddCheckout(DomainPaymentMethod.COD, order.GetCODAmount());
+
+            foreach (var coupon in coupons.Where(c =>
+                c.OwnerType == CouponOwnerType.Platform ||
+                (c.OwnerType == CouponOwnerType.Store && c.StoreId == storeId)))
+            {
+                order.ApplyDiscount(coupon);
+            }
+
+            order.AddCheckout(domainPayment, isCOD ? order.GetCODAmount() : order.TotalAmount);
 
             orderRepository.Add(order);
             createdOrders.Add(order);

@@ -65,7 +65,7 @@ public class CheckoutDataQuery(string connectionString, IDbContextFactory<Data.O
         {
             CorrelationId = saga.CorrelationId,
             CurrentState  = saga.CurrentState,
-            OrderId       = saga.CorrelationId,
+            OrderIds      = saga.OrderStoreMap.Keys.ToList(),
             FailureReason = saga.FailureReason,
             IsCompleted   = saga.CurrentState == "Completed",
             IsFailed      = saga.CurrentState == "Failed"

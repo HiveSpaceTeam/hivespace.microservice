@@ -201,7 +201,7 @@ public class Order : AggregateRoot<Guid>, IAuditable
         Status = OrderStatus.Rejected;
         RejectionReason = reason;
         RejectedAt = DateTimeOffset.UtcNow;
-        AddTracking(OrderTrackingType.PackageRejected, ExecutorType.User, rejectedBy, $"Order rejected: {reason}");
+        AddTracking(OrderTrackingType.OrderRejected, ExecutorType.User, rejectedBy, $"Order rejected: {reason}");
     }
 
     // ── Shipping lifecycle ────────────────────────────────────────────────────

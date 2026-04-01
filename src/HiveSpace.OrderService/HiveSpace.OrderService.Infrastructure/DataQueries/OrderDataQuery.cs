@@ -1,8 +1,10 @@
+using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.OrderService.Application.Orders;
 using HiveSpace.OrderService.Application.Orders.Dtos;
 using HiveSpace.OrderService.Application.Orders.Mappers;
 using HiveSpace.OrderService.Application.Orders.Queries.GetOrderList;
 using HiveSpace.OrderService.Application.Orders.Queries.GetSellerOrders;
+using HiveSpace.OrderService.Domain.Enumerations;
 using HiveSpace.OrderService.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -39,7 +41,10 @@ public class OrderDataQuery(IDbContextFactory<OrderDbContext> dbFactory) : IOrde
         var query = db.Orders.AsNoTracking().Where(o => o.StoreId == storeId);
 
         if (status is not null)
-            query = query.Where(o => EF.Property<string>(o, "Status") == status);
+        {
+            var orderStatus = Enumeration.FromDisplayName<OrderStatus>(status);
+            query = query.Where(o => o.Status == orderStatus);
+        }
 
         var total = await query.CountAsync(ct);
 
