@@ -84,7 +84,7 @@ public class CreateOrderConsumer(
             var storeId     = storeGroup.Key;
             var pkgShipping = shippingPerStore[i];
 
-            var order = Order.Create(storeId, message.UserId, address);
+            var order = Order.Create(message.UserId, address, storeId);
 
             foreach (var cartItem in storeGroup)
             {

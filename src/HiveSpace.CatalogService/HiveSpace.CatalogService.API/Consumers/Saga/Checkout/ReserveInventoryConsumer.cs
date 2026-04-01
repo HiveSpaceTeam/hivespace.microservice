@@ -17,11 +17,10 @@ public class ReserveInventoryConsumer : IConsumer<ReserveInventory>
     public async Task Consume(ConsumeContext<ReserveInventory> context)
     {
         var message = context.Message;
-        var ct      = context.CancellationToken;
 
         _logger.LogInformation(
-            "ReserveInventory received for order {OrderId} — {ItemCount} item(s), expiration {ExpirationMinutes}m",
-            message.OrderId, message.Items.Count, message.ExpirationMinutes);
+            "ReserveInventory received for order {OrderIds} — {ItemCount} item(s), expiration {ExpirationMinutes}m",
+            String.Join(",", message.OrderIds), message.Items.Count, message.ExpirationMinutes);
 
         // TODO: implement reservation logic
         var reservationIds        = new List<Guid>();
@@ -34,27 +33,37 @@ public class ReserveInventoryConsumer : IConsumer<ReserveInventory>
         {
             _logger.LogInformation(
                 "Inventory reserved for order {OrderId} — {Count} reservation(s)",
-                message.OrderId, reservationIds.Count);
+                String.Join(",", message.OrderIds), reservationIds.Count);
 
             await context.RespondAsync<InventoryReserved>(new
             {
                 message.CorrelationId,
-                message.OrderId,
+                message.OrderIds,
                 ReservationIds        = reservationIds,
                 ExpiresAt             = DateTimeOffset.UtcNow.AddMinutes(message.ExpirationMinutes),
-                PackageReservationMap = packageReservationMap
+                OrderReservationMap = packageReservationMap
             });
         }
         else
         {
+            if (message.OrderIds.Count == 0)
+            {
+                _logger.LogError(
+                    "Inventory reservation failed for correlation {CorrelationId} but OrderIds is empty",
+                    message.CorrelationId);
+
+                throw new InvalidOperationException(
+                    "ReserveInventory message must contain at least one OrderId when publishing InventoryReservationFailed.");
+            }
+
             _logger.LogWarning(
                 "Inventory reservation failed for order {OrderId} — {FailureCount} failure(s)",
-                message.OrderId, failures.Count);
+                String.Join(",", message.OrderIds), failures.Count);
 
             await context.RespondAsync<InventoryReservationFailed>(new
             {
                 message.CorrelationId,
-                message.OrderId,
+                OrderId = message.OrderIds,
                 Reason   = "One or more items could not be reserved",
                 Failures = failures
             });

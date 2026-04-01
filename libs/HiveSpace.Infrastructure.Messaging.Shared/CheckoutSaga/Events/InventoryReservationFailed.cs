@@ -3,7 +3,7 @@ namespace HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Events;
 public record InventoryReservationFailed
 {
     public Guid                      CorrelationId { get; init; }
-    public Guid                      OrderId       { get; init; }
+    public List<Guid> OrderIds { get; init; } = new();
     public string                    Reason        { get; init; } = null!;
     public List<StockFailureDto>     Failures      { get; init; } = new();
 }
