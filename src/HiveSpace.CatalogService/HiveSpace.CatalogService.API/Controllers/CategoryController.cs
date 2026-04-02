@@ -25,7 +25,7 @@ namespace HiveSpace.CatalogService.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         public async Task<IActionResult> GetHomepageCategories()
         {
-            var result = await _categoryService.GetHomepageCategoriesAsync();
+            var result = await categoryService.GetHomepageCategoriesAsync();
             return Ok(result);
         }
 
