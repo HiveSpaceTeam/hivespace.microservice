@@ -100,6 +100,8 @@ public class OrderDomainErrorCode : DomainErrorCode
         new(7022, "OrderInvalidShippingFee", "ORD7022");
     public static readonly OrderDomainErrorCode DiscountAlreadyApplied =
         new(7023, "DiscountAlreadyApplied", "ORD7023");
+    public static readonly OrderDomainErrorCode OrderInvalidExecutorId =
+        new(7024, "OrderInvalidExecutorId", "ORD7024");
 
     // Cart aggregate errors (ORD9xxx)
     public static readonly OrderDomainErrorCode CartUserIdRequired =

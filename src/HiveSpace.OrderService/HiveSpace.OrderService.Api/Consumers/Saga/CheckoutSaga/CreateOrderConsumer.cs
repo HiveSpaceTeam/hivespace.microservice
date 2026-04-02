@@ -78,12 +78,59 @@ public class CreateOrderConsumer(
 
         var isCOD            = message.PaymentMethod == MessagingPaymentMethod.COD;
         var domainPayment    = Enumeration.FromDisplayName<DomainPaymentMethod>(message.PaymentMethod.ToString());
+        var requestedCouponCodes = message.CouponCodes
+            .Where(code => !string.IsNullOrWhiteSpace(code))
+            .Select(code => code.Trim().ToUpperInvariant())
+            .Distinct()
+            .ToList();
         var coupons          = message.CouponCodes.Count > 0
             ? await couponRepository.GetByCodesAsync(message.CouponCodes, ct)
             : [];
-        var platformCoupons  = coupons.Where(c => c.OwnerType == CouponOwnerType.Platform).ToList();
 
         var itemsByStore     = selectedItems.GroupBy(i => productRefs[i.ProductId].StoreId).ToList();
+        var checkoutStoreIds = itemsByStore.Select(g => g.Key).ToHashSet();
+
+        if (requestedCouponCodes.Count > 0)
+        {
+            var returnedCouponCodes = coupons
+                .Select(c => c.Code.Trim().ToUpperInvariant())
+                .ToHashSet();
+
+            var missingCouponCodes = requestedCouponCodes
+                .Where(code => !returnedCouponCodes.Contains(code))
+                .ToList();
+
+            if (missingCouponCodes.Count > 0)
+            {
+                await context.RespondAsync<OrderCreationFailed>(new
+                {
+                    message.CorrelationId,
+                    Reason = "Some coupons not found",
+                    Errors = missingCouponCodes.Select(code => $"Coupon {code} not found").ToList()
+                });
+                return;
+            }
+
+            var unmappedCoupons = coupons
+                .Where(c => c.OwnerType == CouponOwnerType.Store && (!c.StoreId.HasValue || !checkoutStoreIds.Contains(c.StoreId.Value)))
+                .Select(c => c.Code)
+                .Distinct()
+                .ToList();
+
+            if (unmappedCoupons.Count > 0)
+            {
+                await context.RespondAsync<OrderCreationFailed>(new
+                {
+                    message.CorrelationId,
+                    Reason = "Some coupons are not applicable to this checkout",
+                    Errors = unmappedCoupons.Select(code => $"Coupon {code} is not applicable to selected store items").ToList()
+                });
+                return;
+            }
+        }
+
+        var platformCoupons  = coupons.Where(c => c.OwnerType == CouponOwnerType.Platform).ToList();
+
         var shippingPerStore = DistributeShippingFee(
             CalculateShippingFee(selectedItems.Sum(i => i.Quantity)), itemsByStore.Count);
 

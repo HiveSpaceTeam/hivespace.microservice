@@ -144,6 +144,12 @@ public class Order : AggregateRoot<Guid>, IAuditable
         if (Status != OrderStatus.Created)
             throw new InvalidFieldException(OrderDomainErrorCode.OrderInvalidStatus, nameof(Status));
 
+        if (coupon is null)
+            throw new InvalidFieldException(OrderDomainErrorCode.CouponInvalid, nameof(coupon));
+
+        if (coupon.OwnerType == CouponOwnerType.Store && coupon.StoreId != StoreId)
+            throw new InvalidFieldException(OrderDomainErrorCode.CouponStoreNotApplicable, nameof(coupon.StoreId));
+
         var discountAmount = coupon.CalculateDiscount(SubTotal);
 
         var discount = coupon.OwnerType == CouponOwnerType.Store
@@ -158,6 +164,12 @@ public class Order : AggregateRoot<Guid>, IAuditable
     {
         if (Status != OrderStatus.Created)
             throw new InvalidFieldException(OrderDomainErrorCode.OrderInvalidStatus, nameof(Status));
+
+        if (coupon is null)
+            throw new InvalidFieldException(OrderDomainErrorCode.CouponInvalid, nameof(coupon));
+
+        if (coupon.OwnerType != CouponOwnerType.Platform)
+            throw new InvalidFieldException(OrderDomainErrorCode.CouponInvalid, nameof(coupon.OwnerType));
 
         if (discountAmount is null || discountAmount.Amount <= 0)
             throw new InvalidFieldException(OrderDomainErrorCode.CouponInvalidDiscountAmount, nameof(discountAmount));
@@ -199,6 +211,9 @@ public class Order : AggregateRoot<Guid>, IAuditable
 
     public void Confirm(Guid confirmedBy)
     {
+        if (confirmedBy == Guid.Empty)
+            throw new InvalidFieldException(OrderDomainErrorCode.OrderInvalidExecutorId, nameof(confirmedBy));
+
         if (!Status.CanBeConfirmed())
             throw new InvalidFieldException(OrderDomainErrorCode.OrderInvalidStatusForConfirmation, nameof(Status));
 
@@ -212,6 +227,9 @@ public class Order : AggregateRoot<Guid>, IAuditable
 
     public void Reject(string reason, Guid rejectedBy)
     {
+        if (rejectedBy == Guid.Empty)
+            throw new InvalidFieldException(OrderDomainErrorCode.OrderInvalidExecutorId, nameof(rejectedBy));
+
         if (!Status.CanBeRejected())
             throw new InvalidFieldException(OrderDomainErrorCode.OrderInvalidStatusForRejection, nameof(Status));
 
