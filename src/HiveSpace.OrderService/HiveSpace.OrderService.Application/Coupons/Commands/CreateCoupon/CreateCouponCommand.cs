@@ -1,12 +1,10 @@
-using System;
-using System.Collections.Generic;
-using MediatR;
+using HiveSpace.Application.Shared.Commands;
 using HiveSpace.OrderService.Application.Coupons.Dtos;
 using HiveSpace.OrderService.Domain.Enumerations;
 
 namespace HiveSpace.OrderService.Application.Coupons.Commands.CreateCoupon;
 
-public class CreateCouponCommand : IRequest<CouponDto>
+public class CreateCouponCommand : ICommand<CouponDto>
 {
     public string Code { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;

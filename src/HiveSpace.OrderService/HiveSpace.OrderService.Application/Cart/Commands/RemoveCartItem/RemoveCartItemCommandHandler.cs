@@ -1,4 +1,4 @@
-using MediatR;
+using HiveSpace.Application.Shared.Handlers;
 using HiveSpace.Core.Contexts;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.OrderService.Domain.Aggregates.Carts;
@@ -8,7 +8,7 @@ using HiveSpace.OrderService.Domain.Repositories;
 namespace HiveSpace.OrderService.Application.Cart.Commands.RemoveCartItem;
 
 public class RemoveCartItemCommandHandler(ICartRepository cartRepository, IUserContext userContext)
-    : IRequestHandler<RemoveCartItemCommand>
+    : ICommandHandler<RemoveCartItemCommand>
 {
     public async Task Handle(RemoveCartItemCommand request, CancellationToken cancellationToken)
     {

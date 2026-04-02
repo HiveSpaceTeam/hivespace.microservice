@@ -2,7 +2,7 @@ namespace HiveSpace.OrderService.Api.Models;
 
 public record CheckoutResponse
 {
-    public Guid            OrderId          { get; init; }
+    public List<Guid>      OrderIds         { get; init; } = new();
     public string          Status           { get; init; } = null!;
     public long            GrandTotal       { get; init; }
     public string?         PaymentUrl       { get; init; }

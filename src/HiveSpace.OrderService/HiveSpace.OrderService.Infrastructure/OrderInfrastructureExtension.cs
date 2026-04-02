@@ -3,6 +3,7 @@ using HiveSpace.Core.Exceptions;
 using HiveSpace.Infrastructure.Persistence;
 using HiveSpace.OrderService.Application.Cart;
 using HiveSpace.OrderService.Application.Interfaces.Messaging;
+using HiveSpace.OrderService.Application.Orders;
 using HiveSpace.OrderService.Infrastructure.Data;
 using HiveSpace.OrderService.Infrastructure.DataQueries;
 using HiveSpace.OrderService.Infrastructure.Messaging.Publishers;
@@ -53,6 +54,11 @@ public static class OrderInfrastructureExtension
                 .AddInterceptors(interceptors);
         });
 
+        services.AddDbContextFactory<OrderDbContext>((serviceProvider, options) =>
+        {
+            options.UseSqlServer(connectionString);
+        }, ServiceLifetime.Scoped);
+
         // Register the generic DbContext to resolve to OrderDbContext
         services.AddScoped<DbContext>(provider => provider.GetRequiredService<OrderDbContext>());
     }
@@ -69,7 +75,10 @@ public static class OrderInfrastructureExtension
     public static void AddOrderServiceQueries(this IServiceCollection services, string connectionString)
     {
         services.AddScoped<ICartDataQuery>(_ => new CartDataQuery(connectionString));
-        services.AddScoped<ICheckoutPreviewQuery>(_ => new CheckoutPreviewQuery(connectionString));
+        services.AddScoped<ICheckoutQuery>(sp =>
+            new CheckoutDataQuery(connectionString, sp.GetRequiredService<IDbContextFactory<OrderDbContext>>()));
+        services.AddScoped<IOrderDataQuery>(sp =>
+            new OrderDataQuery(sp.GetRequiredService<IDbContextFactory<OrderDbContext>>()));
     }
 
     public static void AddInfrastructureServices(this IServiceCollection services)

@@ -15,7 +15,6 @@ namespace HiveSpace.OrderService.Infrastructure.Data;
 public class OrderDbContext : DbContext
 {
     public DbSet<Order> Orders { get; set; } = null!;
-    public DbSet<OrderPackage> OrderPackages { get; set; } = null!;
     public DbSet<Coupon> Coupons { get; set; } = null!;
     public DbSet<CouponUsage> CouponUsages { get; set; } = null!;
     public DbSet<CouponRule> CouponRules { get; set; } = null!;

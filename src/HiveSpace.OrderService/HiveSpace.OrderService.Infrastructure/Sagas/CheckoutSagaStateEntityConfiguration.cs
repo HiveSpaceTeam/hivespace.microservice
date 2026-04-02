@@ -23,7 +23,7 @@ public class CheckoutSagaStateEntityConfiguration : IEntityTypeConfiguration<Che
                 v => JsonSerializer.Deserialize<List<string>>(v, _jsonOptions) ?? new())
             .HasColumnType("nvarchar(max)");
 
-        builder.Property(s => s.PackageIds)
+        builder.Property(s => s.OrderIds)
             .HasConversion(
                 v => JsonSerializer.Serialize(v, _jsonOptions),
                 v => JsonSerializer.Deserialize<List<Guid>>(v, _jsonOptions) ?? new())
@@ -35,19 +35,19 @@ public class CheckoutSagaStateEntityConfiguration : IEntityTypeConfiguration<Che
                 v => JsonSerializer.Deserialize<List<Guid>>(v, _jsonOptions) ?? new())
             .HasColumnType("nvarchar(max)");
 
-        builder.Property(s => s.Items)
-            .HasConversion(
-                v => JsonSerializer.Serialize(v, _jsonOptions),
-                v => JsonSerializer.Deserialize<List<OrderItemDto>>(v, _jsonOptions) ?? new())
-            .HasColumnType("nvarchar(max)");
-
         builder.Property(s => s.DeliveryAddress)
             .HasConversion(
                 v => JsonSerializer.Serialize(v, _jsonOptions),
                 v => JsonSerializer.Deserialize<DeliveryAddressDto>(v, _jsonOptions)!)
             .HasColumnType("nvarchar(1000)");
 
-        builder.Property(s => s.PackageReservationMap)
+        builder.Property(s => s.OrderStoreMap)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, _jsonOptions),
+                v => JsonSerializer.Deserialize<Dictionary<Guid, Guid>>(v, _jsonOptions) ?? new())
+            .HasColumnType("nvarchar(max)");
+
+        builder.Property(s => s.OrderReservationMap)
             .HasConversion(
                 v => JsonSerializer.Serialize(v, _jsonOptions),
                 v => JsonSerializer.Deserialize<Dictionary<Guid, List<Guid>>>(v, _jsonOptions) ?? new())

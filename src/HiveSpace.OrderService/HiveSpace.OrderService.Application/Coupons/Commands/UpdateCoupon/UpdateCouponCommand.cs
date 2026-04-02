@@ -1,11 +1,9 @@
-using System;
-using System.Collections.Generic;
+using HiveSpace.Application.Shared.Commands;
 using HiveSpace.OrderService.Application.Coupons.Dtos;
-using MediatR;
 
 namespace HiveSpace.OrderService.Application.Coupons.Commands.UpdateCoupon;
 
-public record UpdateCouponCommand : IRequest<CouponDto>
+public record UpdateCouponCommand : ICommand<CouponDto>
 {
     public Guid Id { get; init; }
     public string Code { get; init; } = string.Empty;

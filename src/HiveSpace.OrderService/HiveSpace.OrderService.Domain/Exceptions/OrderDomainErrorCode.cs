@@ -19,8 +19,6 @@ public class OrderDomainErrorCode : DomainErrorCode
     public static readonly OrderDomainErrorCode AddressProvinceRequired =
         new(1005, "AddressProvinceRequired", "ORD1005");
 
-
-
     // PackageDimensions errors (ORD3xxx)
     public static readonly OrderDomainErrorCode DimensionsInvalidWidth =
         new(3001, "DimensionsInvalidWidth", "ORD3001");
@@ -60,8 +58,8 @@ public class OrderDomainErrorCode : DomainErrorCode
         new(7001, "OrderUserRequired", "ORD7001");
     public static readonly OrderDomainErrorCode OrderAddressRequired =
         new(7002, "OrderAddressRequired", "ORD7002");
-    public static readonly OrderDomainErrorCode OrderPackageNull =
-        new(7003, "OrderPackageNull", "ORD7003");
+    public static readonly OrderDomainErrorCode OrderStoreIdRequired =
+        new(7003, "OrderStoreIdRequired", "ORD7003");
     public static readonly OrderDomainErrorCode OrderInvalidStatus =
         new(7004, "OrderInvalidStatus", "ORD7004");
     public static readonly OrderDomainErrorCode OrderInvalidStatusForPayment =
@@ -72,66 +70,38 @@ public class OrderDomainErrorCode : DomainErrorCode
         new(7007, "OrderExceedsCODLimit", "ORD7007");
     public static readonly OrderDomainErrorCode OrderInvalidStatusForConfirmation =
         new(7008, "OrderInvalidStatusForConfirmation", "ORD7008");
-    public static readonly OrderDomainErrorCode OrderPackagesNotConfirmed =
-        new(7009, "OrderPackagesNotConfirmed", "ORD7009");
-    public static readonly OrderDomainErrorCode OrderPackageNotFound =
-        new(7010, "OrderPackageNotFound", "ORD7010");
+    public static readonly OrderDomainErrorCode OrderNoItems =
+        new(7009, "OrderNoItems", "ORD7009");
+    public static readonly OrderDomainErrorCode OrderInvalidStatusForRejection =
+        new(7010, "OrderInvalidStatusForRejection", "ORD7010");
+    public static readonly OrderDomainErrorCode OrderRejectionReasonRequired =
+        new(7011, "OrderRejectionReasonRequired", "ORD7011");
     public static readonly OrderDomainErrorCode OrderInvalidStatusForCompletion =
-        new(7011, "OrderInvalidStatusForCompletion", "ORD7011");
+        new(7012, "OrderInvalidStatusForCompletion", "ORD7012");
     public static readonly OrderDomainErrorCode OrderInvalidStatusForCancellation =
-        new(7012, "OrderInvalidStatusForCancellation", "ORD7012");
+        new(7013, "OrderInvalidStatusForCancellation", "ORD7013");
     public static readonly OrderDomainErrorCode OrderInvalidStatusForExpiration =
-        new(7013, "OrderInvalidStatusForExpiration", "ORD7013");
+        new(7014, "OrderInvalidStatusForExpiration", "ORD7014");
     public static readonly OrderDomainErrorCode OrderNotFound =
-        new(7014, "OrderNotFound", "ORD7014");
+        new(7015, "OrderNotFound", "ORD7015");
     public static readonly OrderDomainErrorCode NotOrderOwner =
-        new(7015, "NotOrderOwner", "ORD7015");
+        new(7016, "NotOrderOwner", "ORD7016");
     public static readonly OrderDomainErrorCode SellerStoreRequired =
-        new(7016, "SellerStoreRequired", "ORD7016");
-
-    // Checkout saga failure errors (ORD11xxx)
-    public static readonly OrderDomainErrorCode CheckoutValidationFailed =
-        new(11001, "CheckoutValidationFailed", "ORD11001");
-    public static readonly OrderDomainErrorCode CheckoutInventoryUnavailable =
-        new(11002, "CheckoutInventoryUnavailable", "ORD11002");
-    public static readonly OrderDomainErrorCode CheckoutCODLimitExceeded =
-        new(11003, "CheckoutCODLimitExceeded", "ORD11003");
-    public static readonly OrderDomainErrorCode CheckoutTimeout =
-        new(11004, "CheckoutTimeout", "ORD11004");
-    public static readonly OrderDomainErrorCode CheckoutInternalError =
-        new(11005, "CheckoutInternalError", "ORD11005");
-
-    // OrderPackage errors (ORD8xxx)
-    public static readonly OrderDomainErrorCode PackageStoreIdRequired =
-        new(8001, "PackageStoreIdRequired", "ORD8001");
-    public static readonly OrderDomainErrorCode PackageBuyerIdRequired =
-        new(8002, "PackageBuyerIdRequired", "ORD8002");
-    public static readonly OrderDomainErrorCode PackageInvalidStatusForAddItem =
-        new(8003, "PackageInvalidStatusForAddItem", "ORD8003");
-    public static readonly OrderDomainErrorCode PackageInvalidStatusForDiscount =
-        new(8004, "PackageInvalidStatusForDiscount", "ORD8004");
-    public static readonly OrderDomainErrorCode PackageInvalidShippingFee =
-        new(8005, "PackageInvalidShippingFee", "ORD8005");
-    public static readonly OrderDomainErrorCode PackageInvalidStatusForConfirmation =
-        new(8006, "PackageInvalidStatusForConfirmation", "ORD8006");
-    public static readonly OrderDomainErrorCode PackageNoItems =
-        new(8007, "PackageNoItems", "ORD8007");
-    public static readonly OrderDomainErrorCode PackageInvalidStatusForRejection =
-        new(8008, "PackageInvalidStatusForRejection", "ORD8008");
-    public static readonly OrderDomainErrorCode PackageRejectionReasonRequired =
-        new(8009, "PackageRejectionReasonRequired", "ORD8009");
-    public static readonly OrderDomainErrorCode PackageInvalidStatusForShipping =
-        new(8010, "PackageInvalidStatusForShipping", "ORD8010");
-    public static readonly OrderDomainErrorCode PackageShippingIdRequired =
-        new(8011, "PackageShippingIdRequired", "ORD8011");
-    public static readonly OrderDomainErrorCode PackageMissingShipping =
-        new(8012, "PackageMissingShipping", "ORD8012");
-    public static readonly OrderDomainErrorCode PackageInvalidStatusForDelivery =
-        new(8013, "PackageInvalidStatusForDelivery", "ORD8013");
-    public static readonly OrderDomainErrorCode PackageInvalidStatusForCompletion =
-        new(8014, "PackageInvalidStatusForCompletion", "ORD8014");
-    public static readonly OrderDomainErrorCode PackageInvalidStatusForCancellation =
-        new(8015, "PackageInvalidStatusForCancellation", "ORD8015");
+        new(7017, "SellerStoreRequired", "ORD7017");
+    public static readonly OrderDomainErrorCode OrderInvalidStatusForShipping =
+        new(7018, "OrderInvalidStatusForShipping", "ORD7018");
+    public static readonly OrderDomainErrorCode OrderShippingIdRequired =
+        new(7019, "OrderShippingIdRequired", "ORD7019");
+    public static readonly OrderDomainErrorCode OrderMissingShipping =
+        new(7020, "OrderMissingShipping", "ORD7020");
+    public static readonly OrderDomainErrorCode OrderInvalidStatusForDelivery =
+        new(7021, "OrderInvalidStatusForDelivery", "ORD7021");
+    public static readonly OrderDomainErrorCode OrderInvalidShippingFee =
+        new(7022, "OrderInvalidShippingFee", "ORD7022");
+    public static readonly OrderDomainErrorCode DiscountAlreadyApplied =
+        new(7023, "DiscountAlreadyApplied", "ORD7023");
+    public static readonly OrderDomainErrorCode OrderInvalidExecutorId =
+        new(7024, "OrderInvalidExecutorId", "ORD7024");
 
     // Cart aggregate errors (ORD9xxx)
     public static readonly OrderDomainErrorCode CartUserIdRequired =
@@ -214,4 +184,18 @@ public class OrderDomainErrorCode : DomainErrorCode
         new(10033, "CouponCannotUpdateExpired", "ORD10033");
     public static readonly OrderDomainErrorCode CouponEarlySaveAlreadyStarted =
         new(10034, "CouponEarlySaveAlreadyStarted", "ORD10034");
+
+    // Checkout saga failure errors (ORD11xxx)
+    public static readonly OrderDomainErrorCode CheckoutValidationFailed =
+        new(11001, "CheckoutValidationFailed", "ORD11001");
+    public static readonly OrderDomainErrorCode CheckoutInventoryUnavailable =
+        new(11002, "CheckoutInventoryUnavailable", "ORD11002");
+    public static readonly OrderDomainErrorCode CheckoutCODLimitExceeded =
+        new(11003, "CheckoutCODLimitExceeded", "ORD11003");
+    public static readonly OrderDomainErrorCode CheckoutTimeout =
+        new(11004, "CheckoutTimeout", "ORD11004");
+    public static readonly OrderDomainErrorCode CheckoutInternalError =
+        new(11005, "CheckoutInternalError", "ORD11005");
+    public static readonly OrderDomainErrorCode CheckoutNotFound =
+        new(11006, "CheckoutNotFound", "ORD11006");
 }

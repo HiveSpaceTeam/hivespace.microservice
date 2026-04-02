@@ -1,14 +1,13 @@
-using HiveSpace.Domain.Shared.IdGeneration;
 using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.Domain.Shared.Errors;
 using HiveSpace.Domain.Shared.Exceptions;
+using HiveSpace.Domain.Shared.ValueObjects;
 using HiveSpace.OrderService.Domain.Enumerations;
 using HiveSpace.OrderService.Domain.Exceptions;
-using HiveSpace.Domain.Shared.ValueObjects;
 
 namespace HiveSpace.OrderService.Domain.Aggregates.Orders;
 
-public class Discount : Entity<Guid>
+public class Discount : ValueObject
 {
     public Guid CouponId { get; private set; }
     public string CouponCode { get; private set; } = null!;
@@ -25,7 +24,6 @@ public class Discount : Entity<Guid>
 
         return new Discount
         {
-            Id = IdGenerator.NewId<Guid>(),
             CouponId = couponId,
             CouponCode = couponCode,
             DiscountAmount = discountAmount,
@@ -41,7 +39,6 @@ public class Discount : Entity<Guid>
 
         return new Discount
         {
-            Id = IdGenerator.NewId<Guid>(),
             CouponId = couponId,
             CouponCode = couponCode,
             DiscountAmount = discountAmount,
@@ -49,6 +46,14 @@ public class Discount : Entity<Guid>
             CouponOwnerType = CouponOwnerType.Platform,
             AppliedAt = DateTimeOffset.UtcNow
         };
+    }
+
+    protected override IEnumerable<object> GetEqualityComponents()
+    {
+        yield return CouponId;
+        yield return DiscountAmount;
+        yield return Scope;
+        yield return CouponOwnerType;
     }
 
     private static void ValidateFactoryInputs(CouponScope scope, Guid couponId, string couponCode, Money discountAmount)

@@ -1,11 +1,10 @@
-using HiveSpace.Domain.Shared.IdGeneration;
 using HiveSpace.Domain.Shared.Entities;
-using HiveSpace.OrderService.Domain.Enumerations;
 using HiveSpace.Domain.Shared.ValueObjects;
+using HiveSpace.OrderService.Domain.Enumerations;
 
 namespace HiveSpace.OrderService.Domain.Aggregates.Orders;
 
-public class Checkout : Entity<Guid>
+public class Checkout : ValueObject
 {
     public PaymentMethod PaymentMethod { get; private set; } = null!;
     public Money Amount { get; private set; } = null!;
@@ -17,10 +16,16 @@ public class Checkout : Entity<Guid>
     {
         return new Checkout
         {
-            Id = IdGenerator.NewId<Guid>(),
             PaymentMethod = paymentMethod,
             Amount = amount,
             CreatedAt = DateTimeOffset.UtcNow
         };
+    }
+
+    protected override IEnumerable<object> GetEqualityComponents()
+    {
+        yield return PaymentMethod;
+        yield return Amount;
+        yield return CreatedAt;
     }
 }

@@ -85,11 +85,10 @@ internal static class ServiceCollectionExtensions
                    r.ExistingDbContext<OrderDbContext>();
                    r.UseSqlServer();
                });
-            cfg.AddConsumer<ValidateCheckoutConsumer>();
             cfg.AddConsumer<CreateOrderConsumer>();
             cfg.AddConsumer<MarkOrderAsCODConsumer>();
             cfg.AddConsumer<CancelOrderConsumer>();
-            cfg.AddConsumer<NotifySellersConsumer>();
+            cfg.AddConsumer<NotifySellerConsumer>();
             cfg.AddConsumer<NotifyCustomerConsumer>();
             cfg.AddConsumer<ClearCartConsumer>();
         });

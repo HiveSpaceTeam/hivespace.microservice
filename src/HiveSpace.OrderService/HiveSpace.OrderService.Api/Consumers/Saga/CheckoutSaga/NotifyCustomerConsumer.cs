@@ -12,8 +12,8 @@ public class NotifyCustomerConsumer(ILogger<NotifyCustomerConsumer> logger) : IC
         var message = context.Message;
 
         logger.LogInformation(
-            "[STUB] Notify customer {UserId} for order {OrderId}. IsPartial: {IsPartial}, Rejected: {RejectedCount}",
-            message.UserId, message.OrderId, message.IsPartialOrder, message.RejectedPackageCount);
+            "[STUB] Notify customer {UserId} for order {OrderId}. Confirmed: {WasConfirmed}",
+            message.UserId, message.OrderId, message.WasConfirmed);
 
         await context.Publish<CustomerNotified>(new
         {

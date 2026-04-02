@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(dotnet ef:*)",
-      "Bash(dotnet build:*)"
+      "Bash(dotnet build:*)",
+      "Bash(grep -v \"^src$\")",
+      "Bash(grep -v \"^libs$\")"
     ]
   }
 }

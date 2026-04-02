@@ -1,3 +1,5 @@
+using HiveSpace.CatalogService.Domain.Exceptions;
+using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Commands;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Events;
 using MassTransit;
@@ -17,11 +19,13 @@ public class ReserveInventoryConsumer : IConsumer<ReserveInventory>
     public async Task Consume(ConsumeContext<ReserveInventory> context)
     {
         var message = context.Message;
-        var ct      = context.CancellationToken;
+
+        if (message.OrderIds.Count == 0)
+            throw new InvalidFieldException(CatalogErrorCode.InvalidOrderIds, nameof(message.OrderIds));
 
         _logger.LogInformation(
-            "ReserveInventory received for order {OrderId} — {ItemCount} item(s), expiration {ExpirationMinutes}m",
-            message.OrderId, message.Items.Count, message.ExpirationMinutes);
+            "ReserveInventory received for order {OrderIds} — {ItemCount} item(s), expiration {ExpirationMinutes}m",
+            String.Join(",", message.OrderIds), message.Items.Count, message.ExpirationMinutes);
 
         // TODO: implement reservation logic
         var reservationIds        = new List<Guid>();
@@ -34,27 +38,27 @@ public class ReserveInventoryConsumer : IConsumer<ReserveInventory>
         {
             _logger.LogInformation(
                 "Inventory reserved for order {OrderId} — {Count} reservation(s)",
-                message.OrderId, reservationIds.Count);
+                String.Join(",", message.OrderIds), reservationIds.Count);
 
             await context.RespondAsync<InventoryReserved>(new
             {
                 message.CorrelationId,
-                message.OrderId,
-                ReservationIds        = reservationIds,
-                ExpiresAt             = DateTimeOffset.UtcNow.AddMinutes(message.ExpirationMinutes),
-                PackageReservationMap = packageReservationMap
+                message.OrderIds,
+                ReservationIds      = reservationIds,
+                ExpiresAt           = DateTimeOffset.UtcNow.AddMinutes(message.ExpirationMinutes),
+                OrderReservationMap = packageReservationMap
             });
         }
         else
         {
             _logger.LogWarning(
                 "Inventory reservation failed for order {OrderId} — {FailureCount} failure(s)",
-                message.OrderId, failures.Count);
+                String.Join(",", message.OrderIds), failures.Count);
 
             await context.RespondAsync<InventoryReservationFailed>(new
             {
                 message.CorrelationId,
-                message.OrderId,
+                OrderIds = message.OrderIds,
                 Reason   = "One or more items could not be reserved",
                 Failures = failures
             });
