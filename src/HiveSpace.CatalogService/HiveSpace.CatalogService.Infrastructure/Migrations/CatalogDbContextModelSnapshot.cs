@@ -92,16 +92,25 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
             modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.CategoryAggregate.Category", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<string>("FilePath")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("FilePath");
+
+                    b.Property<bool?>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("ParentId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ProductSetId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -497,10 +506,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                     b.OwnsMany("HiveSpace.CatalogService.Domain.Aggregates.CategoryAggregate.CategoryAttribute", "CategoryAttributes", b1 =>
                         {
                             b1.Property<int>("AttributeId")
-                                .ValueGeneratedOnAdd()
                                 .HasColumnType("int");
-
-                            SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("AttributeId"));
 
                             b1.Property<int>("CategoryId")
                                 .HasColumnType("int");
