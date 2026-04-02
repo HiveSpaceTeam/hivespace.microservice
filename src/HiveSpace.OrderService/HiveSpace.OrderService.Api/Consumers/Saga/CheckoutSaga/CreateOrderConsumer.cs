@@ -7,6 +7,7 @@ using HiveSpace.OrderService.Domain.Aggregates.Orders;
 using HiveSpace.OrderService.Domain.Enumerations;
 using HiveSpace.OrderService.Domain.Repositories;
 using HiveSpace.OrderService.Domain.ValueObjects;
+using HiveSpace.OrderService.Domain.Aggregates.Coupons;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 using DomainPaymentMethod = HiveSpace.OrderService.Domain.Enumerations.PaymentMethod;
@@ -80,6 +81,7 @@ public class CreateOrderConsumer(
         var coupons          = message.CouponCodes.Count > 0
             ? await couponRepository.GetByCodesAsync(message.CouponCodes, ct)
             : [];
+        var platformCoupons  = coupons.Where(c => c.OwnerType == CouponOwnerType.Platform).ToList();
 
         var itemsByStore     = selectedItems.GroupBy(i => productRefs[i.ProductId].StoreId).ToList();
         var shippingPerStore = DistributeShippingFee(
@@ -129,16 +131,23 @@ public class CreateOrderConsumer(
             order.SetShippingFee(Money.FromVND(pkgShipping), isShippingPaidBySeller: false);
 
             foreach (var coupon in coupons.Where(c =>
-                c.OwnerType == CouponOwnerType.Platform ||
-                (c.OwnerType == CouponOwnerType.Store && c.StoreId == storeId)))
+                c.OwnerType == CouponOwnerType.Store && c.StoreId == storeId))
             {
                 order.ApplyDiscount(coupon);
             }
 
-            order.AddCheckout(domainPayment, order.TotalAmount);
-
             orderRepository.Add(order);
             createdOrders.Add(order);
+        }
+
+        foreach (var platformCoupon in platformCoupons)
+        {
+            ApplyPlatformCouponProration(createdOrders, platformCoupon);
+        }
+
+        foreach (var order in createdOrders)
+        {
+            order.AddCheckout(domainPayment, order.TotalAmount);
         }
 
         await orderRepository.SaveChangesAsync(ct);
@@ -157,5 +166,62 @@ public class CreateOrderConsumer(
             Items         = allItemDtos,
             CreatedAt     = createdOrders.First().CreatedAt
         });
+    }
+
+    private static void ApplyPlatformCouponProration(IReadOnlyList<Order> createdOrders, Coupon platformCoupon)
+    {
+        if (createdOrders.Count == 0)
+            return;
+
+        var weightedOrders = createdOrders
+            .Where(o => o.SubTotal.Amount > 0)
+            .Select(o => new
+            {
+                Order = o,
+                Weight = o.SubTotal.Amount
+            })
+            .ToList();
+
+        if (weightedOrders.Count == 0)
+            return;
+
+        var totalWeight = weightedOrders.Sum(x => x.Weight);
+        var totalDiscountAmount = platformCoupon.CalculateDiscount(Money.FromVND(totalWeight)).Amount;
+
+        if (totalDiscountAmount <= 0)
+            return;
+
+        var allocations = weightedOrders
+            .Select(x => new
+            {
+                x.Order,
+                BaseAmount = totalDiscountAmount * x.Weight / totalWeight,
+                Remainder = totalDiscountAmount * x.Weight % totalWeight
+            })
+            .ToList();
+
+        var allocatedAmount = allocations.Sum(x => x.BaseAmount);
+        var remainingAmount = totalDiscountAmount - allocatedAmount;
+
+        var amountByOrderId = allocations.ToDictionary(x => x.Order.Id, x => x.BaseAmount);
+
+        if (remainingAmount > 0)
+        {
+            foreach (var allocation in allocations
+                .OrderByDescending(x => x.Remainder)
+                .Take((int)remainingAmount))
+            {
+                amountByOrderId[allocation.Order.Id] += 1;
+            }
+        }
+
+        foreach (var weightedOrder in weightedOrders)
+        {
+            var allocated = amountByOrderId[weightedOrder.Order.Id];
+            if (allocated <= 0)
+                continue;
+
+            weightedOrder.Order.ApplyProratedDiscount(platformCoupon, Money.FromVND(allocated));
+        }
     }
 }

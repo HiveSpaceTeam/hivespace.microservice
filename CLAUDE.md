@@ -327,7 +327,7 @@ await _dbContext.Orders.Where(o => o.Id == id)
 ### Entity configuration
 
 - Place in `[Service].Infrastructure/EntityConfigurations/[Entity]EntityConfiguration.cs`
-- Table names must be `snake_case` (e.g., `builder.ToTable("order_packages")`)
+- Table names must be `snake_case` (e.g., `builder.ToTable("order")`)
 - Apply via `builder.ApplyConfigurationsFromAssembly()`
 
 ### DTOs
@@ -399,12 +399,12 @@ var order = _repo.GetByIdAsync(id).Result;
 
 Use a domain prefix so error codes are traceable across services:
 
-| Scope | Prefix | Example |
-|---|---|---|
-| Shared/common | `APP0xxx` | `APP0004` — in `HiveSpace.Core` as `CommonErrorCode` |
-| UserService | `USR1xxx` | `USR1001` — `UserDomainErrorCode` |
-| OrderService | `ORD2xxx` | `ORD2001` — `OrderDomainErrorCode` |
-| CatalogService | `CAT3xxx` | `CAT3001` — `CatalogDomainErrorCode` |
+| Scope          | Prefix    | Example                                              |
+| -------------- | --------- | ---------------------------------------------------- |
+| Shared/common  | `APP0xxx` | `APP0004` — in `HiveSpace.Core` as `CommonErrorCode` |
+| UserService    | `USR1xxx` | `USR1001` — `UserDomainErrorCode`                    |
+| OrderService   | `ORD2xxx` | `ORD2001` — `OrderDomainErrorCode`                   |
+| CatalogService | `CAT3xxx` | `CAT3001` — `CatalogDomainErrorCode`                 |
 
 ### One type per file
 

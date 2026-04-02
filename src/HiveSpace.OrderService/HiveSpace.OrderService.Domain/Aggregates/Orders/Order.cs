@@ -115,6 +115,8 @@ public class Order : AggregateRoot<Guid>, IAuditable
         if (Status != OrderStatus.Created)
             throw new InvalidFieldException(OrderDomainErrorCode.OrderInvalidStatus, nameof(Status));
 
+        EnsureNoAppliedDiscounts();
+
         var item = OrderItem.Create(productId, skuId, quantity, unitPrice, productSnapshot, isCOD);
         _items.Add(item);
         RecalculateTotals();
@@ -124,6 +126,8 @@ public class Order : AggregateRoot<Guid>, IAuditable
     {
         if (shippingFee == null || shippingFee.Amount < 0)
             throw new InvalidFieldException(OrderDomainErrorCode.OrderInvalidShippingFee, nameof(shippingFee));
+
+        EnsureNoAppliedDiscounts();
 
         ShippingFee = shippingFee;
         IsShippingPaidBySeller = isShippingPaidBySeller;
@@ -141,6 +145,22 @@ public class Order : AggregateRoot<Guid>, IAuditable
             throw new InvalidFieldException(OrderDomainErrorCode.OrderInvalidStatus, nameof(Status));
 
         var discountAmount = coupon.CalculateDiscount(SubTotal);
+
+        var discount = coupon.OwnerType == CouponOwnerType.Store
+            ? Discount.CreateStoreDiscount(coupon.Id, coupon.Code, discountAmount, coupon.Scope)
+            : Discount.CreatePlatformDiscount(coupon.Id, coupon.Code, discountAmount, coupon.Scope);
+
+        _discounts.Add(discount);
+        RecalculateTotals();
+    }
+
+    public void ApplyProratedDiscount(Coupon coupon, Money discountAmount)
+    {
+        if (Status != OrderStatus.Created)
+            throw new InvalidFieldException(OrderDomainErrorCode.OrderInvalidStatus, nameof(Status));
+
+        if (discountAmount is null || discountAmount.Amount <= 0)
+            throw new InvalidFieldException(OrderDomainErrorCode.CouponInvalidDiscountAmount, nameof(discountAmount));
 
         var discount = coupon.OwnerType == CouponOwnerType.Store
             ? Discount.CreateStoreDiscount(coupon.Id, coupon.Code, discountAmount, coupon.Scope)
@@ -302,6 +322,12 @@ public class Order : AggregateRoot<Guid>, IAuditable
 
         var buyerShippingFee = IsShippingPaidBySeller ? Money.Zero() : ShippingFee;
         TotalAmount = SubTotal.ApplyDiscount(TotalDiscount) + buyerShippingFee;
+    }
+
+    private void EnsureNoAppliedDiscounts()
+    {
+        if (_discounts.Count > 0)
+            throw new InvalidFieldException(OrderDomainErrorCode.DiscountAlreadyApplied, nameof(_discounts));
     }
 
     private void AddTracking(string type, ExecutorType executorType, Guid? executorId, string message)
