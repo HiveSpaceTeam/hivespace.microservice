@@ -5,5 +5,6 @@ namespace HiveSpace.CatalogService.Application.Interfaces;
 public interface ICategoryService
 {
     Task<List<CategoryViewModel>> GetCategoryAsync();
+    Task<List<CategoryViewModel>> GetHomepageCategoriesAsync();
     Task<List<AttributeViewModel>> GetAttributesByCategoryIdAsync(int categoryId);
 }

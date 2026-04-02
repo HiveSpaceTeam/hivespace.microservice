@@ -24,6 +24,19 @@ namespace HiveSpace.CatalogService.Infrastructure.Queries
                 .ToListAsync();
         }
 
+        public async Task<List<CategoryViewModel>> GetHomepageCategoriesAsync()
+        {
+            return await _dbContext.Categories
+                .Where(c => c.ParentId == 2 && c.FilePath != null)
+                .Select(c => new CategoryViewModel(
+                    c.Id,
+                    c.Name,
+                    c.Name,
+                    c.FilePath!
+                ))
+                .ToListAsync();
+        }
+
         public async Task<List<AttributeViewModel>> GetAttributesByCategoryIdAsync(int categoryId)
         {
             // Step 1: Get all attribute IDs linked to the category
