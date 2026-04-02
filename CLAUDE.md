@@ -23,7 +23,7 @@ Before implementing any new feature — whether in plan mode or not — always a
 **Option A — CQRS (MediatR)**
 Each operation is a discrete command or query handler. Use this when the feature maps cleanly to a single intent (create, update, cancel, list, get).
 
-```
+```text
 Application/
   [Feature]/
     Commands/
@@ -38,7 +38,7 @@ Application/
 **Option B — Service / Interface**
 A service class groups related operations behind an interface. Use this when multiple operations share state, context, or helpers that would be awkward to repeat across individual handlers.
 
-```
+```text
 Application/
   Interfaces/
     I[Feature]Service.cs
@@ -105,7 +105,7 @@ Used by: **UserService**, **CatalogService**, **OrderService**
 
 Four projects per service with hard layer boundaries:
 
-```
+```text
 [Service].Domain/           # Aggregates, value objects, domain services, repository interfaces
 [Service].Application/      # MediatR commands/queries/handlers, FluentValidation validators, data query interfaces
 [Service].Infrastructure/   # EF Core repo implementations, Dapper data queries, messaging publishers
@@ -125,7 +125,7 @@ Used by: **MediaService**
 
 One to three projects — typically a Core project plus an Api project, and optionally additional host projects (e.g. Azure Functions):
 
-```
+```text
 [Service].Core/    # Domain models, interfaces, service classes, validators — all in one place
 [Service].Api/     # Controllers, DI wiring
 [Service].Func/    # Optional: additional host (Azure Functions, workers, etc.)
@@ -145,7 +145,7 @@ Rules:
 Used for all write operations and reads that require business rule validation.
 
 1. **Domain**: Define or update aggregate + business methods + repository interface
-2. **Application**: `record MyCommand(...) : IRequest<MyResult>` + handler + FluentValidation validator
+2. **Application**: `record MyCommand(...) : ICommand<MyResult>` + handler + FluentValidation validator (use `ICommand`/`ICommandHandler` from `HiveSpace.Application.Shared`)
 3. **Infrastructure**: Repository implementation + `IEntityTypeConfiguration<T>` in `EntityConfigurations/`
 4. **Api**: Map endpoint or add controller action
 
@@ -246,7 +246,7 @@ Sagas are distributed workflows orchestrated via MassTransit state machines. A s
 
 **File placement within a service:**
 
-```
+```text
 Api/Sagas/[SagaName]/[SagaName]StateMachine.cs   # State machine definition
 Api/Sagas/[SagaName]/[SagaName]State.cs          # or in Infrastructure/Sagas/
 Api/Consumers/Saga/[SagaName]/[Step]Consumer.cs  # One consumer per saga step
@@ -344,7 +344,7 @@ RuleFor(x => x.Email)
 
 ### Commands and queries
 
-Commands implement `IRequest<TResult>` (MediatR). Query handlers for complex reads implement `IQueryHandler<TQuery, TResult>` from `HiveSpace.Application.Shared`.
+Commands implement `ICommand<TResult>` from `HiveSpace.Application.Shared` (wraps MediatR `IRequest<TResult>`). Query handlers for complex reads implement `IQueryHandler<TQuery, TResult>` from `HiveSpace.Application.Shared`.
 
 ### Domain events to integration events
 
@@ -410,7 +410,7 @@ Use a domain prefix so error codes are traceable across services:
 
 Each file contains exactly one primary type. File name must match the type name:
 
-```
+```text
 CreateOrderCommand.cs          → record CreateOrderCommand
 CreateOrderCommandHandler.cs   → class CreateOrderCommandHandler
 CreateOrderValidator.cs        → class CreateOrderValidator

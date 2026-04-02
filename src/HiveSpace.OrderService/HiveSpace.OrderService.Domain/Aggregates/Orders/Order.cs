@@ -201,7 +201,7 @@ public class Order : AggregateRoot<Guid>, IAuditable
         Status = OrderStatus.Rejected;
         RejectionReason = reason;
         RejectedAt = DateTimeOffset.UtcNow;
-        AddTracking(OrderTrackingType.OrderRejected, ExecutorType.User, rejectedBy, $"Order rejected: {reason}");
+        AddTracking(OrderTrackingType.Rejected, ExecutorType.User, rejectedBy, $"Order rejected: {reason}");
     }
 
     // ── Shipping lifecycle ────────────────────────────────────────────────────
@@ -278,8 +278,14 @@ public class Order : AggregateRoot<Guid>, IAuditable
     public Money CalculateSellerPayout()
     {
         const decimal SERVICE_FEE_RATE = 0.099m;
-        var serviceFee = SubTotal.CalculateServiceFee(SERVICE_FEE_RATE);
-        var payout = SubTotal - serviceFee;
+
+        var storeDiscountTotal = _discounts
+            .Where(d => d.CouponOwnerType == CouponOwnerType.Store)
+            .Aggregate(Money.Zero(SubTotal.Currency), (acc, d) => acc + d.DiscountAmount);
+
+        var sellerBase = SubTotal - storeDiscountTotal;
+        var serviceFee = sellerBase.CalculateServiceFee(SERVICE_FEE_RATE);
+        var payout = sellerBase - serviceFee;
 
         if (IsShippingPaidBySeller)
             payout -= ShippingFee;

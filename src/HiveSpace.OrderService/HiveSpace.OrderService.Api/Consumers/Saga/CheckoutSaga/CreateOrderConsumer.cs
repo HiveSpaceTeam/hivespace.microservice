@@ -135,7 +135,7 @@ public class CreateOrderConsumer(
                 order.ApplyDiscount(coupon);
             }
 
-            order.AddCheckout(domainPayment, isCOD ? order.GetCODAmount() : order.TotalAmount);
+            order.AddCheckout(domainPayment, order.TotalAmount);
 
             orderRepository.Add(order);
             createdOrders.Add(order);

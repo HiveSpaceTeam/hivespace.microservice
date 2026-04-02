@@ -59,7 +59,7 @@ public class CheckoutDataQuery(string connectionString, IDbContextFactory<Data.O
         var saga = await db.Set<CheckoutSagaState>()
             .AsNoTracking()
             .FirstOrDefaultAsync(s => s.CorrelationId == correlationId, ct)
-            ?? throw new NotFoundException(OrderDomainErrorCode.OrderNotFound, nameof(CheckoutSagaState));
+            ?? throw new NotFoundException(OrderDomainErrorCode.CheckoutNotFound, nameof(CheckoutSagaState));
 
         return new CheckoutStatusDto
         {

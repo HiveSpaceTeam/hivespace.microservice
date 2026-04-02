@@ -26,5 +26,6 @@ public class Checkout : ValueObject
     {
         yield return PaymentMethod;
         yield return Amount;
+        yield return CreatedAt;
     }
 }

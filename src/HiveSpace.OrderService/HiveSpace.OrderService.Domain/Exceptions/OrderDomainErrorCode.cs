@@ -192,4 +192,6 @@ public class OrderDomainErrorCode : DomainErrorCode
         new(11004, "CheckoutTimeout", "ORD11004");
     public static readonly OrderDomainErrorCode CheckoutInternalError =
         new(11005, "CheckoutInternalError", "ORD11005");
+    public static readonly OrderDomainErrorCode CheckoutNotFound =
+        new(11006, "CheckoutNotFound", "ORD11006");
 }
