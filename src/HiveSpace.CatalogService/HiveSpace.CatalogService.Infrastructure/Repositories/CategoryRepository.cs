@@ -13,7 +13,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<Category?> GetByIdAsync(Guid id)
+        public async Task<Category?> GetByIdAsync(int id)
         {
             return await _context.Categories.FindAsync(id);
         }

@@ -228,70 +228,14 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
                     b.ToTable("coupon_usages", (string)null);
                 });
 
-            modelBuilder.Entity("HiveSpace.OrderService.Domain.Aggregates.Orders.Checkout", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid?>("OrderPackageId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("PaymentMethod")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OrderPackageId");
-
-                    b.ToTable("order_checkouts", (string)null);
-                });
-
-            modelBuilder.Entity("HiveSpace.OrderService.Domain.Aggregates.Orders.Discount", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset>("AppliedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("CouponCode")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<Guid>("CouponId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("CouponOwnerType")
-                        .HasColumnType("int");
-
-                    b.Property<Guid?>("OrderPackageId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Scope")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OrderPackageId");
-
-                    b.ToTable("order_discounts", (string)null);
-                });
-
             modelBuilder.Entity("HiveSpace.OrderService.Domain.Aggregates.Orders.Order", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("ConfirmedAt")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
@@ -299,8 +243,21 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
                     b.Property<DateTimeOffset?>("ExpiredAt")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<bool>("IsShippingPaidBySeller")
+                        .HasColumnType("bit");
+
                     b.Property<DateTimeOffset?>("PaidAt")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("RejectedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("RejectionReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid?>("ShippingId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("ShortId")
                         .IsRequired()
@@ -311,6 +268,9 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<Guid>("StoreId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
@@ -335,7 +295,7 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
                     b.Property<bool>("IsCOD")
                         .HasColumnType("bit");
 
-                    b.Property<Guid?>("OrderPackageId")
+                    b.Property<Guid?>("OrderId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<long>("ProductId")
@@ -349,58 +309,9 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OrderPackageId");
-
-                    b.ToTable("order_items", (string)null);
-                });
-
-            modelBuilder.Entity("HiveSpace.OrderService.Domain.Aggregates.Orders.OrderPackage", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("BuyerId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset?>("ConfirmedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<bool>("IsShippingPaidBySeller")
-                        .HasColumnType("bit");
-
-                    b.Property<Guid?>("OrderId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset?>("RejectedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("RejectionReason")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<Guid?>("ShippingId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<Guid>("StoreId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.HasKey("Id");
-
                     b.HasIndex("OrderId");
 
-                    b.ToTable("order_packages", (string)null);
+                    b.ToTable("order_items", (string)null);
                 });
 
             modelBuilder.Entity("HiveSpace.OrderService.Domain.Aggregates.Orders.OrderTracking", b =>
@@ -551,7 +462,7 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
                     b.Property<Guid?>("CODMarkingPendingTokenId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("CartValidationPendingTokenId")
+                    b.Property<Guid?>("CartClearingPendingTokenId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTimeOffset?>("CompletedAt")
@@ -573,9 +484,6 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<long>("DiscountAmount")
-                        .HasColumnType("bigint");
-
                     b.Property<DateTimeOffset?>("FailedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -589,18 +497,18 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
                     b.Property<Guid?>("InventoryReservationPendingTokenId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Items")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<Guid?>("OrderCreationPendingTokenId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("PackageIds")
+                    b.Property<string>("OrderIds")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("PackageReservationMap")
+                    b.Property<string>("OrderReservationMap")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OrderStoreMap")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -623,15 +531,6 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
                     b.Property<string>("ResponseAddress")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<long>("ShippingFee")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("Subtotal")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("TaxAmount")
-                        .HasColumnType("bigint");
-
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
 
@@ -648,13 +547,6 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
 
                     b.Property<DateTimeOffset?>("CompletedAt")
                         .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("ConfirmedPackageIds")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("ConfirmedPackages")
-                        .HasColumnType("int");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
@@ -674,20 +566,8 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
                     b.Property<long>("GrandTotal")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("PackageIds")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PackageReservationMap")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RejectedPackageIds")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("RejectedPackages")
-                        .HasColumnType("int");
+                    b.Property<bool>("OrderWasConfirmed")
+                        .HasColumnType("bit");
 
                     b.Property<string>("ReservationIds")
                         .IsRequired()
@@ -699,8 +579,8 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
                     b.Property<Guid?>("SellerConfirmationTimeoutTokenId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("TotalPackages")
-                        .HasColumnType("int");
+                    b.Property<Guid>("StoreId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
@@ -1010,76 +890,173 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("HiveSpace.OrderService.Domain.Aggregates.Orders.Checkout", b =>
-                {
-                    b.HasOne("HiveSpace.OrderService.Domain.Aggregates.Orders.OrderPackage", null)
-                        .WithMany("Checkouts")
-                        .HasForeignKey("OrderPackageId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.OwnsOne("HiveSpace.Domain.Shared.ValueObjects.Money", "Amount", b1 =>
-                        {
-                            b1.Property<Guid>("CheckoutId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<long>("Amount")
-                                .HasColumnType("bigint")
-                                .HasColumnName("Amount");
-
-                            b1.Property<string>("Currency")
-                                .IsRequired()
-                                .HasMaxLength(3)
-                                .HasColumnType("nvarchar(3)")
-                                .HasColumnName("Currency");
-
-                            b1.HasKey("CheckoutId");
-
-                            b1.ToTable("order_checkouts");
-
-                            b1.WithOwner()
-                                .HasForeignKey("CheckoutId");
-                        });
-
-                    b.Navigation("Amount")
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("HiveSpace.OrderService.Domain.Aggregates.Orders.Discount", b =>
-                {
-                    b.HasOne("HiveSpace.OrderService.Domain.Aggregates.Orders.OrderPackage", null)
-                        .WithMany("Discounts")
-                        .HasForeignKey("OrderPackageId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.OwnsOne("HiveSpace.Domain.Shared.ValueObjects.Money", "DiscountAmount", b1 =>
-                        {
-                            b1.Property<Guid>("DiscountId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<long>("Amount")
-                                .HasColumnType("bigint")
-                                .HasColumnName("Amount");
-
-                            b1.Property<string>("Currency")
-                                .IsRequired()
-                                .HasMaxLength(3)
-                                .HasColumnType("nvarchar(3)")
-                                .HasColumnName("Currency");
-
-                            b1.HasKey("DiscountId");
-
-                            b1.ToTable("order_discounts");
-
-                            b1.WithOwner()
-                                .HasForeignKey("DiscountId");
-                        });
-
-                    b.Navigation("DiscountAmount")
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("HiveSpace.OrderService.Domain.Aggregates.Orders.Order", b =>
                 {
+                    b.OwnsMany("HiveSpace.OrderService.Domain.Aggregates.Orders.Checkout", "Checkouts", b1 =>
+                        {
+                            b1.Property<Guid>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<DateTimeOffset>("CreatedAt")
+                                .HasColumnType("datetimeoffset");
+
+                            b1.Property<Guid>("OrderId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("PaymentMethod")
+                                .IsRequired()
+                                .HasMaxLength(50)
+                                .HasColumnType("nvarchar(50)");
+
+                            b1.HasKey("Id");
+
+                            b1.HasIndex("OrderId");
+
+                            b1.ToTable("order_checkouts", (string)null);
+
+                            b1.WithOwner()
+                                .HasForeignKey("OrderId");
+
+                            b1.OwnsOne("HiveSpace.Domain.Shared.ValueObjects.Money", "Amount", b2 =>
+                                {
+                                    b2.Property<Guid>("CheckoutId")
+                                        .HasColumnType("uniqueidentifier");
+
+                                    b2.Property<long>("Amount")
+                                        .HasColumnType("bigint")
+                                        .HasColumnName("Amount");
+
+                                    b2.Property<string>("Currency")
+                                        .IsRequired()
+                                        .HasMaxLength(3)
+                                        .HasColumnType("nvarchar(3)")
+                                        .HasColumnName("Currency");
+
+                                    b2.HasKey("CheckoutId");
+
+                                    b2.ToTable("order_checkouts");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("CheckoutId");
+                                });
+
+                            b1.Navigation("Amount")
+                                .IsRequired();
+                        });
+
+                    b.OwnsMany("HiveSpace.OrderService.Domain.Aggregates.Orders.Discount", "Discounts", b1 =>
+                        {
+                            b1.Property<Guid>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<DateTimeOffset>("AppliedAt")
+                                .HasColumnType("datetimeoffset");
+
+                            b1.Property<string>("CouponCode")
+                                .IsRequired()
+                                .HasMaxLength(50)
+                                .HasColumnType("nvarchar(50)");
+
+                            b1.Property<Guid>("CouponId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("CouponOwnerType")
+                                .IsRequired()
+                                .HasMaxLength(50)
+                                .HasColumnType("nvarchar(50)");
+
+                            b1.Property<Guid>("OrderId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("Scope")
+                                .IsRequired()
+                                .HasMaxLength(50)
+                                .HasColumnType("nvarchar(50)");
+
+                            b1.HasKey("Id");
+
+                            b1.HasIndex("OrderId");
+
+                            b1.ToTable("order_discounts", (string)null);
+
+                            b1.WithOwner()
+                                .HasForeignKey("OrderId");
+
+                            b1.OwnsOne("HiveSpace.Domain.Shared.ValueObjects.Money", "DiscountAmount", b2 =>
+                                {
+                                    b2.Property<Guid>("DiscountId")
+                                        .HasColumnType("uniqueidentifier");
+
+                                    b2.Property<long>("Amount")
+                                        .HasColumnType("bigint")
+                                        .HasColumnName("Amount");
+
+                                    b2.Property<string>("Currency")
+                                        .IsRequired()
+                                        .HasMaxLength(3)
+                                        .HasColumnType("nvarchar(3)")
+                                        .HasColumnName("Currency");
+
+                                    b2.HasKey("DiscountId");
+
+                                    b2.ToTable("order_discounts");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("DiscountId");
+                                });
+
+                            b1.Navigation("DiscountAmount")
+                                .IsRequired();
+                        });
+
+                    b.OwnsOne("HiveSpace.Domain.Shared.ValueObjects.Money", "ShippingFee", b1 =>
+                        {
+                            b1.Property<Guid>("OrderId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<long>("Amount")
+                                .HasColumnType("bigint")
+                                .HasColumnName("ShippingFeeAmount");
+
+                            b1.Property<string>("Currency")
+                                .IsRequired()
+                                .HasMaxLength(3)
+                                .HasColumnType("nvarchar(3)")
+                                .HasColumnName("ShippingFeeCurrency");
+
+                            b1.HasKey("OrderId");
+
+                            b1.ToTable("orders");
+
+                            b1.WithOwner()
+                                .HasForeignKey("OrderId");
+                        });
+
+                    b.OwnsOne("HiveSpace.Domain.Shared.ValueObjects.Money", "SubTotal", b1 =>
+                        {
+                            b1.Property<Guid>("OrderId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<long>("Amount")
+                                .HasColumnType("bigint")
+                                .HasColumnName("SubTotalAmount");
+
+                            b1.Property<string>("Currency")
+                                .IsRequired()
+                                .HasMaxLength(3)
+                                .HasColumnType("nvarchar(3)")
+                                .HasColumnName("SubTotalCurrency");
+
+                            b1.HasKey("OrderId");
+
+                            b1.ToTable("orders");
+
+                            b1.WithOwner()
+                                .HasForeignKey("OrderId");
+                        });
+
                     b.OwnsOne("HiveSpace.Domain.Shared.ValueObjects.Money", "TotalAmount", b1 =>
                         {
                             b1.Property<Guid>("OrderId")
@@ -1094,6 +1071,29 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
                                 .HasMaxLength(3)
                                 .HasColumnType("nvarchar(3)")
                                 .HasColumnName("Currency");
+
+                            b1.HasKey("OrderId");
+
+                            b1.ToTable("orders");
+
+                            b1.WithOwner()
+                                .HasForeignKey("OrderId");
+                        });
+
+                    b.OwnsOne("HiveSpace.Domain.Shared.ValueObjects.Money", "TotalDiscount", b1 =>
+                        {
+                            b1.Property<Guid>("OrderId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<long>("Amount")
+                                .HasColumnType("bigint")
+                                .HasColumnName("TotalDiscountAmount");
+
+                            b1.Property<string>("Currency")
+                                .IsRequired()
+                                .HasMaxLength(3)
+                                .HasColumnType("nvarchar(3)")
+                                .HasColumnName("TotalDiscountCurrency");
 
                             b1.HasKey("OrderId");
 
@@ -1170,18 +1170,31 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
                                 .IsRequired();
                         });
 
+                    b.Navigation("Checkouts");
+
                     b.Navigation("DeliveryAddress")
                         .IsRequired();
 
+                    b.Navigation("Discounts");
+
+                    b.Navigation("ShippingFee")
+                        .IsRequired();
+
+                    b.Navigation("SubTotal")
+                        .IsRequired();
+
                     b.Navigation("TotalAmount")
+                        .IsRequired();
+
+                    b.Navigation("TotalDiscount")
                         .IsRequired();
                 });
 
             modelBuilder.Entity("HiveSpace.OrderService.Domain.Aggregates.Orders.OrderItem", b =>
                 {
-                    b.HasOne("HiveSpace.OrderService.Domain.Aggregates.Orders.OrderPackage", null)
+                    b.HasOne("HiveSpace.OrderService.Domain.Aggregates.Orders.Order", null)
                         .WithMany("Items")
-                        .HasForeignKey("OrderPackageId")
+                        .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.OwnsOne("HiveSpace.Domain.Shared.ValueObjects.Money", "LineTotal", b1 =>
@@ -1313,118 +1326,6 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("HiveSpace.OrderService.Domain.Aggregates.Orders.OrderPackage", b =>
-                {
-                    b.HasOne("HiveSpace.OrderService.Domain.Aggregates.Orders.Order", null)
-                        .WithMany("Packages")
-                        .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.OwnsOne("HiveSpace.Domain.Shared.ValueObjects.Money", "ShippingFee", b1 =>
-                        {
-                            b1.Property<Guid>("OrderPackageId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<long>("Amount")
-                                .HasColumnType("bigint")
-                                .HasColumnName("ShippingFeeAmount");
-
-                            b1.Property<string>("Currency")
-                                .IsRequired()
-                                .HasMaxLength(3)
-                                .HasColumnType("nvarchar(3)")
-                                .HasColumnName("ShippingFeeCurrency");
-
-                            b1.HasKey("OrderPackageId");
-
-                            b1.ToTable("order_packages");
-
-                            b1.WithOwner()
-                                .HasForeignKey("OrderPackageId");
-                        });
-
-                    b.OwnsOne("HiveSpace.Domain.Shared.ValueObjects.Money", "SubTotal", b1 =>
-                        {
-                            b1.Property<Guid>("OrderPackageId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<long>("Amount")
-                                .HasColumnType("bigint")
-                                .HasColumnName("SubTotalAmount");
-
-                            b1.Property<string>("Currency")
-                                .IsRequired()
-                                .HasMaxLength(3)
-                                .HasColumnType("nvarchar(3)")
-                                .HasColumnName("SubTotalCurrency");
-
-                            b1.HasKey("OrderPackageId");
-
-                            b1.ToTable("order_packages");
-
-                            b1.WithOwner()
-                                .HasForeignKey("OrderPackageId");
-                        });
-
-                    b.OwnsOne("HiveSpace.Domain.Shared.ValueObjects.Money", "TotalAmount", b1 =>
-                        {
-                            b1.Property<Guid>("OrderPackageId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<long>("Amount")
-                                .HasColumnType("bigint")
-                                .HasColumnName("TotalAmount");
-
-                            b1.Property<string>("Currency")
-                                .IsRequired()
-                                .HasMaxLength(3)
-                                .HasColumnType("nvarchar(3)")
-                                .HasColumnName("Currency");
-
-                            b1.HasKey("OrderPackageId");
-
-                            b1.ToTable("order_packages");
-
-                            b1.WithOwner()
-                                .HasForeignKey("OrderPackageId");
-                        });
-
-                    b.OwnsOne("HiveSpace.Domain.Shared.ValueObjects.Money", "TotalDiscount", b1 =>
-                        {
-                            b1.Property<Guid>("OrderPackageId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<long>("Amount")
-                                .HasColumnType("bigint")
-                                .HasColumnName("TotalDiscountAmount");
-
-                            b1.Property<string>("Currency")
-                                .IsRequired()
-                                .HasMaxLength(3)
-                                .HasColumnType("nvarchar(3)")
-                                .HasColumnName("TotalDiscountCurrency");
-
-                            b1.HasKey("OrderPackageId");
-
-                            b1.ToTable("order_packages");
-
-                            b1.WithOwner()
-                                .HasForeignKey("OrderPackageId");
-                        });
-
-                    b.Navigation("ShippingFee")
-                        .IsRequired();
-
-                    b.Navigation("SubTotal")
-                        .IsRequired();
-
-                    b.Navigation("TotalAmount")
-                        .IsRequired();
-
-                    b.Navigation("TotalDiscount")
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("HiveSpace.OrderService.Domain.Aggregates.Orders.OrderTracking", b =>
                 {
                     b.HasOne("HiveSpace.OrderService.Domain.Aggregates.Orders.Order", null)
@@ -1459,18 +1360,9 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
 
             modelBuilder.Entity("HiveSpace.OrderService.Domain.Aggregates.Orders.Order", b =>
                 {
-                    b.Navigation("Packages");
+                    b.Navigation("Items");
 
                     b.Navigation("Trackings");
-                });
-
-            modelBuilder.Entity("HiveSpace.OrderService.Domain.Aggregates.Orders.OrderPackage", b =>
-                {
-                    b.Navigation("Checkouts");
-
-                    b.Navigation("Discounts");
-
-                    b.Navigation("Items");
                 });
 #pragma warning restore 612, 618
         }

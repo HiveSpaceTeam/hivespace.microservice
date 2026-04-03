@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HiveSpace.CatalogService.Infrastructure.Migrations
 {
     [DbContext(typeof(CatalogDbContext))]
-    [Migration("20260330145732_InitDatbase")]
-    partial class InitDatbase
+    [Migration("20260330114849_AddCategoryProductSetIdIsActiveFilePath")]
+    partial class AddCategoryProductSetIdIsActiveFilePath
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -95,16 +95,25 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
             modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.CategoryAggregate.Category", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<string>("FilePath")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("FilePath");
+
+                    b.Property<bool?>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("ParentId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ProductSetId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -500,10 +509,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                     b.OwnsMany("HiveSpace.CatalogService.Domain.Aggregates.CategoryAggregate.CategoryAttribute", "CategoryAttributes", b1 =>
                         {
                             b1.Property<int>("AttributeId")
-                                .ValueGeneratedOnAdd()
                                 .HasColumnType("int");
-
-                            SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("AttributeId"));
 
                             b1.Property<int>("CategoryId")
                                 .HasColumnType("int");
@@ -608,10 +614,12 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                                 .HasColumnType("int");
 
                             b1.Property<decimal>("Height")
+                                .HasPrecision(18, 2)
                                 .HasColumnType("decimal(18,2)")
                                 .HasColumnName("DimensionsHeight");
 
                             b1.Property<decimal>("Length")
+                                .HasPrecision(18, 2)
                                 .HasColumnType("decimal(18,2)")
                                 .HasColumnName("DimensionsLength");
 
@@ -620,6 +628,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                                 .HasColumnName("DimensionsUnit");
 
                             b1.Property<decimal>("Width")
+                                .HasPrecision(18, 2)
                                 .HasColumnType("decimal(18,2)")
                                 .HasColumnName("DimensionsWidth");
 
@@ -641,6 +650,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                                 .HasColumnName("WeightUnit");
 
                             b1.Property<decimal>("Value")
+                                .HasPrecision(18, 2)
                                 .HasColumnType("decimal(18,2)")
                                 .HasColumnName("WeightValue");
 
