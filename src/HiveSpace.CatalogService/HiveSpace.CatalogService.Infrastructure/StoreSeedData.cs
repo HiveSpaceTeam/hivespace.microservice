@@ -8,7 +8,7 @@ namespace HiveSpace.CatalogService.Infrastructure;
 public static class StoreSeedData
 {
     private static readonly Guid TikiStoreId       = new("b2c3d4e5-f6a7-8901-bcde-f12345678901");
-    private static readonly Guid TikiSellerId      = new("a1b2c3d4-e5f6-7890-abcd-ef1234567890");
+    public  static readonly Guid TikiSellerId      = new("a1b2c3d4-e5f6-7890-abcd-ef1234567890");
 
     // GIVER BOOKS & MEDIA (Tiki seller id: 2953)
     public static readonly  Guid GiverSellerId     = new("c3d4e5f6-a7b8-9012-cdef-012345678901");

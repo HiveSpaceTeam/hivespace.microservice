@@ -37,54 +37,12 @@ public static class BookstoreSeedData
             BuildSongDoiRungRinh(now, attrMap),
             BuildComboDanOngSaoHoa(now, attrMap),
             BuildComboOshoYeu(now, attrMap),
-            Build(
-                name: "Combo 2 Cuốn: Tớ Học Lập Trình - Làm Quen Với Python + Clean Code – Mã Sạch Và Con Đường Trở Thành Lập Trình Viên Giỏi",
-                slug: "combo-2q-to-hoc-lap-trinh-lam-quen-voi-python-clean-code-ma-sach-va-con-duong-tro-thanh-lap-trinh-vien-gioi",
-                description: "Combo lý tưởng cho lập trình viên ở mọi cấp độ: từ học Python từ đầu đến viết mã sạch chuyên nghiệp. Cặp đôi sách giúp bạn xây dựng nền tảng vững chắc và kỹ năng viết code chất lượng.",
-                shortDescription: "Combo Python cơ bản và Clean Code cho lập trình viên.",
-                skuNo: "8667853140955", price: 412200m,
-                thumbnailUrl: "https://salt.tikicdn.com/cache/280x280/ts/product/0c/74/4c/724bc959159f76d156bfcbaf1c176b8e.jpg",
-                sellerId: StoreSeedData.GiverSellerId, createdAt: now),
-            Build(
-                name: "Lá Hoa Trên Đường Về - Sa Môn Thích Pháp Hòa",
-                slug: "sach-la-hoa-tren-duong-ve-sa-mon-thich-phap-hoa",
-                description: "Tập sách pháp thoại của Sa Môn Thích Pháp Hòa mang đến những lời dạy nhẹ nhàng, sâu lắng về cuộc sống và con đường tu tập. Kèm theo bookmark lá bồ đề và postcard đặc biệt.",
-                shortDescription: "Pháp thoại nhẹ nhàng về cuộc sống từ Sa Môn Thích Pháp Hòa.",
-                skuNo: "8836034836300", price: 84672m,
-                thumbnailUrl: "https://salt.tikicdn.com/cache/280x280/ts/product/15/8d/9a/6cdf5d8b69e75654e892dbdb3a94167b.jpg",
-                sellerId: StoreSeedData.GiverSellerId, createdAt: now),
-            Build(
-                name: "Thám Tử Lừng Danh Conan - Tập 107",
-                slug: "tham-tu-lung-danh-conan-tap-107",
-                description: "Tập 107 của bộ truyện tranh kinh điển Thám Tử Lừng Danh Conan của tác giả Gosho Aoyama. Hành trình phá án ly kỳ tiếp tục với những vụ án mới đầy bất ngờ.",
-                shortDescription: "Truyện tranh Conan tập 107 — vụ án mới chờ bạn khám phá.",
-                skuNo: "8740385161745", price: 20000m,
-                thumbnailUrl: "https://salt.tikicdn.com/cache/280x280/ts/product/5b/8c/d8/760d6721d631b232b540673126d238a2.jpg",
-                sellerId: StoreSeedData.PhuongDongSellerId, createdAt: now),
-            Build(
-                name: "Sách Tô Màu Phát Triển Trí Não Cho Bé 1-5 Tuổi",
-                slug: "sach-to-mau-phat-trien-tri-nao-cho-be-1-5-tuoi",
-                description: "Bộ sách tô màu được thiết kế khoa học giúp kích thích trí não, phát triển tư duy sáng tạo và khả năng cầm bút cho trẻ từ 1 đến 5 tuổi. Nội dung phong phú, hình ảnh ngộ nghĩnh, màu sắc tươi sáng.",
-                shortDescription: "Sách tô màu kích thích phát triển trí não cho bé 1-5 tuổi.",
-                skuNo: "1389576092296", price: 8777m,
-                thumbnailUrl: "https://salt.tikicdn.com/cache/280x280/ts/product/c2/2c/60/cf3cc397d6db05e5b41677e0db309d91.jpg",
-                sellerId: StoreSeedData.PhuongDongSellerId, createdAt: now),
-            Build(
-                name: "Monster - Deluxe Edition",
-                slug: "monster-deluxe-edition",
-                description: "Phiên bản deluxe của bộ manga kinh dị tâm lý nổi tiếng Monster của tác giả Naoki Urasawa. Câu chuyện về bác sĩ Tenma và hành trình truy tìm một quái vật mang hình người — kiệt tác không thể bỏ lỡ.",
-                shortDescription: "Manga kinh dị tâm lý Monster - phiên bản deluxe cao cấp.",
-                skuNo: "8273928944021", price: 95000m,
-                thumbnailUrl: "https://salt.tikicdn.com/cache/280x280/ts/product/84/9b/c7/2f34a84035816c04f622084184aef72d.jpg",
-                sellerId: StoreSeedData.PhuongDongSellerId, createdAt: now),
-            Build(
-                name: "Sách Thương Tiến Tửu",
-                slug: "sach-thuong-tien-tuu",
-                description: "Tiểu thuyết đam mỹ cổ trang Thương Tiến Tửu của tác giả Đường Tửu Khanh — câu chuyện tình cảm lãng mạn đan xen với âm mưu triều đình, được độc giả yêu thích đặc biệt.",
-                shortDescription: "Tiểu thuyết đam mỹ cổ trang nổi tiếng của Đường Tửu Khanh.",
-                skuNo: "8454905043264", price: 89280m,
-                thumbnailUrl: "https://salt.tikicdn.com/cache/280x280/ts/product/60/62/16/014749191af6bc3c23b2813369c96157.png",
-                sellerId: StoreSeedData.GiverSellerId, createdAt: now),
+            BuildComboToHocLapTrinh(now, attrMap),
+            BuildLaHoaTrenDuongVe(now, attrMap),
+            BuildConan107(now, attrMap),
+            BuildSachToMau(now, attrMap),
+            BuildMonsterDeluxe(now, attrMap),
+            BuildThuongTienTuu(now, attrMap),
         };
 
         await context.Products.AddRangeAsync(products, cancellationToken);
@@ -265,6 +223,268 @@ public static class BookstoreSeedData
             skuNo:            "2352229843300",
             price:            302700m,
             sellerId:         StoreSeedData.PhuongDongSellerId,
+            images:           images,
+            attributes:       attributes,
+            description:      description,
+            now:              now);
+    }
+
+    // ── Product 5: Combo 2 Cuốn Tớ Học Lập Trình ──────────────────────────────
+    private static Product BuildComboToHocLapTrinh(DateTimeOffset now, Dictionary<string, int> attrMap)
+    {
+        var images = new List<ProductImage>
+        {
+            new(0, "https://salt.tikicdn.com/ts/product/52/ed/fb/484f032ea38a92bb080d8211ae55a039.jpg"),
+            new(0, "https://salt.tikicdn.com/ts/product/1b/fa/c1/c3115ee82bcc5001db442a0ad8581332.jpg"),
+            new(0, "https://salt.tikicdn.com/ts/product/53/91/b2/7bd4b0d9ce68a5d934dde4d657751680.jpg"),
+        };
+
+        var attributes = BuildBookAttrs(attrMap,
+            ctyPhatHanh: "Nhã Nam",
+            loaiBia:     "Bìa mềm",
+            soTrang:     "96",
+            nxb:         "Nhà Xuất Bản Thế Giới",
+            ngayXb:      "2021-12-12");
+
+        const string description = """
+            <h3><strong>Combo 2 Cuốn Tớ Học Lập Trình: Tớ Học Lập Trình - Làm Quen Với Python + Tớ Học Lập Trình - Làm Quen Với Lập Trình Scratch</strong></h3>
+            <h3><strong>Lời nói đầu/Giới thiệu sách</strong></h3>
+            <ul>
+            <li><strong>Tớ học lập trình - Làm quen với Python:</strong></li>
+            </ul>
+            <ul>
+            <li>Sách hướng dẫn lập trình cho các bạn mới học cách dùng ngôn ngữ máy tính Python.</li>
+            <li>Chỉ dẫn từng bước để bạn biết cách lập trình, tạo trò chơi, vẽ và làm đủ trò hay ho với Python.</li>
+            <li>Chú giải các thuật ngữ máy tính đầy đủ và rõ ràng ở cuối sách.</li>
+            <li>Thật nhiều trang web hữu ích để bạn tìm hiểu thêm trên mạng và tải về các mã lệnh cần thiết.</li>
+            </ul>
+            <ul>
+            <li><strong>Tớ học lập trình - Làm quen với lập trình Scratch:</strong></li>
+            </ul>
+            <ul>
+            <li>Cẩm nang hướng dẫn hoàn chỉnh và đơn giản nhất dành cho bạn trẻ bắt đầu học lập trình.</li>
+            <li>Ngôn ngữ lập trình Scratch đặc biệt phù hợp cho bạn trẻ mới học, vì tính tương tác trực quan, đồ họa sống động.</li>
+            <li>Chỉ cần nắm và kéo các khối lệnh đầy màu sắc có sẵn để lắp ghép thành một kịch bản điều khiển các đối tượng trên màn hình.</li>
+            </ul>
+            <h3><strong>Đối tượng sử dụng</strong></h3>
+            <ul><li>Dành cho bé từ 6 tuổi trở lên</li></ul>
+            <h3><strong>Ưu điểm</strong></h3>
+            <ul>
+            <li><strong>Dễ hiểu:</strong> Ngôn ngữ sử dụng đơn giản, dễ hiểu, phù hợp với cả người mới bắt đầu.</li>
+            <li><strong>Học bằng cách làm:</strong> Bạn sẽ được thực hành ngay từ những bài tập đầu tiên.</li>
+            <li><strong>Minh họa sinh động:</strong> Các hình ảnh minh họa sinh động giúp bạn dễ dàng hình dung các khái niệm.</li>
+            <li><strong>Nội dung phong phú:</strong> Cuốn sách bao gồm nhiều chủ đề khác nhau, giúp bạn có cái nhìn tổng quan về Python và Scratch.</li>
+            </ul>
+            """;
+
+        return BuildFull(
+            name:             "Combo 2 Cuốn Tớ Học Lập Trình: Tớ Học Lập Trình - Làm Quen Với Python + Tớ Học Lập Trình - Làm Quen Với Lập Trình Scratch",
+            slug:             "combo-2-cuon-to-hoc-lap-trinh-lam-quen-voi-python-lam-quen-voi-lap-trinh-scratch",
+            shortDescription: "Combo lập trình cho bé: Làm quen Python và Scratch qua từng bước thực hành.",
+            skuNo:            "8070440105711",
+            price:            156000m,
+            sellerId:         StoreSeedData.GiverSellerId,
+            images:           images,
+            attributes:       attributes,
+            description:      description,
+            now:              now);
+    }
+
+    // ── Product 6: Lá Hoa Trên Đường Về ───────────────────────────────────────
+    private static Product BuildLaHoaTrenDuongVe(DateTimeOffset now, Dictionary<string, int> attrMap)
+    {
+        var images = new List<ProductImage>
+        {
+            new(0, "https://salt.tikicdn.com/ts/product/15/8d/9a/6cdf5d8b69e75654e892dbdb3a94167b.jpg"),
+            new(0, "https://salt.tikicdn.com/ts/product/16/0e/a1/c0e86ae79a376559959d756d577f2aab.jpeg"),
+            new(0, "https://salt.tikicdn.com/ts/product/98/44/13/b833174bbdd377a0eb76422a675c8841.jpg"),
+            new(0, "https://salt.tikicdn.com/ts/product/a1/34/94/0a052acd1d637b396f6f47a0542d445d.jpg"),
+            new(0, "https://salt.tikicdn.com/ts/product/f0/92/c9/1fcf6fa6810e3ce1be4ce013cf07be9c.jpg"),
+            new(0, "https://salt.tikicdn.com/ts/product/db/2d/84/95a96c8bb158ff22824e3463f936cec8.jpg"),
+            new(0, "https://salt.tikicdn.com/ts/product/af/85/0f/7ada1013dbb9bf80463983513b4b0ccb.jpg"),
+            new(0, "https://salt.tikicdn.com/ts/product/aa/6a/50/229b5fd0fbd50099ff53b2d0e294bf51.jpg"),
+            new(0, "https://salt.tikicdn.com/ts/product/8f/dc/d8/6e2dbeea971cffd73df6d8aeb0bffb7a.jpg"),
+        };
+
+        var attributes = BuildBookAttrs(attrMap,
+            ctyPhatHanh: "First News - Trí Việt",
+            loaiBia:     "Bìa mềm",
+            soTrang:     "296",
+            nxb:         "Nhà Xuất Bản Dân Trí",
+            ngayXb:      null);
+
+        const string description = """
+            <p>Trong quá trình thực hiện hai quyển sách <em>Chia sẻ từ trái tim</em> và <em>Con đường chuyển hóa</em> của thầy Thích Pháp Hòa, ban biên tập nhận ra rằng có những thắc mắc của đại chúng xoay quanh các vấn đề rất thiết thực trong đời sống mà phạm vi các bài pháp thoại khó đáp ứng được. Do đó, chúng tôi đã quyết định thực hiện quyển sách thứ ba như một tuyển tập các câu vấn đáp giữa thầy Pháp Hòa với đại chúng trong các buổi giảng pháp của thầy suốt mấy mươi năm qua.</p>
+            <p>Khác với những chủ đề thầy Pháp Hòa chủ động chọn để giảng, các câu hỏi từ phía đại chúng lại mở ra nhiều hướng đề tài mới, cho thấy nhiều mối quan tâm, trăn trở có thật trong cuộc sống thường nhật dường như không tìm thấy lời giải đáp trong kinh sách.</p>
+            <p>Mặc dù nội dung câu hỏi vô cùng đa dạng và lắm khi "khó đỡ", nhưng với sự thông hiểu Phật pháp và khả năng diễn đạt giản dị, dễ hiểu, sự tận tâm và lòng từ bi, thầy Thích Pháp Hòa đã có thể giải đáp các câu hỏi một cách thỏa đáng.</p>
+            <p>Chúng tôi hy vọng quyển sách <strong>Lá hoa trên đường về</strong> của thầy Thích Pháp Hòa sẽ đóng góp thêm một mảnh ghép giúp quý độc giả tháo gỡ được những gút mắc, khai thông được những chỗ bế tắc trong tu tập và trong đời sống, có được cái nhìn dung thông về mọi sự, từ đó có thể an tâm, vô ngại trong mỗi phút giây của cuộc đời.</p>
+            """;
+
+        return BuildFull(
+            name:             "Sách - Lá Hoa Trên Đường Về - Sa Môn Thích Pháp Hoà - Tặng Kèm Bookmark Lá Bồ Đề Random 1 Trong 3 Mẫu + Bookmark + Postcard",
+            slug:             "sach-la-hoa-tren-duong-ve-sa-mon-thich-phap-hoa",
+            shortDescription: "Tuyển tập vấn đáp Phật pháp nhẹ nhàng, sâu lắng từ thầy Thích Pháp Hòa.",
+            skuNo:            "8836034836300",
+            price:            105840m,
+            sellerId:         StoreSeedData.GiverSellerId,
+            images:           images,
+            attributes:       attributes,
+            description:      description,
+            now:              now);
+    }
+
+    // ── Product 7: Thám Tử Lừng Danh Conan - Tập 107 ─────────────────────────
+    private static Product BuildConan107(DateTimeOffset now, Dictionary<string, int> attrMap)
+    {
+        var images = new List<ProductImage>
+        {
+            new(0, "https://salt.tikicdn.com/ts/product/5b/8c/d8/760d6721d631b232b540673126d238a2.jpg"),
+            new(0, "https://salt.tikicdn.com/ts/product/84/6d/36/9171810107aa035465e16868e8313ab1.jpg"),
+        };
+
+        var attributes = BuildBookAttrs(attrMap,
+            ctyPhatHanh: "Nhà Xuất Bản Kim Đồng",
+            loaiBia:     "Bìa mềm",
+            soTrang:     "176",
+            nxb:         "Nhà Xuất Bản Kim Đồng",
+            ngayXb:      null);
+
+        const string description = """
+            <p>Ngày nhỏ, Ran và Shinichi từng làm hỏng vòi nước trong công viên. Khi đó, 5 học viên của Học viện Cảnh sát đã xuất hiện và giúp họ!</p>
+            <p>Lần này, đội thám tử nhí có cơ hội tham quan Trụ sở Cảnh sát tỉnh Nagano!? Nhưng rồi cả bọn bị cuốn vào những sự cố hỏa hoạn đáng ngờ của nhóm người sáng tạo nội dung số…</p>
+            <p>Ở một diễn biến khác, ông Kogoro bị nhóm Eri bám đuôi!</p>
+            <p>Rốt cuộc, người mà ông bí mật gặp là ai?</p>
+            """;
+
+        return BuildFull(
+            name:             "Thám Tử Lừng Danh Conan - Tập 107",
+            slug:             "tham-tu-lung-danh-conan-tap-107",
+            shortDescription: "Conan tập 107 — Ran, Shinichi và những vụ án hỏa hoạn bí ẩn tại Nagano.",
+            skuNo:            "8740385161745",
+            price:            25000m,
+            sellerId:         StoreSeedData.PhuongDongSellerId,
+            images:           images,
+            attributes:       attributes,
+            description:      description,
+            now:              now);
+    }
+
+    // ── Product 8: Sách Tô Màu Phát Triển Trí Não Cho Bé ─────────────────────
+    private static Product BuildSachToMau(DateTimeOffset now, Dictionary<string, int> attrMap)
+    {
+        var images = new List<ProductImage>
+        {
+            new(0, "https://salt.tikicdn.com/ts/product/11/d7/be/894c2ecc2d617695ad920f21e3abcae7.jpg"),
+            new(0, "https://salt.tikicdn.com/ts/product/ba/94/eb/c1f51038435413d8f49728f18cd78447.jpg"),
+            new(0, "https://salt.tikicdn.com/ts/product/48/45/3d/dea2310efbc687e636ef04b594a268b1.jpg"),
+            new(0, "https://salt.tikicdn.com/ts/product/fd/38/72/41cdfa19b077fc7e4ad56c66025e553b.jpg"),
+        };
+
+        var attributes = BuildBookAttrs(attrMap,
+            ctyPhatHanh: "Nhã Nam",
+            loaiBia:     "Bìa mềm",
+            soTrang:     "10",
+            nxb:         "Nhà Xuất Bản Dân Trí",
+            ngayXb:      "2021-11-11");
+
+        const string description = """
+            <h3>Tô Màu Phát Triển Não Bộ Cho Bé 1-5 Tuổi - Tập 1</h3>
+            <ul>
+            <li>Bố mẹ biết chứ, trẻ dưới 18 tháng đã có khả năng chuyển tải suy nghĩ và cảm xúc bằng hình ảnh có màu sắc.</li>
+            <li>Tô màu giúp trẻ rèn kỹ năng điều khiển vận động của đôi tay, tăng khả năng quan sát, được sáng tạo và tưởng tượng một cách tự nhiên, được luyện khả năng tập trung và kiên trì, tăng khả năng thưởng thức cái đẹp trong cuộc sống.</li>
+            <li>Với trẻ nhỏ tuổi, học là chơi và chơi là học. Tranh tô màu chính là những "bài học" có sức mạnh to lớn với trẻ, bố mẹ ạ!</li>
+            <li>Hình ảnh minh họa sinh động, màu sắc tươi sáng.</li>
+            <li>Kết hợp hình ảnh và từ vựng song ngữ Việt - Anh.</li>
+            <li>Các hình vẽ đơn giản, phù hợp với khả năng nhận biết của trẻ nhỏ.</li>
+            </ul>
+            <h3>Ưu điểm</h3>
+            <ul>
+            <li><strong>Giúp bé làm quen với từ vựng:</strong> Sách kết hợp hình ảnh và từ vựng song ngữ, giúp bé vừa tô màu vừa học từ mới.</li>
+            <li><strong>Phát triển khả năng nhận biết màu sắc:</strong> Các hình ảnh đa dạng giúp bé phân biệt và ghi nhớ các màu sắc cơ bản.</li>
+            <li><strong>Tăng kỹ năng vận động tinh:</strong> Việc tô màu giúp bé rèn luyện khả năng cầm bút, phối hợp tay mắt.</li>
+            <li><strong>Phát triển trí tưởng tượng:</strong> Các hình ảnh trong sách mở ra không gian cho bé sáng tạo.</li>
+            <li><strong>Giúp bé thư giãn và vui chơi:</strong> Tô màu là một hoạt động thú vị, giúp bé giải tỏa căng thẳng.</li>
+            </ul>
+            """;
+
+        return BuildFull(
+            name:             "Sách Tô Màu Phát Triển Trí Não Bộ Cho Bé 1-5 Tuổi - Tập 1",
+            slug:             "sach-to-mau-phat-trien-tri-nao-bo-cho-be-1-5-tuoi-tap-1",
+            shortDescription: "Sách tô màu song ngữ Việt-Anh, kích thích phát triển trí não cho bé 1-5 tuổi.",
+            skuNo:            "9586614921348",
+            price:            12320m,
+            sellerId:         StoreSeedData.PhuongDongSellerId,
+            images:           images,
+            attributes:       attributes,
+            description:      description,
+            now:              now);
+    }
+
+    // ── Product 9: Monster - Deluxe Edition ───────────────────────────────────
+    private static Product BuildMonsterDeluxe(DateTimeOffset now, Dictionary<string, int> attrMap)
+    {
+        var images = new List<ProductImage>
+        {
+            new(0, "https://salt.tikicdn.com/ts/product/84/9b/c7/2f34a84035816c04f622084184aef72d.jpg"),
+            new(0, "https://salt.tikicdn.com/ts/product/be/71/3e/27aa28c1ccc9f9bf7531391ba4d3c074.jpg"),
+            new(0, "https://salt.tikicdn.com/ts/product/18/3b/91/3ca36234dcdced1b9ef0217978e216e7.png"),
+        };
+
+        var attributes = BuildBookAttrs(attrMap,
+            ctyPhatHanh: "Nhà Xuất Bản Kim Đồng",
+            loaiBia:     "Bìa mềm",
+            soTrang:     null,
+            nxb:         "Nhà Xuất Bản Kim Đồng",
+            ngayXb:      null);
+
+        const string description = """
+            <p>Trong cuộc sống thường nhật, ai cũng có những thời điểm bất an. Ngay cả một vị bác sĩ với tương lai đầy hứa hẹn như Kenzo Tenma cũng không phải ngoại lệ. Nhưng anh đâu thể ngờ rằng việc làm tròn bổn phận y đức, cứu người không phân biệt thay vì bất chấp theo đuổi công danh sự nghiệp của mình lại là nguồn cơn tạo ra một sinh vật đáng sợ. Một câu hỏi được đặt ra: Đâu là công lí, và đâu là tội ác?</p>
+            <p>Tại nước Đức sau ngày thống nhất, hàng loạt vụ sát hại các cặp vợ chồng trung niên không con cái liên tiếp xảy ra. Hung thủ là một chàng trai trẻ tên Johan! Tại sao hắn lại nhắm vào họ? Bác sĩ Kenzo Tenma bắt đầu lên đường tìm kiếm em gái song sinh của Johan, người có khả năng nắm giữ manh mối về bí mật mang tên "Quái Vật".</p>
+            """;
+
+        return BuildFull(
+            name:             "Monster - Deluxe Edition - [Chọn Tập Lẻ]",
+            slug:             "monster-deluxe-edition-chon-tap-le",
+            shortDescription: "Manga kinh dị tâm lý kiệt tác của Naoki Urasawa — phiên bản deluxe cao cấp.",
+            skuNo:            "8273928944021",
+            price:            118750m,
+            sellerId:         StoreSeedData.PhuongDongSellerId,
+            images:           images,
+            attributes:       attributes,
+            description:      description,
+            now:              now);
+    }
+
+    // ── Product 10: Thương Tiến Tửu ───────────────────────────────────────────
+    private static Product BuildThuongTienTuu(DateTimeOffset now, Dictionary<string, int> attrMap)
+    {
+        var images = new List<ProductImage>
+        {
+            new(0, "https://salt.tikicdn.com/ts/product/4a/cc/00/765d85f5afe39b8e8f5c351e7f0ac430.png"),
+        };
+
+        var attributes = BuildBookAttrs(attrMap,
+            ctyPhatHanh: "Cẩm Phong Books",
+            loaiBia:     "Bìa mềm",
+            soTrang:     "448",
+            nxb:         "Nhà Xuất Bản Hà Nội",
+            ngayXb:      "2025-10-06");
+
+        const string description = """
+            <p><strong><u>Giới thiệu:</u></strong></p>
+            <p>"Vận mệnh đã muốn ta suốt kiếp chôn chân tại chốn này, nhưng số mệnh ấy nào phải con đường ta lựa chọn. Cát vàng chôn vùi huynh đệ ta, ta không muốn tiếp tục thần phục số mệnh hư vô nữa. Thánh chỉ không cứu được sĩ tốt của ta, triều đình không nuôi nổi chiến mã của ta, ta không muốn liều mạng vì những thứ đó nữa. Ta muốn băng qua núi xanh kia, ta muốn đánh một trận, vì chính mình."</p>
+            <p><strong><u>Đôi nét tác giả</u></strong></p>
+            <p>Đường Tửu Khanh sinh năm 1997, thuộc chòm sao Kim Ngưu. Cô bắt đầu sự nghiệp viết tiểu thuyết vào năm 2015 và hiện đang là một cây bút trẻ rất có tiềm năng của nền tảng văn học mạng Tấn Giang.</p>
+            <p><strong>Tác phẩm tiêu biểu:</strong> <em>Thương Tiến Tửu, Gai mềm (tạm dịch), Nam thiền (tạm dịch)…</em></p>
+            """;
+
+        return BuildFull(
+            name:             "Sách Thương Tiến Tửu",
+            slug:             "sach-thuong-tien-tuu",
+            shortDescription: "Tiểu thuyết đam mỹ cổ trang nổi tiếng của Đường Tửu Khanh.",
+            skuNo:            "9736885668230",
+            price:            118800m,
+            sellerId:         StoreSeedData.GiverSellerId,
             images:           images,
             attributes:       attributes,
             description:      description,
