@@ -37,5 +37,12 @@ public class SeedData
             logger.LogInformation("No pending migrations found. Database is up to date.");
             Console.WriteLine("No pending migrations found. Database is up to date.");
         }
+
+        await CategorySeedData.SeedAsync(context, cancellationToken);
+        await AttributeSeedData.SeedAsync(context, cancellationToken);
+        await StoreSeedData.SeedAsync(context, cancellationToken);
+        await BookstoreSeedData.SeedAsync(context, cancellationToken);
+        await HomeLivingSeedData.SeedAsync(context, cancellationToken);
+        await MobileTabletSeedData.SeedAsync(context, cancellationToken);
     }
 }

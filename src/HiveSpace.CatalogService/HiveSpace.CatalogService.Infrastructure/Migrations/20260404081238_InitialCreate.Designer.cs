@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HiveSpace.CatalogService.Infrastructure.Migrations
 {
     [DbContext(typeof(CatalogDbContext))]
-    [Migration("20260330114849_AddCategoryProductSetIdIsActiveFilePath")]
-    partial class AddCategoryProductSetIdIsActiveFilePath
+    [Migration("20260404081238_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -51,7 +51,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Attributes", (string)null);
+                    b.ToTable("attributes", (string)null);
                 });
 
             modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.AttributeAggregate.AttributeValue", b =>
@@ -89,7 +89,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
 
                     b.HasIndex("AttributeDefinitionId");
 
-                    b.ToTable("AttributeValues", (string)null);
+                    b.ToTable("attribute_values", (string)null);
                 });
 
             modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.CategoryAggregate.Category", b =>
@@ -118,7 +118,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories", (string)null);
+                    b.ToTable("categories", (string)null);
                 });
 
             modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.External.StoreRef", b =>
@@ -153,7 +153,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("StoreRefs", (string)null);
+                    b.ToTable("store_refs", (string)null);
                 });
 
             modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.Product", b =>
@@ -215,7 +215,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                     b.HasIndex("Slug")
                         .IsUnique();
 
-                    b.ToTable("Products", (string)null);
+                    b.ToTable("products", (string)null);
                 });
 
             modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.ProductVariant", b =>
@@ -237,7 +237,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductVariants", (string)null);
+                    b.ToTable("product_variants", (string)null);
                 });
 
             modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.Sku", b =>
@@ -265,7 +265,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("Skus", (string)null);
+                    b.ToTable("skus", (string)null);
                 });
 
             modelBuilder.Entity("HiveSpace.Infrastructure.Persistence.Idempotence.IncomingRequest", b =>
@@ -336,7 +336,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
 
                     b.HasIndex("Delivered");
 
-                    b.ToTable("InboxState");
+                    b.ToTable("inbox_state", (string)null);
                 });
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.OutboxMessage", b =>
@@ -429,7 +429,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                         .IsUnique()
                         .HasFilter("[InboxMessageId] IS NOT NULL AND [InboxConsumerId] IS NOT NULL");
 
-                    b.ToTable("OutboxMessage");
+                    b.ToTable("outbox_message", (string)null);
                 });
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.OutboxState", b =>
@@ -459,7 +459,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
 
                     b.HasIndex("Created");
 
-                    b.ToTable("OutboxState");
+                    b.ToTable("outbox_state", (string)null);
                 });
 
             modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.AttributeAggregate.AttributeDefinition", b =>
@@ -487,7 +487,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
 
                             b1.HasKey("AttributeDefinitionId");
 
-                            b1.ToTable("Attributes");
+                            b1.ToTable("attributes");
 
                             b1.WithOwner()
                                 .HasForeignKey("AttributeDefinitionId");
@@ -518,7 +518,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
 
                             b1.HasIndex("CategoryId");
 
-                            b1.ToTable("CategoryAttributes", (string)null);
+                            b1.ToTable("category_attributes", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("CategoryId");
@@ -555,7 +555,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
 
                             b1.HasIndex("ProductId");
 
-                            b1.ToTable("ProductAttributes", (string)null);
+                            b1.ToTable("product_attributes", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("ProductId");
@@ -579,7 +579,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
 
                             b1.HasIndex("ProductId");
 
-                            b1.ToTable("ProductCategories", (string)null);
+                            b1.ToTable("product_categories", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("ProductId");
@@ -602,7 +602,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
 
                             b1.HasKey("ProductId", "Id");
 
-                            b1.ToTable("ProductImages", (string)null);
+                            b1.ToTable("product_images", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("ProductId");
@@ -614,12 +614,10 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                                 .HasColumnType("int");
 
                             b1.Property<decimal>("Height")
-                                .HasPrecision(18, 2)
                                 .HasColumnType("decimal(18,2)")
                                 .HasColumnName("DimensionsHeight");
 
                             b1.Property<decimal>("Length")
-                                .HasPrecision(18, 2)
                                 .HasColumnType("decimal(18,2)")
                                 .HasColumnName("DimensionsLength");
 
@@ -628,13 +626,12 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                                 .HasColumnName("DimensionsUnit");
 
                             b1.Property<decimal>("Width")
-                                .HasPrecision(18, 2)
                                 .HasColumnType("decimal(18,2)")
                                 .HasColumnName("DimensionsWidth");
 
                             b1.HasKey("ProductId");
 
-                            b1.ToTable("Products");
+                            b1.ToTable("products");
 
                             b1.WithOwner()
                                 .HasForeignKey("ProductId");
@@ -650,13 +647,12 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                                 .HasColumnName("WeightUnit");
 
                             b1.Property<decimal>("Value")
-                                .HasPrecision(18, 2)
                                 .HasColumnType("decimal(18,2)")
                                 .HasColumnName("WeightValue");
 
                             b1.HasKey("ProductId");
 
-                            b1.ToTable("Products");
+                            b1.ToTable("products");
 
                             b1.WithOwner()
                                 .HasForeignKey("ProductId");
@@ -696,7 +692,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
 
                             b1.HasKey("ProductVariantId", "Id");
 
-                            b1.ToTable("ProductVariantOptions", (string)null);
+                            b1.ToTable("product_variant_options", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("ProductVariantId");
@@ -728,7 +724,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
 
                             b1.HasKey("SkuId", "Id");
 
-                            b1.ToTable("SkuImages", (string)null);
+                            b1.ToTable("sku_images", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("SkuId");
@@ -757,7 +753,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
 
                             b1.HasIndex("SkuId");
 
-                            b1.ToTable("SkuVariants", (string)null);
+                            b1.ToTable("sku_variants", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("SkuId");
@@ -776,7 +772,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
 
                             b1.HasKey("SkuId");
 
-                            b1.ToTable("Skus");
+                            b1.ToTable("skus");
 
                             b1.WithOwner()
                                 .HasForeignKey("SkuId");

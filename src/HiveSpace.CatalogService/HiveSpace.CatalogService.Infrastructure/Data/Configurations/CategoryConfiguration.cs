@@ -8,7 +8,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<Category> entity)
         {
-            entity.ToTable("Categories");
+            entity.ToTable("categories");
             entity.HasKey(c => c.Id);
             entity.Property(c => c.Id).ValueGeneratedNever();
             entity.Property(c => c.IsActive).HasColumnName("IsActive");
@@ -20,7 +20,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Data.Configurations
                 ca.Property(x => x.AttributeId).ValueGeneratedNever();
                 ca.Property(x => x.CategoryId).ValueGeneratedNever();
                 ca.HasKey(c => new { c.AttributeId, c.CategoryId });
-                ca.ToTable("CategoryAttributes");
+                ca.ToTable("category_attributes");
                 ca.WithOwner().HasForeignKey(x => x.CategoryId);
             });
         }

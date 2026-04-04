@@ -33,9 +33,20 @@ public static class MassTransitExtensions
     /// <param name="modelBuilder"></param>
     public static void AddEntityOutBox(this ModelBuilder modelBuilder)
     {
-        modelBuilder.AddInboxStateEntity();
-        modelBuilder.AddOutboxMessageEntity();
-        modelBuilder.AddOutboxStateEntity();
+        modelBuilder.AddInboxStateEntity(entity =>
+        {
+            entity.ToTable("inbox_state");
+        });
+
+        modelBuilder.AddOutboxMessageEntity(entity =>
+        {
+            entity.ToTable("outbox_message");
+        });
+
+        modelBuilder.AddOutboxStateEntity(entity =>
+        {
+            entity.ToTable("outbox_state");
+        });
     }
 }
 

@@ -27,7 +27,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Queries
         public async Task<List<CategoryViewModel>> GetHomepageCategoriesAsync()
         {
             return await _dbContext.Categories
-                .Where(c => c.ParentId == 2 && c.FilePath != null)
+                .Where(c => c.FilePath != null)
                 .Select(c => new CategoryViewModel(
                     c.Id,
                     c.Name,

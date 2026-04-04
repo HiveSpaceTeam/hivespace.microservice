@@ -31,11 +31,14 @@ namespace HiveSpace.CatalogService.Infrastructure.DataQueries
             var attributeValueLookup = await dbContext.AttributeValues
                 .ToDictionaryAsync(av => av.Id, av => av.Name, cancellationToken);
 
+            // Include ParentId so we can group attributes by their parent group
             var attributeLookup = await dbContext.Attributes
-                .ToDictionaryAsync(ad => ad.Id, ad => ad.Name, cancellationToken);
+                .Select(ad => new { ad.Id, ad.Name, ad.ParentId })
+                .ToDictionaryAsync(ad => ad.Id, cancellationToken);
 
-            StoreRef currentSeller = await dbContext.StoreRef
-              .Where(s => s.OwnerId == product.SellerId).FirstAsync();
+            var currentSeller = await dbContext.StoreRef
+                .Where(s => s.OwnerId == product.SellerId)
+                .FirstOrDefaultAsync(cancellationToken);
 
             return new ProductDetailViewModel
             {
@@ -45,17 +48,28 @@ namespace HiveSpace.CatalogService.Infrastructure.DataQueries
                 Description = product.Description,
                 Categories = product.Categories.ToList(),
                 Images = product.Images.ToList(),
-                Attributes = product.Attributes.Select(a => new ProductAttributeViewModel
+                Attributes = product.Attributes.Select(a =>
                 {
-                    AttributeId = a.AttributeId,
-                    AttributeName = attributeLookup.ContainsKey(a.AttributeId) ? attributeLookup[a.AttributeId] : "",
-                    SelectedValueIds = a.SelectedValueIds.ToList(),
-                    FreeTextValue = a.FreeTextValue,
-                    NameValue = a.SelectedValueIds.Select(id => attributeValueLookup.ContainsKey(id) ? attributeValueLookup[id] : "").ToList()
+                    attributeLookup.TryGetValue(a.AttributeId, out var attrMeta);
+                    var groupId = attrMeta?.ParentId;
+                    var groupName = groupId.HasValue && attributeLookup.TryGetValue(groupId.Value, out var group)
+                        ? group.Name : null;
+                    return new ProductAttributeViewModel
+                    {
+                        AttributeId = a.AttributeId,
+                        AttributeName = attrMeta?.Name ?? "",
+                        GroupId = groupId,
+                        GroupName = groupName,
+                        SelectedValueIds = a.SelectedValueIds.ToList(),
+                        FreeTextValue = a.FreeTextValue,
+                        NameValue = a.SelectedValueIds
+                            .Select(id => attributeValueLookup.TryGetValue(id, out var v) ? v : "")
+                            .ToList()
+                    };
                 }).ToList(),
                 Skus = product.Skus.ToList(),
                 Variants = product.Variants.ToList(),
-                CurrentSeller = new CurrentSeller
+                CurrentSeller = currentSeller == null ? null : new CurrentSeller
                 {
                     Id = currentSeller.Id,
                     StoreName = currentSeller.StoreName,

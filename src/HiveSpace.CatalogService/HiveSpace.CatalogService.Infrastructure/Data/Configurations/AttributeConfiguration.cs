@@ -8,7 +8,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<AttributeDefinition> entity)
         {
-            entity.ToTable("Attributes");
+            entity.ToTable("attributes");
             entity.HasKey(a => a.Id);
 
             // Configure owned type (ValueObject) with explicit column names
