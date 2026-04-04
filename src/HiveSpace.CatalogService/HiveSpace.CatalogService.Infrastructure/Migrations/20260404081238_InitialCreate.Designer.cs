@@ -12,8 +12,13 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HiveSpace.CatalogService.Infrastructure.Migrations
 {
     [DbContext(typeof(CatalogDbContext))]
+<<<<<<<< HEAD:src/HiveSpace.CatalogService/HiveSpace.CatalogService.Infrastructure/Migrations/20260404081238_InitialCreate.Designer.cs
     [Migration("20260404081238_InitialCreate")]
     partial class InitialCreate
+========
+    [Migration("20260330114849_AddCategoryProductSetIdIsActiveFilePath")]
+    partial class AddCategoryProductSetIdIsActiveFilePath
+>>>>>>>> origin/master:src/HiveSpace.CatalogService/HiveSpace.CatalogService.Infrastructure/Migrations/20260330114849_AddCategoryProductSetIdIsActiveFilePath.Designer.cs
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -614,10 +619,12 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                                 .HasColumnType("int");
 
                             b1.Property<decimal>("Height")
+                                .HasPrecision(18, 2)
                                 .HasColumnType("decimal(18,2)")
                                 .HasColumnName("DimensionsHeight");
 
                             b1.Property<decimal>("Length")
+                                .HasPrecision(18, 2)
                                 .HasColumnType("decimal(18,2)")
                                 .HasColumnName("DimensionsLength");
 
@@ -626,6 +633,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                                 .HasColumnName("DimensionsUnit");
 
                             b1.Property<decimal>("Width")
+                                .HasPrecision(18, 2)
                                 .HasColumnType("decimal(18,2)")
                                 .HasColumnName("DimensionsWidth");
 
@@ -647,6 +655,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                                 .HasColumnName("WeightUnit");
 
                             b1.Property<decimal>("Value")
+                                .HasPrecision(18, 2)
                                 .HasColumnType("decimal(18,2)")
                                 .HasColumnName("WeightValue");
 
