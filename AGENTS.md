@@ -210,6 +210,12 @@ Limited technical debt exists:
 
 **For API changes**: Update both the User Service (if identity-related) and API Gateway routing configurations as needed.
 
+## Git Commit Guardrails
+
+- Agents must never stage or commit any `*.json` file.
+- If a change includes one or more `*.json` files, stop before `git add`/`git commit` and ask the user to stage those JSON files manually.
+- Agents may continue staging and committing non-JSON files only after confirming JSON staging is handled by the user.
+
 ## Development Workflow for DDD Services
 
 ### For Command Operations & Simple Query Operations (Domain-First Approach)
