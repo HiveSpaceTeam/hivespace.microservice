@@ -1,5 +1,5 @@
-using HiveSpace.CatalogService.Api.Consumers;
 using HiveSpace.CatalogService.Api.Consumers.Saga.Checkout;
+using HiveSpace.CatalogService.Api.Consumers.Sync;
 using HiveSpace.CatalogService.Infrastructure;
 using HiveSpace.CatalogService.Infrastructure.Data;
 using HiveSpace.Core;
@@ -58,7 +58,7 @@ namespace HiveSpace.CatalogService.Api.Extentions
             {
                 builder.Services.AddMassTransitWithRabbitMq<CatalogDbContext>(configuration, cfg =>
                 {
-                    cfg.AddConsumer<StoreCreatedConsumer>();
+                    cfg.AddConsumer<StoreRefSyncConsumer>();
                     cfg.AddConsumer<ReserveInventoryConsumer>();
                     cfg.AddConsumer<ConfirmInventoryConsumer>();
                     cfg.AddConsumer<ReleaseInventoryConsumer>();

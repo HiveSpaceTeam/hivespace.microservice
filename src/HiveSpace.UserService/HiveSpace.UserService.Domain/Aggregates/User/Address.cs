@@ -81,7 +81,7 @@ public class Address : Entity<Guid>, IAuditable
         if (addressType != null) AddressType = addressType.Value;
     }
     
-    internal void SetAsDefault()
+    public void SetAsDefault()
     {
         IsDefault = true;
     }

@@ -5,15 +5,9 @@ using HiveSpace.Infrastructure.Messaging.Shared.Events.Products;
 
 namespace HiveSpace.CatalogService.Infrastructure.Messaging.Publishers
 {
-    public class ProductEventPublisher : IProductEventPublisher
+    public class ProductEventPublisher(IEventPublisher eventPublisher) : IProductEventPublisher
     {
-        private readonly IEventPublisher _eventPublisher;
-
-        public ProductEventPublisher(IEventPublisher eventPublisher)
-        {
-            _eventPublisher = eventPublisher;
-        }
-
+        private readonly IEventPublisher _eventPublisher = eventPublisher;
 
         public Task PublishProductCreatedAsync(Product product, CancellationToken cancellationToken = default)
         {

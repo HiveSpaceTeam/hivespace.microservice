@@ -1,4 +1,4 @@
-﻿using HiveSpace.CatalogService.Domain.Common;
+using HiveSpace.Domain.Shared.ValueObjects;
 using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.CatalogService.Domain.Exceptions;
 using HiveSpace.Domain.Shared.Entities;
@@ -28,7 +28,7 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
         private Sku()
         {
             SkuNo = string.Empty;
-            Price = new Money(0m, Currency.USD);
+            Price = Money.Zero(Currency.VND);
         }
 
         public Sku(string skuNo, List<SkuVariant> skuVariants, List<SkuImage> images, int quantity, bool isActive, Money price)

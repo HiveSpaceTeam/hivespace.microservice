@@ -1,30 +1,17 @@
-﻿using HiveSpace.CatalogService.Application.Interfaces;
-using HiveSpace.CatalogService.Application.Models.ViewModels;
-using HiveSpace.CatalogService.Application.Queries;
+using HiveSpace.CatalogService.Application.Categories;
+using HiveSpace.CatalogService.Application.Categories.Dtos;
+using HiveSpace.CatalogService.Application.Interfaces;
 
-namespace HiveSpace.CatalogService.Application.Services
+namespace HiveSpace.CatalogService.Application.Services;
+
+public class CategoryService(ICategoryDataQuery categoryDataQuery) : ICategoryService
 {
-    public class CategoryService : ICategoryService
-    {
-        private readonly ICategoryDataQuery _queryService;
-        public CategoryService(ICategoryDataQuery queryService)
-        {
-            _queryService = queryService;
-        }
+    public Task<List<CategoryDto>> GetCategoryAsync()
+        => categoryDataQuery.GetCategoriesAsync();
 
-        public Task<List<CategoryViewModel>> GetCategoryAsync()
-        {
-            return _queryService.GetCategoryViewModelsAsync();
-        }
+    public Task<List<CategoryDto>> GetHomepageCategoriesAsync()
+        => categoryDataQuery.GetHomepageCategoriesAsync();
 
-        public Task<List<CategoryViewModel>> GetHomepageCategoriesAsync()
-        {
-            return _queryService.GetHomepageCategoriesAsync();
-        }
-
-        public Task<List<AttributeViewModel>> GetAttributesByCategoryIdAsync(int categoryId)
-        {
-            return _queryService.GetAttributesByCategoryIdAsync(categoryId);
-        }
-    }
+    public Task<List<AttributeDto>> GetAttributesByCategoryIdAsync(int categoryId)
+        => categoryDataQuery.GetAttributesByCategoryIdAsync(categoryId);
 }

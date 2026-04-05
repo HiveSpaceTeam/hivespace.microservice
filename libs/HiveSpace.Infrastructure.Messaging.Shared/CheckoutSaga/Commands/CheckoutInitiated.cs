@@ -1,3 +1,4 @@
+using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Dtos;
 
 namespace HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Commands;

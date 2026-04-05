@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\HiveSpace.Domain.Shared\HiveSpace.Domain.Shared.csproj" />
     <ProjectReference Include="..\HiveSpace.Infrastructure.Messaging\HiveSpace.Infrastructure.Messaging.csproj" />
   </ItemGroup>
 

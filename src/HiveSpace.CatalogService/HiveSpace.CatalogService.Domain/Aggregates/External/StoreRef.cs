@@ -23,5 +23,14 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.External
             CreatedAt = createdAt;
             UpdatedAt = updatedAt;
         }
+
+        public void Update(string storeName, string? description, string logoUrl, string address)
+        {
+            StoreName   = storeName;
+            Description = description;
+            LogoUrl     = logoUrl;
+            Address     = address;
+            UpdatedAt   = DateTimeOffset.UtcNow;
+        }
     }
 }

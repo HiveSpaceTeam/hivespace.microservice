@@ -24,12 +24,13 @@ public class Cart : AggregateRoot<Guid>, IAuditable
         CreatedAt = DateTimeOffset.UtcNow;
     }
 
-    public static Cart Create(Guid userId)
+    public static Cart Create(Guid userId, Guid? id = null)
     {
         if (userId == Guid.Empty)
             throw new InvalidFieldException(OrderDomainErrorCode.CartUserIdRequired, nameof(userId));
 
-        return new Cart(IdGenerator.NewId<Guid>(), userId);
+        var cartId = (id.HasValue && id.Value != Guid.Empty) ? id.Value : IdGenerator.NewId<Guid>();
+        return new Cart(cartId, userId);
     }
 
     /// <summary>

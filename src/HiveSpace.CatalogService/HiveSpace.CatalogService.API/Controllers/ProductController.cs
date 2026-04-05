@@ -1,8 +1,12 @@
-﻿using Asp.Versioning;
-using HiveSpace.CatalogService.Application.Commands;
-using HiveSpace.CatalogService.Application.Models.Dtos.Request.Product;
-using HiveSpace.CatalogService.Application.Models.Requests;
-using HiveSpace.CatalogService.Application.Queries;
+using Asp.Versioning;
+using HiveSpace.CatalogService.Application.Contracts;
+using HiveSpace.CatalogService.Application.Products.Commands.CreateProduct;
+using HiveSpace.CatalogService.Application.Products.Commands.DeleteProduct;
+using HiveSpace.CatalogService.Application.Products.Commands.UpdateProduct;
+using HiveSpace.CatalogService.Application.Products.Queries.GetProduct;
+using HiveSpace.CatalogService.Application.Products.Queries.GetProductDetail;
+using HiveSpace.CatalogService.Application.Products.Queries.GetProductSummaries;
+using HiveSpace.CatalogService.Application.Products.Queries.GetProducts;
 using HiveSpace.Infrastructure.Authorization;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -17,9 +21,8 @@ namespace HiveSpace.CatalogService.Api.Controllers;
 [RequireSeller]
 public class ProductController(IMediator mediator) : ControllerBase
 {
-
     [HttpPost]
-    [ProducesResponseType(typeof(Guid), (int)HttpStatusCode.Created)]
+    [ProducesResponseType(typeof(int), (int)HttpStatusCode.Created)]
     public async Task<IActionResult> Create([FromBody] ProductUpsertRequestDto request, CancellationToken cancellationToken)
     {
         var id = await mediator.Send(new CreateProductCommand(request), cancellationToken);
@@ -81,6 +84,4 @@ public class ProductController(IMediator mediator) : ControllerBase
         var product = await mediator.Send(new GetProductDetailQuery(id), cancellationToken);
         return Ok(product);
     }
-
-
 }

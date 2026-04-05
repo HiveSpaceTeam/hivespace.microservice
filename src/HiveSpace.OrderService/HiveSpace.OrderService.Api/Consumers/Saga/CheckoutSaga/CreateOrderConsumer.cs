@@ -1,4 +1,4 @@
-using HiveSpace.Domain.Shared.Entities;
+using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.Domain.Shared.ValueObjects;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Commands;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Dtos;
@@ -10,8 +10,6 @@ using HiveSpace.OrderService.Domain.ValueObjects;
 using HiveSpace.OrderService.Domain.Aggregates.Coupons;
 using MassTransit;
 using Microsoft.Extensions.Logging;
-using DomainPaymentMethod = HiveSpace.OrderService.Domain.Enumerations.PaymentMethod;
-using MessagingPaymentMethod = HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.PaymentMethod;
 using static HiveSpace.OrderService.Application.Cart.CheckoutCalculator;
 
 namespace HiveSpace.OrderService.Api.Consumers.Saga.CheckoutSaga;
@@ -76,8 +74,8 @@ public class CreateOrderConsumer(
             message.DeliveryAddress.Country,
             message.DeliveryAddress.Notes ?? string.Empty);
 
-        var isCOD            = message.PaymentMethod == MessagingPaymentMethod.COD;
-        var domainPayment    = Enumeration.FromDisplayName<DomainPaymentMethod>(message.PaymentMethod.ToString());
+        var domainPayment    = message.PaymentMethod;
+        var isCOD            = domainPayment.IsCashOnDelivery();
         var requestedCouponCodes = message.CouponCodes
             .Where(code => !string.IsNullOrWhiteSpace(code))
             .Select(code => code.Trim().ToUpperInvariant())

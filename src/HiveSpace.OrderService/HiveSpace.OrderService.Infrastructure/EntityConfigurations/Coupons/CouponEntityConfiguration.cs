@@ -18,6 +18,7 @@ public class CouponEntityConfiguration : IEntityTypeConfiguration<Coupon>
 
         builder.Property(c => c.Name).HasMaxLength(255).IsRequired();
         builder.Property(c => c.DiscountType).HasConversion<string>().HasMaxLength(50).IsRequired();
+        builder.Property(c => c.DiscountPercentage).HasColumnType("decimal(18,2)");
         builder.Property(c => c.Scope).HasConversion<string>().HasMaxLength(50).IsRequired();
         
         builder.Property(c => c.StartDateTime).IsRequired();

@@ -756,7 +756,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                                 .HasForeignKey("SkuId");
                         });
 
-                    b.OwnsOne("HiveSpace.CatalogService.Domain.Common.Money", "Price", b1 =>
+                    b.OwnsOne("HiveSpace.Domain.Shared.ValueObjects.Money", "Price", b1 =>
                         {
                             b1.Property<int>("SkuId")
                                 .HasColumnType("int");

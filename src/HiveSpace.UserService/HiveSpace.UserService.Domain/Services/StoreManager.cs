@@ -48,6 +48,7 @@ public class StoreManager : IDomainService
         string logoUrl,
         string storeAddress,
         Guid ownerId,
+        Guid? storeId = null,
         CancellationToken cancellationToken = default)
     {
         // Validate owner exists and is active
@@ -66,7 +67,7 @@ public class StoreManager : IDomainService
             throw new InvalidStoreInformationException();
         
         // Create new store using internal factory method (includes validation)
-        var store = Store.Create(name, description, logoUrl, storeAddress, ownerId);
+        var store = Store.Create(name, description, logoUrl, storeAddress, ownerId, storeId);
         
         // Raise domain event for store creation
         store.AddDomainEvent(new StoreCreatedDomainEvent(store.Id, ownerId));

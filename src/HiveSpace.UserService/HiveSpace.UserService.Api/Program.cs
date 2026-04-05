@@ -58,7 +58,7 @@ try
     if (app.Environment.IsDevelopment())
     {
         Log.Information("Seeding database...");
-        SeedData.EnsureSeedData(app);
+        await SeedData.EnsureSeedDataAsync(app);
 
         app.Lifetime.ApplicationStopping.Register(() =>
         {

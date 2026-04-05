@@ -17,7 +17,7 @@ try
     if (app.Environment.IsDevelopment())
     {
          Console.WriteLine("Attempting to seed data...");
-         await SeedData.EnsureSeedDataAsync(app);
+         await DataSeeder.EnsureSeedDataAsync(app);
          Console.WriteLine("Seed data completed.");
     }
 

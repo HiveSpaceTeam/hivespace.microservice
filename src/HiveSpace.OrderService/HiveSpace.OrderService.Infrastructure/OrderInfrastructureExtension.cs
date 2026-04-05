@@ -1,12 +1,14 @@
 using HiveSpace.Core.Exceptions.Models;
 using HiveSpace.Core.Exceptions;
 using HiveSpace.Infrastructure.Persistence;
+using HiveSpace.Infrastructure.Persistence.Seeding;
 using HiveSpace.OrderService.Application.Cart;
 using HiveSpace.OrderService.Application.Interfaces.Messaging;
 using HiveSpace.OrderService.Application.Orders;
 using HiveSpace.OrderService.Infrastructure.Data;
 using HiveSpace.OrderService.Infrastructure.DataQueries;
 using HiveSpace.OrderService.Infrastructure.Messaging.Publishers;
+using HiveSpace.OrderService.Infrastructure.SeedData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
@@ -70,6 +72,12 @@ public static class OrderInfrastructureExtension
         services.AddScoped<ISkuRefRepository, SqlSkuRefRepository>();
         services.AddScoped<IProductRefRepository, SqlProductRefRepository>();
         services.AddScoped<IOrderRepository, SqlOrderRepository>();
+
+        services.AddScoped<ISeeder, StoreRefSeeder>();
+        services.AddScoped<ISeeder, ProductRefSeeder>();
+        services.AddScoped<ISeeder, CouponSeeder>();
+        services.AddScoped<ISeeder, CartSeeder>();
+        services.AddScoped<ISeeder, OrderSeeder>();
     }
 
     public static void AddOrderServiceQueries(this IServiceCollection services, string connectionString)

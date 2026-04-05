@@ -25,13 +25,13 @@ public class Store : AggregateRoot<Guid>
     }
     
     // Internal factory method for domain service use only
-    internal static Store Create(string storeName, string? description, string logoUrl, string storeAddress, Guid ownerId)
+    internal static Store Create(string storeName, string? description, string logoUrl, string storeAddress, Guid ownerId, Guid? storeId)
     {
         ValidateAndThrow(storeName, description, logoUrl, storeAddress, ownerId);
         
         return new Store
         {
-            Id = Guid.NewGuid(),
+            Id = storeId ?? Guid.NewGuid(),
             StoreName = storeName.Trim(),
             Description = description?.Trim(),
             LogoUrl = logoUrl.Trim(),

@@ -1,4 +1,6 @@
 using System.Text.Json;
+using HiveSpace.Domain.Shared.Entities;
+using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Dtos;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -16,6 +18,13 @@ public class CheckoutSagaStateEntityConfiguration : IEntityTypeConfiguration<Che
 
         builder.Property(s => s.CurrentState).HasMaxLength(64).IsRequired();
         builder.Property(s => s.FailureReason).HasMaxLength(500);
+
+        builder.Property(s => s.PaymentMethod)
+            .HasConversion(
+                v => v.Name,
+                v => Enumeration.FromDisplayName<PaymentMethod>(v))
+            .HasMaxLength(50)
+            .IsRequired();
 
         builder.Property(s => s.CouponCodes)
             .HasConversion(

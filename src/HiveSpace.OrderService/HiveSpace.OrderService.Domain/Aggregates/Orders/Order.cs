@@ -2,6 +2,7 @@ using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Domain.Shared.IdGeneration;
 using HiveSpace.Domain.Shared.Interfaces;
+using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.Domain.Shared.ValueObjects;
 using HiveSpace.OrderService.Domain.Aggregates.Coupons;
 using HiveSpace.OrderService.Domain.Enumerations;

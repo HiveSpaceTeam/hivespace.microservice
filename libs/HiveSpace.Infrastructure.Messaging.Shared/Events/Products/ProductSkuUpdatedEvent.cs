@@ -7,6 +7,6 @@ public record ProductSkuUpdatedEvent(
     int SkuId,
     string SkuNo,
     int Quantity,
-    decimal Price,
+    long Price,
     string Currency
 ) : IntegrationEvent;
