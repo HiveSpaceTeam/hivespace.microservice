@@ -13,7 +13,7 @@ public static class ProductMapper
         return new ProductSummaryDto(
             Id: product.Id,
             Name: product.Name,
-            Price: sku?.Price.Amount.ToString() ?? string.Empty,
+            Price: sku?.Price.Amount ?? 0m,
             ImageURL: image?.FileId ?? string.Empty
         );
     }
