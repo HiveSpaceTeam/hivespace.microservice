@@ -1,8 +1,6 @@
 ﻿using Asp.Versioning;
 using HiveSpace.CatalogService.Application;
-using HiveSpace.CatalogService.Application.Commands;
 using HiveSpace.CatalogService.Application.Interfaces;
-using HiveSpace.CatalogService.Application.Queries;
 using HiveSpace.CatalogService.Application.Services;
 using HiveSpace.Core.Filters;
 using HiveSpace.Infrastructure.Authorization.Extensions;

@@ -9,7 +9,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<Product> builder)
         {
-            builder.ToTable("Products");
+            builder.ToTable("products");
             builder.HasKey(p => p.Id);
 
             builder.Property(p => p.Name)
@@ -58,7 +58,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Data.Configurations
             });
             builder.OwnsMany(p => p.Categories, pc =>
             {
-                pc.ToTable("ProductCategories");
+                pc.ToTable("product_categories");
 
                 pc.WithOwner().HasForeignKey("ProductId"); // shadow FK
 
@@ -70,7 +70,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Data.Configurations
 
             builder.OwnsMany(p => p.Attributes, pa =>
             {
-                pa.ToTable("ProductAttributes");
+                pa.ToTable("product_attributes");
 
                 pa.WithOwner().HasForeignKey("ProductId"); // shadow FK
 
@@ -98,7 +98,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Data.Configurations
 
             builder.OwnsMany(p => p.Images, pi =>
             {
-                pi.ToTable("ProductImages");
+                pi.ToTable("product_images");
                 pi.WithOwner().HasForeignKey(x => x.ProductId);
             });
 

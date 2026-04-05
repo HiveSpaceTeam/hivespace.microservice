@@ -37,6 +37,7 @@ public class StoreService : IStoreService
             request.StoreLogoFileId,
             request.Address,
             _userContext.UserId,
+            null,
             cancellationToken);
 
         // Save through repository

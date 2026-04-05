@@ -1,4 +1,5 @@
 using HiveSpace.Domain.Shared.Entities;
+using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.Domain.Shared.ValueObjects;
 using HiveSpace.OrderService.Domain.Enumerations;
 

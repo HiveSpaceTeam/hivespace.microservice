@@ -8,7 +8,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<Sku> entity)
         {
-            entity.ToTable("Skus");
+            entity.ToTable("skus");
             entity.HasKey(s => s.Id);
 
 
@@ -23,13 +23,13 @@ namespace HiveSpace.CatalogService.Infrastructure.Data.Configurations
             // Configure owned type collection (ValueObjects)
             entity.OwnsMany(s => s.Images, si =>
             {
-                si.ToTable("SkuImages");
+                si.ToTable("sku_images");
                 si.WithOwner().HasForeignKey("SkuId");
             });
 
             entity.OwnsMany(s => s.SkuVariants, v =>
             {
-                v.ToTable("SkuVariants");
+                v.ToTable("sku_variants");
                 v.WithOwner().HasForeignKey("SkuId");
                 v.HasKey("Id");
             });

@@ -28,8 +28,8 @@ public static class IdGenerator
             throw new DomainException(500, DomainErrorCode.ParameterRequired, $"{nameof(Initialize)}.{nameof(longGen)}");
 
         var next = new Generators(guidGen, longGen);
-        if (Interlocked.CompareExchange(ref _generators, next, null) != null)
-            throw new DomainException(500, DomainErrorCode.InvalidExpression, nameof(IdGenerator));
+        // First caller wins; subsequent calls are silently ignored.
+        Interlocked.CompareExchange(ref _generators, next, null);
     }
 
     /// <summary>Generates a new ID of type <typeparamref name="T"/>.</summary>

@@ -62,52 +62,50 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
             CreatedBy = string.Empty;
         }
 
-        public Product(string name, string description, ProductStatus status, List<ProductCategory> categories, List<ProductAttribute> attributes, List<ProductImage> images, List<Sku> skus, List<ProductVariant> variants, DateTimeOffset createdAt, DateTimeOffset? updatedAt, string createdBy, string? updatedBy)
+        #endregion
+
+        #region Factory
+
+        public static Product CreateProduct(
+            string name,
+            string slug,
+            string description,
+            string? shortDescription,
+            ProductStatus status,
+            Guid sellerId,
+            ProductCondition condition,
+            bool featured,
+            List<ProductCategory> categories,
+            List<ProductAttribute> attributes,
+            List<ProductImage> images,
+            List<Sku> skus,
+            List<ProductVariant> variants,
+            DateTimeOffset createdAt,
+            string createdBy)
         {
-            Name = name;
-            Slug = string.Empty;
-            Description = description;
-            Status = status;
-            if (categories is not null) _categories.AddRange(categories);
-            if (attributes is not null) _attributes.AddRange(attributes);
-            if (images is not null) _images.AddRange(images);
-            if (skus is not null) _skus.AddRange(skus);
-            if (variants is not null) _variants.AddRange(variants);
-            CreatedAt = createdAt;
-            UpdatedAt = updatedAt;
-            CreatedBy = createdBy;
-            UpdatedBy = updatedBy;
+            var product = new Product
+            {
+                Name             = name,
+                Slug             = slug,
+                Description      = description,
+                ShortDescription = shortDescription,
+                Status           = status,
+                SellerId         = sellerId,
+                Condition        = condition,
+                Featured         = featured,
+                CreatedAt        = createdAt,
+                CreatedBy        = createdBy,
+            };
+            if (categories is not null) product._categories.AddRange(categories);
+            if (attributes is not null) product._attributes.AddRange(attributes);
+            if (images     is not null) product._images.AddRange(images);
+            if (skus       is not null) product._skus.AddRange(skus);
+            if (variants   is not null) product._variants.AddRange(variants);
+            return product;
         }
 
-        public Product(int id, string name, string description, ProductStatus status, List<ProductCategory> categories, List<ProductAttribute> attributes, List<ProductImage> images, List<Sku> skus, List<ProductVariant> variants, DateTimeOffset createdAt, DateTimeOffset? updatedAt, string createdBy, string? updatedBy)
-        {
-            Id = id;
-            Name = name;
-            Slug = string.Empty;
-            Description = description;
-            Status = status;
-            if (categories is not null) _categories.AddRange(categories);
-            if (attributes is not null) _attributes.AddRange(attributes);
-            if (images is not null) _images.AddRange(images);
-            if (skus is not null) _skus.AddRange(skus);
-            if (variants is not null) _variants.AddRange(variants);
-            CreatedAt = createdAt;
-            UpdatedAt = updatedAt;
-            CreatedBy = createdBy;
-            UpdatedBy = updatedBy;
-        }
-
-        // Simplified constructor for creating new products without collections
-        public Product(string name, string description, ProductStatus status, DateTimeOffset createdAt, string createdBy)
-        {
-            Name = name;
-            Slug = $"{name}-{Guid.NewGuid().ToString("N").Substring(0, 6)}";
-            Description = description;
-            Status = status;
-            CreatedAt = createdAt;
-            CreatedBy = createdBy;
-            // Collections are already initialized as empty lists in field declarations
-        }
+        private static string GenerateSlug(string name)
+            => $"{name}-{Guid.NewGuid().ToString("N")[..6]}";
 
         #endregion
 

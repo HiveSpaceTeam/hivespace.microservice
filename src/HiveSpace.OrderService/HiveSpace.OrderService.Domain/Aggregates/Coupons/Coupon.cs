@@ -107,12 +107,13 @@ public class Coupon : AggregateRoot<Guid>, IAuditable
         DateTimeOffset? earlySaveDateTime = null,
         bool isHidden = false,
         Money? maxDiscountAmount = null,
-        Money? minOrderAmount = null)
+        Money? minOrderAmount = null,
+        Guid? id = null)
     {
         //    if (!code.StartsWith($"STORE{storeId}-", StringComparison.InvariantCultureIgnoreCase))
         //         throw new InvalidFieldException(OrderDomainErrorCode.CouponCodeInvalidPrefix, nameof(code));
 
-        var coupon = new Coupon(IdGenerator.NewId<Guid>(), code, name, discountType, scope, startDateTime, endDateTime, earlySaveDateTime, isHidden, CouponOwnerType.Store, storeOwnerId.ToString());
+        var coupon = new Coupon(id ?? IdGenerator.NewId<Guid>(), code, name, discountType, scope, startDateTime, endDateTime, earlySaveDateTime, isHidden, CouponOwnerType.Store, storeOwnerId.ToString());
         coupon.StoreId = storeId;
         
         if (discountType == DiscountType.FixedAmount)
@@ -161,9 +162,10 @@ public class Coupon : AggregateRoot<Guid>, IAuditable
         DateTimeOffset? earlySaveDateTime = null,
         bool isHidden = false,
         Money? maxDiscountAmount = null,
-        Money? minOrderAmount = null)
+        Money? minOrderAmount = null,
+        Guid? id = null)
     {
-        var coupon = new Coupon(IdGenerator.NewId<Guid>(), code, name, discountType, scope, startDateTime, endDateTime, earlySaveDateTime, isHidden, CouponOwnerType.Platform, adminId);
+        var coupon = new Coupon(id ?? IdGenerator.NewId<Guid>(), code, name, discountType, scope, startDateTime, endDateTime, earlySaveDateTime, isHidden, CouponOwnerType.Platform, adminId);
         
         if (discountType == DiscountType.FixedAmount)
         {

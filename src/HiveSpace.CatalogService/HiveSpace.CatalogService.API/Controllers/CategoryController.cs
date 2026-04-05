@@ -1,40 +1,38 @@
-﻿using Asp.Versioning;
+using Asp.Versioning;
 using HiveSpace.CatalogService.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
-namespace HiveSpace.CatalogService.Api.Controllers
+namespace HiveSpace.CatalogService.Api.Controllers;
+
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/categories")]
+[ApiController]
+[AllowAnonymous]
+public class CategoryController(ICategoryService categoryService) : ControllerBase
 {
-    [ApiVersion("1.0")]
-    [Route("api/v{version:apiVersion}/categories")]
-    [ApiController]
-    [AllowAnonymous]
-    public class CategoryController(ICategoryService categoryService) : ControllerBase
+    [HttpGet]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    public async Task<IActionResult> GetCategory()
     {
+        var result = await categoryService.GetCategoryAsync();
+        return Ok(result);
+    }
 
-        [HttpGet]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetCategory()
-        {
-            var result = await categoryService.GetCategoryAsync();
-            return Ok(result);
-        }
+    [HttpGet("homepage")]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    public async Task<IActionResult> GetHomepageCategories()
+    {
+        var result = await categoryService.GetHomepageCategoriesAsync();
+        return Ok(result);
+    }
 
-        [HttpGet("homepage")]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetHomepageCategories()
-        {
-            var result = await categoryService.GetHomepageCategoriesAsync();
-            return Ok(result);
-        }
-
-        [HttpGet("{categoryId}/attributes")]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetAttributeByCategoryId(int categoryId)
-        {
-            var result = await categoryService.GetAttributesByCategoryIdAsync(categoryId);
-            return Ok(result);
-        }
+    [HttpGet("{categoryId}/attributes")]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    public async Task<IActionResult> GetAttributeByCategoryId(int categoryId)
+    {
+        var result = await categoryService.GetAttributesByCategoryIdAsync(categoryId);
+        return Ok(result);
     }
 }

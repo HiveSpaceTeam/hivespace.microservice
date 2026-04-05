@@ -1,5 +1,6 @@
-using HiveSpace.CatalogService.Application.Models.ViewModels;
+using HiveSpace.CatalogService.Application.Products.Dtos;
 using HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate;
+using HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.Specifications;
 using HiveSpace.CatalogService.Domain.Repositories;
 using HiveSpace.CatalogService.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -65,12 +66,13 @@ namespace HiveSpace.CatalogService.Infrastructure.Repositories
         }
 
 
-        public async Task<(IReadOnlyList<Product> Items, int Total)> GetPagedAsync(string keyword, int pageIndex, int pageSize, string sort, CancellationToken cancellationToken = default)
+        public async Task<(IReadOnlyList<Product> Items, int Total)> GetPagedAsync(string keyword, int pageIndex, int pageSize, string sort, Guid sellerId, CancellationToken cancellationToken = default)
         {
             if (pageIndex < 1) pageIndex = 1;
             if (pageSize <= 0) pageSize = 10;
 
-            var baseQuery = _context.Products.AsQueryable();
+            var baseQuery = _context.Products
+                .Where(new ProductOwnedBySellerSpecification(sellerId));
 
             if (!string.IsNullOrWhiteSpace(keyword))
             {
@@ -105,7 +107,8 @@ namespace HiveSpace.CatalogService.Infrastructure.Repositories
             if (pageIndex < 1) pageIndex = 1;
             if (pageSize <= 0) pageSize = 10;
 
-            var baseQuery = _context.Products.AsQueryable();
+            var baseQuery = _context.Products
+                .Where(new ProductActiveSpecification());
 
             if (!string.IsNullOrWhiteSpace(keyword))
             {

@@ -4,6 +4,7 @@ using HiveSpace.Infrastructure.Authorization.Extensions;
 using HiveSpace.Infrastructure.Messaging.Configurations;
 using HiveSpace.Infrastructure.Messaging.Extensions;
 using HiveSpace.OrderService.Api.Consumers.Saga.CheckoutSaga;
+using HiveSpace.OrderService.Api.Consumers.Sync;
 using HiveSpace.OrderService.Api.Sagas.CheckoutSaga;
 using HiveSpace.OrderService.Api.Sagas.FulfillmentSaga;
 using HiveSpace.OrderService.Application.Cart.Queries.GetCartItems;
@@ -91,6 +92,8 @@ internal static class ServiceCollectionExtensions
             cfg.AddConsumer<NotifySellerConsumer>();
             cfg.AddConsumer<NotifyCustomerConsumer>();
             cfg.AddConsumer<ClearCartConsumer>();
+            cfg.AddConsumer<StoreRefSyncConsumer>();
+            cfg.AddConsumer<ProductRefSyncConsumer>();
         });
     }
 

@@ -8,7 +8,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<StoreRef> entity)
         {
-            entity.ToTable("StoreRefs");
+            entity.ToTable("store_refs");
             entity.HasKey(av => av.Id);
         }
     }

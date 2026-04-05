@@ -1,10 +1,10 @@
-﻿using HiveSpace.CatalogService.Application.Models.ViewModels;
+using HiveSpace.CatalogService.Application.Categories.Dtos;
 
 namespace HiveSpace.CatalogService.Application.Interfaces;
 
 public interface ICategoryService
 {
-    Task<List<CategoryViewModel>> GetCategoryAsync();
-    Task<List<CategoryViewModel>> GetHomepageCategoriesAsync();
-    Task<List<AttributeViewModel>> GetAttributesByCategoryIdAsync(int categoryId);
+    Task<List<CategoryDto>> GetCategoryAsync();
+    Task<List<CategoryDto>> GetHomepageCategoriesAsync();
+    Task<List<AttributeDto>> GetAttributesByCategoryIdAsync(int categoryId);
 }

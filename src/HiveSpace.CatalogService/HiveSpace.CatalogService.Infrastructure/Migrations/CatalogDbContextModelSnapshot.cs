@@ -23,793 +23,789 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
             modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.AttributeAggregate.AttributeDefinition", b =>
-            {
-                b.Property<int>("Id")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("int");
-
-                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                b.Property<DateTime>("CreatedAt")
-                    .HasColumnType("datetime2");
-
-                b.Property<bool>("IsActive")
-                    .HasColumnType("bit");
-
-                b.Property<string>("Name")
-                    .IsRequired()
-                    .HasColumnType("nvarchar(max)");
-
-                b.Property<int?>("ParentId")
-                    .HasColumnType("int");
-
-                b.Property<DateTime?>("UpdatedAt")
-                    .HasColumnType("datetime2");
-
-                b.HasKey("Id");
-
-                b.ToTable("Attributes", (string)null);
-            });
-
-            modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.AttributeAggregate.AttributeValue", b =>
-            {
-                b.Property<int>("Id")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("int");
-
-                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                b.Property<int?>("AttributeDefinitionId")
-                    .HasColumnType("int");
-
-                b.Property<int>("AttributeId")
-                    .HasColumnType("int");
-
-                b.Property<string>("DisplayName")
-                    .IsRequired()
-                    .HasColumnType("nvarchar(max)");
-
-                b.Property<bool>("IsActive")
-                    .HasColumnType("bit");
-
-                b.Property<string>("Name")
-                    .IsRequired()
-                    .HasColumnType("nvarchar(max)");
-
-                b.Property<int?>("ParentValueId")
-                    .HasColumnType("int");
-
-                b.Property<int>("SortOrder")
-                    .HasColumnType("int");
-
-                b.HasKey("Id");
-
-                b.HasIndex("AttributeDefinitionId");
-
-                b.ToTable("AttributeValues", (string)null);
-            });
-
-            modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.CategoryAggregate.Category", b =>
-            {
-                b.Property<int>("Id")
-                    .HasColumnType("int");
-
-                b.Property<string>("FilePath")
-                    .HasMaxLength(500)
-                    .HasColumnType("nvarchar(500)")
-                    .HasColumnName("FilePath");
-
-                b.Property<bool?>("IsActive")
-                    .HasColumnType("bit")
-                    .HasColumnName("IsActive");
-
-                b.Property<string>("Name")
-                    .IsRequired()
-                    .HasColumnType("nvarchar(max)");
-
-                b.Property<int?>("ParentId")
-                    .HasColumnType("int");
-
-                b.Property<int?>("ProductSetId")
-                    .HasColumnType("int");
-
-                b.HasKey("Id");
-
-                b.ToTable("Categories", (string)null);
-            });
-
-            modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.External.StoreRef", b =>
-            {
-                b.Property<Guid>("Id")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("uniqueidentifier");
-
-                b.Property<string>("Address")
-                    .IsRequired()
-                    .HasColumnType("nvarchar(max)");
-
-                b.Property<DateTimeOffset>("CreatedAt")
-                    .HasColumnType("datetimeoffset");
-
-                b.Property<string>("Description")
-                    .HasColumnType("nvarchar(max)");
-
-                b.Property<string>("LogoUrl")
-                    .IsRequired()
-                    .HasColumnType("nvarchar(max)");
-
-                b.Property<Guid>("OwnerId")
-                    .HasColumnType("uniqueidentifier");
-
-                b.Property<string>("StoreName")
-                    .IsRequired()
-                    .HasColumnType("nvarchar(max)");
-
-                b.Property<DateTimeOffset>("UpdatedAt")
-                    .HasColumnType("datetimeoffset");
-
-                b.HasKey("Id");
-
-                b.ToTable("StoreRefs", (string)null);
-            });
-
-            modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.Product", b =>
-            {
-                b.Property<int>("Id")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("int");
-
-                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                b.Property<Guid?>("BrandId")
-                    .HasColumnType("uniqueidentifier");
-
-                b.Property<int>("Condition")
-                    .HasColumnType("int");
-
-                b.Property<DateTimeOffset>("CreatedAt")
-                    .HasColumnType("datetimeoffset");
-
-                b.Property<string>("CreatedBy")
-                    .IsRequired()
-                    .HasColumnType("nvarchar(max)");
-
-                b.Property<string>("Description")
-                    .IsRequired()
-                    .HasColumnType("nvarchar(max)");
-
-                b.Property<bool>("Featured")
-                    .HasColumnType("bit");
-
-                b.Property<string>("Name")
-                    .IsRequired()
-                    .HasMaxLength(255)
-                    .HasColumnType("nvarchar(255)");
-
-                b.Property<Guid>("SellerId")
-                    .HasColumnType("uniqueidentifier");
-
-                b.Property<string>("ShortDescription")
-                    .HasMaxLength(500)
-                    .HasColumnType("nvarchar(500)");
-
-                b.Property<string>("Slug")
-                    .IsRequired()
-                    .HasMaxLength(255)
-                    .HasColumnType("nvarchar(255)");
-
-                b.Property<int>("Status")
-                    .HasColumnType("int");
-
-                b.Property<DateTimeOffset?>("UpdatedAt")
-                    .HasColumnType("datetimeoffset");
-
-                b.Property<string>("UpdatedBy")
-                    .HasColumnType("nvarchar(max)");
-
-                b.HasKey("Id");
-
-                b.HasIndex("Slug")
-                    .IsUnique();
-
-                b.ToTable("Products", (string)null);
-            });
-
-            modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.ProductVariant", b =>
-            {
-                b.Property<int>("Id")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("int");
-
-                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                b.Property<string>("Name")
-                    .IsRequired()
-                    .HasColumnType("nvarchar(max)");
-
-                b.Property<int?>("ProductId")
-                    .HasColumnType("int");
-
-                b.HasKey("Id");
-
-                b.HasIndex("ProductId");
-
-                b.ToTable("ProductVariants", (string)null);
-            });
-
-            modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.Sku", b =>
-            {
-                b.Property<int>("Id")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("int");
-
-                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                b.Property<bool>("IsActive")
-                    .HasColumnType("bit");
-
-                b.Property<int?>("ProductId")
-                    .HasColumnType("int");
-
-                b.Property<int>("Quantity")
-                    .HasColumnType("int");
-
-                b.Property<string>("SkuNo")
-                    .IsRequired()
-                    .HasColumnType("nvarchar(max)");
-
-                b.HasKey("Id");
-
-                b.HasIndex("ProductId");
-
-                b.ToTable("Skus", (string)null);
-            });
-
-            modelBuilder.Entity("HiveSpace.Infrastructure.Persistence.Idempotence.IncomingRequest", b =>
-            {
-                b.Property<Guid>("RequestId")
-                    .HasColumnType("uniqueidentifier");
-
-                b.Property<string>("CorrelationId")
-                    .HasColumnType("nvarchar(450)");
-
-                b.Property<string>("ActionName")
-                    .IsRequired()
-                    .HasMaxLength(256)
-                    .HasColumnType("nvarchar(256)");
-
-                b.Property<DateTimeOffset>("CreatedAt")
-                    .HasColumnType("datetimeoffset");
-
-                b.HasKey("RequestId", "CorrelationId");
-
-                b.HasIndex("RequestId")
-                    .IsUnique();
-
-                b.ToTable("incoming_requests", (string)null);
-            });
-
-            modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.InboxState", b =>
-            {
-                b.Property<long>("Id")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("bigint");
-
-                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                b.Property<DateTime?>("Consumed")
-                    .HasColumnType("datetime2");
-
-                b.Property<Guid>("ConsumerId")
-                    .HasColumnType("uniqueidentifier");
-
-                b.Property<DateTime?>("Delivered")
-                    .HasColumnType("datetime2");
-
-                b.Property<DateTime?>("ExpirationTime")
-                    .HasColumnType("datetime2");
-
-                b.Property<long?>("LastSequenceNumber")
-                    .HasColumnType("bigint");
-
-                b.Property<Guid>("LockId")
-                    .HasColumnType("uniqueidentifier");
-
-                b.Property<Guid>("MessageId")
-                    .HasColumnType("uniqueidentifier");
-
-                b.Property<int>("ReceiveCount")
-                    .HasColumnType("int");
-
-                b.Property<DateTime>("Received")
-                    .HasColumnType("datetime2");
-
-                b.Property<byte[]>("RowVersion")
-                    .IsConcurrencyToken()
-                    .ValueGeneratedOnAddOrUpdate()
-                    .HasColumnType("rowversion");
-
-                b.HasKey("Id");
-
-                b.HasIndex("Delivered");
-
-                b.ToTable("InboxState");
-            });
-
-            modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.OutboxMessage", b =>
-            {
-                b.Property<long>("SequenceNumber")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("bigint");
-
-                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("SequenceNumber"));
-
-                b.Property<string>("Body")
-                    .IsRequired()
-                    .HasColumnType("nvarchar(max)");
-
-                b.Property<string>("ContentType")
-                    .IsRequired()
-                    .HasMaxLength(256)
-                    .HasColumnType("nvarchar(256)");
-
-                b.Property<Guid?>("ConversationId")
-                    .HasColumnType("uniqueidentifier");
-
-                b.Property<Guid?>("CorrelationId")
-                    .HasColumnType("uniqueidentifier");
-
-                b.Property<string>("DestinationAddress")
-                    .HasMaxLength(256)
-                    .HasColumnType("nvarchar(256)");
-
-                b.Property<DateTime?>("EnqueueTime")
-                    .HasColumnType("datetime2");
-
-                b.Property<DateTime?>("ExpirationTime")
-                    .HasColumnType("datetime2");
-
-                b.Property<string>("FaultAddress")
-                    .HasMaxLength(256)
-                    .HasColumnType("nvarchar(256)");
-
-                b.Property<string>("Headers")
-                    .HasColumnType("nvarchar(max)");
-
-                b.Property<Guid?>("InboxConsumerId")
-                    .HasColumnType("uniqueidentifier");
-
-                b.Property<Guid?>("InboxMessageId")
-                    .HasColumnType("uniqueidentifier");
-
-                b.Property<Guid?>("InitiatorId")
-                    .HasColumnType("uniqueidentifier");
-
-                b.Property<Guid>("MessageId")
-                    .HasColumnType("uniqueidentifier");
-
-                b.Property<string>("MessageType")
-                    .IsRequired()
-                    .HasColumnType("nvarchar(max)");
-
-                b.Property<Guid?>("OutboxId")
-                    .HasColumnType("uniqueidentifier");
-
-                b.Property<string>("Properties")
-                    .HasColumnType("nvarchar(max)");
-
-                b.Property<Guid?>("RequestId")
-                    .HasColumnType("uniqueidentifier");
-
-                b.Property<string>("ResponseAddress")
-                    .HasMaxLength(256)
-                    .HasColumnType("nvarchar(256)");
-
-                b.Property<DateTime>("SentTime")
-                    .HasColumnType("datetime2");
-
-                b.Property<string>("SourceAddress")
-                    .HasMaxLength(256)
-                    .HasColumnType("nvarchar(256)");
-
-                b.HasKey("SequenceNumber");
-
-                b.HasIndex("EnqueueTime");
-
-                b.HasIndex("ExpirationTime");
-
-                b.HasIndex("OutboxId", "SequenceNumber")
-                    .IsUnique()
-                    .HasFilter("[OutboxId] IS NOT NULL");
-
-                b.HasIndex("InboxMessageId", "InboxConsumerId", "SequenceNumber")
-                    .IsUnique()
-                    .HasFilter("[InboxMessageId] IS NOT NULL AND [InboxConsumerId] IS NOT NULL");
-
-                b.ToTable("OutboxMessage");
-            });
-
-            modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.OutboxState", b =>
-            {
-                b.Property<Guid>("OutboxId")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("uniqueidentifier");
-
-                b.Property<DateTime>("Created")
-                    .HasColumnType("datetime2");
-
-                b.Property<DateTime?>("Delivered")
-                    .HasColumnType("datetime2");
-
-                b.Property<long?>("LastSequenceNumber")
-                    .HasColumnType("bigint");
-
-                b.Property<Guid>("LockId")
-                    .HasColumnType("uniqueidentifier");
-
-                b.Property<byte[]>("RowVersion")
-                    .IsConcurrencyToken()
-                    .ValueGeneratedOnAddOrUpdate()
-                    .HasColumnType("rowversion");
-
-                b.HasKey("OutboxId");
-
-                b.HasIndex("Created");
-
-                b.ToTable("OutboxState");
-            });
-
-            modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.AttributeAggregate.AttributeDefinition", b =>
-            {
-                b.OwnsOne("HiveSpace.CatalogService.Domain.Aggregates.AttributeAggregate.AttributeType", "Type", b1 =>
                 {
-                    b1.Property<int>("AttributeDefinitionId")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b1.Property<int>("InputType")
-                        .HasColumnType("int")
-                        .HasColumnName("InputType");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b1.Property<bool>("IsMandatory")
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ParentId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("attributes", (string)null);
+                });
+
+            modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.AttributeAggregate.AttributeValue", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AttributeDefinitionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AttributeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ParentValueId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AttributeDefinitionId");
+
+                    b.ToTable("attribute_values", (string)null);
+                });
+
+            modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.CategoryAggregate.Category", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FilePath")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("FilePath");
+
+                    b.Property<bool?>("IsActive")
                         .HasColumnType("bit")
-                        .HasColumnName("IsMandatory");
+                        .HasColumnName("IsActive");
 
-                    b1.Property<int>("MaxValueCount")
-                        .HasColumnType("int")
-                        .HasColumnName("MaxValueCount");
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
-                    b1.Property<int>("ValueType")
-                        .HasColumnType("int")
-                        .HasColumnName("ValueType");
+                    b.Property<int?>("ParentId")
+                        .HasColumnType("int");
 
-                    b1.HasKey("AttributeDefinitionId");
+                    b.Property<int?>("ProductSetId")
+                        .HasColumnType("int");
 
-                    b1.ToTable("Attributes");
+                    b.HasKey("Id");
 
-                    b1.WithOwner()
+                    b.ToTable("categories", (string)null);
+                });
+
+            modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.External.StoreRef", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LogoUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("StoreName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("store_refs", (string)null);
+                });
+
+            modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.Product", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<Guid?>("BrandId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Condition")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Featured")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<Guid>("SellerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ShortDescription")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Slug")
+                        .IsUnique();
+
+                    b.ToTable("products", (string)null);
+                });
+
+            modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.ProductVariant", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ProductId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("product_variants", (string)null);
+                });
+
+            modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.Sku", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SkuNo")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("skus", (string)null);
+                });
+
+            modelBuilder.Entity("HiveSpace.Infrastructure.Persistence.Idempotence.IncomingRequest", b =>
+                {
+                    b.Property<Guid>("RequestId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CorrelationId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ActionName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("RequestId", "CorrelationId");
+
+                    b.HasIndex("RequestId")
+                        .IsUnique();
+
+                    b.ToTable("incoming_requests", (string)null);
+                });
+
+            modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.InboxState", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime?>("Consumed")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("ConsumerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("Delivered")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ExpirationTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("LastSequenceNumber")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid>("LockId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("MessageId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("ReceiveCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Received")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Delivered");
+
+                    b.ToTable("inbox_state", (string)null);
+                });
+
+            modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.OutboxMessage", b =>
+                {
+                    b.Property<long>("SequenceNumber")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("SequenceNumber"));
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<Guid?>("ConversationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("CorrelationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("DestinationAddress")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime?>("EnqueueTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ExpirationTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FaultAddress")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("Headers")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("InboxConsumerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("InboxMessageId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("InitiatorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("MessageId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("MessageType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("OutboxId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Properties")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("RequestId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ResponseAddress")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime>("SentTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SourceAddress")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("SequenceNumber");
+
+                    b.HasIndex("EnqueueTime");
+
+                    b.HasIndex("ExpirationTime");
+
+                    b.HasIndex("OutboxId", "SequenceNumber")
+                        .IsUnique()
+                        .HasFilter("[OutboxId] IS NOT NULL");
+
+                    b.HasIndex("InboxMessageId", "InboxConsumerId", "SequenceNumber")
+                        .IsUnique()
+                        .HasFilter("[InboxMessageId] IS NOT NULL AND [InboxConsumerId] IS NOT NULL");
+
+                    b.ToTable("outbox_message", (string)null);
+                });
+
+            modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.OutboxState", b =>
+                {
+                    b.Property<Guid>("OutboxId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("Delivered")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("LastSequenceNumber")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid>("LockId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.HasKey("OutboxId");
+
+                    b.HasIndex("Created");
+
+                    b.ToTable("outbox_state", (string)null);
+                });
+
+            modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.AttributeAggregate.AttributeDefinition", b =>
+                {
+                    b.OwnsOne("HiveSpace.CatalogService.Domain.Aggregates.AttributeAggregate.AttributeType", "Type", b1 =>
+                        {
+                            b1.Property<int>("AttributeDefinitionId")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("InputType")
+                                .HasColumnType("int")
+                                .HasColumnName("InputType");
+
+                            b1.Property<bool>("IsMandatory")
+                                .HasColumnType("bit")
+                                .HasColumnName("IsMandatory");
+
+                            b1.Property<int>("MaxValueCount")
+                                .HasColumnType("int")
+                                .HasColumnName("MaxValueCount");
+
+                            b1.Property<int>("ValueType")
+                                .HasColumnType("int")
+                                .HasColumnName("ValueType");
+
+                            b1.HasKey("AttributeDefinitionId");
+
+                            b1.ToTable("attributes");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AttributeDefinitionId");
+                        });
+
+                    b.Navigation("Type")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.AttributeAggregate.AttributeValue", b =>
+                {
+                    b.HasOne("HiveSpace.CatalogService.Domain.Aggregates.AttributeAggregate.AttributeDefinition", null)
+                        .WithMany("Values")
                         .HasForeignKey("AttributeDefinitionId");
                 });
 
-                b.Navigation("Type")
-                    .IsRequired();
-            });
-
-            modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.AttributeAggregate.AttributeValue", b =>
-            {
-                b.HasOne("HiveSpace.CatalogService.Domain.Aggregates.AttributeAggregate.AttributeDefinition", null)
-                    .WithMany("Values")
-                    .HasForeignKey("AttributeDefinitionId");
-            });
-
             modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.CategoryAggregate.Category", b =>
-            {
-                b.OwnsMany("HiveSpace.CatalogService.Domain.Aggregates.CategoryAggregate.CategoryAttribute", "CategoryAttributes", b1 =>
                 {
-                    b1.Property<int>("AttributeId")
-                        .HasColumnType("int");
+                    b.OwnsMany("HiveSpace.CatalogService.Domain.Aggregates.CategoryAggregate.CategoryAttribute", "CategoryAttributes", b1 =>
+                        {
+                            b1.Property<int>("AttributeId")
+                                .HasColumnType("int");
 
-                    b1.Property<int>("CategoryId")
-                        .HasColumnType("int");
+                            b1.Property<int>("CategoryId")
+                                .HasColumnType("int");
 
-                    b1.HasKey("AttributeId", "CategoryId");
+                            b1.HasKey("AttributeId", "CategoryId");
 
-                    b1.HasIndex("CategoryId");
+                            b1.HasIndex("CategoryId");
 
-                    b1.ToTable("CategoryAttributes", (string)null);
+                            b1.ToTable("category_attributes", (string)null);
 
-                    b1.WithOwner()
-                        .HasForeignKey("CategoryId");
+                            b1.WithOwner()
+                                .HasForeignKey("CategoryId");
+                        });
+
+                    b.Navigation("CategoryAttributes");
                 });
-
-                b.Navigation("CategoryAttributes");
-            });
 
             modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.Product", b =>
-            {
-                b.OwnsMany("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.ProductAttribute", "Attributes", b1 =>
                 {
-                    b1.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                    b.OwnsMany("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.ProductAttribute", "Attributes", b1 =>
+                        {
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("Id"));
+                            SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("Id"));
 
-                    b1.Property<int>("AttributeId")
-                        .HasColumnType("int");
+                            b1.Property<int>("AttributeId")
+                                .HasColumnType("int");
 
-                    b1.Property<string>("FreeTextValue")
-                        .HasColumnType("nvarchar(max)");
+                            b1.Property<string>("FreeTextValue")
+                                .HasColumnType("nvarchar(max)");
 
-                    b1.Property<int>("ProductId")
-                        .HasColumnType("int");
+                            b1.Property<int>("ProductId")
+                                .HasColumnType("int");
 
-                    b1.Property<string>("_selectedValueIds")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("SelectedValueIds");
+                            b1.Property<string>("_selectedValueIds")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("SelectedValueIds");
 
-                    b1.HasKey("Id");
+                            b1.HasKey("Id");
 
-                    b1.HasIndex("ProductId");
+                            b1.HasIndex("ProductId");
 
-                    b1.ToTable("ProductAttributes", (string)null);
+                            b1.ToTable("product_attributes", (string)null);
 
-                    b1.WithOwner()
-                        .HasForeignKey("ProductId");
+                            b1.WithOwner()
+                                .HasForeignKey("ProductId");
+                        });
+
+                    b.OwnsMany("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.ProductCategory", "Categories", b1 =>
+                        {
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int");
+
+                            SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("Id"));
+
+                            b1.Property<int>("CategoryId")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("ProductId")
+                                .HasColumnType("int");
+
+                            b1.HasKey("Id");
+
+                            b1.HasIndex("ProductId");
+
+                            b1.ToTable("product_categories", (string)null);
+
+                            b1.WithOwner()
+                                .HasForeignKey("ProductId");
+                        });
+
+                    b.OwnsMany("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.ProductImage", "Images", b1 =>
+                        {
+                            b1.Property<int>("ProductId")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int");
+
+                            SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("Id"));
+
+                            b1.Property<string>("FileId")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.HasKey("ProductId", "Id");
+
+                            b1.ToTable("product_images", (string)null);
+
+                            b1.WithOwner()
+                                .HasForeignKey("ProductId");
+                        });
+
+                    b.OwnsOne("HiveSpace.CatalogService.Domain.ValueObjects.Dimensions", "Dimensions", b1 =>
+                        {
+                            b1.Property<int>("ProductId")
+                                .HasColumnType("int");
+
+                            b1.Property<decimal>("Height")
+                                .HasColumnType("decimal(18,2)")
+                                .HasColumnName("DimensionsHeight");
+
+                            b1.Property<decimal>("Length")
+                                .HasColumnType("decimal(18,2)")
+                                .HasColumnName("DimensionsLength");
+
+                            b1.Property<int>("Unit")
+                                .HasColumnType("int")
+                                .HasColumnName("DimensionsUnit");
+
+                            b1.Property<decimal>("Width")
+                                .HasColumnType("decimal(18,2)")
+                                .HasColumnName("DimensionsWidth");
+
+                            b1.HasKey("ProductId");
+
+                            b1.ToTable("products");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ProductId");
+                        });
+
+                    b.OwnsOne("HiveSpace.CatalogService.Domain.ValueObjects.Weight", "Weight", b1 =>
+                        {
+                            b1.Property<int>("ProductId")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("Unit")
+                                .HasColumnType("int")
+                                .HasColumnName("WeightUnit");
+
+                            b1.Property<decimal>("Value")
+                                .HasColumnType("decimal(18,2)")
+                                .HasColumnName("WeightValue");
+
+                            b1.HasKey("ProductId");
+
+                            b1.ToTable("products");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ProductId");
+                        });
+
+                    b.Navigation("Attributes");
+
+                    b.Navigation("Categories");
+
+                    b.Navigation("Dimensions");
+
+                    b.Navigation("Images");
+
+                    b.Navigation("Weight");
                 });
-
-                b.OwnsMany("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.ProductCategory", "Categories", b1 =>
-                {
-                    b1.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("Id"));
-
-                    b1.Property<int>("CategoryId")
-                        .HasColumnType("int");
-
-                    b1.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b1.HasKey("Id");
-
-                    b1.HasIndex("ProductId");
-
-                    b1.ToTable("ProductCategories", (string)null);
-
-                    b1.WithOwner()
-                        .HasForeignKey("ProductId");
-                });
-
-                b.OwnsMany("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.ProductImage", "Images", b1 =>
-                {
-                    b1.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b1.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("Id"));
-
-                    b1.Property<string>("FileId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b1.HasKey("ProductId", "Id");
-
-                    b1.ToTable("ProductImages", (string)null);
-
-                    b1.WithOwner()
-                        .HasForeignKey("ProductId");
-                });
-
-                b.OwnsOne("HiveSpace.CatalogService.Domain.ValueObjects.Dimensions", "Dimensions", b1 =>
-                {
-                    b1.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b1.Property<decimal>("Height")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("DimensionsHeight");
-
-                    b1.Property<decimal>("Length")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("DimensionsLength");
-
-                    b1.Property<int>("Unit")
-                        .HasColumnType("int")
-                        .HasColumnName("DimensionsUnit");
-
-                    b1.Property<decimal>("Width")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("DimensionsWidth");
-
-                    b1.HasKey("ProductId");
-
-                    b1.ToTable("Products");
-
-                    b1.WithOwner()
-                        .HasForeignKey("ProductId");
-                });
-
-                b.OwnsOne("HiveSpace.CatalogService.Domain.ValueObjects.Weight", "Weight", b1 =>
-                {
-                    b1.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b1.Property<int>("Unit")
-                        .HasColumnType("int")
-                        .HasColumnName("WeightUnit");
-
-                    b1.Property<decimal>("Value")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("WeightValue");
-
-                    b1.HasKey("ProductId");
-
-                    b1.ToTable("Products");
-
-                    b1.WithOwner()
-                        .HasForeignKey("ProductId");
-                });
-
-                b.Navigation("Attributes");
-
-                b.Navigation("Categories");
-
-                b.Navigation("Dimensions");
-
-                b.Navigation("Images");
-
-                b.Navigation("Weight");
-            });
 
             modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.ProductVariant", b =>
-            {
-                b.HasOne("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.Product", null)
-                    .WithMany("Variants")
-                    .HasForeignKey("ProductId");
-
-                b.OwnsMany("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.ProductVariantOption", "Options", b1 =>
                 {
-                    b1.Property<int>("ProductVariantId")
-                        .HasColumnType("int");
+                    b.HasOne("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.Product", null)
+                        .WithMany("Variants")
+                        .HasForeignKey("ProductId");
 
-                    b1.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                    b.OwnsMany("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.ProductVariantOption", "Options", b1 =>
+                        {
+                            b1.Property<int>("ProductVariantId")
+                                .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("Id"));
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int");
 
-                    b1.Property<string>("Value")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                            SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("Id"));
 
-                    b1.HasKey("ProductVariantId", "Id");
+                            b1.Property<string>("Value")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
 
-                    b1.ToTable("ProductVariantOptions", (string)null);
+                            b1.HasKey("ProductVariantId", "Id");
 
-                    b1.WithOwner()
-                        .HasForeignKey("ProductVariantId");
+                            b1.ToTable("product_variant_options", (string)null);
+
+                            b1.WithOwner()
+                                .HasForeignKey("ProductVariantId");
+                        });
+
+                    b.Navigation("Options");
                 });
-
-                b.Navigation("Options");
-            });
 
             modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.Sku", b =>
-            {
-                b.HasOne("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.Product", null)
-                    .WithMany("Skus")
-                    .HasForeignKey("ProductId");
-
-                b.OwnsMany("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.SkuImage", "Images", b1 =>
                 {
-                    b1.Property<int>("SkuId")
-                        .HasColumnType("int");
+                    b.HasOne("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.Product", null)
+                        .WithMany("Skus")
+                        .HasForeignKey("ProductId");
 
-                    b1.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                    b.OwnsMany("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.SkuImage", "Images", b1 =>
+                        {
+                            b1.Property<int>("SkuId")
+                                .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("Id"));
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int");
 
-                    b1.Property<string>("FileId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                            SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("Id"));
 
-                    b1.HasKey("SkuId", "Id");
+                            b1.Property<string>("FileId")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
 
-                    b1.ToTable("SkuImages", (string)null);
+                            b1.HasKey("SkuId", "Id");
 
-                    b1.WithOwner()
-                        .HasForeignKey("SkuId");
+                            b1.ToTable("sku_images", (string)null);
+
+                            b1.WithOwner()
+                                .HasForeignKey("SkuId");
+                        });
+
+                    b.OwnsMany("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.SkuVariant", "SkuVariants", b1 =>
+                        {
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int");
+
+                            SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("Id"));
+
+                            b1.Property<int>("SkuId")
+                                .HasColumnType("int");
+
+                            b1.Property<string>("Value")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<string>("VariantName")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.HasKey("Id");
+
+                            b1.HasIndex("SkuId");
+
+                            b1.ToTable("sku_variants", (string)null);
+
+                            b1.WithOwner()
+                                .HasForeignKey("SkuId");
+                        });
+
+                    b.OwnsOne("HiveSpace.Domain.Shared.ValueObjects.Money", "Price", b1 =>
+                        {
+                            b1.Property<int>("SkuId")
+                                .HasColumnType("int");
+
+                            b1.Property<decimal>("Amount")
+                                .HasColumnType("decimal(18,2)");
+
+                            b1.Property<int>("Currency")
+                                .HasColumnType("int");
+
+                            b1.HasKey("SkuId");
+
+                            b1.ToTable("skus");
+
+                            b1.WithOwner()
+                                .HasForeignKey("SkuId");
+                        });
+
+                    b.Navigation("Images");
+
+                    b.Navigation("Price")
+                        .IsRequired();
+
+                    b.Navigation("SkuVariants");
                 });
-
-                b.OwnsMany("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.SkuVariant", "SkuVariants", b1 =>
-                {
-                    b1.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("Id"));
-
-                    b1.Property<int>("SkuId")
-                        .HasColumnType("int");
-
-                    b1.Property<string>("Value")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b1.Property<string>("VariantName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b1.HasKey("Id");
-
-                    b1.HasIndex("SkuId");
-
-                    b1.ToTable("SkuVariants", (string)null);
-
-                    b1.WithOwner()
-                        .HasForeignKey("SkuId");
-                });
-
-                b.OwnsOne("HiveSpace.CatalogService.Domain.Common.Money", "Price", b1 =>
-                {
-                    b1.Property<int>("SkuId")
-                        .HasColumnType("int");
-
-                    b1.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b1.Property<int>("Currency")
-                        .HasColumnType("int");
-
-                    b1.HasKey("SkuId");
-
-                    b1.ToTable("Skus");
-
-                    b1.WithOwner()
-                        .HasForeignKey("SkuId");
-                });
-
-                b.Navigation("Images");
-
-                b.Navigation("Price")
-                    .IsRequired();
-
-                b.Navigation("SkuVariants");
-            });
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.OutboxMessage", b =>
-            {
-                b.HasOne("MassTransit.EntityFrameworkCoreIntegration.OutboxState", null)
-                    .WithMany()
-                    .HasForeignKey("OutboxId");
+                {
+                    b.HasOne("MassTransit.EntityFrameworkCoreIntegration.OutboxState", null)
+                        .WithMany()
+                        .HasForeignKey("OutboxId");
 
-                b.HasOne("MassTransit.EntityFrameworkCoreIntegration.InboxState", null)
-                    .WithMany()
-                    .HasForeignKey("InboxMessageId", "InboxConsumerId")
-                    .HasPrincipalKey("MessageId", "ConsumerId");
-            });
+                    b.HasOne("MassTransit.EntityFrameworkCoreIntegration.InboxState", null)
+                        .WithMany()
+                        .HasForeignKey("InboxMessageId", "InboxConsumerId")
+                        .HasPrincipalKey("MessageId", "ConsumerId");
+                });
 
             modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.AttributeAggregate.AttributeDefinition", b =>
-            {
-                b.Navigation("Values");
-            });
+                {
+                    b.Navigation("Values");
+                });
 
             modelBuilder.Entity("HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.Product", b =>
-            {
-                b.Navigation("Skus");
+                {
+                    b.Navigation("Skus");
 
-                b.Navigation("Variants");
-            });
+                    b.Navigation("Variants");
+                });
 #pragma warning restore 612, 618
         }
     }

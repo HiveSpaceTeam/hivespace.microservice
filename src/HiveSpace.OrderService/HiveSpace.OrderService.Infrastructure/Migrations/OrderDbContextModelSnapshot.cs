@@ -515,8 +515,10 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
                     b.Property<DateTimeOffset?>("PaymentExpiresAt")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<int>("PaymentMethod")
-                        .HasColumnType("int");
+                    b.Property<string>("PaymentMethod")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("PaymentUrl")
                         .HasColumnType("nvarchar(max)");
@@ -634,7 +636,7 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
 
                     b.HasIndex("Delivered");
 
-                    b.ToTable("InboxState");
+                    b.ToTable("inbox_state", (string)null);
                 });
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.OutboxMessage", b =>
@@ -727,7 +729,7 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
                         .IsUnique()
                         .HasFilter("[InboxMessageId] IS NOT NULL AND [InboxConsumerId] IS NOT NULL");
 
-                    b.ToTable("OutboxMessage");
+                    b.ToTable("outbox_message", (string)null);
                 });
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.OutboxState", b =>
@@ -757,7 +759,7 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
 
                     b.HasIndex("Created");
 
-                    b.ToTable("OutboxState");
+                    b.ToTable("outbox_state", (string)null);
                 });
 
             modelBuilder.Entity("HiveSpace.OrderService.Domain.Aggregates.Carts.CartItem", b =>

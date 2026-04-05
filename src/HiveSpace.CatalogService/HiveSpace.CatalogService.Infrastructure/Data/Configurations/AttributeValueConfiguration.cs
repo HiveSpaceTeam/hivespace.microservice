@@ -8,7 +8,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<AttributeValue> entity)
         {
-            entity.ToTable("AttributeValues");
+            entity.ToTable("attribute_values");
             entity.HasKey(av => av.Id);
         }
     }

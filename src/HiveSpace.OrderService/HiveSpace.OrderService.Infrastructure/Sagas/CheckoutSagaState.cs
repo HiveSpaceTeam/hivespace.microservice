@@ -1,3 +1,4 @@
+using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Dtos;
 using MassTransit;

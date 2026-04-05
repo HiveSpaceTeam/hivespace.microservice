@@ -272,6 +272,14 @@ Always call `await db.SaveChangesAsync(ct)` after publishing to persist outbox r
 
 ## Coding Rules
 
+## Git Commit Guardrails
+
+- Agents must never stage or commit any `*.json` file.
+- If a task changes one or more `*.json` files, agents must ask the user to add/stage those JSON files manually.
+- Agents can stage and commit only non-JSON files after user confirmation that JSON staging is handled.
+- After finishing a task, agents must delete temporary files they created (for example: ad-hoc error logs, scratch/debug files, or one-off investigation artifacts) unless the user explicitly asks to keep them.
+- Agents must not stage or commit temporary files created only for debugging or task tracking.
+
 ### Error handling — CRITICAL
 
 Always use exceptions from `HiveSpace.Domain.Shared.Exceptions`. Never use `System.ArgumentException`, `System.InvalidOperationException`, etc. in domain or application code.

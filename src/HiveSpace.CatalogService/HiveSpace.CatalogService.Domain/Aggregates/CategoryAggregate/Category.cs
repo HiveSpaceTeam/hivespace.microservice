@@ -28,6 +28,12 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.CategoryAggregate
             FilePath = filePath;
         }
 
+        public Category(int id, string name, int? parentId = null, int? productSetId = null, bool? isActive = null, string? filePath = null)
+            : this(name, parentId, productSetId, isActive, filePath)
+        {
+            Id = id;
+        }
+
         public void AddAttribute(int attributeId)
         {
             var categoryAttribute = new CategoryAttribute(attributeId, Id);
