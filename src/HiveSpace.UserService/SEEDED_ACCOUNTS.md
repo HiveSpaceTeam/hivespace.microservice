@@ -2,12 +2,12 @@
 
 Source: `src/HiveSpace.UserService/HiveSpace.UserService.Infrastructure/SeedData.cs`
 
-| Username | Email | Role |
-|---|---|---|
-| alice | aliceSmith@gmail.com | Not explicitly set in seed data |
-| bob | bobSmith@gmail.com | Not explicitly set in seed data |
-| sysadmin | sysadmin@hivespace.com | SystemAdmin |
-| admin | admin@hivespace.com | Admin |
-| tiki | tiki@gmail.com | Seller |
-| giver | giver@gmail.com | Seller |
-| phuongdong | phuongdong@gmail.com | Seller |
+| Username | Email | Role | Password |
+|---|---|---|---|
+| alice | aliceSmith@gmail.com | Buyer | Pass123$ |
+| bob | bobSmith@gmail.com | Buyer | Pass123$ |
+| sysadmin | sysadmin@hivespace.com | SystemAdmin | SysAdmin123$ |
+| admin | admin@hivespace.com | Admin | Admin123$ |
+| tiki | tiki@gmail.com | Seller | TikiTrading123$ |
+| giver | giver@gmail.com | Seller | GiverBooks123$ |
+| phuongdong | phuongdong@gmail.com | Seller | PhuongDongBooks123$ |
