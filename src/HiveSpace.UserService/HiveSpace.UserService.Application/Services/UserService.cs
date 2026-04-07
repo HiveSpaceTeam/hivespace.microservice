@@ -25,7 +25,7 @@ public class UserService : IUserService
 
     public async Task<GetUserSettingsResponseDto> GetUserSettingAsync(CancellationToken cancellationToken = default)
     {
-        var user = await _userRepository.GetByIdAsync(_userContext.UserId)
+        var user = await _userRepository.GetByIdAsync(_userContext.UserId, cancellationToken: cancellationToken)
             ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
 
         return new GetUserSettingsResponseDto(
@@ -38,7 +38,7 @@ public class UserService : IUserService
         UpdateUserSettingRequestDto request,
         CancellationToken cancellationToken = default)
     {
-        var user = await _userRepository.GetByIdAsync(_userContext.UserId)
+        var user = await _userRepository.GetByIdAsync(_userContext.UserId, cancellationToken: cancellationToken)
             ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
 
         if (request.Theme.HasValue)
@@ -52,7 +52,7 @@ public class UserService : IUserService
 
     public async Task<GetUserProfileResponseDto> GetUserProfileAsync(CancellationToken cancellationToken = default)
     {
-        var user = await _userRepository.GetByIdAsync(_userContext.UserId)
+        var user = await _userRepository.GetByIdAsync(_userContext.UserId, cancellationToken: cancellationToken)
             ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
 
         return new GetUserProfileResponseDto(
@@ -67,13 +67,15 @@ public class UserService : IUserService
 
     public async Task UpdateUserProfileAsync(UpdateUserProfileRequestDto request, CancellationToken cancellationToken = default)
     {
-        var user = await _userRepository.GetByIdAsync(_userContext.UserId)
+        var user = await _userRepository.GetByIdAsync(_userContext.UserId, cancellationToken: cancellationToken)
             ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
 
         if (request.UserName != null)
         {
+            // Non-atomic check: two concurrent requests with the same userName can both pass.
+            // A unique index on the userName column is required for hard enforcement.
             var existing = await _userRepository.GetByUserNameAsync(request.UserName, cancellationToken);
-            if (existing != null && existing.Id != user.Id)
+            if (existing is not null && existing.Id != user.Id)
                 throw new ConflictException(UserDomainErrorCode.UserNameAlreadyExists, nameof(User.UserName));
         }
 

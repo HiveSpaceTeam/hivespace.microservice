@@ -24,13 +24,13 @@ public class UserRepository : IUserRepository
         _userManager = userManager;
     }
 
-    public async Task<User?> GetByIdAsync(Guid id, bool includeDetail = false)
+    public async Task<User?> GetByIdAsync(Guid id, bool includeDetail = false, CancellationToken cancellationToken = default)
     {
         IQueryable<ApplicationUser> query = _context.Users.AsNoTracking();
         if (includeDetail)
             query = query.Include(u => u.Addresses);
 
-        var appUser = await query.FirstOrDefaultAsync(u => u.Id == id);
+        var appUser = await query.FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
         if (appUser == null)
             return null;
 
@@ -51,9 +51,10 @@ public class UserRepository : IUserRepository
 
     public async Task<User?> GetByUserNameAsync(string userName, CancellationToken cancellationToken = default)
     {
+        var normalizedUserName = userName.ToUpperInvariant();
         var appUser = await _context.Users
             .Include(u => u.Addresses)
-            .FirstOrDefaultAsync(u => u.UserName == userName, cancellationToken);
+            .FirstOrDefaultAsync(u => u.NormalizedUserName == normalizedUserName, cancellationToken);
 
         if (appUser == null)
             return null;
