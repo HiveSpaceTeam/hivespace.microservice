@@ -1,3 +1,4 @@
+using HiveSpace.UserService.Application.DTOs.User;
 using HiveSpace.UserService.Application.Models.Requests.User;
 using HiveSpace.UserService.Application.Models.Responses.User;
 
@@ -7,4 +8,6 @@ public interface IUserService
 {
     Task<GetUserSettingsResponseDto> GetUserSettingAsync(CancellationToken cancellationToken = default);
     Task SetUserSettingAsync(UpdateUserSettingRequestDto request, CancellationToken cancellationToken = default);
+    Task<GetUserProfileResponseDto> GetUserProfileAsync(CancellationToken cancellationToken = default);
+    Task UpdateUserProfileAsync(UpdateUserProfileRequestDto request, CancellationToken cancellationToken = default);
 }

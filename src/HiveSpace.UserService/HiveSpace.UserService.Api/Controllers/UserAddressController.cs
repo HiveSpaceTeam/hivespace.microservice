@@ -28,6 +28,16 @@ public class UserAddressController : ControllerBase
     public async Task<IActionResult> GetUserAddress(CancellationToken cancellationToken)
         => Ok(await _userAddressService.GetUserAddressAsync(cancellationToken));
 
+    [HttpGet("{addressId:guid}")]
+    [ProducesResponseType(typeof(UserAddressDto), (int)HttpStatusCode.OK)]
+    public async Task<IActionResult> GetUserAddressById(Guid addressId, CancellationToken cancellationToken)
+        => Ok(await _userAddressService.GetUserAddressByIdAsync(addressId, cancellationToken));
+
+    [HttpGet("default")]
+    [ProducesResponseType(typeof(UserAddressDto), (int)HttpStatusCode.OK)]
+    public async Task<IActionResult> GetDefaultUserAddress(CancellationToken cancellationToken)
+        => Ok(await _userAddressService.GetDefaultUserAddressAsync(cancellationToken));
+
     [HttpPost]
     [ProducesResponseType(typeof(UserAddressDto), (int)HttpStatusCode.OK)]
     public async Task<IActionResult> CreateUserAddress([FromBody] UserAddressRequestDto param, CancellationToken cancellationToken)

@@ -1,5 +1,6 @@
 using HiveSpace.Core.Contexts;
 using HiveSpace.Domain.Shared.Exceptions;
+using HiveSpace.UserService.Application.DTOs.User;
 using HiveSpace.UserService.Application.Interfaces.Services;
 using HiveSpace.UserService.Application.Models.Requests.User;
 using HiveSpace.UserService.Application.Models.Responses.User;
@@ -24,7 +25,7 @@ public class UserService : IUserService
 
     public async Task<GetUserSettingsResponseDto> GetUserSettingAsync(CancellationToken cancellationToken = default)
     {
-        var user = await _userRepository.GetByIdAsync(_userContext.UserId)
+        var user = await _userRepository.GetByIdAsync(_userContext.UserId, cancellationToken: cancellationToken)
             ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
 
         return new GetUserSettingsResponseDto(
@@ -37,7 +38,7 @@ public class UserService : IUserService
         UpdateUserSettingRequestDto request,
         CancellationToken cancellationToken = default)
     {
-        var user = await _userRepository.GetByIdAsync(_userContext.UserId)
+        var user = await _userRepository.GetByIdAsync(_userContext.UserId, cancellationToken: cancellationToken)
             ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
 
         if (request.Theme.HasValue)
@@ -45,7 +46,44 @@ public class UserService : IUserService
 
         if (request.Culture.HasValue)
             user.UpdateCulture(request.Culture.Value);
-        
+
+        await _userRepository.UpdateUserAsync(user, cancellationToken);
+    }
+
+    public async Task<GetUserProfileResponseDto> GetUserProfileAsync(CancellationToken cancellationToken = default)
+    {
+        var user = await _userRepository.GetByIdAsync(_userContext.UserId, cancellationToken: cancellationToken)
+            ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
+
+        return new GetUserProfileResponseDto(
+            user.FullName,
+            user.UserName,
+            user.Email.Value,
+            user.PhoneNumber?.Value,
+            user.Gender,
+            user.DateOfBirth?.Value
+        );
+    }
+
+    public async Task UpdateUserProfileAsync(UpdateUserProfileRequestDto request, CancellationToken cancellationToken = default)
+    {
+        var user = await _userRepository.GetByIdAsync(_userContext.UserId, cancellationToken: cancellationToken)
+            ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
+
+        if (request.UserName != null)
+        {
+            // Non-atomic check: two concurrent requests with the same userName can both pass.
+            // A unique index on the userName column is required for hard enforcement.
+            var existing = await _userRepository.GetByUserNameAsync(request.UserName, cancellationToken);
+            if (existing is not null && existing.Id != user.Id)
+                throw new ConflictException(UserDomainErrorCode.UserNameAlreadyExists, nameof(User.UserName));
+        }
+
+        var phoneNumber = request.PhoneNumber != null ? PhoneNumber.Create(request.PhoneNumber) : null;
+        var dateOfBirth = request.DateOfBirth.HasValue ? DateOfBirth.Create(request.DateOfBirth.Value) : null;
+
+        user.UpdateProfile(request.FullName, phoneNumber, dateOfBirth, request.Gender, request.UserName);
+
         await _userRepository.UpdateUserAsync(user, cancellationToken);
     }
 }

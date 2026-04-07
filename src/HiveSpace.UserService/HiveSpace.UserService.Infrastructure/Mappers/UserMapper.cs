@@ -106,6 +106,7 @@ public static class UserMapper
     public static void UpdateApplicationUser(this ApplicationUser applicationUser, User domainUser)
     {
         applicationUser.UserName = domainUser.UserName;
+        applicationUser.NormalizedUserName = domainUser.UserName.ToUpperInvariant();
         applicationUser.Email = domainUser.Email.Value;
         applicationUser.PhoneNumber = domainUser.PhoneNumber?.Value;
         applicationUser.FullName = domainUser.FullName;
