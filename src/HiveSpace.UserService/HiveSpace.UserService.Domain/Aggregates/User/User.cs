@@ -161,12 +161,19 @@ public class User : AggregateRoot<Guid>, IAuditable, ISoftDeletable
         return !userName.All(c => char.IsLetterOrDigit(c) || c == '_' || c == '-' || c == '@' || c == '.');
     }
     
-    public void UpdateProfile(string? fullName, PhoneNumber? phoneNumber, DateOfBirth? dateOfBirth, Gender? gender)
+    public void UpdateProfile(string? fullName, PhoneNumber? phoneNumber, DateOfBirth? dateOfBirth, Gender? gender, string? userName = null)
     {
         if (!string.IsNullOrWhiteSpace(fullName)) FullName = fullName;
         if (phoneNumber != null) PhoneNumber = phoneNumber;
         if (dateOfBirth != null) DateOfBirth = dateOfBirth;
         if (gender != null) Gender = gender;
+        if (!string.IsNullOrWhiteSpace(userName))
+        {
+            var trimmed = userName.Trim();
+            if (trimmed.Length < 3 || trimmed.Length > 50 || ContainsInvalidUsernameCharacters(trimmed))
+                throw new InvalidFieldException(UserDomainErrorCode.InvalidUserInformation, nameof(UserName));
+            UserName = trimmed;
+        }
     }
     
     public void ChangePassword(string newPasswordHash)

@@ -6,6 +6,8 @@ namespace HiveSpace.UserService.Application.Interfaces.Services;
 public interface IUserAddressService
 {
     Task<List<UserAddressDto>> GetUserAddressAsync(CancellationToken cancellationToken = default);
+    Task<UserAddressDto?> GetUserAddressByIdAsync(Guid addressId, CancellationToken cancellationToken = default);
+    Task<UserAddressDto?> GetDefaultUserAddressAsync(CancellationToken cancellationToken = default);
     Task<UserAddressDto> CreateUserAddressAsync(UserAddressRequestDto param, CancellationToken cancellationToken = default);
     Task UpdateUserAddressAsync(UserAddressRequestDto param, Guid userAddressId, CancellationToken cancellationToken = default);
     Task SetDefaultUserAddressAsync(Guid userAddressId, CancellationToken cancellationToken = default);
