@@ -23,7 +23,7 @@ public static class CheckoutEndpoints
             IUserContext userContext,
             CancellationToken ct) =>
         {
-            var checkoutClient = bus.CreateRequestClient<CheckoutInitiated>(RequestTimeout.After(m: 2));
+            var checkoutClient = bus.CreateRequestClient<CheckoutInitiated>();
             var correlationId = NewId.NextGuid();
             try
             {
@@ -33,7 +33,7 @@ public static class CheckoutEndpoints
                     userContext.UserId,
                     request.DeliveryAddress,
                     CouponCodes = request.CouponCodes ?? []
-                }, CancellationToken.None, RequestTimeout.After(m: 2));
+                }, ct, RequestTimeout.After(m: 2));
 
                 if (response.Is(out Response<CheckoutResponse>? success) && success != null)
                     return Results.Ok(success.Message);

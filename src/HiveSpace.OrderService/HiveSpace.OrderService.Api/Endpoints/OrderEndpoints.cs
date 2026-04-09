@@ -33,7 +33,7 @@ public static class OrderEndpoints
         .WithName("GetOrderList")
         .WithTags("Order")
         .WithSummary("Get order list")
-        .WithDescription("Returns a paginated list of orders for the current user.");
+        .WithDescription("Returns a paginated list of orders for the current user. searchField is case-insensitive; supported values: OrderCode, Product.");
 
         app.MapGet("/api/v1/orders/{orderId:guid}", async (
             Guid orderId,
@@ -66,7 +66,7 @@ public static class OrderEndpoints
         .WithName("GetSellerOrders")
         .WithTags("Order")
         .WithSummary("Get seller orders")
-        .WithDescription("Returns a paginated list of orders belonging to the seller's store.");
+        .WithDescription("Returns a paginated list of orders belonging to the seller's store. searchField is case-insensitive; supported values: OrderCode, Product, CustomerName.");
 
         app.MapPost("/api/v1/orders/{orderId:guid}/confirm", async (
             Guid orderId,

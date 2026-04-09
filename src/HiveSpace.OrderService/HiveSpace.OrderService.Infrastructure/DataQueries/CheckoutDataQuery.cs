@@ -52,13 +52,13 @@ public class CheckoutDataQuery(string connectionString, IDbContextFactory<Data.O
     }
 
     public async Task<CheckoutStatusDto> GetCheckoutStatusAsync(
-        Guid correlationId, CancellationToken ct = default)
+        Guid correlationId, Guid userId, CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
         var saga = await db.Set<CheckoutSagaState>()
             .AsNoTracking()
-            .FirstOrDefaultAsync(s => s.CorrelationId == correlationId, ct)
+            .FirstOrDefaultAsync(s => s.CorrelationId == correlationId && s.UserId == userId, ct)
             ?? throw new NotFoundException(OrderDomainErrorCode.CheckoutNotFound, nameof(CheckoutSagaState));
 
         return new CheckoutStatusDto

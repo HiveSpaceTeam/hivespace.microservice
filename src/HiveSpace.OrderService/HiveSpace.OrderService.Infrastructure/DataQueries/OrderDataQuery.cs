@@ -65,7 +65,7 @@ public class OrderDataQuery(IDbContextFactory<OrderDbContext> dbFactory) : IOrde
 
         var orders = await query
             .Include(o => o.Items)
-            .Include(o => o.Checkouts)
+            .Include(o => o.Checkouts.Take(1))
             .OrderByDescending(o => o.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
