@@ -8,5 +8,9 @@ public class GetOrderListQueryHandler(IOrderDataQuery orderDataQuery, IUserConte
     : IQueryHandler<GetOrderListQuery, GetOrderListResponse>
 {
     public Task<GetOrderListResponse> Handle(GetOrderListQuery request, CancellationToken cancellationToken)
-        => orderDataQuery.GetPagedOrdersAsync(userContext.UserId, request.Page, request.PageSize, cancellationToken);
+        => orderDataQuery.GetPagedOrdersAsync(
+            userContext.UserId,
+            request.Page, request.PageSize,
+            request.ProcessStatus, request.SearchField, request.SearchValue,
+            cancellationToken);
 }
