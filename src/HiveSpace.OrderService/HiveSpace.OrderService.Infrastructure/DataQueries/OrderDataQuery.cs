@@ -1,4 +1,6 @@
+using HiveSpace.Core.Exceptions;
 using HiveSpace.Core.Models.Pagination;
+using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.OrderService.Application.Orders;
 using HiveSpace.OrderService.Application.Orders.Enums;
 using HiveSpace.OrderService.Application.Orders.Mappers;
@@ -65,7 +67,7 @@ public class OrderDataQuery(IDbContextFactory<OrderDbContext> dbFactory) : IOrde
 
         var orders = await query
             .Include(o => o.Items)
-            .Include(o => o.Checkouts.Take(1))
+            .Include(o => o.Checkouts.OrderByDescending(c => c.CreatedAt).Take(1))
             .OrderByDescending(o => o.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
@@ -96,22 +98,24 @@ public class OrderDataQuery(IDbContextFactory<OrderDbContext> dbFactory) : IOrde
 
     private static OrderStatus[] MapCustomerProcessStatus(CustomerOrderProcessStatus? status) => status switch
     {
+        null or CustomerOrderProcessStatus.All => [],
         CustomerOrderProcessStatus.WaitingPayment => [OrderStatus.Created],
         CustomerOrderProcessStatus.Processing     => [OrderStatus.Paid, OrderStatus.COD, OrderStatus.Confirmed, OrderStatus.ReadyToShip],
         CustomerOrderProcessStatus.Shipping       => [OrderStatus.Shipped],
         CustomerOrderProcessStatus.Delivered      => [OrderStatus.Delivered, OrderStatus.Completed],
         CustomerOrderProcessStatus.Cancelled      => [OrderStatus.Cancelled, OrderStatus.Rejected, OrderStatus.Expired],
         CustomerOrderProcessStatus.ReturnRefund   => [OrderStatus.Refunding, OrderStatus.Refunded, OrderStatus.Solved, OrderStatus.Claimed],
-        _                                         => []
+        _ => throw new InvalidFieldException(CommonErrorCode.InvalidStatusFilter, nameof(CustomerOrderProcessStatus))
     };
 
     private static OrderStatus[] MapSellerProcessStatus(SellerOrderProcessStatus? status) => status switch
     {
+        null or SellerOrderProcessStatus.All => [],
         SellerOrderProcessStatus.PendingConfirmation => [OrderStatus.Paid, OrderStatus.COD],
         SellerOrderProcessStatus.ReadyToShip         => [OrderStatus.Confirmed, OrderStatus.ReadyToShip],
         SellerOrderProcessStatus.Shipping            => [OrderStatus.Shipped],
         SellerOrderProcessStatus.Delivered           => [OrderStatus.Delivered, OrderStatus.Completed],
         SellerOrderProcessStatus.ReturnCancel        => [OrderStatus.Cancelled, OrderStatus.Rejected, OrderStatus.Expired, OrderStatus.Refunding, OrderStatus.Refunded, OrderStatus.Solved, OrderStatus.Claimed],
-        _                                            => []
+        _ => throw new InvalidFieldException(CommonErrorCode.InvalidStatusFilter, nameof(SellerOrderProcessStatus))
     };
 }
