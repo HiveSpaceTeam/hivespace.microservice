@@ -1,5 +1,5 @@
-using HiveSpace.Core.Exceptions;
 using HiveSpace.Core.Models.Pagination;
+using HiveSpace.Domain.Shared.Errors;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.OrderService.Application.Orders;
 using HiveSpace.OrderService.Application.Orders.Enums;
@@ -85,9 +85,7 @@ public class OrderDataQuery(IDbContextFactory<OrderDbContext> dbFactory) : IOrde
             => query.Where(o => o.ShortId.Contains(value)),
         var f when f.Equals(CustomerSearchField.Product, StringComparison.OrdinalIgnoreCase)
             => query.Where(o => o.Items.Any(i => i.ProductSnapshot.ProductName.Contains(value))),
-        var f when f.Equals(CustomerSearchField.StoreName, StringComparison.OrdinalIgnoreCase)
-            => query.Where(o => o.Items.Any(i => i.ProductSnapshot.StoreName.Contains(value))),
-        _ => throw new InvalidFieldException(CommonErrorCode.InvalidArgument, nameof(GetOrderListQuery.SearchField))
+        _ => throw new InvalidFieldException(DomainErrorCode.InvalidEnumerationValue, nameof(GetOrderListQuery.SearchField))
     };
 
     private static IQueryable<Order> ApplySellerSearch(
@@ -99,7 +97,7 @@ public class OrderDataQuery(IDbContextFactory<OrderDbContext> dbFactory) : IOrde
             => query.Where(o => o.Items.Any(i => i.ProductSnapshot.ProductName.Contains(value))),
         var f when f.Equals(SellerSearchField.CustomerName, StringComparison.OrdinalIgnoreCase)
             => query.Where(o => o.DeliveryAddress.RecipientName.Contains(value)),
-        _ => throw new InvalidFieldException(CommonErrorCode.InvalidArgument, nameof(GetSellerOrdersQuery.SearchField))
+        _ => throw new InvalidFieldException(DomainErrorCode.InvalidEnumerationValue, nameof(GetSellerOrdersQuery.SearchField))
     };
 
     private static OrderStatus[] MapCustomerProcessStatus(CustomerOrderProcessStatus? status) => status switch
@@ -111,7 +109,7 @@ public class OrderDataQuery(IDbContextFactory<OrderDbContext> dbFactory) : IOrde
         CustomerOrderProcessStatus.Delivered      => [OrderStatus.Delivered, OrderStatus.Completed],
         CustomerOrderProcessStatus.Cancelled      => [OrderStatus.Cancelled, OrderStatus.Rejected, OrderStatus.Expired],
         CustomerOrderProcessStatus.ReturnRefund   => [OrderStatus.Refunding, OrderStatus.Refunded, OrderStatus.Solved, OrderStatus.Claimed],
-        _ => throw new InvalidFieldException(CommonErrorCode.InvalidStatusFilter, nameof(GetOrderListQuery.ProcessStatus))
+        _ => throw new InvalidFieldException(DomainErrorCode.InvalidEnumerationValue, nameof(GetOrderListQuery.ProcessStatus))
     };
 
     private static OrderStatus[] MapSellerProcessStatus(SellerOrderProcessStatus? status) => status switch
@@ -122,6 +120,6 @@ public class OrderDataQuery(IDbContextFactory<OrderDbContext> dbFactory) : IOrde
         SellerOrderProcessStatus.Shipping            => [OrderStatus.Shipped],
         SellerOrderProcessStatus.Delivered           => [OrderStatus.Delivered, OrderStatus.Completed],
         SellerOrderProcessStatus.ReturnCancel        => [OrderStatus.Cancelled, OrderStatus.Rejected, OrderStatus.Expired, OrderStatus.Refunding, OrderStatus.Refunded, OrderStatus.Solved, OrderStatus.Claimed],
-        _ => throw new InvalidFieldException(CommonErrorCode.InvalidStatusFilter, nameof(GetSellerOrdersQuery.ProcessStatus))
+        _ => throw new InvalidFieldException(DomainErrorCode.InvalidEnumerationValue, nameof(GetSellerOrdersQuery.ProcessStatus))
     };
 }
