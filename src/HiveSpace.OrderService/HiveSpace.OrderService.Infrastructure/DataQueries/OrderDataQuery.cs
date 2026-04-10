@@ -79,21 +79,27 @@ public class OrderDataQuery(IDbContextFactory<OrderDbContext> dbFactory) : IOrde
     }
 
     private static IQueryable<Order> ApplyCustomerSearch(
-        IQueryable<Order> query, string field, string value) => field.ToLowerInvariant() switch
+        IQueryable<Order> query, string field, string value) => field switch
     {
-        "ordercode" => query.Where(o => o.ShortId.Contains(value)),
-        "product"   => query.Where(o => o.Items.Any(i => i.ProductSnapshot.ProductName.Contains(value))),
-        //"storename" => query.Where(o => o.Items.Any(i => i.ProductSnapshot.StoreName.Contains(value))),
-        _           => query
+        var f when f.Equals(CustomerSearchField.OrderCode, StringComparison.OrdinalIgnoreCase)
+            => query.Where(o => o.ShortId.Contains(value)),
+        var f when f.Equals(CustomerSearchField.Product, StringComparison.OrdinalIgnoreCase)
+            => query.Where(o => o.Items.Any(i => i.ProductSnapshot.ProductName.Contains(value))),
+        var f when f.Equals(CustomerSearchField.StoreName, StringComparison.OrdinalIgnoreCase)
+            => query.Where(o => o.Items.Any(i => i.ProductSnapshot.StoreName.Contains(value))),
+        _ => throw new InvalidFieldException(CommonErrorCode.InvalidArgument, nameof(GetOrderListQuery.SearchField))
     };
 
     private static IQueryable<Order> ApplySellerSearch(
-        IQueryable<Order> query, string field, string value) => field.ToLowerInvariant() switch
+        IQueryable<Order> query, string field, string value) => field switch
     {
-        "ordercode"    => query.Where(o => o.ShortId.Contains(value)),
-        "product"      => query.Where(o => o.Items.Any(i => i.ProductSnapshot.ProductName.Contains(value))),
-        "customername" => query.Where(o => o.DeliveryAddress.RecipientName.Contains(value)),
-        _              => query
+        var f when f.Equals(SellerSearchField.OrderCode, StringComparison.OrdinalIgnoreCase)
+            => query.Where(o => o.ShortId.Contains(value)),
+        var f when f.Equals(SellerSearchField.Product, StringComparison.OrdinalIgnoreCase)
+            => query.Where(o => o.Items.Any(i => i.ProductSnapshot.ProductName.Contains(value))),
+        var f when f.Equals(SellerSearchField.CustomerName, StringComparison.OrdinalIgnoreCase)
+            => query.Where(o => o.DeliveryAddress.RecipientName.Contains(value)),
+        _ => throw new InvalidFieldException(CommonErrorCode.InvalidArgument, nameof(GetSellerOrdersQuery.SearchField))
     };
 
     private static OrderStatus[] MapCustomerProcessStatus(CustomerOrderProcessStatus? status) => status switch
@@ -105,7 +111,7 @@ public class OrderDataQuery(IDbContextFactory<OrderDbContext> dbFactory) : IOrde
         CustomerOrderProcessStatus.Delivered      => [OrderStatus.Delivered, OrderStatus.Completed],
         CustomerOrderProcessStatus.Cancelled      => [OrderStatus.Cancelled, OrderStatus.Rejected, OrderStatus.Expired],
         CustomerOrderProcessStatus.ReturnRefund   => [OrderStatus.Refunding, OrderStatus.Refunded, OrderStatus.Solved, OrderStatus.Claimed],
-        _ => throw new InvalidFieldException(CommonErrorCode.InvalidStatusFilter, nameof(CustomerOrderProcessStatus))
+        _ => throw new InvalidFieldException(CommonErrorCode.InvalidStatusFilter, nameof(GetOrderListQuery.ProcessStatus))
     };
 
     private static OrderStatus[] MapSellerProcessStatus(SellerOrderProcessStatus? status) => status switch
@@ -116,6 +122,6 @@ public class OrderDataQuery(IDbContextFactory<OrderDbContext> dbFactory) : IOrde
         SellerOrderProcessStatus.Shipping            => [OrderStatus.Shipped],
         SellerOrderProcessStatus.Delivered           => [OrderStatus.Delivered, OrderStatus.Completed],
         SellerOrderProcessStatus.ReturnCancel        => [OrderStatus.Cancelled, OrderStatus.Rejected, OrderStatus.Expired, OrderStatus.Refunding, OrderStatus.Refunded, OrderStatus.Solved, OrderStatus.Claimed],
-        _ => throw new InvalidFieldException(CommonErrorCode.InvalidStatusFilter, nameof(SellerOrderProcessStatus))
+        _ => throw new InvalidFieldException(CommonErrorCode.InvalidStatusFilter, nameof(GetSellerOrdersQuery.ProcessStatus))
     };
 }
