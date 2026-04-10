@@ -42,14 +42,55 @@ public static class OrderMapper
         IsCOD       = item.IsCOD
     };
 
-    public static OrderSummaryDto ToSummaryDto(this Order order) => new()
+    public static CustomerOrderSummaryDto ToCustomerSummaryDto(this Order order)
     {
-        Id          = order.Id,
-        ShortId     = order.ShortId,
-        Status      = order.Status.Name,
-        TotalAmount = order.TotalAmount.Amount,
-        Currency    = order.TotalAmount.Currency.ToString(),
-        CreatedAt   = order.CreatedAt,
-        ItemCount   = order.Items.Count
+        var currency = order.TotalAmount.Currency.ToString();
+        return new CustomerOrderSummaryDto
+        {
+            Id          = order.Id,
+            ShortId     = order.ShortId,
+            Status      = order.Status.Name,
+            TotalAmount = order.TotalAmount.Amount,
+            Currency    = currency,
+            CreatedAt   = order.CreatedAt,
+            ItemCount   = order.Items.Count,
+            Items       = order.Items.Select(i => i.ToCustomerItemDto(currency)).ToList()
+        };
+    }
+
+    public static CustomerOrderItemDto ToCustomerItemDto(this OrderItem item, string currency) => new()
+    {
+        Id            = item.Id,
+        ProductName   = item.ProductSnapshot.ProductName,
+        ProductImage  = item.ProductSnapshot.ImageUrl,
+        Variation     = item.ProductSnapshot.SkuName,
+        Quantity      = item.Quantity,
+        OriginalPrice = item.ProductSnapshot.Price.Amount,
+        UnitPrice     = item.UnitPrice.Amount,
+        LineTotal     = item.LineTotal.Amount,
+        Currency      = currency
+    };
+
+    public static SellerOrderSummaryDto ToSellerSummaryDto(this Order order) => new()
+    {
+        Id            = order.Id,
+        OrderCode     = order.ShortId,
+        BuyerName     = order.DeliveryAddress.RecipientName,
+        Status        = order.Status.Name,
+        PaymentMethod = order.Checkouts.FirstOrDefault()?.PaymentMethod.Name,
+        TotalAmount   = order.TotalAmount.Amount,
+        ActionDateTime = order.UpdatedAt ?? order.CreatedAt,
+        CreatedAt     = order.CreatedAt,
+        Items         = order.Items.Select(i => i.ToSellerItemDto()).ToList()
+    };
+
+    public static SellerOrderItemDto ToSellerItemDto(this OrderItem item) => new()
+    {
+        Id           = item.Id,
+        ProductName  = item.ProductSnapshot.ProductName,
+        ProductImageUrl = item.ProductSnapshot.ImageUrl,
+        Variation    = item.ProductSnapshot.SkuName,
+        Quantity     = item.Quantity,
+        Tag          = item.IsCOD ? "cod" : null
     };
 }

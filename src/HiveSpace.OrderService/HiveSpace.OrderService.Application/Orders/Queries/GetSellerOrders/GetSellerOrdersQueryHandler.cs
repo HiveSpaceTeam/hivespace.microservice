@@ -15,6 +15,9 @@ public class GetSellerOrdersQueryHandler(IOrderDataQuery orderDataQuery, IUserCo
             throw new ForbiddenException(OrderDomainErrorCode.SellerStoreRequired, nameof(userContext.StoreId));
 
         return orderDataQuery.GetSellerOrdersAsync(
-            userContext.StoreId.Value, request.Page, request.PageSize, request.Status, cancellationToken);
+            userContext.StoreId.Value,
+            request.Page, request.PageSize,
+            request.ProcessStatus, request.SearchField, request.SearchValue,
+            cancellationToken);
     }
 }

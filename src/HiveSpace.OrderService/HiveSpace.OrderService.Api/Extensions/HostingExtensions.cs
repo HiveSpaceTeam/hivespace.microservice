@@ -54,6 +54,7 @@ internal static class HostingExtensions
         app.MapControllers();
         app.MapCouponEndpoints();
         app.MapCartEndpoints();
+        app.MapCheckoutEndpoints();
         app.MapOrderEndpoints();
 
         return app;

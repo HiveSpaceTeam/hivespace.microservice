@@ -9,5 +9,5 @@ public interface ICheckoutQuery
         Guid userId, CancellationToken ct = default);
 
     Task<CheckoutStatusDto> GetCheckoutStatusAsync(
-        Guid correlationId, CancellationToken ct = default);
+        Guid correlationId, Guid userId, CancellationToken ct = default);
 }
