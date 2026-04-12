@@ -1,5 +1,6 @@
 using FluentValidation;
 using HiveSpace.Core.Filters;
+using HiveSpace.Domain.Shared.Converters;
 using HiveSpace.Infrastructure.Authorization.Extensions;
 using HiveSpace.Infrastructure.Messaging.Configurations;
 using HiveSpace.Infrastructure.Messaging.Extensions;
@@ -23,6 +24,11 @@ internal static class ServiceCollectionExtensions
         services.AddControllers(options =>
         {
             options.Filters.Add<CustomExceptionFilter>();
+        });
+
+        services.ConfigureHttpJsonOptions(options =>
+        {
+            options.SerializerOptions.Converters.Add(new EnumerationJsonConverterFactory());
         });
     }
 
@@ -86,12 +92,13 @@ internal static class ServiceCollectionExtensions
                    r.ExistingDbContext<OrderDbContext>();
                    r.UseSqlServer();
                });
-            cfg.AddConsumer<CreateOrderConsumer>();
-            cfg.AddConsumer<MarkOrderAsCODConsumer>();
-            cfg.AddConsumer<CancelOrderConsumer>();
+            cfg.AddConsumer<CreateOrderConsumer, CreateOrderConsumerDefinition>();
+            cfg.AddConsumer<MarkOrderAsCODConsumer, MarkOrderAsCODConsumerDefinition>();
+            cfg.AddConsumer<MarkOrderAsPaidConsumer, MarkOrderAsPaidConsumerDefinition>();
+            cfg.AddConsumer<ClearCartConsumer, ClearCartConsumerDefinition>();
+            cfg.AddConsumer<CancelOrderConsumer, CancelOrderConsumerDefinition>();
             cfg.AddConsumer<NotifySellerConsumer>();
             cfg.AddConsumer<NotifyCustomerConsumer>();
-            cfg.AddConsumer<ClearCartConsumer>();
             cfg.AddConsumer<StoreRefSyncConsumer>();
             cfg.AddConsumer<ProductRefSyncConsumer>();
         });

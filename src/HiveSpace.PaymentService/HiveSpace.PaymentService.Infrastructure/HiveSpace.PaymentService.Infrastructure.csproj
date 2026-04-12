@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HiveSpace.PaymentService.Application\HiveSpace.PaymentService.Application.csproj" />
+    <ProjectReference Include="..\HiveSpace.PaymentService.Domain\HiveSpace.PaymentService.Domain.csproj" />
+    <ProjectReference Include="..\..\..\libs\HiveSpace.Infrastructure.Persistence\HiveSpace.Infrastructure.Persistence.csproj" />
+    <ProjectReference Include="..\..\..\libs\HiveSpace.Infrastructure.Messaging.Shared\HiveSpace.Infrastructure.Messaging.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MassTransit" />
+    <PackageReference Include="MassTransit.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.Data.SqlClient" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+</Project>

@@ -187,6 +187,8 @@ public class Order : AggregateRoot<Guid>, IAuditable
 
     public void MarkAsPaid(Guid paymentId)
     {
+        if (Status == OrderStatus.Paid) return;
+
         if (Status != OrderStatus.Created)
             throw new InvalidFieldException(OrderDomainErrorCode.OrderInvalidStatusForPayment, nameof(Status));
 

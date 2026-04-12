@@ -36,6 +36,8 @@ public class OrderItemEntityConfiguration : IEntityTypeConfiguration<OrderItem>
             snapshot.Property(s => s.ProductName).HasColumnName("SnapshotProductName").HasMaxLength(255);
             snapshot.Property(s => s.SkuName).HasColumnName("SnapshotSkuName").HasMaxLength(255);
             snapshot.Property(s => s.ImageUrl).HasColumnName("SnapshotImageUrl").HasMaxLength(500);
+            snapshot.Property(s => s.Currency).HasColumnName("SnapshotCurrency").HasConversion<string>().HasMaxLength(3).IsRequired();
+            snapshot.Property(s => s.CapturedAt).HasColumnName("SnapshotCapturedAt").IsRequired();
 
             // Snapshot Price
             snapshot.OwnsOne(s => s.Price, money =>

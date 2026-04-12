@@ -154,7 +154,7 @@ public class CreateOrderConsumer(
                     cartItem.SkuId,
                     productRef.Name,
                     string.Empty,
-                    unitPrice,
+                    Money.FromVND(skuRef.Price),
                     skuRef.ImageUrl ?? productRef.ThumbnailUrl ?? string.Empty,
                     new Dictionary<string, string>());
 

@@ -38,3 +38,4 @@ docker
 *.crt
 *.pfx
 *.p12
+.gitnexus
