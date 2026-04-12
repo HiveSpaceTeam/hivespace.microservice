@@ -124,16 +124,20 @@ internal sealed class ProductRefSeeder(OrderDbContext db, ILogger<ProductRefSeed
             return;
         }
 
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        var strategy = db.Database.CreateExecutionStrategy();
+        await strategy.ExecuteAsync(async () =>
+        {
+            await using var tx = await db.Database.BeginTransactionAsync(ct);
 
-        foreach (var (productId, storeId, name, thumbnailUrl) in productsToAdd)
-            db.ProductRefs.Add(new ProductRef(productId, storeId, name, thumbnailUrl, ProductStatus.Available));
+            foreach (var (productId, storeId, name, thumbnailUrl) in productsToAdd)
+                db.ProductRefs.Add(new ProductRef(productId, storeId, name, thumbnailUrl, ProductStatus.Available));
 
-        foreach (var (id, productId, skuNo, price, imageUrl, attributes) in skusToAdd)
-            db.SkuRefs.Add(new SkuRef(id, productId, skuNo, price, "VND", imageUrl, attributes));
+            foreach (var (id, productId, skuNo, price, imageUrl, attributes) in skusToAdd)
+                db.SkuRefs.Add(new SkuRef(id, productId, skuNo, price, "VND", imageUrl, attributes));
 
-        await db.SaveChangesAsync(ct);
-        await tx.CommitAsync(ct);
+            await db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
+        });
         logger.LogInformation("Seeded {ProductCount} ProductRef(s) and {SkuCount} SkuRef(s).",
             productsToAdd.Count, skusToAdd.Count);
     }

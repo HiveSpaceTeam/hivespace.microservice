@@ -39,41 +39,45 @@ internal sealed class CouponSeeder(OrderDbContext db, ILogger<CouponSeeder> logg
             return;
         }
 
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
-
-        foreach (var t in missing)
+        var strategy = db.Database.CreateExecutionStrategy();
+        await strategy.ExecuteAsync(async () =>
         {
-            var discountAmount    = t.FixedAmountCents.HasValue  ? Money.Create(t.FixedAmountCents.Value,  Currency.VND.GetCode()) : null;
-            var maxDiscountAmount = t.MaxDiscountCents.HasValue   ? Money.Create(t.MaxDiscountCents.Value,  Currency.VND.GetCode()) : null;
-            var minOrderAmount    = Money.Create(t.MinOrderCents, Currency.VND.GetCode());
+            await using var tx = await db.Database.BeginTransactionAsync(ct);
 
-            var coupon = Coupon.CreateByStore(
-                storeId:          t.StoreId,
-                storeOwnerId:     t.OwnerId,
-                code:             t.Code,
-                name:             t.Name,
-                discountType:     t.DiscountType,
-                percentage:       t.Percentage,
-                discountAmount:   discountAmount,
-                scope:            t.Scope,
-                startDateTime:    t.StartDateTime,
-                endDateTime:      t.EndDateTime,
-                earlySaveDateTime: null,
-                isHidden:         t.IsHidden,
-                maxDiscountAmount: maxDiscountAmount,
-                minOrderAmount:   minOrderAmount,
-                id:               t.Id);
+            foreach (var t in missing)
+            {
+                var discountAmount    = t.FixedAmountCents.HasValue  ? Money.Create(t.FixedAmountCents.Value,  Currency.VND.GetCode()) : null;
+                var maxDiscountAmount = t.MaxDiscountCents.HasValue   ? Money.Create(t.MaxDiscountCents.Value,  Currency.VND.GetCode()) : null;
+                var minOrderAmount    = Money.Create(t.MinOrderCents, Currency.VND.GetCode());
 
-            coupon.SetMaxUsageCount(t.MaxUsageCount);
-            coupon.SetMaxUsagePerUser(t.MaxUsagePerUser);
-            if (t.ProductIds.Length > 0)
-                coupon.LimitToProducts(t.ProductIds);
+                var coupon = Coupon.CreateByStore(
+                    storeId:          t.StoreId,
+                    storeOwnerId:     t.OwnerId,
+                    code:             t.Code,
+                    name:             t.Name,
+                    discountType:     t.DiscountType,
+                    percentage:       t.Percentage,
+                    discountAmount:   discountAmount,
+                    scope:            t.Scope,
+                    startDateTime:    t.StartDateTime,
+                    endDateTime:      t.EndDateTime,
+                    earlySaveDateTime: null,
+                    isHidden:         t.IsHidden,
+                    maxDiscountAmount: maxDiscountAmount,
+                    minOrderAmount:   minOrderAmount,
+                    id:               t.Id);
 
-            db.Coupons.Add(coupon);
-        }
+                coupon.SetMaxUsageCount(t.MaxUsageCount);
+                coupon.SetMaxUsagePerUser(t.MaxUsagePerUser);
+                if (t.ProductIds.Length > 0)
+                    coupon.LimitToProducts(t.ProductIds);
 
-        await db.SaveChangesAsync(ct);
-        await tx.CommitAsync(ct);
+                db.Coupons.Add(coupon);
+            }
+
+            await db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
+        });
         logger.LogInformation("Seeded {Count} Coupon(s).", missing.Count);
     }
 

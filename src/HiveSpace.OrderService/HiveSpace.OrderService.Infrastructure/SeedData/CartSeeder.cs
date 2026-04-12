@@ -27,40 +27,43 @@ internal sealed class CartSeeder(OrderDbContext db, ILogger<CartSeeder> logger) 
             return;
         }
 
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
-
         int count = 0;
-        
-        if (!existingCarts.Contains(AliceId))
+        var strategy = db.Database.CreateExecutionStrategy();
+        await strategy.ExecuteAsync(async () =>
         {
-            var aliceCart = Cart.Create(AliceId);
-            // Tiki (Item)
-            aliceCart.AddItem(1011L, 10011L, 1);
-            // Giver (Item)
-            aliceCart.AddItem(1001L, 10001L, 2);
-            // PhuongDong (Item)
-            aliceCart.AddItem(1003L, 10003L, 1);
-            
-            db.Carts.Add(aliceCart);
-            count++;
-        }
+            await using var tx = await db.Database.BeginTransactionAsync(ct);
 
-        if (!existingCarts.Contains(BobId))
-        {
-            var bobCart = Cart.Create(BobId);
-            // Tiki (Item)
-            bobCart.AddItem(1012L, 10012L, 1);
-            // Giver (Item)
-            bobCart.AddItem(1002L, 10002L, 1);
-            // PhuongDong (Item)
-            bobCart.AddItem(1004L, 10004L, 3);
-            
-            db.Carts.Add(bobCart);
-            count++;
-        }
+            if (!existingCarts.Contains(AliceId))
+            {
+                var aliceCart = Cart.Create(AliceId);
+                // Tiki (Item)
+                aliceCart.AddItem(1011L, 10011L, 1);
+                // Giver (Item)
+                aliceCart.AddItem(1001L, 10001L, 2);
+                // PhuongDong (Item)
+                aliceCart.AddItem(1003L, 10003L, 1);
 
-        await db.SaveChangesAsync(ct);
-        await tx.CommitAsync(ct);
+                db.Carts.Add(aliceCart);
+                count++;
+            }
+
+            if (!existingCarts.Contains(BobId))
+            {
+                var bobCart = Cart.Create(BobId);
+                // Tiki (Item)
+                bobCart.AddItem(1012L, 10012L, 1);
+                // Giver (Item)
+                bobCart.AddItem(1002L, 10002L, 1);
+                // PhuongDong (Item)
+                bobCart.AddItem(1004L, 10004L, 3);
+
+                db.Carts.Add(bobCart);
+                count++;
+            }
+
+            await db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
+        });
         logger.LogInformation("Seeded {Count} Carts.", count);
     }
 }
