@@ -2,10 +2,12 @@ using HiveSpace.Core.Exceptions.Models;
 using HiveSpace.Core.Exceptions;
 using HiveSpace.Infrastructure.Persistence;
 using HiveSpace.Infrastructure.Persistence.Seeding;
+using HiveSpace.PaymentService.Application.Interfaces.Messaging;
 using HiveSpace.PaymentService.Domain.Repositories;
 using HiveSpace.PaymentService.Domain.Services;
 using HiveSpace.PaymentService.Infrastructure.Data;
 using HiveSpace.PaymentService.Infrastructure.Gateways;
+using HiveSpace.PaymentService.Infrastructure.Messaging.Publishers;
 using HiveSpace.PaymentService.Infrastructure.Repositories;
 using HiveSpace.PaymentService.Infrastructure.SeedData;
 using Microsoft.EntityFrameworkCore;
@@ -51,6 +53,7 @@ public static class PaymentInfrastructureExtensions
         services.AddScoped<IPaymentRepository, SqlPaymentRepository>();
         services.AddScoped<IWalletRepository, SqlWalletRepository>();
         services.AddScoped<ISeeder, WalletSeeder>();
+        services.AddScoped<IPaymentEventPublisher, PaymentEventPublisher>();
     }
 
     public static void AddPaymentGateways(this IServiceCollection services, IConfiguration configuration)

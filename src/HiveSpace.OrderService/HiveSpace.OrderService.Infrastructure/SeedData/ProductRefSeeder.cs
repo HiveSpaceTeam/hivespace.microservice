@@ -127,18 +127,31 @@ internal sealed class ProductRefSeeder(OrderDbContext db, ILogger<ProductRefSeed
         var strategy = db.Database.CreateExecutionStrategy();
         await strategy.ExecuteAsync(async () =>
         {
+            db.ChangeTracker.Clear();
+            var existingProdsNow = await db.ProductRefs
+                .Where(p => productIds.Contains(p.Id))
+                .Select(p => p.Id)
+                .ToHashSetAsync(ct);
+            var existingSkusNow = await db.SkuRefs
+                .Where(s => skuIds.Contains(s.Id))
+                .Select(s => s.Id)
+                .ToHashSetAsync(ct);
+
+            var toAddProds = ProductSeeds.Where(p => !existingProdsNow.Contains(p.ProductId)).ToList();
+            var toAddSkus = SkuSeeds.Where(s => !existingSkusNow.Contains(s.Id)).ToList();
+            if (toAddProds.Count == 0 && toAddSkus.Count == 0) return;
+
             await using var tx = await db.Database.BeginTransactionAsync(ct);
 
-            foreach (var (productId, storeId, name, thumbnailUrl) in productsToAdd)
+            foreach (var (productId, storeId, name, thumbnailUrl) in toAddProds)
                 db.ProductRefs.Add(new ProductRef(productId, storeId, name, thumbnailUrl, ProductStatus.Available));
 
-            foreach (var (id, productId, skuNo, price, imageUrl, attributes) in skusToAdd)
+            foreach (var (id, productId, skuNo, price, imageUrl, attributes) in toAddSkus)
                 db.SkuRefs.Add(new SkuRef(id, productId, skuNo, price, "VND", imageUrl, attributes));
 
             await db.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
+            logger.LogInformation("Seeded {ProductCount} ProductRef(s) and {SkuCount} SkuRef(s).", toAddProds.Count, toAddSkus.Count);
         });
-        logger.LogInformation("Seeded {ProductCount} ProductRef(s) and {SkuCount} SkuRef(s).",
-            productsToAdd.Count, skusToAdd.Count);
     }
 }

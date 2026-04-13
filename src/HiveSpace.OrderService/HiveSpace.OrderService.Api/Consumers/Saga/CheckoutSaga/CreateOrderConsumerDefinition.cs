@@ -9,8 +9,11 @@ public class CreateOrderConsumerDefinition : ConsumerDefinition<CreateOrderConsu
         IConsumerConfigurator<CreateOrderConsumer> consumerConfigurator,
         IRegistrationContext context)
     {
-        // This is a saga request/response step — the saga handles OrderCreation.Faulted
-        // for compensation, so retrying here only delays fault propagation.
-        endpointConfigurator.UseMessageRetry(r => r.None());
+        endpointConfigurator.UseMessageRetry(r =>
+            r.Exponential(
+                retryLimit: 3,
+                minInterval: TimeSpan.FromSeconds(1),
+                maxInterval: TimeSpan.FromSeconds(10),
+                intervalDelta: TimeSpan.FromSeconds(2)));
     }
 }

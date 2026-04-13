@@ -42,9 +42,17 @@ internal sealed class CouponSeeder(OrderDbContext db, ILogger<CouponSeeder> logg
         var strategy = db.Database.CreateExecutionStrategy();
         await strategy.ExecuteAsync(async () =>
         {
+            db.ChangeTracker.Clear();
+            var existingOnRetry = await db.Coupons
+                .Where(c => expectedCodes.Contains(c.Code))
+                .Select(c => c.Code)
+                .ToHashSetAsync(ct);
+            var toInsert = templates.Where(t => !existingOnRetry.Contains(t.Code)).ToList();
+            if (toInsert.Count == 0) return;
+
             await using var tx = await db.Database.BeginTransactionAsync(ct);
 
-            foreach (var t in missing)
+            foreach (var t in toInsert)
             {
                 var discountAmount    = t.FixedAmountCents.HasValue  ? Money.Create(t.FixedAmountCents.Value,  Currency.VND.GetCode()) : null;
                 var maxDiscountAmount = t.MaxDiscountCents.HasValue   ? Money.Create(t.MaxDiscountCents.Value,  Currency.VND.GetCode()) : null;
@@ -78,7 +86,7 @@ internal sealed class CouponSeeder(OrderDbContext db, ILogger<CouponSeeder> logg
             await db.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
         });
-        logger.LogInformation("Seeded {Count} Coupon(s).", missing.Count);
+        logger.LogInformation("Seeded Coupon(s) via CouponSeeder.");
     }
 
     private static IEnumerable<CouponTemplate> BuildTemplates(DateTimeOffset now, Guid storeId, Guid ownerId, string prefix, int idx) =>

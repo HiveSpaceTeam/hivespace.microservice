@@ -41,8 +41,10 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
 
     public CheckoutSagaStateMachine(IConfiguration configuration) : this()
     {
-        _paymentReturnUrl = configuration["Payment:ReturnUrl"]!;
-        _paymentIpnUrl    = configuration["Payment:IpnUrl"]!;
+        _paymentReturnUrl = configuration["Payment:ReturnUrl"]
+            ?? throw new InvalidOperationException("Payment:ReturnUrl configuration is required.");
+        _paymentIpnUrl = configuration["Payment:IpnUrl"]
+            ?? throw new InvalidOperationException("Payment:IpnUrl configuration is required.");
     }
 
     public CheckoutSagaStateMachine()

@@ -8,6 +8,7 @@ using HiveSpace.PaymentService.Infrastructure;
 using HiveSpace.PaymentService.Infrastructure.Data;
 using MassTransit;
 using Microsoft.OpenApi.Models;
+using Scalar.AspNetCore;
 
 namespace HiveSpace.PaymentService.Api.Extensions;
 
@@ -21,7 +22,7 @@ internal static class ServiceCollectionExtensions
         });
     }
 
-    public static void AddAppSwagger(this IServiceCollection services)
+    public static void AddAppOpenApi(this IServiceCollection services)
     {
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen(c =>
@@ -32,27 +33,21 @@ internal static class ServiceCollectionExtensions
                 Version     = "v1",
                 Description = "HiveSpace.PaymentService microservice"
             });
-
             c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
-                Name        = "Authorization",
-                Type        = SecuritySchemeType.Http,
-                Scheme      = "bearer",
+                Name         = "Authorization",
+                Type         = SecuritySchemeType.Http,
+                Scheme       = "bearer",
                 BearerFormat = "JWT",
-                In          = ParameterLocation.Header,
-                Description = "Enter your JWT token in the format: Bearer {your token}"
+                In           = ParameterLocation.Header,
+                Description  = "Enter your JWT token in the format: Bearer {your token}"
             });
-
             c.AddSecurityRequirement(new OpenApiSecurityRequirement
             {
                 {
                     new OpenApiSecurityScheme
                     {
-                        Reference = new OpenApiReference
-                        {
-                            Type = ReferenceType.SecurityScheme,
-                            Id   = "Bearer"
-                        }
+                        Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
                     },
                     Array.Empty<string>()
                 }

@@ -28,6 +28,16 @@ public static class WalletEndpoints
             int pageSize = 20,
             CancellationToken ct = default) =>
         {
+            if (page < 1 || pageSize < 1 || pageSize > 100)
+                return Results.BadRequest(new
+                {
+                    errors = new
+                    {
+                        page = page < 1 ? new[] { "page must be >= 1" } : null,
+                        pageSize = pageSize < 1 || pageSize > 100 ? new[] { "pageSize must be between 1 and 100" } : null
+                    }
+                });
+
             var result = await sender.Send(
                 new GetTransactionHistoryQuery(userContext.UserId, page, pageSize), ct);
             return Results.Ok(result);

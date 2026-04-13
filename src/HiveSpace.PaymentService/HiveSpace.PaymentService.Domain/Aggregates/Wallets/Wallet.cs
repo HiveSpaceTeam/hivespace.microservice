@@ -49,6 +49,8 @@ public class Wallet : AggregateRoot<Guid>, IAuditable
 
     public void Credit(Money amount, string reference, string description)
     {
+        if (amount.Amount <= 0)
+            throw new InvalidFieldException(PaymentDomainErrorCode.WalletInvalidAmount, nameof(amount));
         EnsureActive();
         AvailableBalance += amount;
         _transactions.Add(Transaction.CreateCredit(Id, amount, AvailableBalance, reference, description));
@@ -58,6 +60,8 @@ public class Wallet : AggregateRoot<Guid>, IAuditable
 
     public void Debit(Money amount, string reference, string description)
     {
+        if (amount.Amount <= 0)
+            throw new InvalidFieldException(PaymentDomainErrorCode.WalletInvalidAmount, nameof(amount));
         EnsureActive();
         if (AvailableBalance < amount)
             throw new InvalidFieldException(PaymentDomainErrorCode.WalletInsufficientBalance, nameof(amount));

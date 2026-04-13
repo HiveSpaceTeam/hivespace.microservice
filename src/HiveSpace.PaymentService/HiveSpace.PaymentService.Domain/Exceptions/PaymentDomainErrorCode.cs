@@ -24,6 +24,8 @@ public class PaymentDomainErrorCode : DomainErrorCode
         new(1007, "PaymentAmountRequired", "PAY1007");
     public static readonly PaymentDomainErrorCode PaymentIdempotencyKeyRequired =
         new(1008, "PaymentIdempotencyKeyRequired", "PAY1008");
+    public static readonly PaymentDomainErrorCode PaymentAccessForbidden =
+        new(1009, "PaymentAccessForbidden", "PAY1009");
 
     // Wallet aggregate errors (PAY2xxx)
     public static readonly PaymentDomainErrorCode WalletNotFound =
@@ -34,6 +36,16 @@ public class PaymentDomainErrorCode : DomainErrorCode
         new(2003, "WalletInsufficientBalance", "PAY2003");
     public static readonly PaymentDomainErrorCode WalletUserIdRequired =
         new(2004, "WalletUserIdRequired", "PAY2004");
+    public static readonly PaymentDomainErrorCode WalletInvalidAmount =
+        new(2005, "WalletInvalidAmount", "PAY2005");
+
+    // BankAccount value object errors (PAY2xxx continued)
+    public static readonly PaymentDomainErrorCode BankAccountBankCodeRequired =
+        new(2006, "BankAccountBankCodeRequired", "PAY2006");
+    public static readonly PaymentDomainErrorCode BankAccountNumberRequired =
+        new(2007, "BankAccountNumberRequired", "PAY2007");
+    public static readonly PaymentDomainErrorCode BankAccountHolderNameRequired =
+        new(2008, "BankAccountHolderNameRequired", "PAY2008");
 
     // Gateway errors (PAY3xxx)
     public static readonly PaymentDomainErrorCode InvalidGatewaySignature =

@@ -24,6 +24,10 @@ internal static class ServiceCollectionExtensions
         services.AddControllers(options =>
         {
             options.Filters.Add<CustomExceptionFilter>();
+        })
+        .AddJsonOptions(options =>
+        {
+            options.JsonSerializerOptions.Converters.Add(new EnumerationJsonConverterFactory());
         });
 
         services.ConfigureHttpJsonOptions(options =>

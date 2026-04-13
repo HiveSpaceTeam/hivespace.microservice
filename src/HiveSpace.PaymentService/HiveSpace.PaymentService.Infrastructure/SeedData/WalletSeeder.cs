@@ -17,26 +17,47 @@ internal sealed class WalletSeeder(PaymentDbContext db, ILogger<WalletSeeder> lo
 
     public async Task SeedAsync(CancellationToken ct = default)
     {
-        var exists = await db.Wallets.AnyAsync(ct);
-        if (exists)
+        var seededIds = new[] { AliceId, BobId };
+        var existingIds = await db.Wallets
+            .Where(w => seededIds.Contains(w.UserId))
+            .Select(w => w.UserId)
+            .ToHashSetAsync(ct);
+
+        if (existingIds.Contains(AliceId) && existingIds.Contains(BobId))
         {
             logger.LogDebug("Wallets already seeded. Skipping.");
             return;
         }
 
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        var strategy = db.Database.CreateExecutionStrategy();
+        await strategy.ExecuteAsync(async () =>
+        {
+            db.ChangeTracker.Clear();
+            var existing = await db.Wallets
+                .Where(w => seededIds.Contains(w.UserId))
+                .Select(w => w.UserId)
+                .ToHashSetAsync(ct);
 
-        var aliceWallet = Wallet.CreateForUser(AliceId);
-        aliceWallet.Credit(Money.Create(5_000_000, "VND"), "SEED-TOPUP", "Initial wallet top-up");
+            await using var tx = await db.Database.BeginTransactionAsync(ct);
 
-        var bobWallet = Wallet.CreateForUser(BobId);
-        bobWallet.Credit(Money.Create(3_000_000, "VND"), "SEED-TOPUP", "Initial wallet top-up");
+            if (!existing.Contains(AliceId))
+            {
+                var aliceWallet = Wallet.CreateForUser(AliceId);
+                aliceWallet.Credit(Money.Create(5_000_000, "VND"), "SEED-TOPUP", "Initial wallet top-up");
+                db.Wallets.Add(aliceWallet);
+            }
 
-        db.Wallets.AddRange(aliceWallet, bobWallet);
+            if (!existing.Contains(BobId))
+            {
+                var bobWallet = Wallet.CreateForUser(BobId);
+                bobWallet.Credit(Money.Create(3_000_000, "VND"), "SEED-TOPUP", "Initial wallet top-up");
+                db.Wallets.Add(bobWallet);
+            }
 
-        await db.SaveChangesAsync(ct);
-        await tx.CommitAsync(ct);
+            await db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
+        });
 
-        logger.LogInformation("Seeded 2 Wallets via WalletSeeder.");
+        logger.LogInformation("Seeded Wallet(s) via WalletSeeder.");
     }
 }

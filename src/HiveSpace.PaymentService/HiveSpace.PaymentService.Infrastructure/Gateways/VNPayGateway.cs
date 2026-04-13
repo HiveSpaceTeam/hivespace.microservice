@@ -46,9 +46,7 @@ public class VNPayGateway(IOptions<VNPayConfiguration> options, ILogger<VNPayGat
         var secureHash = ComputeHmacSha512(_config.HashSecret, hashData);
         var paymentUrl = $"{_config.BaseUrl}?{query}&vnp_SecureHash={secureHash}";
 
-        logger.LogInformation("[VNPay] HashInput: {HashInput}", hashData);
-        logger.LogInformation("[VNPay] SecureHash: {Hash}", secureHash);
-        logger.LogInformation("[VNPay] PaymentUrl: {Url}", paymentUrl);
+        logger.LogDebug("[VNPay] Payment URL generated for txnRef={TxnRef}", txnRef);
 
         return Task.FromResult(new GatewayInitiateResult(paymentUrl, txnRef));
     }
@@ -69,8 +67,7 @@ public class VNPayGateway(IOptions<VNPayConfiguration> options, ILogger<VNPayGat
         var hashData = BuildCanonicalData(filteredParams);
         var expectedHash = ComputeHmacSha512(_config.HashSecret, hashData);
 
-        logger.LogInformation("[VNPay] VerifyHashInput: {HashInput}", hashData);
-        logger.LogInformation("[VNPay] VerifyExpectedHash: {Hash}", expectedHash);
+        logger.LogDebug("[VNPay] Verifying webhook signature for txnRef={TxnRef}", filteredParams.GetValueOrDefault("vnp_TxnRef"));
 
         if (!string.Equals(expectedHash, receivedHash, StringComparison.OrdinalIgnoreCase))
             throw new InvalidFieldException(PaymentDomainErrorCode.InvalidGatewaySignature, "vnp_SecureHash");

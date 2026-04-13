@@ -19,16 +19,3 @@ public class EnumerationJsonConverter<T> : JsonConverter<T> where T : Enumeratio
         => writer.WriteNumberValue(value.Id);
 }
 
-public class EnumerationJsonConverterFactory : JsonConverterFactory
-{
-    public override bool CanConvert(Type typeToConvert)
-        => typeToConvert.IsClass
-           && !typeToConvert.IsAbstract
-           && typeToConvert.IsSubclassOf(typeof(Enumeration));
-
-    public override JsonConverter? CreateConverter(Type typeToConvert, JsonSerializerOptions options)
-    {
-        var converterType = typeof(EnumerationJsonConverter<>).MakeGenericType(typeToConvert);
-        return (JsonConverter?)Activator.CreateInstance(converterType);
-    }
-}

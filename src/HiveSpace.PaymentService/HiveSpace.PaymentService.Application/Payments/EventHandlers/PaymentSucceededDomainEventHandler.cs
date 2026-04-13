@@ -1,6 +1,5 @@
-using HiveSpace.Infrastructure.Messaging.Shared.IntegrationEvents;
+using HiveSpace.PaymentService.Application.Interfaces.Messaging;
 using HiveSpace.PaymentService.Domain.DomainEvents;
-using MassTransit;
 using MediatR;
 
 namespace HiveSpace.PaymentService.Application.Payments.EventHandlers;
@@ -10,23 +9,16 @@ namespace HiveSpace.PaymentService.Application.Payments.EventHandlers;
 // re-track the already-Modified Payment entity, interfering with EF Core's change tracker and
 // causing DbUpdateConcurrencyException on the outer save. IdempotencyKey is now carried on the
 // domain event so no DB query is needed.
-public class PaymentSucceededDomainEventHandler(IPublishEndpoint publishEndpoint)
+public class PaymentSucceededDomainEventHandler(IPaymentEventPublisher paymentEventPublisher)
     : INotificationHandler<PaymentSucceededDomainEvent>
 {
     public async Task Handle(PaymentSucceededDomainEvent notification, CancellationToken cancellationToken)
     {
         // IdempotencyKey is set to SagaCorrelationId.ToString() by InitiatePaymentConsumer
-        Guid.TryParse(notification.IdempotencyKey, out var sagaCorrelationId);
+        if (!Guid.TryParse(notification.IdempotencyKey, out var sagaCorrelationId) || sagaCorrelationId == Guid.Empty)
+            throw new InvalidOperationException(
+                $"Invalid saga correlation id from IdempotencyKey: '{notification.IdempotencyKey}'.");
 
-        await publishEndpoint.Publish(new PaymentSucceededIntegrationEvent
-        {
-            SagaCorrelationId = sagaCorrelationId,
-            PaymentId = notification.PaymentId,
-            OrderId = notification.OrderId,
-            BuyerId = notification.BuyerId,
-            Amount = notification.Amount.Amount,
-            Currency = notification.Amount.Currency.ToString(),
-            PaidAt = DateTimeOffset.UtcNow
-        }, cancellationToken);
+        await paymentEventPublisher.PublishPaymentSucceededAsync(notification, cancellationToken);
     }
 }

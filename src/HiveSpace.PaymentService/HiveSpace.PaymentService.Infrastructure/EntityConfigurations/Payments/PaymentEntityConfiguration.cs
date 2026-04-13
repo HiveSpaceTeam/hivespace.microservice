@@ -53,6 +53,6 @@ public class PaymentEntityConfiguration : IEntityTypeConfiguration<Payment>
         });
 
         builder.HasIndex(p => p.IdempotencyKey).IsUnique();
-        builder.HasIndex(p => p.OrderId);
+        builder.HasIndex(p => p.OrderId).IsUnique();
     }
 }

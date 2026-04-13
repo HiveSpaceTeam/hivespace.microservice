@@ -2,6 +2,7 @@ using HiveSpace.Core;
 using HiveSpace.Core.Middlewares;
 using HiveSpace.PaymentService.Api.Endpoints;
 using HiveSpace.PaymentService.Infrastructure;
+using Scalar.AspNetCore;
 
 namespace HiveSpace.PaymentService.Api.Extensions;
 
@@ -10,7 +11,7 @@ internal static class HostingExtensions
     public static WebApplication ConfigureServices(this WebApplicationBuilder builder)
     {
         builder.Services.AddAppApiControllers();
-        builder.Services.AddAppSwagger();
+        builder.Services.AddAppOpenApi();
         builder.Services.AddPaymentDbContext(builder.Configuration);
         builder.Services.AddCoreServices();
         builder.Services.AddAppMessaging(builder.Configuration);
@@ -25,7 +26,9 @@ internal static class HostingExtensions
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();
-            app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "HiveSpace.PaymentService API v1"));
+            app.MapScalarApiReference(options => options
+                .WithTitle("HiveSpace PaymentService API")
+                .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient));
         }
 
         app.UseHttpsRedirection();

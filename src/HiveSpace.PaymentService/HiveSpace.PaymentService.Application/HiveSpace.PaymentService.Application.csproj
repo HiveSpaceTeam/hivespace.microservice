@@ -10,12 +10,6 @@
     <ProjectReference Include="..\HiveSpace.PaymentService.Domain\HiveSpace.PaymentService.Domain.csproj" />
     <ProjectReference Include="..\..\..\libs\HiveSpace.Application.Shared\HiveSpace.Application.Shared.csproj" />
     <ProjectReference Include="..\..\..\libs\HiveSpace.Core\HiveSpace.Core.csproj" />
-    <ProjectReference Include="..\..\..\libs\HiveSpace.Infrastructure.Messaging\HiveSpace.Infrastructure.Messaging.csproj" />
-    <ProjectReference Include="..\..\..\libs\HiveSpace.Infrastructure.Messaging.Shared\HiveSpace.Infrastructure.Messaging.Shared.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="MassTransit" />
   </ItemGroup>
 
 </Project>

@@ -49,7 +49,7 @@ public static class RabbitMqExtensions
                 // Keep inbox rows only long enough for duplicate detection so cleanup
                 // doesn't have to churn through a large backlog under load.
                 o.DuplicateDetectionWindow = TimeSpan.FromMinutes(5);
-                o.QueryDelay = TimeSpan.FromSeconds(5);
+                o.QueryDelay = TimeSpan.FromSeconds(1);
                 o.QueryMessageLimit = 100;
                 o.QueryTimeout = TimeSpan.FromSeconds(60);
                 o.UseSqlServer();

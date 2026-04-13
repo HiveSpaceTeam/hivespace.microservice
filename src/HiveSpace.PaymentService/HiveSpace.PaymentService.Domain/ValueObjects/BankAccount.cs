@@ -1,4 +1,6 @@
 using HiveSpace.Domain.Shared.Entities;
+using HiveSpace.Domain.Shared.Exceptions;
+using HiveSpace.PaymentService.Domain.Exceptions;
 
 namespace HiveSpace.PaymentService.Domain.ValueObjects;
 
@@ -12,7 +14,16 @@ public class BankAccount : ValueObject
     private BankAccount() { }
 
     public static BankAccount Create(string bankCode, string accountNumber, string accountHolderName)
-        => new() { BankCode = bankCode, AccountNumber = accountNumber, AccountHolderName = accountHolderName };
+    {
+        if (string.IsNullOrWhiteSpace(bankCode))
+            throw new InvalidFieldException(PaymentDomainErrorCode.BankAccountBankCodeRequired, nameof(bankCode));
+        if (string.IsNullOrWhiteSpace(accountNumber))
+            throw new InvalidFieldException(PaymentDomainErrorCode.BankAccountNumberRequired, nameof(accountNumber));
+        if (string.IsNullOrWhiteSpace(accountHolderName))
+            throw new InvalidFieldException(PaymentDomainErrorCode.BankAccountHolderNameRequired, nameof(accountHolderName));
+
+        return new() { BankCode = bankCode, AccountNumber = accountNumber, AccountHolderName = accountHolderName };
+    }
 
     protected override IEnumerable<object> GetEqualityComponents()
     {
