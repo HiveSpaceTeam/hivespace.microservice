@@ -4,6 +4,7 @@ using HiveSpace.Infrastructure.Persistence.Seeding;
 using HiveSpace.OrderService.Domain.Aggregates.Coupons;
 using HiveSpace.OrderService.Domain.Enumerations;
 using HiveSpace.OrderService.Infrastructure.Data;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -11,6 +12,9 @@ namespace HiveSpace.OrderService.Infrastructure.SeedData;
 
 internal sealed class CouponSeeder(OrderDbContext db, ILogger<CouponSeeder> logger) : ISeeder
 {
+    private const int SqlUniqueIndexViolationErrorCode = 2601;
+    private const int SqlUniqueConstraintViolationErrorCode = 2627;
+
     public int Order => 3;
 
     private static readonly (Guid StoreId, Guid OwnerId, string Prefix)[] Stores = 
@@ -26,67 +30,83 @@ internal sealed class CouponSeeder(OrderDbContext db, ILogger<CouponSeeder> logg
 
         var templates = Stores.SelectMany((store, idx) => BuildTemplates(now, store.StoreId, store.OwnerId, store.Prefix, idx)).ToList();
 
-        var expectedCodes = templates.Select(t => t.Code).ToList();
-        var existingCodes = await db.Coupons
-            .Where(c => expectedCodes.Contains(c.Code))
-            .Select(c => c.Code)
-            .ToHashSetAsync(ct);
-
-        var missing = templates.Where(t => !existingCodes.Contains(t.Code)).ToList();
-        if (missing.Count == 0)
+        var strategy = db.Database.CreateExecutionStrategy();
+        try
         {
-            logger.LogDebug("All expected Coupons already exist. Skipping.");
-            return;
+            await strategy.ExecuteAsync(async () =>
+            {
+                var expectedCodes = templates.Select(t => t.Code).ToList();
+
+                db.ChangeTracker.Clear();
+                var existingCodes = await db.Coupons
+                    .Where(c => expectedCodes.Contains(c.Code))
+                    .Select(c => c.Code)
+                    .ToHashSetAsync(ct);
+
+                var toInsert = templates.Where(t => !existingCodes.Contains(t.Code)).ToList();
+                if (toInsert.Count == 0)
+                {
+                    logger.LogDebug("All expected Coupons already exist. Skipping.");
+                    return;
+                }
+
+                await using var tx = await db.Database.BeginTransactionAsync(ct);
+
+                foreach (var t in toInsert)
+                {
+                    var discountAmount    = t.FixedAmountCents.HasValue ? Money.Create(t.FixedAmountCents.Value, Currency.VND.GetCode()) : null;
+                    var maxDiscountAmount = t.MaxDiscountCents.HasValue ? Money.Create(t.MaxDiscountCents.Value, Currency.VND.GetCode()) : null;
+                    var minOrderAmount    = Money.Create(t.MinOrderCents, Currency.VND.GetCode());
+
+                    var coupon = Coupon.CreateByStore(
+                        storeId: t.StoreId,
+                        storeOwnerId: t.OwnerId,
+                        code: t.Code,
+                        name: t.Name,
+                        discountType: t.DiscountType,
+                        percentage: t.Percentage,
+                        discountAmount: discountAmount,
+                        scope: t.Scope,
+                        startDateTime: t.StartDateTime,
+                        endDateTime: t.EndDateTime,
+                        earlySaveDateTime: null,
+                        isHidden: t.IsHidden,
+                        maxDiscountAmount: maxDiscountAmount,
+                        minOrderAmount: minOrderAmount,
+                        id: t.Id);
+
+                    coupon.SetMaxUsageCount(t.MaxUsageCount);
+                    coupon.SetMaxUsagePerUser(t.MaxUsagePerUser);
+                    if (t.ProductIds.Length > 0)
+                        coupon.LimitToProducts(t.ProductIds);
+
+                    db.Coupons.Add(coupon);
+                }
+
+                await db.SaveChangesAsync(ct);
+                await tx.CommitAsync(ct);
+                logger.LogInformation("Seeded Coupon(s) via CouponSeeder.");
+            });
+        }
+        catch (DbUpdateException ex) when (IsDuplicateKeyException(ex))
+        {
+            logger.LogInformation("Coupon seeding skipped because coupons were inserted concurrently by another instance.");
+        }
+    }
+
+    private static bool IsDuplicateKeyException(DbUpdateException ex)
+    {
+        var current = ex.InnerException;
+        while (current is not null)
+        {
+            if (current is SqlException sqlEx &&
+                (sqlEx.Number is SqlUniqueIndexViolationErrorCode or SqlUniqueConstraintViolationErrorCode))
+                return true;
+
+            current = current.InnerException;
         }
 
-        var strategy = db.Database.CreateExecutionStrategy();
-        await strategy.ExecuteAsync(async () =>
-        {
-            db.ChangeTracker.Clear();
-            var existingOnRetry = await db.Coupons
-                .Where(c => expectedCodes.Contains(c.Code))
-                .Select(c => c.Code)
-                .ToHashSetAsync(ct);
-            var toInsert = templates.Where(t => !existingOnRetry.Contains(t.Code)).ToList();
-            if (toInsert.Count == 0) return;
-
-            await using var tx = await db.Database.BeginTransactionAsync(ct);
-
-            foreach (var t in toInsert)
-            {
-                var discountAmount    = t.FixedAmountCents.HasValue  ? Money.Create(t.FixedAmountCents.Value,  Currency.VND.GetCode()) : null;
-                var maxDiscountAmount = t.MaxDiscountCents.HasValue   ? Money.Create(t.MaxDiscountCents.Value,  Currency.VND.GetCode()) : null;
-                var minOrderAmount    = Money.Create(t.MinOrderCents, Currency.VND.GetCode());
-
-                var coupon = Coupon.CreateByStore(
-                    storeId:          t.StoreId,
-                    storeOwnerId:     t.OwnerId,
-                    code:             t.Code,
-                    name:             t.Name,
-                    discountType:     t.DiscountType,
-                    percentage:       t.Percentage,
-                    discountAmount:   discountAmount,
-                    scope:            t.Scope,
-                    startDateTime:    t.StartDateTime,
-                    endDateTime:      t.EndDateTime,
-                    earlySaveDateTime: null,
-                    isHidden:         t.IsHidden,
-                    maxDiscountAmount: maxDiscountAmount,
-                    minOrderAmount:   minOrderAmount,
-                    id:               t.Id);
-
-                coupon.SetMaxUsageCount(t.MaxUsageCount);
-                coupon.SetMaxUsagePerUser(t.MaxUsagePerUser);
-                if (t.ProductIds.Length > 0)
-                    coupon.LimitToProducts(t.ProductIds);
-
-                db.Coupons.Add(coupon);
-            }
-
-            await db.SaveChangesAsync(ct);
-            await tx.CommitAsync(ct);
-        });
-        logger.LogInformation("Seeded Coupon(s) via CouponSeeder.");
+        return false;
     }
 
     private static IEnumerable<CouponTemplate> BuildTemplates(DateTimeOffset now, Guid storeId, Guid ownerId, string prefix, int idx) =>

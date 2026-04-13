@@ -37,14 +37,11 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
     public State Failed          { get; private set; } = null!;
 
     private string _paymentReturnUrl = string.Empty;
-    private string _paymentIpnUrl    = string.Empty;
 
     public CheckoutSagaStateMachine(IConfiguration configuration) : this()
     {
         _paymentReturnUrl = configuration["Payment:ReturnUrl"]
             ?? throw new InvalidOperationException("Payment:ReturnUrl configuration is required.");
-        _paymentIpnUrl = configuration["Payment:IpnUrl"]
-            ?? throw new InvalidOperationException("Payment:IpnUrl configuration is required.");
     }
 
     public CheckoutSagaStateMachine()
@@ -316,12 +313,7 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
                     ctx.Saga.RequestId, ctx.Saga.ResponseAddress,
                     CheckoutErrorType.PaymentFailed, ctx.Saga.FailureReason!))
                 .TransitionTo(Compensating)
-                .PublishAsync(ctx => ctx.Init<ReleaseInventory>(new
-                {
-                    ctx.Saga.CorrelationId,
-                    OrderId        = ctx.Saga.CorrelationId,
-                    ReservationIds = ctx.Saga.ReservationIds
-                }))
+                .ThenAsync(PublishReleaseInventoryForOrders)
                 .ThenAsync(async ctx =>
                 {
                     foreach (var orderId in ctx.Saga.OrderIds)
@@ -343,12 +335,7 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
                     ctx.Saga.RequestId, ctx.Saga.ResponseAddress,
                     CheckoutErrorType.InternalError, ctx.Saga.FailureReason!))
                 .TransitionTo(Compensating)
-                .PublishAsync(ctx => ctx.Init<ReleaseInventory>(new
-                {
-                    ctx.Saga.CorrelationId,
-                    OrderId        = ctx.Saga.CorrelationId,
-                    ReservationIds = ctx.Saga.ReservationIds
-                }))
+                .ThenAsync(PublishReleaseInventoryForOrders)
                 .ThenAsync(async ctx =>
                 {
                     foreach (var orderId in ctx.Saga.OrderIds)
@@ -370,12 +357,7 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
                     ctx.Saga.RequestId, ctx.Saga.ResponseAddress,
                     CheckoutErrorType.Timeout, ctx.Saga.FailureReason!))
                 .TransitionTo(Compensating)
-                .PublishAsync(ctx => ctx.Init<ReleaseInventory>(new
-                {
-                    ctx.Saga.CorrelationId,
-                    OrderId        = ctx.Saga.CorrelationId,
-                    ReservationIds = ctx.Saga.ReservationIds
-                }))
+                .ThenAsync(PublishReleaseInventoryForOrders)
                 .ThenAsync(async ctx =>
                 {
                     foreach (var orderId in ctx.Saga.OrderIds)
@@ -409,12 +391,7 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
                 })
                 .Unschedule(PaymentTimeoutSchedule)
                 .TransitionTo(Compensating)
-                .PublishAsync(ctx => ctx.Init<ReleaseInventory>(new
-                {
-                    ctx.Saga.CorrelationId,
-                    OrderId        = ctx.Saga.CorrelationId,
-                    ReservationIds = ctx.Saga.ReservationIds
-                }))
+                .ThenAsync(PublishReleaseInventoryForOrders)
                 .ThenAsync(async ctx =>
                 {
                     foreach (var orderId in ctx.Saga.OrderIds)
@@ -433,12 +410,7 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
                     ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
                 })
                 .TransitionTo(Compensating)
-                .PublishAsync(ctx => ctx.Init<ReleaseInventory>(new
-                {
-                    ctx.Saga.CorrelationId,
-                    OrderId        = ctx.Saga.CorrelationId,
-                    ReservationIds = ctx.Saga.ReservationIds
-                }))
+                .ThenAsync(PublishReleaseInventoryForOrders)
                 .ThenAsync(async ctx =>
                 {
                     foreach (var orderId in ctx.Saga.OrderIds)
@@ -471,12 +443,7 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
                     ctx.Saga.RequestId, ctx.Saga.ResponseAddress,
                     CheckoutErrorType.InternalError, ctx.Saga.FailureReason!))
                 .TransitionTo(Compensating)
-                .PublishAsync(ctx => ctx.Init<ReleaseInventory>(new
-                {
-                    ctx.Saga.CorrelationId,
-                    OrderId        = ctx.Saga.CorrelationId,
-                    ReservationIds = ctx.Saga.ReservationIds
-                }))
+                .ThenAsync(PublishReleaseInventoryForOrders)
                 .ThenAsync(async ctx =>
                 {
                     foreach (var orderId in ctx.Saga.OrderIds)
@@ -498,12 +465,7 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
                     ctx.Saga.RequestId, ctx.Saga.ResponseAddress,
                     CheckoutErrorType.InternalError, ctx.Saga.FailureReason!))
                 .TransitionTo(Compensating)
-                .PublishAsync(ctx => ctx.Init<ReleaseInventory>(new
-                {
-                    ctx.Saga.CorrelationId,
-                    OrderId        = ctx.Saga.CorrelationId,
-                    ReservationIds = ctx.Saga.ReservationIds
-                }))
+                .ThenAsync(PublishReleaseInventoryForOrders)
                 .ThenAsync(async ctx =>
                 {
                     foreach (var orderId in ctx.Saga.OrderIds)
@@ -525,12 +487,7 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
                     ctx.Saga.RequestId, ctx.Saga.ResponseAddress,
                     CheckoutErrorType.Timeout, ctx.Saga.FailureReason!))
                 .TransitionTo(Compensating)
-                .PublishAsync(ctx => ctx.Init<ReleaseInventory>(new
-                {
-                    ctx.Saga.CorrelationId,
-                    OrderId        = ctx.Saga.CorrelationId,
-                    ReservationIds = ctx.Saga.ReservationIds
-                }))
+                .ThenAsync(PublishReleaseInventoryForOrders)
                 .ThenAsync(async ctx =>
                 {
                     foreach (var orderId in ctx.Saga.OrderIds)
@@ -563,12 +520,7 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
                     ctx.Saga.RequestId, ctx.Saga.ResponseAddress,
                     CheckoutErrorType.CODLimitExceeded, ctx.Saga.FailureReason!))
                 .TransitionTo(Compensating)
-                .PublishAsync(ctx => ctx.Init<ReleaseInventory>(new
-                {
-                    ctx.Saga.CorrelationId,
-                    OrderId        = ctx.Saga.CorrelationId,
-                    ReservationIds = ctx.Saga.ReservationIds
-                })),
+                .ThenAsync(PublishReleaseInventoryForOrders),
 
             When(CODMarking.Faulted)
                 .Then(ctx =>
@@ -580,12 +532,7 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
                     ctx.Saga.RequestId, ctx.Saga.ResponseAddress,
                     CheckoutErrorType.InternalError, ctx.Saga.FailureReason!))
                 .TransitionTo(Compensating)
-                .PublishAsync(ctx => ctx.Init<ReleaseInventory>(new
-                {
-                    ctx.Saga.CorrelationId,
-                    OrderId        = ctx.Saga.CorrelationId,
-                    ReservationIds = ctx.Saga.ReservationIds
-                })),
+                .ThenAsync(PublishReleaseInventoryForOrders),
 
             When(CODMarking.TimeoutExpired)
                 .Then(ctx =>
@@ -597,12 +544,7 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
                     ctx.Saga.RequestId, ctx.Saga.ResponseAddress,
                     CheckoutErrorType.Timeout, ctx.Saga.FailureReason!))
                 .TransitionTo(Compensating)
-                .PublishAsync(ctx => ctx.Init<ReleaseInventory>(new
-                {
-                    ctx.Saga.CorrelationId,
-                    OrderId        = ctx.Saga.CorrelationId,
-                    ReservationIds = ctx.Saga.ReservationIds
-                }))
+                .ThenAsync(PublishReleaseInventoryForOrders)
         );
 
         // ── CART CLEARING ─────────────────────────────────────────────────────
@@ -747,6 +689,21 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
         );
 
         SetCompletedWhenFinalized();
+    }
+
+    private static async Task PublishReleaseInventoryForOrders(BehaviorContext<CheckoutSagaState> ctx)
+    {
+        foreach (var orderId in ctx.Saga.OrderIds)
+        {
+            ctx.Saga.OrderReservationMap.TryGetValue(orderId, out var reservations);
+
+            await ctx.Publish<ReleaseInventory>(new
+            {
+                ctx.Saga.CorrelationId,
+                OrderId = orderId,
+                ReservationIds = reservations ?? new List<Guid>()
+            });
+        }
     }
 
     private static async Task RespondWithFailure(

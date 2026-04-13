@@ -65,11 +65,12 @@ public class VNPayGateway(IOptions<VNPayConfiguration> options, ILogger<VNPayGat
 
         // ASP.NET already URL-decodes query params — hash the raw decoded values to match VNPay's server-side computation
         var hashData = BuildCanonicalData(filteredParams);
-        var expectedHash = ComputeHmacSha512(_config.HashSecret, hashData);
+        var expectedHashBytes = ComputeHmacSha512Bytes(_config.HashSecret, hashData);
 
         logger.LogDebug("[VNPay] Verifying webhook signature for txnRef={TxnRef}", filteredParams.GetValueOrDefault("vnp_TxnRef"));
 
-        if (!string.Equals(expectedHash, receivedHash, StringComparison.OrdinalIgnoreCase))
+        if (!TryDecodeHexSignature(receivedHash, out var receivedHashBytes) ||
+            !CryptographicOperations.FixedTimeEquals(expectedHashBytes, receivedHashBytes))
             throw new InvalidFieldException(PaymentDomainErrorCode.InvalidGatewaySignature, "vnp_SecureHash");
 
         payload.TryGetValue("vnp_ResponseCode", out var responseCode);
@@ -84,11 +85,35 @@ public class VNPayGateway(IOptions<VNPayConfiguration> options, ILogger<VNPayGat
 
     private static string ComputeHmacSha512(string key, string data)
     {
+        var hash = ComputeHmacSha512Bytes(key, data);
+        return Convert.ToHexString(hash).ToLowerInvariant();
+    }
+
+    private static byte[] ComputeHmacSha512Bytes(string key, string data)
+    {
         var keyBytes = Encoding.UTF8.GetBytes(key);
         var dataBytes = Encoding.UTF8.GetBytes(data);
         using var hmac = new HMACSHA512(keyBytes);
-        var hash = hmac.ComputeHash(dataBytes);
-        return Convert.ToHexString(hash).ToLower();
+        return hmac.ComputeHash(dataBytes);
+    }
+
+    private static bool TryDecodeHexSignature(string signature, out byte[] value)
+    {
+        var normalized = signature.Trim();
+
+        if (normalized.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+            normalized = normalized[2..];
+
+        try
+        {
+            value = Convert.FromHexString(normalized);
+            return true;
+        }
+        catch (FormatException)
+        {
+            value = [];
+            return false;
+        }
     }
 
     private static string BuildCanonicalData(IEnumerable<KeyValuePair<string, string>> parameters)
