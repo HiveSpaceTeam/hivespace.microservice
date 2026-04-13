@@ -27,40 +27,41 @@ internal sealed class CartSeeder(OrderDbContext db, ILogger<CartSeeder> logger) 
             return;
         }
 
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
-
-        int count = 0;
-        
-        if (!existingCarts.Contains(AliceId))
+        var strategy = db.Database.CreateExecutionStrategy();
+        await strategy.ExecuteAsync(async () =>
         {
-            var aliceCart = Cart.Create(AliceId);
-            // Tiki (Item)
-            aliceCart.AddItem(1011L, 10011L, 1);
-            // Giver (Item)
-            aliceCart.AddItem(1001L, 10001L, 2);
-            // PhuongDong (Item)
-            aliceCart.AddItem(1003L, 10003L, 1);
-            
-            db.Carts.Add(aliceCart);
-            count++;
-        }
+            db.ChangeTracker.Clear();
+            var existing = await db.Carts
+                .Where(c => userIds.Contains(c.UserId))
+                .Select(c => c.UserId)
+                .ToHashSetAsync(ct);
 
-        if (!existingCarts.Contains(BobId))
-        {
-            var bobCart = Cart.Create(BobId);
-            // Tiki (Item)
-            bobCart.AddItem(1012L, 10012L, 1);
-            // Giver (Item)
-            bobCart.AddItem(1002L, 10002L, 1);
-            // PhuongDong (Item)
-            bobCart.AddItem(1004L, 10004L, 3);
-            
-            db.Carts.Add(bobCart);
-            count++;
-        }
+            int addedCount = 0;
+            await using var tx = await db.Database.BeginTransactionAsync(ct);
 
-        await db.SaveChangesAsync(ct);
-        await tx.CommitAsync(ct);
-        logger.LogInformation("Seeded {Count} Carts.", count);
+            if (!existing.Contains(AliceId))
+            {
+                var aliceCart = Cart.Create(AliceId);
+                aliceCart.AddItem(1011L, 10011L, 1);
+                aliceCart.AddItem(1001L, 10001L, 2);
+                aliceCart.AddItem(1003L, 10003L, 1);
+                db.Carts.Add(aliceCart);
+                addedCount++;
+            }
+
+            if (!existing.Contains(BobId))
+            {
+                var bobCart = Cart.Create(BobId);
+                bobCart.AddItem(1012L, 10012L, 1);
+                bobCart.AddItem(1002L, 10002L, 1);
+                bobCart.AddItem(1004L, 10004L, 3);
+                db.Carts.Add(bobCart);
+                addedCount++;
+            }
+
+            await db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
+            logger.LogInformation("Seeded {Count} Carts.", addedCount);
+        });
     }
 }

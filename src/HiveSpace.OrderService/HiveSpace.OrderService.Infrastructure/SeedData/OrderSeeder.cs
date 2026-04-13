@@ -26,10 +26,11 @@ internal sealed class OrderSeeder(OrderDbContext db, ILogger<OrderSeeder> logger
     private static readonly Guid StoreAdminId = new Guid("a1b2c3d4-e5f6-7890-abcd-ef1234567890");
 
     // Fixed order IDs for deterministic seeding
-    private static readonly Guid AliceOrder1Id = new Guid("aa000001-1111-1111-1111-111111111111");
-    private static readonly Guid AliceOrder2Id = new Guid("aa000002-1111-1111-1111-111111111111");
-    private static readonly Guid BobOrder1Id   = new Guid("bb000001-2222-2222-2222-222222222222");
-    private static readonly Guid BobOrder2Id   = new Guid("bb000002-2222-2222-2222-222222222222");
+    private static readonly Guid AliceOrder1Id     = new Guid("aa000001-1111-1111-1111-111111111111");
+    private static readonly Guid AliceOrder2Id     = new Guid("aa000002-1111-1111-1111-111111111111");
+    private static readonly Guid BobOrder1Id       = new Guid("bb000001-2222-2222-2222-222222222222");
+    private static readonly Guid BobOrder2Id       = new Guid("bb000002-2222-2222-2222-222222222222");
+    private static readonly Guid BobOrder1PaymentId = new Guid("cc000001-3333-3333-3333-333333333333");
 
     public async Task SeedAsync(CancellationToken ct = default)
     {
@@ -40,60 +41,59 @@ internal sealed class OrderSeeder(OrderDbContext db, ILogger<OrderSeeder> logger
             return;
         }
 
-        var productRefs = await db.ProductRefs.ToDictionaryAsync(p => p.Id, ct);
-        var skuRefs = await db.SkuRefs.ToDictionaryAsync(s => s.Id, ct);
-
-        if (productRefs.Count == 0 || skuRefs.Count == 0)
+        var strategy = db.Database.CreateExecutionStrategy();
+        await strategy.ExecuteAsync(async () =>
         {
-             logger.LogWarning("No ProductRefs or SkuRefs found to seed Orders.");
-             return;
-        }
+            db.ChangeTracker.Clear();
+            var productRefs = await db.ProductRefs.ToDictionaryAsync(p => p.Id, ct);
+            var skuRefs = await db.SkuRefs.ToDictionaryAsync(s => s.Id, ct);
 
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+            if (productRefs.Count == 0 || skuRefs.Count == 0)
+            {
+                logger.LogWarning("No ProductRefs or SkuRefs found to seed Orders.");
+                return;
+            }
 
-        var alicePhone = new PhoneNumber("0901234567");
-        var aliceAddress = new DeliveryAddress("Alice", alicePhone, "123 Main St", "District 1", "HCM City");
+            await using var tx = await db.Database.BeginTransactionAsync(ct);
 
-        var bobPhone = new PhoneNumber("0987654321");
-        var bobAddress = new DeliveryAddress("Bob", bobPhone, "456 Side St", "District 2", "HCM City");
+            // Alice Order 1: Tiki, Confirmed
+            var aliceOrder1 = CreateOrder(AliceOrder1Id, AliceId,
+                new DeliveryAddress("Alice", new PhoneNumber("0901234567"), "123 Main St", "District 1", "HCM City"),
+                TikiStoreId, 1011L, 10011L, 1012L, 10012L, productRefs, skuRefs);
+            aliceOrder1.SetShippingFee(Money.Create(15000, "VND"), false);
+            aliceOrder1.MarkAsCOD();
+            aliceOrder1.Confirm(StoreAdminId);
 
-        // Alice Order 1: Tiki, Confirmed
-        var aliceOrder1 = CreateOrder(AliceOrder1Id, AliceId,
-            new DeliveryAddress("Alice", new PhoneNumber("0901234567"), "123 Main St", "District 1", "HCM City"),
-            TikiStoreId, 1011L, 10011L, 1012L, 10012L, productRefs, skuRefs);
-        aliceOrder1.SetShippingFee(Money.Create(15000, "VND"), false);
-        aliceOrder1.MarkAsCOD();
-        aliceOrder1.Confirm(StoreAdminId);
+            // Alice Order 2: Giver, Rejected
+            var aliceOrder2 = CreateOrder(AliceOrder2Id, AliceId,
+                new DeliveryAddress("Alice", new PhoneNumber("0901234567"), "123 Main St", "District 1", "HCM City"),
+                GiverStoreId, 1001L, 10001L, 1002L, 10002L, productRefs, skuRefs);
+            aliceOrder2.SetShippingFee(Money.Create(20000, "VND"), false);
+            aliceOrder2.MarkAsCOD();
+            aliceOrder2.Reject("Out of stock", StoreAdminId);
 
-        // Alice Order 2: Giver, Rejected
-        var aliceOrder2 = CreateOrder(AliceOrder2Id, AliceId,
-            new DeliveryAddress("Alice", new PhoneNumber("0901234567"), "123 Main St", "District 1", "HCM City"),
-            GiverStoreId, 1001L, 10001L, 1002L, 10002L, productRefs, skuRefs);
-        aliceOrder2.SetShippingFee(Money.Create(20000, "VND"), false);
-        aliceOrder2.MarkAsCOD();
-        aliceOrder2.Reject("Out of stock", StoreAdminId);
+            // Bob Order 1: PhuongDong, Confirmed
+            var bobOrder1 = CreateOrder(BobOrder1Id, BobId,
+                new DeliveryAddress("Bob", new PhoneNumber("0987654321"), "456 Side St", "District 2", "HCM City"),
+                PDStoreId, 1003L, 10003L, 1004L, 10004L, productRefs, skuRefs);
+            bobOrder1.SetShippingFee(Money.Create(25000, "VND"), false);
+            bobOrder1.AddCheckout(PaymentMethod.BankTransfer, new Money(bobOrder1.TotalAmount.Amount, bobOrder1.TotalAmount.Currency));
+            bobOrder1.MarkAsPaid(BobOrder1PaymentId);
+            bobOrder1.Confirm(StoreAdminId);
 
-        // Bob Order 1: PhuongDong, Confirmed
-        var bobOrder1 = CreateOrder(BobOrder1Id, BobId,
-            new DeliveryAddress("Bob", new PhoneNumber("0987654321"), "456 Side St", "District 2", "HCM City"),
-            PDStoreId, 1003L, 10003L, 1004L, 10004L, productRefs, skuRefs);
-        bobOrder1.SetShippingFee(Money.Create(25000, "VND"), false);
-        bobOrder1.AddCheckout(PaymentMethod.BankTransfer, new Money(bobOrder1.TotalAmount.Amount, bobOrder1.TotalAmount.Currency));
-        bobOrder1.MarkAsPaid(Guid.NewGuid());
-        bobOrder1.Confirm(StoreAdminId);
+            // Bob Order 2: Tiki, Rejected
+            var bobOrder2 = CreateOrder(BobOrder2Id, BobId,
+                new DeliveryAddress("Bob", new PhoneNumber("0987654321"), "456 Side St", "District 2", "HCM City"),
+                TikiStoreId, 1013L, 10013L, 1014L, 10014L, productRefs, skuRefs);
+            bobOrder2.SetShippingFee(Money.Create(15000, "VND"), false);
+            bobOrder2.MarkAsCOD();
+            bobOrder2.Reject("Customer cancelled", StoreAdminId);
 
-        // Bob Order 2: Tiki, Rejected
-        var bobOrder2 = CreateOrder(BobOrder2Id, BobId,
-            new DeliveryAddress("Bob", new PhoneNumber("0987654321"), "456 Side St", "District 2", "HCM City"),
-            TikiStoreId, 1013L, 10013L, 1014L, 10014L, productRefs, skuRefs);
-        bobOrder2.SetShippingFee(Money.Create(15000, "VND"), false);
-        bobOrder2.MarkAsCOD();
-        bobOrder2.Reject("Customer cancelled", StoreAdminId);
+            db.Orders.AddRange(aliceOrder1, aliceOrder2, bobOrder1, bobOrder2);
 
-        db.Orders.AddRange(aliceOrder1, aliceOrder2, bobOrder1, bobOrder2);
-
-        await db.SaveChangesAsync(ct);
-        await tx.CommitAsync(ct);
+            await db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
+        });
         logger.LogInformation("Seeded 4 Orders via OrderSeeder.");
     }
 

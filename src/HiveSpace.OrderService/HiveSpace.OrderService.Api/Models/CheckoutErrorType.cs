@@ -5,6 +5,7 @@ public enum CheckoutErrorType
     ValidationFailed,
     InventoryUnavailable,
     CODLimitExceeded,
+    PaymentFailed,
     Timeout,
     InternalError
 }

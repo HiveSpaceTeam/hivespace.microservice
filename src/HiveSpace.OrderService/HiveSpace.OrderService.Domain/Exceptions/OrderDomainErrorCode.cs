@@ -198,4 +198,6 @@ public class OrderDomainErrorCode : DomainErrorCode
         new(11005, "CheckoutInternalError", "ORD11005");
     public static readonly OrderDomainErrorCode CheckoutNotFound =
         new(11006, "CheckoutNotFound", "ORD11006");
+    public static readonly OrderDomainErrorCode CheckoutPaymentFailed =
+        new(11007, "CheckoutPaymentFailed", "ORD11007");
 }

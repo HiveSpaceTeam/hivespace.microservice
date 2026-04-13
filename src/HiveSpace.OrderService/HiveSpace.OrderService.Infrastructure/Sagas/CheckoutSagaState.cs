@@ -29,7 +29,8 @@ public class CheckoutSagaState : SagaStateMachineInstance
     public List<Guid>                   ReservationIds       { get; set; } = new();
     public Dictionary<Guid, List<Guid>> OrderReservationMap  { get; set; } = new();
 
-    // Phase 2 — online payment (unused for COD)
+    // Online payment (set after PaymentInitiation step)
+    public Guid?           PaymentId        { get; set; }
     public string?         PaymentUrl       { get; set; }
     public DateTimeOffset? PaymentExpiresAt { get; set; }
 
@@ -44,4 +45,9 @@ public class CheckoutSagaState : SagaStateMachineInstance
     public Guid? InventoryReservationPendingTokenId { get; set; }
     public Guid? CODMarkingPendingTokenId           { get; set; }
     public Guid? CartClearingPendingTokenId         { get; set; }
+    public Guid? PaymentInitiationPendingTokenId    { get; set; }
+    public Guid? PaymentMarkingPendingTokenId       { get; set; }
+
+    // Schedule token for payment timeout
+    public Guid? PaymentTimeoutTokenId { get; set; }
 }

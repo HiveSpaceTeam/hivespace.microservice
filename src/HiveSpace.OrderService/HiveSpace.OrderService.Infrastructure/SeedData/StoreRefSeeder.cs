@@ -34,12 +34,25 @@ internal sealed class StoreRefSeeder(OrderDbContext db, ILogger<StoreRefSeeder> 
             return;
         }
 
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
-        foreach (var (storeId, name) in toAdd)
-            db.StoreRefs.Add(new StoreRef(storeId, name, SellerStatus.Active));
+        var strategy = db.Database.CreateExecutionStrategy();
+        await strategy.ExecuteAsync(async () =>
+        {
+            db.ChangeTracker.Clear();
+            var currentExisting = await db.StoreRefs
+                .Where(s => seedIds.Contains(s.Id))
+                .Select(s => s.Id)
+                .ToHashSetAsync(ct);
 
-        await db.SaveChangesAsync(ct);
-        await tx.CommitAsync(ct);
+            var toAddNow = Seeds.Where(s => !currentExisting.Contains(s.StoreId)).ToList();
+            if (toAddNow.Count == 0) return;
+
+            await using var tx = await db.Database.BeginTransactionAsync(ct);
+            foreach (var (storeId, name) in toAddNow)
+                db.StoreRefs.Add(new StoreRef(storeId, name, SellerStatus.Active));
+
+            await db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
+        });
         logger.LogInformation("Seeded {Count} StoreRef(s).", toAdd.Count);
     }
 }

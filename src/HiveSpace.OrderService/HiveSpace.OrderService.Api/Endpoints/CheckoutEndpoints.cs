@@ -1,6 +1,8 @@
 using HiveSpace.Core.Contexts;
 using HiveSpace.Core.Exceptions;
 using HiveSpace.Core.Exceptions.Models;
+using HiveSpace.Domain.Shared.Entities;
+using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Commands;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Events;
@@ -23,6 +25,8 @@ public static class CheckoutEndpoints
             IUserContext userContext,
             CancellationToken ct) =>
         {
+            var paymentMethod = Enumeration.FromValue<PaymentMethod>(request.PaymentMethod ?? PaymentMethod.COD.Id);
+
             var checkoutClient = bus.CreateRequestClient<CheckoutInitiated>();
             var correlationId = NewId.NextGuid();
             try
@@ -32,7 +36,8 @@ public static class CheckoutEndpoints
                     CorrelationId = correlationId,
                     userContext.UserId,
                     request.DeliveryAddress,
-                    CouponCodes = request.CouponCodes ?? []
+                    CouponCodes   = request.CouponCodes ?? [],
+                    PaymentMethod = paymentMethod
                 }, ct, RequestTimeout.After(m: 2));
 
                 if (response.Is(out Response<CheckoutResponse>? success) && success != null)
@@ -101,6 +106,9 @@ public static class CheckoutEndpoints
 
         CheckoutErrorType.CODLimitExceeded =>
             new DomainException(422, OrderDomainErrorCode.CheckoutCODLimitExceeded, nameof(CheckoutInitiated)),
+
+        CheckoutErrorType.PaymentFailed =>
+            new DomainException(422, OrderDomainErrorCode.CheckoutPaymentFailed, nameof(CheckoutInitiated)),
 
         CheckoutErrorType.Timeout =>
             new DomainException(504, OrderDomainErrorCode.CheckoutTimeout, nameof(CheckoutInitiated)),

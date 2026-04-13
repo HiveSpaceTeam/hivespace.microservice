@@ -52,13 +52,19 @@ public static class OrderInfrastructureExtension
         services.AddDbContext<OrderDbContext>((serviceProvider, options) =>
         {
             var interceptors = serviceProvider.GetServices<ISaveChangesInterceptor>();
-            options.UseSqlServer(connectionString)
+            options.UseSqlServer(connectionString, sql => sql.EnableRetryOnFailure(
+                    maxRetryCount: 3,
+                    maxRetryDelay: TimeSpan.FromSeconds(5),
+                    errorNumbersToAdd: null))
                 .AddInterceptors(interceptors);
         });
 
         services.AddDbContextFactory<OrderDbContext>((serviceProvider, options) =>
         {
-            options.UseSqlServer(connectionString);
+            options.UseSqlServer(connectionString, sql => sql.EnableRetryOnFailure(
+                maxRetryCount: 3,
+                maxRetryDelay: TimeSpan.FromSeconds(5),
+                errorNumbersToAdd: null));
         }, ServiceLifetime.Scoped);
 
         // Register the generic DbContext to resolve to OrderDbContext

@@ -515,10 +515,22 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
                     b.Property<DateTimeOffset?>("PaymentExpiresAt")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<Guid?>("PaymentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("PaymentInitiationPendingTokenId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("PaymentMarkingPendingTokenId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("PaymentMethod")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<Guid?>("PaymentTimeoutTokenId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("PaymentUrl")
                         .HasColumnType("nvarchar(max)");
@@ -570,6 +582,11 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
 
                     b.Property<bool>("OrderWasConfirmed")
                         .HasColumnType("bit");
+
+                    b.Property<string>("PaymentMethod")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("ReservationIds")
                         .IsRequired()
@@ -1256,7 +1273,14 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
                                 .HasColumnName("SnapshotAttributes");
 
                             b1.Property<DateTimeOffset>("CapturedAt")
-                                .HasColumnType("datetimeoffset");
+                                .HasColumnType("datetimeoffset")
+                                .HasColumnName("SnapshotCapturedAt");
+
+                            b1.Property<string>("Currency")
+                                .IsRequired()
+                                .HasMaxLength(3)
+                                .HasColumnType("nvarchar(3)")
+                                .HasColumnName("SnapshotCurrency");
 
                             b1.Property<string>("ImageUrl")
                                 .IsRequired()

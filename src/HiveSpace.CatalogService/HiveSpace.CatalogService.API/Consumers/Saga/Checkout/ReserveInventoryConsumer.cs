@@ -9,7 +9,7 @@ namespace HiveSpace.CatalogService.Api.Consumers.Saga.Checkout;
 
 public class ReserveInventoryConsumer : IConsumer<ReserveInventory>
 {
-    private readonly ILogger<ReserveInventoryConsumer> _logger;
+    private readonly ILogger<ReserveInventoryConsumer> _logger;                
 
     public ReserveInventoryConsumer(ILogger<ReserveInventoryConsumer> logger)
     {

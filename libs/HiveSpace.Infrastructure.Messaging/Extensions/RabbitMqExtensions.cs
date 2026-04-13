@@ -46,9 +46,19 @@ public static class RabbitMqExtensions
             bus.SetKebabCaseEndpointNameFormatter();
             bus.AddEntityFrameworkOutbox<TDbContext>(o =>
             {
-                o.QueryDelay = TimeSpan.FromMilliseconds(200);
+                var rabbitMqOptions = configuration.GetSection(RabbitMqOptions.SectionName).Get<RabbitMqOptions>() ?? new RabbitMqOptions();
+
+                // Keep inbox rows only long enough for duplicate detection so cleanup
+                // doesn't have to churn through a large backlog under load.
+                o.DuplicateDetectionWindow = TimeSpan.FromMinutes(GetPositiveOrDefault(rabbitMqOptions.DuplicateDetectionWindowMinutes, 5));
+                o.QueryDelay = TimeSpan.FromSeconds(GetPositiveOrDefault(rabbitMqOptions.OutboxQueryDelaySeconds, 1));
+                o.QueryMessageLimit = GetPositiveOrDefault(rabbitMqOptions.OutboxQueryMessageLimit, 100);
+                o.QueryTimeout = TimeSpan.FromSeconds(GetPositiveOrDefault(rabbitMqOptions.OutboxQueryTimeoutSeconds, 60));
                 o.UseSqlServer();
-                o.UseBusOutbox();
+                o.UseBusOutbox(busOutbox =>
+                {
+                    busOutbox.MessageDeliveryLimit = GetPositiveOrDefault(rabbitMqOptions.OutboxMessageDeliveryLimit, 50);
+                });
             });
 
             bus.AddConfigureEndpointsCallback((context, name, cfg) =>
@@ -83,5 +93,7 @@ public static class RabbitMqExtensions
 
         return services;
     }
-}
 
+    private static int GetPositiveOrDefault(int value, int defaultValue)
+        => value > 0 ? value : defaultValue;
+}

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HiveSpace.Domain.Shared.Entities;
+using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.OrderService.Domain.Exceptions;
 using HiveSpace.Domain.Shared.ValueObjects;
@@ -19,6 +20,7 @@ namespace HiveSpace.OrderService.Domain.ValueObjects
         public string ProductName { get; private set; }
         public string SkuName { get; private set; }
         public Money Price { get; private set; }
+        public Currency Currency { get; private set; }
         public string ImageUrl { get; private set; }
         public IReadOnlyDictionary<string, string> Attributes { get; private set; }
         public DateTimeOffset CapturedAt { get; private set; }
@@ -47,6 +49,7 @@ namespace HiveSpace.OrderService.Domain.ValueObjects
             ProductName = productName;
             SkuName = skuName;
             Price = price;
+            Currency = price.Currency;
             ImageUrl = imageUrl;
             Attributes = attributes?.AsReadOnly() ?? new Dictionary<string, string>().AsReadOnly();
             CapturedAt = capturedAt;
@@ -123,6 +126,7 @@ namespace HiveSpace.OrderService.Domain.ValueObjects
             yield return ProductName;
             yield return SkuName;
             yield return Price;
+            yield return Currency;
             yield return ImageUrl;
 
             foreach (var attribute in Attributes.OrderBy(kvp => kvp.Key, StringComparer.Ordinal)

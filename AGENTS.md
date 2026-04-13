@@ -1,1221 +1,527 @@
-# GitHub Copilot Instructions for HiveSpace Microservice
+# CLAUDE.md
 
-## Repository Overview
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-This repository contains the HiveSpace microservices platform built with .NET 8.0, implementing a clean architecture pattern with Domain-Driven Design (DDD) principles. The solution consists of two main services: a User Service with Identity Server integration and an API Gateway using YARP reverse proxy.
+## Tech Stack
 
-**Repository Size**: Medium-sized solution with ~10 projects  
-**Languages**: C# (.NET 8.0)  
-**Frameworks**: ASP.NET Core, Entity Framework Core, Duende IdentityServer, YARP  
-**Target Runtime**: .NET 8.0  
-**Architecture Pattern**: Clean Architecture / Onion Architecture with DDD
+- .NET 8, ASP.NET Core Minimal APIs or Controller
+- Entity Framework Core 8
+- Mediator for CQRS pattern (source-generated) or using interface with implementation
+- FluentValidation for request validation
+- Scalar for API documentation (OpenAPI)
 
-## Build Instructions
+## Plan First
 
-### Prerequisites
+- Treat any non-trivial task as architectural work.
+- Inspect the existing layer before changing it.
+- Keep the generated solution minimal, coherent, and production-oriented.
 
-- .NET 8.0 SDK (minimum version 8.0.119)
-- SQL Server (for User Service database)
-- Visual Studio 2022 or VS Code with C# extension
+## Always Clarify Implementation Pattern Before Starting
 
-### Bootstrap Commands
+Before implementing any new feature — whether in plan mode or not — always ask which pattern to use for the Application layer:
 
-**ALWAYS run these commands in order from the repository root:**
+**Option A — CQRS (MediatR)**
+Each operation is a discrete command or query handler. Use this when the feature maps cleanly to a single intent (create, update, cancel, list, get).
 
-1. **Restore packages** (required before any build):
-   ```bash
-   dotnet restore
-   ```
-2. **Build solution** (builds all projects):
-   ```bash
-   dotnet build
-   ```
+```text
+Application/
+  [Feature]/
+    Commands/
+      [Action][Entity]Command.cs
+      [Action][Entity]CommandHandler.cs
+      [Action][Entity]Validator.cs
+    Queries/
+      [Get][Entity]Query.cs
+      [Get][Entity]QueryHandler.cs
+```
 
-### Running the Services
+**Option B — Service / Interface**
+A service class groups related operations behind an interface. Use this when multiple operations share state, context, or helpers that would be awkward to repeat across individual handlers.
 
-**API Gateway** (no database dependencies):
+```text
+Application/
+  Interfaces/
+    I[Feature]Service.cs
+  Services/
+    [Feature]Service.cs
+```
+
+**When to ask:** Always — even for small features. The two patterns are not equivalent and mixing them without intent creates inconsistency. If the existing service already uses one pattern for the same aggregate, follow it unless there is a clear reason to diverge.
+
+## Build & Run
 
 ```bash
-cd src/HiveSpace.ApiGateway/HiveSpace.YarpApiGateway
-dotnet run
+# From repo root — always run in this order
+dotnet restore
+dotnet build   # Expect 6 nullability warnings in HiveSpace.Domain.Shared; non-blocking
+
+# Run individual services
+cd src/HiveSpace.ApiGateway/HiveSpace.YarpApiGateway && dotnet run      # https://localhost:5000, no DB
+cd src/HiveSpace.UserService/HiveSpace.UserService.Api && dotnet run    # https://localhost:5001, requires SQL Server
+cd src/HiveSpace.CatalogService/HiveSpace.CatalogService.Api && dotnet run  # requires SQL Server + RabbitMQ + Kafka
+cd src/HiveSpace.OrderService/HiveSpace.OrderService.Api && dotnet run  # https://localhost:5002, requires SQL Server + RabbitMQ + Kafka
+
+# EF Core migrations (run from project root, targeting the Infrastructure project)
+dotnet ef migrations add <Name> --project src/HiveSpace.OrderService/HiveSpace.OrderService.Infrastructure --startup-project src/HiveSpace.OrderService/HiveSpace.OrderService.Api
+dotnet ef database update --project src/HiveSpace.OrderService/HiveSpace.OrderService.Infrastructure --startup-project src/HiveSpace.OrderService/HiveSpace.OrderService.Api
 ```
 
-- Starts on: https://localhost:5000
-- No external dependencies
+No test projects exist — `dotnet test` returns immediately.
 
-**User Service API** (requires SQL Server):
+**Infrastructure requirements**: SQL Server on `localhost:1433` (sa/Passw0rd123!), RabbitMQ on `localhost:5672` (guest/guest), Kafka on `localhost:9092`.
 
-```bash
-cd src/HiveSpace.UserService/HiveSpace.UserService.Api
-dotnet run
-```
+Expected startup warnings: Duende IdentityServer license and MediatR license reminders — development use is permitted.
 
-- Starts on: https://localhost:5001
-- **CRITICAL**: Requires SQL Server running on localhost:1433
-- Database: UserDb
-- Default connection string: `Server=localhost,1433;Database=UserDb;User Id=sa;Encrypt=False;TrustServerCertificate=True`
+## Architecture
 
-### Testing
-
-- No test projects currently exist in the solution
-- `dotnet test` returns immediately with no tests to run
-
-### Build Warnings (Expected)
-
-The build produces 6 warnings related to nullability annotations in shared domain entities. These are non-blocking:
-
-- Nullability warnings in `HiveSpace.Domain.Shared` library
-- Non-nullable property warning in `Store.cs` constructor
-
-### Build Time
-
-- Clean restore: ~30-45 seconds
-- Build: ~15-20 seconds
-- No tests to run
-
-## Project Architecture & Layout
-
-### Solution Structure
+Clean Architecture / DDD. Each service has four layers: `Domain → Application → Infrastructure → Api`.
 
 ```
-hivespace.microservice.sln         # Main solution file
-Directory.Packages.props           # Centralized package management
-├── src/                           # Source code
-│   ├── HiveSpace.ApiGateway/
-│   │   └── HiveSpace.YarpApiGateway/     # YARP reverse proxy gateway
-│   └── HiveSpace.UserService/            # Identity & User management service
-│       ├── HiveSpace.UserService.Api/    # Web API layer (controllers, auth)
-│       ├── HiveSpace.UserService.Application/  # Application services (CQRS)
-│       ├── HiveSpace.UserService.Domain/       # Domain entities & business logic
-│       └── HiveSpace.UserService.Infrastructure/ # Data access & external services
-└── libs/                         # Shared libraries
-    ├── HiveSpace.Core/           # Core utilities & JWT handling
-    ├── HiveSpace.Domain.Shared/  # Shared domain primitives (Entity, ValueObject)
-    ├── HiveSpace.Application.Shared/  # Shared application patterns
-    ├── HiveSpace.Infrastructure.Messaging/  # Message broker abstractions
-    └── HiveSpace.Infrastructure.Persistence/  # Generic persistence patterns
+src/
+├── HiveSpace.ApiGateway/HiveSpace.YarpApiGateway/     # YARP reverse proxy, no DB
+├── HiveSpace.UserService/                              # Identity & auth (Duende IdentityServer)
+├── HiveSpace.CatalogService/                           # Product catalog
+├── HiveSpace.OrderService/                             # Orders, cart, coupons, checkout saga
+└── HiveSpace.MediaService/                             # Media/file handling (Azure Functions + API)
+libs/
+├── HiveSpace.Core/                                     # Exceptions, filters, helpers, pagination models
+├── HiveSpace.Domain.Shared/                            # AggregateRoot, Entity, ValueObject, IDomainEvent
+├── HiveSpace.Application.Shared/                       # ICommand, IQuery, ICommandHandler, IQueryHandler
+├── HiveSpace.Infrastructure.Messaging/                 # MassTransit/Kafka/RabbitMQ abstractions
+├── HiveSpace.Infrastructure.Messaging.Shared/          # Cross-service saga contracts (commands/events)
+├── HiveSpace.Infrastructure.Authorization/             # HiveSpaceAuthorizeAttribute, policy helpers
+└── HiveSpace.Infrastructure.Persistence/               # Outbox, idempotence, EF interceptors, transaction service
 ```
 
-### Key Configuration Files
+All packages are centrally versioned in `Directory.Packages.props` — never specify versions in `.csproj` files.
 
-- **`src/HiveSpace.UserService/HiveSpace.UserService.Api/appsettings.json`**: Main API configuration including database connection strings, IdentityServer clients, OAuth providers
-- **`src/HiveSpace.ApiGateway/HiveSpace.YarpApiGateway/appsettings.json`**: YARP reverse proxy routing configuration
-- **`Directory.Packages.props`**: Centralized NuGet package version management
-- **`*.csproj`**: Individual project configurations with PackageReference elements
+## Service Architecture
 
-### Domain Services & Architecture
+Services in this repo follow one of two structural patterns.
 
-- **Clean Architecture**: Each service follows Domain > Application > Infrastructure > API layers
-- **DDD Patterns**: Aggregates, Value Objects, Domain Services, Domain Events
-- **Identity Management**: Duende IdentityServer with ASP.NET Core Identity
-- **Database**: Entity Framework Core with SQL Server and Code-First migrations
-- **API Gateway**: YARP reverse proxy with health checks and CORS support
+### Full Clean Architecture + Strict DDD
 
-### Key Dependencies (Pinned Versions)
+Used by: **UserService**, **CatalogService**, **OrderService**
 
-- **Microsoft packages**: ASP.NET Core 8.0.11, EF Core 8.0.11, Identity 8.0.11
-- **Duende IdentityServer**: 7.2.4 (requires license for production)
-- **YARP**: 2.3.0
-- **Serilog**: 3.1.1 for structured logging
-- **FluentValidation**: 12.0.0
-- **MediatR**: 13.0.0 (license required)
+Four projects per service with hard layer boundaries:
 
-### Database & Seeding
+```text
+[Service].Domain/           # Aggregates, value objects, domain services, repository interfaces
+[Service].Application/      # MediatR commands/queries/handlers, FluentValidation validators, data query interfaces
+[Service].Infrastructure/   # EF Core repo implementations, Dapper data queries, messaging publishers
+[Service].Api/              # Controllers or minimal endpoints, MassTransit saga state machines, consumers
+```
 
-- User Service uses Entity Framework migrations
-- Automatic database seeding in development environment
-- SeedData creates default users and roles on startup
-- Migration files located in `src/HiveSpace.UserService/HiveSpace.UserService.Infrastructure/Data/Migrations/`
+Rules:
 
-### Launch Profiles
+- All business logic lives in Domain aggregates and domain services
+- Application layer orchestrates — no business rules here
+- Infrastructure never referenced from Domain or Application (dependency inversion)
+- Saga state machines and their consumers live in the Api project under `Api/Sagas/` and `Api/Consumers/`
 
-Both services have multiple launch profiles in their `Properties/launchSettings.json`:
+### Lightweight / Non-DDD
 
-- **SelfHost**: Standard development profile
-- **WSL**: WSL2 development profile
+Used by: **MediaService**
 
-### Authentication Flow
+One to three projects — typically a Core project plus an Api project, and optionally additional host projects (e.g. Azure Functions):
 
-- User Service acts as OAuth2/OIDC authorization server
-- API Gateway routes requests to appropriate services
-- Configured clients: Admin Portal (SPA) and API Testing Client (machine-to-machine)
+```text
+[Service].Core/    # Domain models, interfaces, service classes, validators — all in one place
+[Service].Api/     # Controllers, DI wiring
+[Service].Func/    # Optional: additional host (Azure Functions, workers, etc.)
+```
 
-## Common Development Issues & Workarounds
+Rules:
 
-### Database Connection Issues
+- No strict Application/Infrastructure split required
+- Business logic lives in service classes rather than domain aggregates
+- Entities still use **private setters** — no public property mutation from outside the class
+- EF configurations, storage logic, etc. can live directly in Core
 
-If User Service fails to start with SQL connection errors:
+## Two Patterns for Feature Implementation
 
-- Ensure SQL Server is running on localhost:1433
-- Update connection string in `appsettings.json` for your environment
-- In development, the service will attempt to create/migrate the database automatically
+### Pattern 1 — Command / Write operations (domain-first)
 
-### License Warnings
+Used for all write operations and reads that require business rule validation.
 
-Expected warnings during startup:
+1. **Domain**: Define or update aggregate + business methods + repository interface
+2. **Application**: `record MyCommand(...) : ICommand<MyResult>` + handler + FluentValidation validator (use `ICommand`/`ICommandHandler` from `HiveSpace.Application.Shared`)
+3. **Infrastructure**: Repository implementation + `IEntityTypeConfiguration<T>` in `EntityConfigurations/`
+4. **Api**: Map endpoint or add controller action
 
-- Duende IdentityServer license warning (development use is allowed)
-- MediatR license reminder
-- These do not prevent development work
+### Pattern 2 — Complex query operations (bypass domain)
 
-### SSL/HTTPS Warnings
+Used for paginated lists and reporting reads that don't need domain logic. Bypasses EF Core for performance using Dapper.
 
-Expected warnings:
+1. **Application**: Define `IXxxDataQuery` interface + request/response types
+2. **Infrastructure**: Implement with `Dapper` + raw SQL in `DataQueries/`
+3. **Api**: Call via application service or directly via `ISender`
 
-- ASP.NET Core developer certificate trust warnings
-- Use `dotnet dev-certs https --trust` to resolve in development
+## DDD Building Blocks
 
-### Known TODOs in Codebase
+### Domain Services
 
-Limited technical debt exists:
+For complex cross-entity business logic that doesn't belong on a single aggregate, implement `IDomainService`:
 
-- License usage summary functionality (Program.cs)
-- Message broker publishing in OutboxMessageProcessor
+```csharp
+public class UserManager : IDomainService
+{
+    public async Task<User> RegisterUserAsync(Email email, string userName, ...)
+    {
+        await CanUserBeRegisteredAsync(email, userName, cancellationToken);
+        return User.Create(email, userName, fullName);
+    }
+}
+// Register via AddAppDomainServices() in DI wiring
+```
 
-## Validation & CI/CD
+### Value Objects
 
-### Manual Validation Steps
+Immutable types where equality is based on value, not identity. Validate in the constructor and throw `InvalidFieldException` on bad input.
 
-1. Build solution: `dotnet build` (should complete with 6 warnings)
-2. Start API Gateway: Verify it listens on https://localhost:5000
-3. If SQL Server available: Start User Service and verify IdentityServer endpoints
-4. Check logs for expected license warnings only
+```csharp
+public sealed class DeliveryAddress : ValueObject
+{
+    public string RecipientName { get; }
+    public string PhoneNumber { get; }
+    // ... all init in constructor, no public setters
+}
+```
 
-### GitHub Workflows
+Examples in OrderService: `DeliveryAddress`, `ProductSnapshot`, `PhoneNumber`, `PackageDimensions`
 
-- No automated CI/CD pipelines currently configured
-- No `.github/workflows/` directory exists
+### Specifications
 
-### Code Quality
+Used for named, composable query predicates on aggregates:
 
-- Nullable reference types enabled across all projects
-- Central package management enforced
-- Clean Architecture boundaries maintained
+```csharp
+public class CouponOngoingSpecification : Specification<Coupon> { ... }
+public class CouponOwnedByStoreSpecification : Specification<Coupon> { ... }
+```
 
----
+Place specifications alongside the aggregate in the Domain layer.
 
-## Instructions for Coding Agents
+### IUserContext
 
-**Trust these instructions** - they are validated and current. Only search for additional information if:
+Inject `IUserContext` in command/query handlers to access the authenticated user:
 
-- These instructions appear outdated or incorrect
-- You need specific implementation details not covered here
-- You encounter unexpected build or runtime errors
+```csharp
+private readonly IUserContext _userContext;
+// Provides: _userContext.UserId, _userContext.StoreId, etc.
+```
 
-**Always start with**: `dotnet restore && dotnet build` before making any changes.
+## API Layer
 
-**For database-dependent changes**: Ensure you have SQL Server available or modify connection strings appropriately for your environment.
+**UserService** uses MVC controllers:
 
-**When adding new projects**: Follow the existing clean architecture pattern and add entries to the main solution file.
+```csharp
+[ApiController]
+[Route("api/v{version:apiVersion}/[controller]")]
+[ApiVersion("1.0")]
+public class UsersController : ControllerBase { ... }
+```
 
-**For API changes**: Update both the User Service (if identity-related) and API Gateway routing configurations as needed.
+**OrderService** uses minimal API endpoints via static extension methods (Carter-style):
+
+```csharp
+// src/HiveSpace.OrderService/HiveSpace.OrderService.Api/Endpoints/OrderEndpoints.cs
+public static class OrderEndpoints
+{
+    public static IEndpointRouteBuilder MapOrderEndpoints(this IEndpointRouteBuilder app)
+    {
+        app.MapPost("/api/v1/orders/checkout", async (...) => { ... })
+           .RequireAuthorization()
+           .WithName("InitiateCheckout")
+           .WithTags("Order");
+        return app;
+    }
+}
+```
+
+Use `HiveSpaceAuthorizeAttribute.Seller.Policy` for seller-only endpoints.
+
+## Sagas (MassTransit)
+
+Sagas are distributed workflows orchestrated via MassTransit state machines. A service can have multiple sagas. Contracts (commands and events) are shared via `libs/HiveSpace.Infrastructure.Messaging.Shared/`.
+
+**File placement within a service:**
+
+```text
+Api/Sagas/[SagaName]/[SagaName]StateMachine.cs   # State machine definition
+Api/Sagas/[SagaName]/[SagaName]State.cs          # or in Infrastructure/Sagas/
+Api/Consumers/Saga/[SagaName]/[Step]Consumer.cs  # One consumer per saga step
+```
+
+**Two communication styles used inside sagas:**
+
+| Style             | When to use                                           | Example                                 |
+| ----------------- | ----------------------------------------------------- | --------------------------------------- |
+| Request/Response  | Synchronous saga step; needs a reply to advance state | `OrderCreation`, `InventoryReservation` |
+| Publish/Subscribe | Async notification or compensation; fire and forget   | `ReleaseInventory`, `CancelOrder`       |
+
+Request/Response steps should always define a timeout (e.g. 30 minutes). Compensation events are published when a step fails and trigger rollback in upstream services.
+
+**Example — checkout flow (for reference):**
+
+- Trigger: POST `/api/v1/orders/checkout` publishes `CheckoutInitiated` with a `CorrelationId`
+- Saga state: `CheckoutSagaState` persisted via EF Core
+- Steps (request/response): OrderCreation → InventoryReservation → CODMarking → CartClearing
+- Compensation: `ReleaseInventory`, `CancelOrder` on failure
+
+Always call `await db.SaveChangesAsync(ct)` after publishing to persist outbox records in the same transaction.
+
+## Coding Rules
 
 ## Git Commit Guardrails
 
 - Agents must never stage or commit any `*.json` file.
-- If a change includes one or more `*.json` files, stop before `git add`/`git commit` and ask the user to stage those JSON files manually.
-- Agents may continue staging and committing non-JSON files only after confirming JSON staging is handled by the user.
+- If a task changes one or more `*.json` files, agents must ask the user to add/stage those JSON files manually.
+- Agents can stage and commit only non-JSON files after user confirmation that JSON staging is handled.
 - After finishing a task, agents must delete temporary files they created (for example: ad-hoc error logs, scratch/debug files, or one-off investigation artifacts) unless the user explicitly asks to keep them.
 - Agents must not stage or commit temporary files created only for debugging or task tracking.
 
-## Development Workflow for DDD Services
+### Error handling — CRITICAL
 
-### For Command Operations & Simple Query Operations (Domain-First Approach)
-
-When implementing **write operations** or **simple read operations** that require domain validation, follow this sequence:
-
-#### 1. **Domain Layer** (Start Here)
+Always use exceptions from `HiveSpace.Domain.Shared.Exceptions`. Never use `System.ArgumentException`, `System.InvalidOperationException`, etc. in domain or application code.
 
 ```csharp
-// Example from User aggregate - Domain entity with business logic
-public class User : AggregateRoot<Guid>, IAuditable
-{
-    public Email Email { get; private set; }
-    public string FullName { get; private set; }
-    public PhoneNumber? PhoneNumber { get; private set; }
+// Available types (all inherit DomainException):
+throw new NotFoundException(OrderDomainErrorCode.OrderNotFound, nameof(Order));      // 404
+throw new InvalidFieldException(OrderDomainErrorCode.InvalidAmount, nameof(amount)); // 400
+throw new ConflictException(OrderDomainErrorCode.CouponAlreadyUsed, nameof(Coupon)); // 409
+throw new ForbiddenException(OrderDomainErrorCode.NotOrderOwner, nameof(Order));     // 403
+// Always use nameof() for the source parameter — never hardcoded strings
+```
 
-    // Business method with domain validation
-    public void UpdateProfile(string fullName, PhoneNumber? phoneNumber)
-    {
-        ValidateFullName(fullName);
-        FullName = fullName;
-        PhoneNumber = phoneNumber;
-        RaiseDomainEvent(new UserProfileUpdatedEvent(Id));
-    }
+**Extending exceptions** — optional, for descriptive domain-specific types:
+
+```csharp
+// ✅ Extend HiveSpace base exceptions when a named type adds clarity
+public class InvalidEmailException : DomainException
+{
+    public InvalidEmailException() : base(400, UserDomainErrorCode.InvalidEmail, nameof(Email)) { }
 }
 
-// Example from UserManager - Domain service for complex business operations
-public class UserManager : IDomainService
+// ❌ Never extend System exceptions
+public class InvalidUserException : ArgumentException { }  // WRONG
+```
+
+**Defining domain error codes:**
+
+```csharp
+// Each service defines its own error codes extending DomainErrorCode
+public class OrderDomainErrorCode : DomainErrorCode
 {
-    private readonly IUserRepository _userRepository;
-
-    public async Task<User> RegisterUserAsync(Email email, string userName, string fullName,
-        CancellationToken cancellationToken = default)
-    {
-        // Domain validation and business rules
-        await CanUserBeRegisteredAsync(email, userName?.Trim() ?? string.Empty, cancellationToken);
-        var user = User.Create(email, userName?.Trim() ?? string.Empty, PasswordPlaceholder, fullName);
-        return user;
-    }
-
-    private async Task<bool> CanUserBeRegisteredAsync(Email email, string userName, CancellationToken cancellationToken)
-    {
-        if (!await IsEmailAvailableAsync(email, cancellationToken))
-            throw new ConflictException(UserDomainErrorCode.EmailAlreadyExists, nameof(User.Email));
-        if (!await IsUserNameAvailableAsync(userName, cancellationToken))
-            throw new ConflictException(UserDomainErrorCode.UserNameAlreadyExists, nameof(User.UserName));
-        return true;
-    }
-}
-
-// Repository interface in domain layer
-public interface IUserRepository
-{
-    Task<User?> GetByEmailAsync(Email email, CancellationToken cancellationToken = default);
-    Task<User> CreateUserAsync(User domainUser, string password, CancellationToken cancellationToken = default);
-    Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+    private OrderDomainErrorCode(int id, string name, string code) : base(id, name, code) { }
+    public static readonly OrderDomainErrorCode OrderNotFound = new(2001, "OrderNotFound", "ORD2001");
+    public static readonly OrderDomainErrorCode InvalidAmount  = new(2002, "InvalidAmount",  "ORD2002");
 }
 ```
 
-#### 2. **Application Layer**
+### Commands — always go through the domain
 
 ```csharp
-// Example from CreateAdminRequestDto - Request DTO
-public record CreateAdminRequestDto(
-    string Email,
-    string Password,
-    string FullName,
-    string ConfirmPassword,
-    bool IsSystemAdmin = false
-);
+// ✅ Load aggregate → call domain method → save
+var order = await _repo.GetByIdAsync(id)
+    ?? throw new NotFoundException(OrderDomainErrorCode.OrderNotFound, nameof(Order));
+order.Cancel();
+await _repo.SaveChangesAsync(ct);
 
-// Example from CreateAdminResponseDto - Response DTO
-public record CreateAdminResponseDto(
-    Guid Id,
-    string Email,
-    string FullName,
-    bool IsSystemAdmin,
-    DateTimeOffset CreatedAt,
-    bool IsActive = true
-);
+// ❌ Never update EF entities directly — bypasses domain validation
+await _dbContext.Orders.Where(o => o.Id == id)
+    .ExecuteUpdateAsync(s => s.SetProperty(o => o.Status, OrderStatus.Cancelled));
+```
 
-// Example from CreateAdminValidator - FluentValidation validator
-public class CreateAdminValidator : AbstractValidator<CreateAdminRequestDto>
+### Entity configuration
+
+- Place in `[Service].Infrastructure/EntityConfigurations/[Entity]EntityConfiguration.cs`
+- Table names must be `snake_case` (e.g., `builder.ToTable("order")`)
+- Apply via `builder.ApplyConfigurationsFromAssembly()`
+
+### DTOs
+
+Use C# `record` types for all DTOs. FluentValidation validators use `.WithState(_ => new Error(ErrorCode, nameof(field)))`:
+
+```csharp
+RuleFor(x => x.Email)
+    .NotEmpty()
+    .WithState(_ => new Error(CommonErrorCode.Required, nameof(CreateAdminRequestDto.Email)))
+    .EmailAddress()
+    .WithState(_ => new Error(UserDomainErrorCode.InvalidEmail, nameof(CreateAdminRequestDto.Email)));
+```
+
+### Commands and queries
+
+Commands implement `ICommand<TResult>` from `HiveSpace.Application.Shared` (wraps MediatR `IRequest<TResult>`). Query handlers for complex reads implement `IQueryHandler<TQuery, TResult>` from `HiveSpace.Application.Shared`.
+
+### Domain events to integration events
+
+Domain events raised via `AggregateRoot.RaiseDomainEvent()` are captured by `DomainEventToOutboxInterceptor` and written to the outbox table. The outbox processor publishes them as integration events via MassTransit.
+
+### Monetary values
+
+Monetary amounts are stored as `long` (e.g., cents/smallest currency unit) with a separate currency `string` column — do not use `decimal` for money.
+
+### Primary constructors
+
+Prefer C# 12 primary constructors for dependency injection — no explicit field declarations needed:
+
+```csharp
+// ✅ DO
+public class OrderService(IOrderRepository repo, IUserContext userContext) { }
+
+// ❌ DON'T
+public class OrderService
 {
-    public CreateAdminValidator()
-    {
-        RuleFor(x => x.FullName)
-            .NotEmpty()
-            .WithState(_ => new Error(CommonErrorCode.Required, nameof(CreateAdminRequestDto.FullName)))
-            .Length(2, 100)
-            .WithState(_ => new Error(UserDomainErrorCode.InvalidField, nameof(CreateAdminRequestDto.FullName)));
-
-        RuleFor(x => x.Email)
-            .NotEmpty()
-            .WithState(_ => new Error(CommonErrorCode.Required, nameof(CreateAdminRequestDto.Email)))
-            .EmailAddress()
-            .WithState(_ => new Error(UserDomainErrorCode.InvalidEmail, nameof(CreateAdminRequestDto.Email)));
-
-        RuleFor(x => x.Password)
-            .NotEmpty()
-            .MinimumLength(12)
-            .Matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]+$");
-    }
-}
-
-// Example from AdminService - Application service orchestrating domain operations
-public class AdminService : IAdminService
-{
-    private readonly IUserContext _userContext;
-    private readonly UserManager _domainUserManager;
-    private readonly IUserRepository _userRepository;
-
-    public async Task<CreateAdminResponseDto> CreateAdminAsync(CreateAdminRequestDto request,
-        CancellationToken cancellationToken = default)
-    {
-        // Build domain value objects
-        var email = Email.Create(request.Email);
-        var role = Role.FromName(request.IsSystemAdmin ? Role.RoleNames.SystemAdmin : Role.RoleNames.Admin);
-
-        // Use domain manager for business logic validation
-        var domainUser = await _domainUserManager.CreateAdminUserAsync(
-            email, email, request.FullName.Trim(), role, _userContext.UserId, cancellationToken);
-
-        // Persist through repository
-        var created = await _userRepository.CreateUserAsync(domainUser, request.Password, cancellationToken);
-
-        // Map to response DTO
-        return new CreateAdminResponseDto(
-            created.Id, created.Email.Value, created.FullName,
-            created.Role?.Name == Role.RoleNames.SystemAdmin, created.CreatedAt);
-    }
+    private readonly IOrderRepository _repo;
+    public OrderService(IOrderRepository repo) { _repo = repo; }
 }
 ```
 
-#### 3. **Register in DI Container**
+### Dependency injection lifetime
+
+Always register services, repositories, and data queries as `AddScoped`. Only deviate with a clear reason:
 
 ```csharp
-// Example from ServiceCollectionExtensions.cs - Actual DI registration
-public static void AddAppApplicationServices(this IServiceCollection services)
-{
-    services.AddScoped<IUserContext, UserContext>();
-    services.AddScoped<IAdminService, AdminService>();
-}
+// ✅
+services.AddScoped<IOrderService, OrderService>();
+services.AddScoped<IOrderRepository, SqlOrderRepository>();
+services.AddScoped<IOrderDataQuery, OrderDataQuery>();
 
-public static void AddAppDomainServices(this IServiceCollection services)
-{
-    services.AddScoped<UserManager>();
-    services.AddScoped<StoreManager>();
-}
+// ❌ Don't use AddSingleton for stateful/db-dependent services
 ```
 
-#### 4. **Infrastructure Layer**
+### Async / await
+
+Never block on async code — always `await`:
 
 ```csharp
-// Example from UserRepository - Repository implementation
-public class UserRepository : IUserRepository
-{
-    private readonly UserDbContext _context;
-    private readonly UserManager<ApplicationUser> _userManager;
+// ✅
+var order = await _repo.GetByIdAsync(id, ct);
 
-    public async Task<User> CreateUserAsync(User domainUser, string password, CancellationToken cancellationToken = default)
-    {
-        var appUser = domainUser.ToApplicationUser();
-        var result = await _userManager.CreateAsync(appUser, password);
-
-        if (!result.Succeeded)
-            throw new InvalidOperationException($"Failed to create user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
-
-        // Add to role if specified
-        if (domainUser.Role != null)
-            await _userManager.AddToRoleAsync(appUser, domainUser.Role.Name);
-
-        await _context.SaveChangesAsync(cancellationToken);
-
-        // Convert back to domain entity
-        var roleNames = await _userManager.GetRolesAsync(appUser);
-        return appUser.ToDomainUser(roleNames);
-    }
-}
-
-// Entity configuration example - MUST be placed in Infrastructure/EntityConfigurations/
-public class UserConfiguration : IEntityTypeConfiguration<ApplicationUser>
-{
-    public void Configure(EntityTypeBuilder<ApplicationUser> builder)
-    {
-        // Table name should follow snake_case convention
-        builder.ToTable("users");
-
-        // Configure properties
-        builder.Property(x => x.FullName).HasMaxLength(200).IsRequired();
-        builder.Property(x => x.Email).HasMaxLength(256).IsRequired();
-        builder.HasIndex(x => x.Email).IsUnique();
-    }
-}
-
-/*
-Entity Configuration Rules:
-1. Place configurations in [ServiceName].Infrastructure/EntityConfigurations/
-2. Name pattern: [EntityName]EntityConfiguration
-3. Table names: Use snake_case (e.g., user_settings, not UserSettings)
-4. Each entity type gets its own configuration class
-5. Apply configurations using builder.ApplyConfigurationsFromAssembly()
-*/
+// ❌ Deadlock risk
+var order = _repo.GetByIdAsync(id).Result;
 ```
 
-#### 5. **API Layer**
+### Error code naming convention
 
-```csharp
-// Example from AdminController - Actual controller implementation
-[ApiController]
-[Route("api/v{version:apiVersion}/admins")]
-[ApiVersion("1.0")]
-public class AdminController : ControllerBase
-{
-    private readonly IAdminService _adminService;
+Use a domain prefix so error codes are traceable across services:
 
-    public AdminController(IAdminService adminService) => _adminService = adminService;
+| Scope          | Prefix    | Example                                              |
+| -------------- | --------- | ---------------------------------------------------- |
+| Shared/common  | `APP0xxx` | `APP0004` — in `HiveSpace.Core` as `CommonErrorCode` |
+| UserService    | `USR1xxx` | `USR1001` — `UserDomainErrorCode`                    |
+| OrderService   | `ORD2xxx` | `ORD2001` — `OrderDomainErrorCode`                   |
+| CatalogService | `CAT3xxx` | `CAT3001` — `CatalogDomainErrorCode`                 |
 
-    [HttpPost]
-    [Authorize(Policy = "RequireUserFullAccessScope")]
-    public async Task<ActionResult<CreateAdminResponseDto>> CreateAdmin(
-        [FromBody] CreateAdminRequestDto request, CancellationToken cancellationToken)
-    {
-        // Validate request using FluentValidation
-        ValidationHelper.ValidateResult(new CreateAdminValidator().Validate(request));
+### One type per file
 
-        // Call application service
-        var result = await _adminService.CreateAdminAsync(request, cancellationToken);
+Each file contains exactly one primary type. File name must match the type name:
 
-        return CreatedAtAction(nameof(CreateAdmin), new { id = result.Id }, result);
-    }
-}
+```text
+CreateOrderCommand.cs          → record CreateOrderCommand
+CreateOrderCommandHandler.cs   → class CreateOrderCommandHandler
+CreateOrderValidator.cs        → class CreateOrderValidator
 ```
 
-### For Complex Query Operations (Bypass Domain Approach)
+<!-- gitnexus:start -->
+# GitNexus — Code Intelligence
 
-When implementing **complex read operations** that don't require domain validation and need performance optimization:
+This project is indexed by GitNexus as **hivespace.microservice** (5819 symbols, 15265 relationships, 297 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
-#### 1. **Application Layer**
+> If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
-```csharp
-// Example request DTO for complex queries
-public record GetUsersRequestDto(
-    string? SearchTerm = null,
-    UserStatus? Status = null,
-    int PageNumber = 1,
-    int PageSize = 10,
-    string? SortField = null,
-    SortDirection? SortDirection = null
-);
+## Always Do
 
-// Example response DTO
-public record GetUsersResponseDto(
-    PagedResult<UserListItemDto> Users
-);
+- **MUST run impact analysis before editing any symbol.** Before modifying a function, class, or method, run `gitnexus_impact({target: "symbolName", direction: "upstream"})` and report the blast radius (direct callers, affected processes, risk level) to the user.
+- **MUST run `gitnexus_detect_changes()` before committing** to verify your changes only affect expected symbols and execution flows.
+- **MUST warn the user** if impact analysis returns HIGH or CRITICAL risk before proceeding with edits.
+- When exploring unfamiliar code, use `gitnexus_query({query: "concept"})` to find execution flows instead of grepping. It returns process-grouped results ranked by relevance.
+- When you need full context on a specific symbol — callers, callees, which execution flows it participates in — use `gitnexus_context({name: "symbolName"})`.
 
-public record UserListItemDto(
-    Guid Id,
-    string Username,
-    string FullName,
-    string Email,
-    UserStatus Status,
-    bool IsSeller,
-    DateTime CreatedDate,
-    DateTime? LastLoginDate,
-    string Avatar
-);
+## When Debugging
 
-// Validator for query request
-public class GetUsersValidator : AbstractValidator<GetUsersRequestDto>
-{
-    public GetUsersValidator()
-    {
-        RuleFor(x => x.PageNumber).GreaterThan(0);
-        RuleFor(x => x.PageSize).InclusiveBetween(1, 100);
-    }
-}
+1. `gitnexus_query({query: "<error or symptom>"})` — find execution flows related to the issue
+2. `gitnexus_context({name: "<suspect function>"})` — see all callers, callees, and process participation
+3. `READ gitnexus://repo/hivespace.microservice/process/{processName}` — trace the full execution flow step by step
+4. For regressions: `gitnexus_detect_changes({scope: "compare", base_ref: "main"})` — see what your branch changed
 
-// Application service using data query
-public class AdminService : IAdminService
-{
-    private readonly IUserDataQuery _userDataQuery;
+## When Refactoring
 
-    public async Task<GetUsersResponseDto> GetUsersAsync(GetUsersRequestDto request,
-        CancellationToken cancellationToken = default)
-    {
-        // Convert to internal query model
-        var filterRequest = new AdminUserFilterRequest
-        {
-            SearchTerm = request.SearchTerm,
-            Status = request.Status,
-            PageNumber = request.PageNumber,
-            PageSize = request.PageSize,
-            SortField = request.SortField ?? "CreatedDate",
-            SortDirection = request.SortDirection ?? SortDirection.Desc
-        };
+- **Renaming**: MUST use `gitnexus_rename({symbol_name: "old", new_name: "new", dry_run: true})` first. Review the preview — graph edits are safe, text_search edits need manual review. Then run with `dry_run: false`.
+- **Extracting/Splitting**: MUST run `gitnexus_context({name: "target"})` to see all incoming/outgoing refs, then `gitnexus_impact({target: "target", direction: "upstream"})` to find all external callers before moving code.
+- After any refactor: run `gitnexus_detect_changes({scope: "all"})` to verify only expected files changed.
 
-        // Execute direct query bypassing domain
-        var result = await _userDataQuery.GetPagingUsersAsync(filterRequest, cancellationToken);
+## Never Do
 
-        return new GetUsersResponseDto(result);
-    }
-}
+- NEVER edit a function, class, or method without first running `gitnexus_impact` on it.
+- NEVER ignore HIGH or CRITICAL risk warnings from impact analysis.
+- NEVER rename symbols with find-and-replace — use `gitnexus_rename` which understands the call graph.
+- NEVER commit changes without running `gitnexus_detect_changes()` to check affected scope.
+
+## Tools Quick Reference
+
+| Tool | When to use | Command |
+|------|-------------|---------|
+| `query` | Find code by concept | `gitnexus_query({query: "auth validation"})` |
+| `context` | 360-degree view of one symbol | `gitnexus_context({name: "validateUser"})` |
+| `impact` | Blast radius before editing | `gitnexus_impact({target: "X", direction: "upstream"})` |
+| `detect_changes` | Pre-commit scope check | `gitnexus_detect_changes({scope: "staged"})` |
+| `rename` | Safe multi-file rename | `gitnexus_rename({symbol_name: "old", new_name: "new", dry_run: true})` |
+| `cypher` | Custom graph queries | `gitnexus_cypher({query: "MATCH ..."})` |
+
+## Impact Risk Levels
+
+| Depth | Meaning | Action |
+|-------|---------|--------|
+| d=1 | WILL BREAK — direct callers/importers | MUST update these |
+| d=2 | LIKELY AFFECTED — indirect deps | Should test |
+| d=3 | MAY NEED TESTING — transitive | Test if critical path |
+
+## Resources
+
+| Resource | Use for |
+|----------|---------|
+| `gitnexus://repo/hivespace.microservice/context` | Codebase overview, check index freshness |
+| `gitnexus://repo/hivespace.microservice/clusters` | All functional areas |
+| `gitnexus://repo/hivespace.microservice/processes` | All execution flows |
+| `gitnexus://repo/hivespace.microservice/process/{name}` | Step-by-step execution trace |
+
+## Self-Check Before Finishing
+
+Before completing any code modification task, verify:
+1. `gitnexus_impact` was run for all modified symbols
+2. No HIGH/CRITICAL risk warnings were ignored
+3. `gitnexus_detect_changes()` confirms changes match expected scope
+4. All d=1 (WILL BREAK) dependents were updated
+
+## Keeping the Index Fresh
+
+After committing code changes, the GitNexus index becomes stale. Re-run analyze to update it:
+
+```bash
+npx gitnexus analyze
 ```
 
-#### 2. **Data Query Interface**
+If the index previously included embeddings, preserve them by adding `--embeddings`:
 
-```csharp
-// Example from IUserDataQuery - Query interface in Application layer
-public interface IUserDataQuery
-{
-    Task<PagedResult<UserListItemDto>> GetPagingUsersAsync(AdminUserFilterRequest request,
-        CancellationToken cancellationToken = default);
-    Task<UserListItemDto?> GetUserByIdAsync(Guid userId, CancellationToken cancellationToken = default);
-}
+```bash
+npx gitnexus analyze --embeddings
 ```
 
-#### 3. **Infrastructure Layer (DataQueries)**
+To check whether embeddings exist, inspect `.gitnexus/meta.json` — the `stats.embeddings` field shows the count (0 means no embeddings). **Running analyze without `--embeddings` will delete any previously generated embeddings.**
 
-```csharp
-// Example from UserDataQuery - Direct SQL implementation
-public class UserDataQuery : IUserDataQuery
-{
-    private readonly string _connectionString;
+> Claude Code users: A PostToolUse hook handles this automatically after `git commit` and `git merge`.
 
-    public UserDataQuery(string connectionString) =>
-        _connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
+## CLI
 
-    public async Task<PagedResult<UserListItemDto>> GetPagingUsersAsync(AdminUserFilterRequest request,
-        CancellationToken cancellationToken = default)
-    {
-        var whereConditions = BuildWhereConditions(request);
-        var orderBy = BuildOrderByClause(request.SortField, request.SortDirection);
+| Task | Read this skill file |
+|------|---------------------|
+| Understand architecture / "How does X work?" | `.claude/skills/gitnexus/gitnexus-exploring/SKILL.md` |
+| Blast radius / "What breaks if I change X?" | `.claude/skills/gitnexus/gitnexus-impact-analysis/SKILL.md` |
+| Trace bugs / "Why is X failing?" | `.claude/skills/gitnexus/gitnexus-debugging/SKILL.md` |
+| Rename / extract / split / refactor | `.claude/skills/gitnexus/gitnexus-refactoring/SKILL.md` |
+| Tools, resources, schema reference | `.claude/skills/gitnexus/gitnexus-guide/SKILL.md` |
+| Index, status, clean, wiki CLI commands | `.claude/skills/gitnexus/gitnexus-cli/SKILL.md` |
 
-        // Complex SQL query for performance
-        var mainQuery = $@"
-            WITH FilteredUsers AS (
-                SELECT DISTINCT
-                    u.Id,
-                    u.UserName AS Username,
-                    u.FullName,
-                    u.Email,
-                    u.Status,
-                    CAST(CASE WHEN u.StoreId IS NOT NULL THEN 1 ELSE 0 END AS BIT) AS IsSeller,
-                    CAST(u.CreatedAt AT TIME ZONE 'UTC' AS DATETIME2) AS CreatedDate,
-                    CAST(u.LastLoginAt AT TIME ZONE 'UTC' AS DATETIME2) AS LastLoginDate,
-                    '' AS Avatar
-                FROM users u
-                WHERE NOT EXISTS (
-                    SELECT 1 FROM user_roles ur2 JOIN roles r2 ON ur2.RoleId = r2.Id
-                    WHERE ur2.UserId = u.Id AND r2.Name IN ('SystemAdmin', 'Admin')
-                )
-                {whereConditions}
-            )
-            SELECT * FROM FilteredUsers {orderBy}
-            OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
-
-        using var connection = new SqlConnection(_connectionString);
-
-        var parameters = new
-        {
-            SearchTerm = request.SearchTerm,
-            Status = (int?)request.Status,
-            Offset = (request.PageNumber - 1) * request.PageSize,
-            PageSize = request.PageSize
-        };
-
-        var users = await connection.QueryAsync<UserListItemDto>(mainQuery, parameters);
-        var totalCount = await GetTotalCountAsync(connection, request);
-
-        return new PagedResult<UserListItemDto>(users.ToList(), totalCount, request.PageNumber, request.PageSize);
-    }
-}
-```
-
-#### 4. **API Layer**
-
-```csharp
-// Example from AdminController - Query endpoint
-[HttpGet("users")]
-[Authorize(Policy = "RequireUserFullAccessScope")]
-public async Task<ActionResult<GetUsersResponseDto>> GetUsers(
-    [FromQuery] GetUsersRequestDto request, CancellationToken cancellationToken)
-{
-    // Validate query parameters
-    ValidationHelper.ValidateResult(new GetUsersValidator().Validate(request));
-
-    // Execute query through application service
-    var result = await _adminService.GetUsersAsync(request, cancellationToken);
-
-    return Ok(result);
-}
-```
-
-### Key Principles to Follow
-
-1. **Commands/Writes**: Always go through domain layer for business rule validation
-
-   ```csharp
-   // ✅ DO: Use domain entities and validation
-   public async Task<UpdateUserResponseDto> UpdateUserAsync(UpdateUserRequestDto request)
-   {
-       var user = await _userRepository.GetByIdAsync(request.UserId)
-           ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound);
-       user.UpdateProfile(request.Name, request.PhoneNumber);  // Domain validation happens here
-       await _userRepository.SaveChangesAsync();
-       return new UpdateUserResponseDto(user.Id, user.Name);
-   }
-
-   // ❌ DON'T: Direct database updates
-   public async Task<UpdateUserResponseDto> UpdateUserAsync(UpdateUserRequestDto request)
-   {
-       await _dbContext.Users
-           .Where(u => u.Id == request.UserId)
-           .ExecuteUpdateAsync(s => s
-               .SetProperty(u => u.Name, request.Name)); // Bypasses domain validation
-   }
-   ```
-
-2. **API Layer Structure**: Follow consistent controller patterns
-
-   ```csharp
-   [ApiController]
-   [Route("api/v{version:apiVersion}/[controller]")]
-   [ApiVersion("1.0")]
-   public class UsersController : ControllerBase
-   {
-       // ✅ DO: Use consistent response patterns
-       [HttpGet("{id}")]
-       [ProducesResponseType(typeof(GetUserResponseDto), StatusCodes.Status200OK)]
-       [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
-       public async Task<ActionResult<GetUserResponseDto>> GetUser(Guid id)
-       {
-           var result = await _userService.GetUserAsync(id);
-           return Ok(result);
-       }
-   }
-   ```
-
-3. **DTOs and Validation**: Use records for DTOs and FluentValidation
-
-   ```csharp
-   // ✅ DO: Immutable records for DTOs
-   public record UpdateUserRequestDto(
-       Guid UserId,
-       string Name,
-       string? PhoneNumber
-   );
-
-   // ✅ DO: Validation with domain error codes
-   public class UpdateUserValidator : AbstractValidator<UpdateUserRequestDto>
-   {
-       public UpdateUserValidator()
-       {
-           RuleFor(x => x.Name)
-               .NotEmpty()
-               .WithState(_ => new Error(UserDomainErrorCode.Required))
-               .MaximumLength(100)
-               .WithState(_ => new Error(UserDomainErrorCode.InvalidLength));
-       }
-   }
-   ```
-
-4. **Query Operations**: Choose repository vs DataQuery based on needs
-
-   ```csharp
-   // ✅ DO: Use DataQuery for complex reads without domain logic
-   public class UserDataQuery : IUserDataQuery
-   {
-       public async Task<PagedResult<UserListDto>> GetUsersAsync(UserFilterRequest request)
-       {
-           var sql = @"SELECT u.Id, u.Name, u.Email
-                      FROM Users u
-                      WHERE u.Status = @Status
-                      ORDER BY u.CreatedAt DESC
-                      OFFSET @Offset ROWS
-                      FETCH NEXT @PageSize ROWS ONLY";
-           // Direct database access for performance
-       }
-   }
-
-   // ✅ DO: Use Repository for domain-driven reads
-   public async Task<User> GetUserAsync(Guid id)
-   {
-       var user = await _userRepository.GetByIdAsync(id)
-           ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound);
-       // Domain entity with business rules intact
-       return user;
-   }
-   ```
-
-5. **Error Handling**: Use HiveSpace.Domain.Shared exceptions exclusively
-
-   **CRITICAL RULE**: Always throw exceptions from `HiveSpace.Domain.Shared.Exceptions` namespace. Never use System exceptions (ArgumentException, InvalidOperationException, etc.) in domain or application code.
-
-   a. **Available Exception Types** (all in `HiveSpace.Domain.Shared.Exceptions`)
-
-   ```csharp
-   // Base exception - use for general domain violations
-   public class DomainException(int httpCode, DomainErrorCode errorCode, string? source) : Exception
-
-   // Specific exception types (all inherit from DomainException)
-   public class NotFoundException(DomainErrorCode errorCode, string source)        // 404
-   public class InvalidFieldException(DomainErrorCode errorCode, string source)   // 400
-   public class ConflictException(DomainErrorCode errorCode, string source)       // 409
-   public class ForbiddenException(DomainErrorCode errorCode, string source)      // 403
-   ```
-
-   **Note**: You can extend these base exceptions to create domain-specific exception types when needed.
-
-   b. **Extending HiveSpace Exceptions** (Optional - for domain-specific exceptions)
-
-   ```csharp
-   // ✅ DO: Extend from HiveSpace.Domain.Shared exceptions for domain-specific types
-   using HiveSpace.Domain.Shared.Exceptions;
-   using HiveSpace.UserService.Domain.Exceptions;
-
-   namespace HiveSpace.UserService.Domain.Exceptions;
-
-   /// <summary>
-   /// Exception thrown when user information provided is invalid.
-   /// </summary>
-   public class InvalidUserInformationException : DomainException
-   {
-       public InvalidUserInformationException()
-           : base(400, UserDomainErrorCode.InvalidUserInformation, nameof(User))
-       {
-       }
-   }
-
-   /// <summary>
-   /// Exception thrown when email format is invalid.
-   /// </summary>
-   public class InvalidEmailException : DomainException
-   {
-       public InvalidEmailException()
-           : base(400, UserDomainErrorCode.InvalidEmail, nameof(Email))
-       {
-       }
-   }
-
-   /// <summary>
-   /// Exception thrown when attempting to remove the default address.
-   /// </summary>
-   public class CannotRemoveDefaultAddressException : DomainException
-   {
-       public CannotRemoveDefaultAddressException()
-           : base(400, UserDomainErrorCode.CannotRemoveDefaultAddress, nameof(Address))
-       {
-       }
-   }
-
-   // ✅ DO: Use the extended exceptions in your domain
-   public static Email Create(string value)
-   {
-       if (string.IsNullOrWhiteSpace(value))
-           throw new InvalidEmailException();
-
-       if (!IsValidEmailFormat(value))
-           throw new InvalidEmailException();
-
-       return new Email(value);
-   }
-
-   public void RemoveAddress(Guid addressId)
-   {
-       var address = _addresses.FirstOrDefault(a => a.Id == addressId);
-       if (address == null)
-           throw new NotFoundException(UserDomainErrorCode.AddressNotFound, nameof(Address));
-
-       if (address.IsDefault)
-           throw new CannotRemoveDefaultAddressException();
-
-       _addresses.Remove(address);
-   }
-
-   // ❌ DON'T: Extend from System exceptions
-   public class InvalidUserException : ArgumentException  // WRONG!
-   {
-   }
-
-   // ❌ DON'T: Create exceptions that don't inherit from HiveSpace exceptions
-   public class CustomException : Exception  // WRONG!
-   {
-   }
-   ```
-
-   **When to extend exceptions:**
-   - ✅ When you need a more specific exception name for your domain (e.g., `InvalidEmailException`, `CannotRemoveDefaultAddressException`)
-   - ✅ When you want to encapsulate specific error codes with descriptive exception names
-   - ✅ When you want to simplify throwing common domain exceptions (parameterless constructors)
-   - ✅ When you want to group related error scenarios under a common exception type
-   - ❌ Don't extend if the base HiveSpace exceptions are sufficient (prefer simplicity)
-   - ❌ Don't create exceptions that bypass the error code system
-   - ❌ Don't add unnecessary complexity - use base exceptions directly when possible
-
-   c. **Exception Throwing Pattern** - Always use `nameof()` for source field
-
-   ```csharp
-   // ✅ DO: Use HiveSpace exceptions with nameof() for source
-   using HiveSpace.Domain.Shared.Exceptions;
-   using HiveSpace.UserService.Domain.Exceptions;
-
-   public async Task<User> GetUserAsync(Guid userId)
-   {
-       var user = await _repository.GetByIdAsync(userId);
-       if (user == null)
-           throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
-
-       if (user.Status != UserStatus.Active)
-           throw new ForbiddenException(UserDomainErrorCode.UserInactive, nameof(User));
-
-       return user;
-   }
-
-   // ✅ DO: Use nameof() with property names for field-specific errors
-   public void ValidateEmail(Email email)
-   {
-       if (email == null)
-           throw new InvalidFieldException(UserDomainErrorCode.EmailRequired, nameof(User.Email));
-
-       if (!await IsEmailAvailableAsync(email))
-           throw new ConflictException(UserDomainErrorCode.EmailAlreadyExists, nameof(User.Email));
-   }
-
-   // ✅ DO: Use nameof() with parameter names for validation errors
-   public OrderPackage Create(Guid storeId, Guid buyerId)
-   {
-       if (storeId == Guid.Empty)
-           throw new DomainException(400, OrderDomainErrorCode.PackageStoreIdRequired, nameof(storeId));
-
-       if (buyerId == Guid.Empty)
-           throw new DomainException(400, OrderDomainErrorCode.PackageBuyerIdRequired, nameof(buyerId));
-
-       return new OrderPackage(storeId, buyerId);
-   }
-
-   // ❌ DON'T: Use System exceptions
-   if (userId == Guid.Empty)
-       throw new ArgumentNullException(nameof(userId));  // WRONG!
-
-   if (email == null)
-       throw new InvalidOperationException("Email is required");  // WRONG!
-
-   // ❌ DON'T: Use hardcoded strings for source
-   throw new NotFoundException(UserDomainErrorCode.UserNotFound, "User");  // WRONG!
-
-   // ❌ DON'T: Omit source parameter
-   throw new NotFoundException(UserDomainErrorCode.UserNotFound, null);  // WRONG!
-   ```
-
-   c. **Real-World Example from UserManager.cs**
-
-   ```csharp
-   public async Task<User> ValidateAdminUserAsync(
-       Guid actorUserId,
-       bool requireSystemAdmin = false,
-       CancellationToken cancellationToken = default)
-   {
-       // ✅ Throw NotFoundException with nameof(User) as source
-       var actorUser = await _userRepository.GetByIdAsync(actorUserId)
-           ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
-
-       // ✅ Throw ForbiddenException for business rule violations
-       if (actorUser.Status != UserStatus.Active)
-           throw new ForbiddenException(UserDomainErrorCode.UserInactive, nameof(User));
-
-       if (requireSystemAdmin && !actorUser.IsSystemAdmin)
-           throw new ForbiddenException(UserDomainErrorCode.InsufficientPrivileges, nameof(User));
-
-       return actorUser;
-   }
-
-   public async Task<bool> CanUserBeRegisteredAsync(
-       Email email,
-       string userName,
-       CancellationToken cancellationToken = default)
-   {
-       // ✅ Throw ConflictException with property name as source
-       if (!await IsEmailAvailableAsync(email, cancellationToken))
-           throw new ConflictException(UserDomainErrorCode.EmailAlreadyExists, nameof(User.Email));
-
-       if (!await IsUserNameAvailableAsync(userName, cancellationToken))
-           throw new ConflictException(UserDomainErrorCode.UserNameAlreadyExists, nameof(User.UserName));
-
-       return true;
-   }
-   ```
-
-   d. **Define Domain Error Codes**
-
-   ```csharp
-   // ✅ DO: Define domain error codes with unique identifiers
-   using HiveSpace.Domain.Shared.Errors;
-
-   namespace HiveSpace.UserService.Domain.Exceptions;
-
-   public class UserDomainErrorCode : DomainErrorCode
-   {
-       private UserDomainErrorCode(int id, string name, string code)
-           : base(id, name, code) { }
-
-       // User errors (USR1xxx)
-       public static readonly UserDomainErrorCode UserNotFound =
-           new(1001, "UserNotFound", "USR1001");
-       public static readonly UserDomainErrorCode EmailAlreadyExists =
-           new(1002, "EmailAlreadyExists", "USR1002");
-       public static readonly UserDomainErrorCode UserNameAlreadyExists =
-           new(1003, "UserNameAlreadyExists", "USR1003");
-       public static readonly UserDomainErrorCode UserInactive =
-           new(1004, "UserInactive", "USR1004");
-       public static readonly UserDomainErrorCode InsufficientPrivileges =
-           new(1005, "InsufficientPrivileges", "USR1005");
-   }
-   ```
-
-   e. **Application Layer Validation** (FluentValidation)
-
-   ```csharp
-   // ✅ DO: Use FluentValidation with error codes
-   using FluentValidation;
-   using HiveSpace.Core.Exceptions;
-   using HiveSpace.Core.Exceptions.Models;
-
-   public class CreateAdminValidator : AbstractValidator<CreateAdminRequestDto>
-   {
-       public CreateAdminValidator()
-       {
-           RuleFor(x => x.Email)
-               .NotEmpty()
-               .WithState(_ => new Error(CommonErrorCode.Required,
-                   nameof(CreateAdminRequestDto.Email)))
-               .EmailAddress()
-               .WithState(_ => new Error(UserDomainErrorCode.InvalidEmail,
-                   nameof(CreateAdminRequestDto.Email)));
-       }
-   }
-   ```
-
-   f. **Error Code Organization**
-
-   ```csharp
-   // ✅ DO: Organize error codes by domain
-   namespace HiveSpace.Core.Exceptions
-   {
-       public class CommonErrorCode  // Common/shared error codes
-       {
-           public static readonly CommonErrorCode Required =
-               new(4, "Required", "APP0004");
-           public static readonly CommonErrorCode InvalidOperation =
-               new(5, "InvalidOperation", "APP0005");
-       }
-   }
-
-   namespace HiveSpace.UserService.Domain.Exceptions
-   {
-       public class UserDomainErrorCode  // Domain-specific error codes
-       {
-           public static readonly UserDomainErrorCode UserNotFound =
-               new(1001, "UserNotFound", "USR1001");
-           public static readonly UserDomainErrorCode InvalidEmail =
-               new(1004, "InvalidEmail", "USR1004");
-       }
-   }
-   ```
-
-   g. **Best Practices Summary**
-   - ✅ **ALWAYS** use `HiveSpace.Domain.Shared.Exceptions` - never System exceptions
-   - ✅ **ALWAYS** use `nameof()` for the source parameter (field, property, or class name)
-   - ✅ **ALWAYS** define error codes in domain-specific `ErrorCode` classes
-   - ✅ Use `NotFoundException` for missing resources (404)
-   - ✅ Use `InvalidFieldException` for validation failures (400)
-   - ✅ Use `ConflictException` for duplicate/conflict errors (409)
-   - ✅ Use `ForbiddenException` for authorization failures (403)
-   - ✅ Use `DomainException` directly for custom HTTP codes
-   - ✅ Include descriptive error codes for localization support
-   - ✅ Organize error codes by domain (e.g., USR for User, ORD for Order)
-   - ✅ Use consistent error code numbering (e.g., USR1xxx, ORD7xxx)
-   - ❌ **NEVER** use `ArgumentException`, `ArgumentNullException`, `InvalidOperationException`, etc.
-   - ❌ **NEVER** use hardcoded strings for source - always use `nameof()`
-   - ❌ **NEVER** use generic exception messages - always use error codes
-
-- Include source/field information in error responses
-- Add trace IDs for error tracking
-- Return standardized error response structure
-
-6. **Using Statements and Type References**: Organize imports correctly
-
-   ```csharp
-   // ✅ DO: Use fully qualified using statements
-   using Microsoft.AspNetCore.Mvc;
-   using HiveSpace.UserService.Domain.Aggregates.User;
-
-   public class UserController
-   {
-       private readonly IUserRepository _repository;  // Clean type usage
-   }
-   ```
-
-7. **File Organization**: One main type per file with consistent naming
-
-   ```plaintext
-   Services/
-     ├── UserService.cs              // Main service implementation
-     ├── Interfaces/
-     │   └── IUserService.cs         // Service interface
-     ├── Models/
-     │   ├── Requests/
-     │   │   └── UpdateUserRequestDto.cs
-     │   └── Responses/
-     │       └── UpdateUserResponseDto.cs
-     └── Validators/
-         └── UpdateUserValidator.cs
-   ```
-
-8. **Dependency Injection**: Register services with correct lifetime
-
-   ```csharp
-   // ✅ DO: Group related registrations
-   services.AddScoped<IUserService, UserService>();
-   services.AddScoped<IUserRepository, UserRepository>();
-   services.AddScoped<IUserDataQuery, UserDataQuery>();
-
-   // ❌ DON'T: Mix scopes without clear reason
-   services.AddSingleton<IUserService, UserService>();  // Wrong scope
-   ```
-
-9. **Async Operations**: Use async/await consistently
-
-   ```csharp
-   // ✅ DO: Proper async patterns
-   public async Task<User> GetUserAsync(Guid id)
-   {
-       return await _repository.GetByIdAsync(id);
-   }
-
-   // ❌ DON'T: Block on async code
-   public User GetUser(Guid id)
-   {
-       return _repository.GetByIdAsync(id).Result;  // Blocking call
-   }
-   ```
-
-10. **API Versioning**: Consistent version handling
-
-    ```csharp
-    // ✅ DO: Version at controller level
-    [ApiVersion("1.0")]
-    [Route("api/v{version:apiVersion}/[controller]")]
-    public class UsersController : ControllerBase
-    {
-        // Controller implementation
-    }
-
-    // ✅ DO: Version at DTO level if needed
-    namespace HiveSpace.UserService.Application.Models.V1.Responses
-    {
-        public record GetUserResponseDto(/*...*/);
-    }
-    ```
-
-    - Add fully qualified namespaces in using statements at the top of the file
-    - Use short type names in the actual code
-    - ✅ DO:
-
-      ```csharp
-      using Microsoft.OpenApi.Models;
-      using HiveSpace.UserService.Domain.Aggregates.User;
-
-      public class MyClass
-      {
-          public OpenApiInfo Info { get; set; }
-          public User CurrentUser { get; set; }
-      }
-      ```
-
-    - ❌ DON'T:
-      ```csharp
-      public class MyClass
-      {
-          public Microsoft.OpenApi.Models.OpenApiInfo Info { get; set; }
-          public HiveSpace.UserService.Domain.Aggregates.User.User CurrentUser { get; set; }
-      }
-      ```
-
-### Future: Simple Services with Vertical Slice
-
-For simpler microservices, we will adopt a vertical slice architecture pattern where each feature is organized by business capability rather than technical layer. This will be documented when those services are implemented.
-
-**Note**: Current services (User Service) use DDD with layered architecture. Follow the patterns above for consistency.
-
-## Development Workflow for Minimal API Services
-
-For microservices using the Minimal API pattern (e.g., Media Service), follow this CQRS-based workflow using Carter and MediatR.
-
-### 1. **Define Command/Query**
-
-Create a `record` that implements `ICommand<TResponse>` or `IQuery<TResponse>`. Place this in `Features/[FeatureName]/`.
-
-```csharp
-// Features/PresignUrl/PresignUrlCommand.cs
-public record PresignUrlCommand(
-    string FileName,
-    string ContentType,
-    long FileSize,
-    string EntityType,
-    Guid? EntityId) : ICommand<PresignUrlResponse>;
-```
-
-### 2. **Implement Validation**
-
-Create a validator inheriting from `AbstractValidator<TCommand>`. Use `CommonErrorCode` for standard errors.
-
-```csharp
-// Features/PresignUrl/PresignUrlCommandValidator.cs
-public class PresignUrlCommandValidator : AbstractValidator<PresignUrlCommand>
-{
-    public PresignUrlCommandValidator()
-    {
-        RuleFor(x => x.FileName)
-            .NotEmpty()
-            .WithState(_ => new Error(CommonErrorCode.Required, nameof(PresignUrlCommand.FileName)));
-    }
-}
-```
-
-### 3. **Implement Handler**
-
-Implement `ICommandHandler<TCommand, TResponse>` or `IQueryHandler<TQuery, TResponse>`. Inject necessary services (e.g., `IStorageService`, `IConfiguration`).
-
-```csharp
-// Features/PresignUrl/PresignUrlCommandHandler.cs
-public class PresignUrlCommandHandler(IStorageService storageService)
-    : ICommandHandler<PresignUrlCommand, PresignUrlResponse>
-{
-    public async Task<Result<PresignUrlResponse>> Handle(PresignUrlCommand request, CancellationToken cancellationToken)
-    {
-        // Implementation logic
-        return new PresignUrlResponse(...);
-    }
-}
-```
-
-### 4. **Define Endpoint (Carter Module)**
-
-Create a class inheriting from `CarterModule`. Define the route and delegate to MediatR.
-
-```csharp
-// Features/PresignUrl/PresignUrlEndpoint.cs
-public class PresignUrlEndpoint : CarterModule
-{
-    public PresignUrlEndpoint() : base("/api/v{version:apiVersion}/media")
-    {
-        this.IncludeInDocumentation();
-    }
-
-    public override void AddRoutes(IEndpointRouteBuilder app)
-    {
-        app.MapPost("presign-url", HandlePresignUrl)
-           .WithName("PresignUrl")
-           .Produces<PresignUrlResponse>()
-           .ProducesProblem(StatusCodes.Status400BadRequest);
-    }
-
-    private async Task<IResult> HandlePresignUrl(ISender sender, PresignUrlCommand command)
-    {
-        var result = await sender.Send(command);
-        return result.Match(Results.Ok, CustomResults.Problem);
-    }
-}
-```
-
-### 5. **Registration**
-
-- **Validators**: Automatically registered via `builder.Services.AddValidatorsFromAssembly(...)` in `HostingExtensions.cs`.
-- **MediatR**: Automatically registered via `services.AddMediatR(...)` in `ServiceCollectionExtensions.cs`.
-- **Carter**: Automatically registered via `builder.Services.AddCarter()` and mapped via `app.MapCarter()`.
-
-## General Coding Rules
-
-1. **Primary Constructors**: Prefer using primary constructors for C# classes where applicable (C# 12+ feature).
-
-   ```csharp
-   // ✅ DO:
-   public class MyService(ILogger<MyService> logger, IRepository repository)
-   {
-       // ...
-   }
-
-   // ❌ DON'T:
-   public class MyService
-   {
-       private readonly ILogger<MyService> _logger;
-       public MyService(ILogger<MyService> logger)
-       {
-           _logger = logger;
-       }
-   }
-   ```
-
-2. **Cleanup**: Remove unnecessary files (e.g., log files, temporary artifacts, restore logs) immediately after use or generation. Do not clutter the workspace.
+<!-- gitnexus:end -->

@@ -61,25 +61,28 @@ public class FulfillmentSagaStateMachine : MassTransitStateMachine<FulfillmentSa
                     ctx.Saga.StoreId        = ctx.Message.StoreId;
                     ctx.Saga.ReservationIds = ctx.Message.ReservationIds;
                     ctx.Saga.GrandTotal     = ctx.Message.GrandTotal;
+                    ctx.Saga.PaymentMethod  = ctx.Message.PaymentMethod;
                     ctx.Saga.CreatedAt      = DateTimeOffset.UtcNow;
                 })
-                .Request(InventoryConfirmation, ctx => ctx.Init<ConfirmInventory>(new
-                {
-                    ctx.Saga.CorrelationId,
-                    OrderId        = ctx.Saga.CorrelationId,
-                    ReservationIds = ctx.Saga.ReservationIds
-                }))
-        );
-
-        // ── CONFIRMING INVENTORY ─────────────────────────────────────────────
-        During(InventoryConfirmation.Pending,
-            When(InventoryConfirmation.Completed)   // InventoryConfirmed
                 .TransitionTo(NotifyingSeller)
                 .PublishAsync(ctx => ctx.Init<NotifySeller>(new
                 {
                     ctx.Saga.CorrelationId,
                     OrderId = ctx.Saga.CorrelationId,
                     ctx.Saga.StoreId
+                }))
+        );
+
+        // ── CONFIRMING INVENTORY (after seller confirms) ─────────────────────
+        During(InventoryConfirmation.Pending,
+            When(InventoryConfirmation.Completed)   // InventoryConfirmed
+                .TransitionTo(NotifyingCustomer)
+                .PublishAsync(ctx => ctx.Init<NotifyCustomer>(new
+                {
+                    ctx.Saga.CorrelationId,
+                    OrderId      = ctx.Saga.CorrelationId,
+                    ctx.Saga.UserId,
+                    WasConfirmed = true
                 })),
 
             When(InventoryConfirmation.Completed2)  // InventoryConfirmationFailed
@@ -141,14 +144,13 @@ public class FulfillmentSagaStateMachine : MassTransitStateMachine<FulfillmentSa
             When(OrderConfirmedBySeller)
                 .Then(ctx => ctx.Saga.OrderWasConfirmed = true)
                 .Unschedule(SellerConfirmationTimeout)
-                .TransitionTo(NotifyingCustomer)
-                .PublishAsync(ctx => ctx.Init<NotifyCustomer>(new
+                .Request(InventoryConfirmation, ctx => ctx.Init<ConfirmInventory>(new
                 {
                     ctx.Saga.CorrelationId,
-                    OrderId      = ctx.Saga.CorrelationId,
-                    ctx.Saga.UserId,
-                    WasConfirmed = true
-                })),
+                    OrderId        = ctx.Saga.CorrelationId,
+                    ReservationIds = ctx.Saga.ReservationIds
+                }))
+                .TransitionTo(InventoryConfirmation.Pending),
 
             When(OrderRejectedBySeller)
                 .Then(ctx =>
