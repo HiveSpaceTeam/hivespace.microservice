@@ -1,7 +1,9 @@
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Commands;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Events;
+using HiveSpace.OrderService.Infrastructure.Data;
 using HiveSpace.OrderService.Infrastructure.Sagas;
 using MassTransit;
+using Microsoft.EntityFrameworkCore;
 
 namespace HiveSpace.OrderService.Api.Sagas.FulfillmentSaga;
 
@@ -16,7 +18,7 @@ public class FulfillmentSagaStateMachine : MassTransitStateMachine<FulfillmentSa
 
     // ── Events (pub/sub) ──────────────────────────────────────────────────────
     public Event<OrderReadyForFulfillment> OrderReadyForFulfillment { get; private set; } = null!;
-    public Event<SellerNotified>           SellerNotified           { get; private set; } = null!;
+    public Event<SellerNewOrderNotified>   SellerNewOrderNotified   { get; private set; } = null!;
     public Event<OrderConfirmedBySeller>   OrderConfirmedBySeller   { get; private set; } = null!;
     public Event<OrderRejectedBySeller>    OrderRejectedBySeller    { get; private set; } = null!;
     public Event<CustomerNotified>         CustomerNotified         { get; private set; } = null!;
@@ -45,7 +47,7 @@ public class FulfillmentSagaStateMachine : MassTransitStateMachine<FulfillmentSa
         });
 
         Event(() => OrderReadyForFulfillment, x => x.CorrelateById(m => m.Message.CorrelationId));
-        Event(() => SellerNotified,           x => x.CorrelateById(m => m.Message.CorrelationId));
+        Event(() => SellerNewOrderNotified,   x => x.CorrelateById(m => m.Message.CorrelationId));
         Event(() => OrderConfirmedBySeller,   x => x.CorrelateById(m => m.Message.CorrelationId));
         Event(() => OrderRejectedBySeller,    x => x.CorrelateById(m => m.Message.CorrelationId));
         Event(() => CustomerNotified,         x => x.CorrelateById(m => m.Message.CorrelationId));
@@ -59,30 +61,43 @@ public class FulfillmentSagaStateMachine : MassTransitStateMachine<FulfillmentSa
                 {
                     ctx.Saga.UserId         = ctx.Message.UserId;
                     ctx.Saga.StoreId        = ctx.Message.StoreId;
+                    ctx.Saga.OrderCode      = ctx.Message.OrderCode;
                     ctx.Saga.ReservationIds = ctx.Message.ReservationIds;
                     ctx.Saga.GrandTotal     = ctx.Message.GrandTotal;
                     ctx.Saga.PaymentMethod  = ctx.Message.PaymentMethod;
                     ctx.Saga.CreatedAt      = DateTimeOffset.UtcNow;
                 })
                 .TransitionTo(NotifyingSeller)
-                .PublishAsync(ctx => ctx.Init<NotifySeller>(new
+                .PublishAsync(async ctx =>
                 {
-                    ctx.Saga.CorrelationId,
-                    OrderId = ctx.Saga.CorrelationId,
-                    ctx.Saga.StoreId
-                }))
+                    var db = ctx.GetPayload<IServiceProvider>()
+                                .GetRequiredService<OrderDbContext>();
+                    var storeRef = await db.StoreRefs
+                        .FirstOrDefaultAsync(s => s.Id == ctx.Saga.StoreId);
+
+                    return await ctx.Init<NotifySellerNewOrder>(new
+                    {
+                        ctx.Saga.CorrelationId,
+                        OrderId   = ctx.Saga.CorrelationId,
+                        ctx.Saga.StoreId,
+                        SellerId  = storeRef?.OwnerId ?? Guid.Empty,
+                        BuyerId   = ctx.Saga.UserId,
+                        ctx.Saga.OrderCode
+                    });
+                })
         );
 
         // ── CONFIRMING INVENTORY (after seller confirms) ─────────────────────
         During(InventoryConfirmation.Pending,
             When(InventoryConfirmation.Completed)   // InventoryConfirmed
                 .TransitionTo(NotifyingCustomer)
-                .PublishAsync(ctx => ctx.Init<NotifyCustomer>(new
+                .PublishAsync(ctx => ctx.Init<NotifyCustomerOrderConfirmed>(new
                 {
                     ctx.Saga.CorrelationId,
-                    OrderId      = ctx.Saga.CorrelationId,
+                    OrderId   = ctx.Saga.CorrelationId,
                     ctx.Saga.UserId,
-                    WasConfirmed = true
+                    ctx.Saga.StoreId,
+                    ctx.Saga.OrderCode
                 })),
 
             When(InventoryConfirmation.Completed2)  // InventoryConfirmationFailed
@@ -130,7 +145,7 @@ public class FulfillmentSagaStateMachine : MassTransitStateMachine<FulfillmentSa
 
         // ── NOTIFYING SELLER ─────────────────────────────────────────────────
         During(NotifyingSeller,
-            When(SellerNotified)
+            When(SellerNewOrderNotified)
                 .Schedule(SellerConfirmationTimeout, ctx => ctx.Init<SellerConfirmationExpired>(new
                 {
                     ctx.Saga.CorrelationId,
@@ -209,12 +224,13 @@ public class FulfillmentSagaStateMachine : MassTransitStateMachine<FulfillmentSa
 
             When(OrderCancelled)
                 .TransitionTo(NotifyingCustomer)
-                .PublishAsync(ctx => ctx.Init<NotifyCustomer>(new
+                .PublishAsync(ctx => ctx.Init<NotifyCustomerOrderCancelled>(new
                 {
                     ctx.Saga.CorrelationId,
                     OrderId      = ctx.Saga.CorrelationId,
                     ctx.Saga.UserId,
-                    WasConfirmed = false
+                    RefundAmount = 0L,
+                    ctx.Saga.OrderCode
                 }))
         );
 

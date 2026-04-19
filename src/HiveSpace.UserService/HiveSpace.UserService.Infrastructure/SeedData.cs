@@ -62,7 +62,7 @@ public static class SeedData
             Email          = "aliceSmith@gmail.com",
             EmailConfirmed = false,
             FullName       = "Alice Smith",
-            PhoneNumber    = "+1234567890",
+            PhoneNumber    = "+84901234567",
             DateOfBirth    = new DateTime(1990, 1, 15),
             Gender         = (int)Gender.Female,
             Status         = (int)UserStatus.Active,
@@ -71,7 +71,7 @@ public static class SeedData
             Culture        = Culture.Vi
         };
 
-        var result = await userMgr.CreateAsync(alice, "Pass123$");
+        var result = await userMgr.CreateAsync(alice, "AliceSmith123$");
         if (!result.Succeeded)
         {
             logger.LogError("Failed to create alice: {Error}", result.Errors.First().Description);
@@ -79,7 +79,7 @@ public static class SeedData
         }
 
         var aliceHomeAddress = new Address(
-            fullName: "Alice Smith", phoneNumber: "+1234567890",
+            fullName: "Alice Smith", phoneNumber: "+84901234567",
             street: "123 Main Street", district: "Downtown",
             province: "California", country: "USA",
             zipCode: "12345", addressType: AddressType.Home);
@@ -94,6 +94,7 @@ public static class SeedData
             new Claim(JwtClaimTypes.GivenName,  "Alice"),
             new Claim(JwtClaimTypes.FamilyName, "Smith"),
             new Claim(JwtClaimTypes.WebSite,    "http://alice.example.com"),
+            new Claim(JwtClaimTypes.Picture,    "https://scontent.fhan7-1.fna.fbcdn.net/v/t39.30808-1/529742079_777341701485971_4020105096641008833_n.jpg?stp=dst-jpg_s200x200_tt6&_nc_cat=106&ccb=1-7&_nc_sid=e99d92&_nc_eui2=AeHOZtTR0YEI1wTAoLhcXxYrZ_lDYDRtnbpn-UNgNG2dujEOqjbJP2jUyZLseGPjOw7m1we5cC62ulwjACTvYMP5&_nc_ohc=u4NsqmH7Ci0Q7kNvwF1-Wi5&_nc_oc=AdrxQ0nCifqlTK4bIxsGMxJIMtJMRNU-mIbx0fPKus5W9-JxM4vEoYZ6jbqIY4FIAIRn0jRamFEn9EGMuNuWWXTt&_nc_zt=24&_nc_ht=scontent.fhan7-1.fna&_nc_gid=_2qgRLt6g8Es9mmKIN6Vlw&_nc_ss=7a3a8&oh=00_Af02at1L9pVGXBbLQ1TXaFSwosarmT2Yv3kwgwda-cFdXg&oe=69E92E54"),
         ]);
         if (!result.Succeeded)
         {
@@ -123,7 +124,7 @@ public static class SeedData
             Email          = "bobSmith@gmail.com",
             EmailConfirmed = false,
             FullName       = "Bob Smith",
-            PhoneNumber    = "+0987654321",
+            PhoneNumber    = "+84987654321",
             DateOfBirth    = new DateTime(1985, 6, 20),
             Gender         = (int)Gender.Male,
             Status         = (int)UserStatus.Active,
@@ -132,7 +133,7 @@ public static class SeedData
             Culture        = Culture.Vi
         };
 
-        var result = await userMgr.CreateAsync(bob, "Pass123$");
+        var result = await userMgr.CreateAsync(bob, "BobSmith123$");
         if (!result.Succeeded)
         {
             logger.LogError("Failed to create bob: {Error}", result.Errors.First().Description);
@@ -140,13 +141,13 @@ public static class SeedData
         }
 
         var bobHomeAddress = new Address(
-            fullName: "Bob Smith", phoneNumber: "+0987654321",
+            fullName: "Bob Smith", phoneNumber: "+84987654321",
             street: "456 Oak Avenue", district: "Suburb",
             province: "Texas", country: "USA",
             zipCode: "67890", addressType: AddressType.Home);
 
         var bobWorkAddress = new Address(
-            fullName: "Bob Smith", phoneNumber: "+0987654321",
+            fullName: "Bob Smith", phoneNumber: "+84987654321",
             street: "789 Business Blvd", district: "Business District",
             province: "Texas", country: "USA",
             zipCode: "67891", addressType: AddressType.Work);
@@ -163,6 +164,7 @@ public static class SeedData
             new Claim(JwtClaimTypes.FamilyName, "Smith"),
             new Claim(JwtClaimTypes.WebSite,    "http://bob.example.com"),
             new Claim("location",               "somewhere"),
+            new Claim(JwtClaimTypes.Picture,    "https://scontent.fhan7-1.fna.fbcdn.net/v/t39.30808-1/619108846_2920789344795889_1339672122962744350_n.jpg?stp=dst-jpg_s200x200_tt6&_nc_cat=108&ccb=1-7&_nc_sid=e99d92&_nc_eui2=AeGRyZ28lkuXPO966VWTa7-WXJ5jeRHvuA1cnmN5Ee-4DdkXY30zOg5G3Xv5E85oBsdjDBCC81n8TavngkrBmWN7&_nc_ohc=DKnUNDzXPSsQ7kNvwFeEkU5&_nc_oc=AdqslpzU_dqjl89K9X3s70qGjddv8Pi7HzRhAwpQifj7tTJIsSxyG_Ro__Yt2IR87m3-3tCirslSOKeotp7gGJMT&_nc_zt=24&_nc_ht=scontent.fhan7-1.fna&_nc_gid=NgW59NCpuV6NO_P9hLKcew&_nc_ss=7a3a8&oh=00_Af1SoYAMjpm3uOR1QS87h6G3obpvpSgeq6gMaaE3MCDTYQ&oe=69E945C0"),
         ]);
         if (!result.Succeeded)
         {
@@ -190,7 +192,7 @@ public static class SeedData
             Email          = "sysadmin@hivespace.com",
             EmailConfirmed = true,
             FullName       = "System Administrator",
-            PhoneNumber    = "+1111111111",
+            PhoneNumber    = "+84911111111",
             DateOfBirth    = new DateTime(1980, 3, 10),
             Gender         = (int)Gender.Male,
             Status         = (int)UserStatus.Active,
@@ -238,7 +240,7 @@ public static class SeedData
             Email          = "admin@hivespace.com",
             EmailConfirmed = true,
             FullName       = "Admin User",
-            PhoneNumber    = "+2222222222",
+            PhoneNumber    = "+84922222222",
             DateOfBirth    = new DateTime(1985, 8, 22),
             Gender         = (int)Gender.Female,
             Status         = (int)UserStatus.Active,
@@ -256,7 +258,7 @@ public static class SeedData
         }
 
         var adminAddress = new Address(
-            fullName: "Admin User", phoneNumber: "+2222222222",
+            fullName: "Admin User", phoneNumber: "+84922222222",
             street: "100 Admin Plaza", district: "Central",
             province: "New York", country: "USA",
             zipCode: "10001", addressType: AddressType.Work);
@@ -292,7 +294,7 @@ public static class SeedData
                 Username     = "tiki",
                 Email        = "tiki@gmail.com",
                 FullName     = "Tiki Trading",
-                Phone        = "+8400000001",
+                Phone        = "+84901000001",
                 DateOfBirth  = new DateTime(1988, 12, 5),
                 Gender       = (int)Gender.Male,
                 Password     = "TikiTrading123$",
@@ -310,7 +312,7 @@ public static class SeedData
                 Username     = "giver",
                 Email        = "giver@gmail.com",
                 FullName     = "GIVER BOOKS & MEDIA",
-                Phone        = "+8400000002",
+                Phone        = "+84901000002",
                 DateOfBirth  = new DateTime(1989, 1, 5),
                 Gender       = (int)Gender.Male,
                 Password     = "GiverBooks123$",
@@ -327,12 +329,12 @@ public static class SeedData
                 StoreId      = new Guid("f6a7b8c9-d0e1-2345-f012-345678901234"),
                 Username     = "phuongdong",
                 Email        = "phuongdong@gmail.com",
-                FullName     = "Phuong Dong Books",
-                Phone        = "+8400000003",
+                FullName     = "Phương Đông Books",
+                Phone        = "+84901000003",
                 DateOfBirth  = new DateTime(1990, 2, 10),
                 Gender       = (int)Gender.Male,
                 Password     = "PhuongDongBooks123$",
-                StoreName    = "Phuong Dong Books",
+                StoreName    = "Phương Đông Books",
                 StoreDescription = "4.8 ★ (38k+ đánh giá) • 14.5k+ người theo dõi",
                 LogoUrl      = "https://vcdn.tikicdn.com/ts/seller/2e/85/b7/e76104ae5f1beaf244f319e2f0d2d413.jpg",
                 StoreAddress = "https://tiki.vn/cua-hang/phuong-dong-books",

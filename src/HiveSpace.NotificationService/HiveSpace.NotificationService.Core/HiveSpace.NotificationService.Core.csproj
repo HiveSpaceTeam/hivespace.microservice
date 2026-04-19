@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+    <PackageReference Include="StackExchange.Redis" />
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" />
+    <PackageReference Include="Resend" />
+    <PackageReference Include="Scriban" />
+    <PackageReference Include="Hangfire.AspNetCore" />
+    <PackageReference Include="Hangfire.SqlServer" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../../libs/HiveSpace.Core/HiveSpace.Core.csproj" />
+    <ProjectReference Include="../../../libs/HiveSpace.Domain.Shared/HiveSpace.Domain.Shared.csproj" />
+    <ProjectReference Include="../../../libs/HiveSpace.Infrastructure.Messaging.Shared/HiveSpace.Infrastructure.Messaging.Shared.csproj" />
+    <ProjectReference Include="../../../libs/HiveSpace.Infrastructure.Persistence/HiveSpace.Infrastructure.Persistence.csproj" />
+  </ItemGroup>
+</Project>

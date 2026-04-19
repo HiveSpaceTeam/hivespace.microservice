@@ -26,6 +26,7 @@ public class CheckoutDataQuery(string connectionString, IDbContextFactory<Data.O
                 pr.ThumbnailUrl,
                 skr.Price,
                 skr.Currency,
+                skr.SkuName,
                 skr.ImageUrl        AS SkuImageUrl,
                 skr.Attributes      AS SkuAttributes,
                 pr.StoreId,

@@ -16,6 +16,7 @@ public class FulfillmentSagaStateEntityConfiguration : IEntityTypeConfiguration<
         builder.ToTable("fulfillment_saga_states");
 
         builder.Property(s => s.CurrentState).HasMaxLength(64).IsRequired();
+        builder.Property(s => s.OrderCode).HasMaxLength(64).IsRequired();
         builder.Property(s => s.FailureReason).HasMaxLength(500);
 
         builder.Property(s => s.PaymentMethod)

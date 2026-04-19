@@ -34,6 +34,7 @@ public static class OrderMapper
         ProductId   = item.ProductId,
         SkuId       = item.SkuId,
         ProductName = item.ProductSnapshot.ProductName,
+        SkuName     = item.ProductSnapshot.SkuName,
         ImageUrl    = item.ProductSnapshot.ImageUrl,
         Quantity    = item.Quantity,
         UnitPrice   = item.UnitPrice.Amount,

@@ -22,8 +22,9 @@ public class CheckoutSagaState : SagaStateMachineInstance
 
     // Set after CreateOrder — list of created order IDs (one per store)
     public List<Guid>             OrderIds      { get; set; } = new();
-    public Dictionary<Guid, Guid> OrderStoreMap { get; set; } = new();   // OrderId → StoreId
-    public long                   GrandTotal    { get; set; }
+    public Dictionary<Guid, Guid>   OrderStoreMap { get; set; } = new();   // OrderId → StoreId
+    public Dictionary<Guid, string> OrderCodeMap  { get; set; } = new();   // OrderId → ShortId
+    public long                     GrandTotal    { get; set; }
 
     // Set after ReserveInventory
     public List<Guid>                   ReservationIds       { get; set; } = new();
@@ -33,6 +34,9 @@ public class CheckoutSagaState : SagaStateMachineInstance
     public Guid?           PaymentId        { get; set; }
     public string?         PaymentUrl       { get; set; }
     public DateTimeOffset? PaymentExpiresAt { get; set; }
+
+    // Compensation tracking
+    public int PendingInventoryReleases { get; set; }
 
     // Tracking
     public DateTimeOffset  CreatedAt     { get; set; }

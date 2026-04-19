@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>NotificationService — SignalR Test</title>
+  <style>
+    body { font-family: monospace; padding: 24px; background: #0d1117; color: #c9d1d9; }
+    h2   { color: #58a6ff; }
+    label { color: #8b949e; }
+    input { background: #161b22; border: 1px solid #30363d; color: #c9d1d9; padding: 6px 10px; border-radius: 4px; width: 320px; }
+    button { padding: 6px 16px; border-radius: 4px; border: none; cursor: pointer; margin-left: 8px; }
+    #btn-connect    { background: #238636; color: #fff; }
+    #btn-disconnect { background: #b62324; color: #fff; }
+    #btn-send       { background: #1f6feb; color: #fff; }
+    #status { margin: 12px 0; font-weight: bold; }
+    #status.connected    { color: #3fb950; }
+    #status.disconnected { color: #f85149; }
+    #log { margin-top: 16px; border: 1px solid #30363d; border-radius: 6px; padding: 12px; min-height: 200px; max-height: 480px; overflow-y: auto; background: #161b22; }
+    .entry { padding: 4px 0; border-bottom: 1px solid #21262d; }
+    .entry.info  { color: #8b949e; }
+    .entry.recv  { color: #3fb950; }
+    .entry.error { color: #f85149; }
+  </style>
+</head>
+<body>
+  <h2>SignalR Test — NotificationService</h2>
+
+  <div>
+    <label>User ID:</label><br/>
+    <input id="userId" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
+    <button id="btn-connect">Connect</button>
+    <button id="btn-disconnect" disabled>Disconnect</button>
+  </div>
+
+  <p id="status" class="disconnected">● Disconnected</p>
+
+  <div>
+    <label>Test message (calls POST /api/dev/notify):</label><br/>
+    <input id="message" value="Hello from test page" />
+    <button id="btn-send" disabled>Send</button>
+  </div>
+
+  <div id="log"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+  <script>
+    let connection = null;
+
+    const log = (text, cls = 'info') => {
+      const el = document.createElement('div');
+      el.className = `entry ${cls}`;
+      el.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
+      document.getElementById('log').prepend(el);
+    };
+
+    const setConnected = (on) => {
+      document.getElementById('status').textContent = on ? '● Connected' : '● Disconnected';
+      document.getElementById('status').className = on ? 'connected' : 'disconnected';
+      document.getElementById('btn-connect').disabled = on;
+      document.getElementById('btn-disconnect').disabled = !on;
+      document.getElementById('btn-send').disabled = !on;
+    };
+
+    document.getElementById('btn-connect').onclick = async () => {
+      const userId = document.getElementById('userId').value.trim();
+      if (!userId) { alert('Enter a User ID first'); return; }
+
+      connection = new signalR.HubConnectionBuilder()
+        .withUrl(`/hubs/notifications?userId=${userId}`)
+        .withAutomaticReconnect()
+        .build();
+
+      connection.on('ReceiveNotification', (payload) => {
+        log('ReceiveNotification → ' + JSON.stringify(payload), 'recv');
+      });
+
+      connection.onreconnecting(() => log('Reconnecting…'));
+      connection.onreconnected(() => { log('Reconnected'); setConnected(true); });
+      connection.onclose(() => { log('Connection closed'); setConnected(false); });
+
+      try {
+        await connection.start();
+        log(`Connected as userId=${userId}`);
+        setConnected(true);
+      } catch (err) {
+        log('Connection failed: ' + err, 'error');
+      }
+    };
+
+    document.getElementById('btn-disconnect').onclick = async () => {
+      await connection?.stop();
+    };
+
+    document.getElementById('btn-send').onclick = async () => {
+      const userId  = document.getElementById('userId').value.trim();
+      const message = document.getElementById('message').value.trim();
+      try {
+        const res = await fetch(`/api/dev/notify?userId=${userId}&message=${encodeURIComponent(message)}`, { method: 'POST' });
+        const json = await res.json();
+        log('Sent → ' + JSON.stringify(json));
+      } catch (err) {
+        log('Send failed: ' + err, 'error');
+      }
+    };
+  </script>
+</body>
+</html>

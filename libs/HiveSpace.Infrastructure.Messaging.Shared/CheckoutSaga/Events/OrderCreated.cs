@@ -9,5 +9,6 @@ public record OrderCreated
     public Dictionary<Guid, Guid>      OrderStoreMap  { get; init; } = new();   // OrderId → StoreId
     public long                        GrandTotal     { get; init; }
     public List<OrderItemDto>          Items          { get; init; } = new();
+    public Dictionary<Guid, string>    OrderCodeMap   { get; init; } = new();   // OrderId → ShortId
     public DateTimeOffset              CreatedAt      { get; init; }
 }

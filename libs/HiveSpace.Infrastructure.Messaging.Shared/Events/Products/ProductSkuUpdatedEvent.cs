@@ -6,6 +6,7 @@ public record ProductSkuUpdatedEvent(
     int ProductId,
     int SkuId,
     string SkuNo,
+    string SkuName,
     int Quantity,
     long Price,
     string Currency

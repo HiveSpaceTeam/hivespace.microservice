@@ -24,6 +24,7 @@ public class CartDataQuery(string connectionString) : ICartDataQuery
                 skr.Price,
                 skr.Currency,
                 skr.SkuNo,
+                skr.SkuName,
                 skr.ImageUrl        AS SkuImageUrl,
                 skr.Attributes      AS SkuAttributes,
                 sr.Name             AS StoreName,

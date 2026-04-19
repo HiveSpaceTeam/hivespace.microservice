@@ -101,8 +101,6 @@ internal static class ServiceCollectionExtensions
             cfg.AddConsumer<MarkOrderAsPaidConsumer, MarkOrderAsPaidConsumerDefinition>();
             cfg.AddConsumer<ClearCartConsumer, ClearCartConsumerDefinition>();
             cfg.AddConsumer<CancelOrderConsumer, CancelOrderConsumerDefinition>();
-            cfg.AddConsumer<NotifySellerConsumer>();
-            cfg.AddConsumer<NotifyCustomerConsumer>();
             cfg.AddConsumer<StoreRefSyncConsumer>();
             cfg.AddConsumer<ProductRefSyncConsumer>();
         });

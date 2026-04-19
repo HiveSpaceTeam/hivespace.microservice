@@ -10,4 +10,5 @@ public record OrderReadyForFulfillment
     public List<Guid>    ReservationIds { get; init; } = new();
     public long          GrandTotal     { get; init; }
     public PaymentMethod PaymentMethod  { get; init; } = PaymentMethod.COD;
+    public string        OrderCode      { get; init; } = default!;
 }

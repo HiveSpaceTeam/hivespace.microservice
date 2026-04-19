@@ -43,12 +43,12 @@ public class ProductRefSyncConsumer(OrderDbContext db, ILogger<ProductRefSyncCon
         if (existing is null)
         {
             db.SkuRefs.Add(new SkuRef(msg.SkuId, msg.ProductId, msg.SkuNo, msg.Price, msg.Currency,
-                imageUrl: null, attributes: null));
+                imageUrl: null, attributes: null, skuName: msg.SkuName));
             logger.LogInformation("SkuRef created. SkuId={SkuId}", msg.SkuId);
         }
         else
         {
-            existing.Update(msg.SkuNo, msg.Price, msg.Currency, imageUrl: null, attributes: null);
+            existing.Update(msg.SkuNo, msg.Price, msg.Currency, imageUrl: null, attributes: null, skuName: msg.SkuName);
             logger.LogInformation("SkuRef updated. SkuId={SkuId}", msg.SkuId);
         }
         await db.SaveChangesAsync(context.CancellationToken);

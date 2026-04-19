@@ -7,6 +7,7 @@ public class SkuRef : IAuditable
     public long Id { get; private set; }
     public long ProductId { get; private set; }
     public string SkuNo { get; private set; } = string.Empty;
+    public string SkuName { get; private set; } = string.Empty;
     public long Price { get; private set; }
     public string Currency { get; private set; } = string.Empty;
     public string? ImageUrl { get; private set; }
@@ -16,11 +17,12 @@ public class SkuRef : IAuditable
 
     private SkuRef() { }
 
-    public SkuRef(long id, long productId, string skuNo, long price, string currency, string? imageUrl, string? attributes)
+    public SkuRef(long id, long productId, string skuNo, long price, string currency, string? imageUrl, string? attributes, string skuName = "")
     {
         Id = id;
         ProductId = productId;
         SkuNo = skuNo;
+        SkuName = skuName;
         Price = price;
         Currency = currency;
         ImageUrl = imageUrl;
@@ -28,9 +30,10 @@ public class SkuRef : IAuditable
         CreatedAt = DateTimeOffset.UtcNow;
     }
 
-    public void Update(string skuNo, long price, string currency, string? imageUrl, string? attributes)
+    public void Update(string skuNo, long price, string currency, string? imageUrl, string? attributes, string skuName = "")
     {
         SkuNo = skuNo;
+        SkuName = skuName;
         Price = price;
         Currency = currency;
         ImageUrl = imageUrl;
