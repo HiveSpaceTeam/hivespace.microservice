@@ -58,7 +58,22 @@
       "Bash(ngrok version:*)",
       "Bash(winget install:*)",
       "Bash(ngrok config:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(python3 -c \" import json, sys data = json.load\\(sys.stdin\\) for c in data: if c.get\\('user', {}\\).get\\('login'\\) == 'coderabbitai': print\\('=== FILE:', c.get\\('path', 'N/A'\\)\\) print\\('LINE:', c.get\\('line', c.get\\('original_line', 'N/A'\\)\\)\\) print\\('BODY:', c['body'][:800]\\) print\\('---'\\) \")",
+      "Bash(gh repo:*)",
+      "Bash(python3 -c \" import json, sys data = json.load\\(sys.stdin\\) print\\('Total inline comments:', len\\(data\\)\\) coderabbit_comments = [c for c in data if c.get\\('user', {}\\).get\\('login'\\) == 'coderabbitai'] print\\('CodeRabbit inline comments:', len\\(coderabbit_comments\\)\\) for c in coderabbit_comments: print\\('FILE:', c.get\\('path'\\)\\) print\\('LINE:', c.get\\('line', c.get\\('original_line'\\)\\)\\) print\\('BODY:', c['body'][:600]\\) print\\('---'\\) \")",
+      "Bash(echo \"Exit: $?\")",
+      "Read(//tmp/**)",
+      "Bash(find \"src/HiveSpace.UserService\" -name \"IStoreEventPublisher.cs\" -exec cat {} \\\\;)",
+      "Bash(xargs cat:*)",
+      "Bash(dotnet sln:*)",
+      "Bash(grep -i \"store_ref\" \"E:/Project/HivespaceProject/hivespace.microservice/src/HiveSpace.NotificationService/HiveSpace.NotificationService.Core/Migrations/\"*_InitialCreate.cs)",
+      "Bash(dotnet dev-certs https *)",
+      "Bash(find *)",
+      "Bash(xargs ls *)",
+      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
+      "Bash(grep -E \"\\\\.\\(cs|xaml\\)$\")",
+      "Bash(cmd.exe *)"
     ]
   }
 }
