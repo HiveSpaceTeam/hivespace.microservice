@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 using HiveSpace.NotificationService.Core.Channels.InApp;
+using Microsoft.Extensions.Hosting;
 using System.IdentityModel.Tokens.Jwt;
 
 namespace HiveSpace.NotificationService.Api.Hubs;
@@ -10,7 +11,7 @@ public class SubClaimUserIdProvider : IUserIdProvider
         => connection.User?.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
 }
 
-public class NotificationHub : Hub<INotificationClient>
+public class NotificationHub(IHostEnvironment hostEnvironment) : Hub<INotificationClient>
 {
     public override async Task OnConnectedAsync()
     {
@@ -36,5 +37,7 @@ public class NotificationHub : Hub<INotificationClient>
     /// </summary>
     private string? ResolveGroupName()
         => Context.UserIdentifier
-        ?? Context.GetHttpContext()?.Request.Query["userId"].FirstOrDefault();
+        ?? (hostEnvironment.IsDevelopment()
+            ? Context.GetHttpContext()?.Request.Query["userId"].FirstOrDefault()
+            : null);
 }

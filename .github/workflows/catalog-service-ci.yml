@@ -48,7 +48,7 @@ jobs:
 
       - name: Restore NuGet packages (CatalogService only)
         run: |
-          dotnet restore src/HiveSpace.CatalogService/HiveSpace.CatalogService.API/HiveSpace.CatalogService.API.csproj
+          dotnet restore src/HiveSpace.CatalogService/HiveSpace.CatalogService.Api/HiveSpace.CatalogService.Api.csproj
           dotnet restore src/HiveSpace.CatalogService/HiveSpace.CatalogService.Application/HiveSpace.CatalogService.Application.csproj
           dotnet restore src/HiveSpace.CatalogService/HiveSpace.CatalogService.Domain/HiveSpace.CatalogService.Domain.csproj
           dotnet restore src/HiveSpace.CatalogService/HiveSpace.CatalogService.Infrastructure/HiveSpace.CatalogService.Infrastructure.csproj
@@ -59,7 +59,7 @@ jobs:
           dotnet build src/HiveSpace.CatalogService/HiveSpace.CatalogService.Domain/HiveSpace.CatalogService.Domain.csproj -c Release --no-restore
           dotnet build src/HiveSpace.CatalogService/HiveSpace.CatalogService.Application/HiveSpace.CatalogService.Application.csproj -c Release --no-restore
           dotnet build src/HiveSpace.CatalogService/HiveSpace.CatalogService.Infrastructure/HiveSpace.CatalogService.Infrastructure.csproj -c Release --no-restore
-          dotnet build src/HiveSpace.CatalogService/HiveSpace.CatalogService.API/HiveSpace.CatalogService.API.csproj -c Release --no-restore
+          dotnet build src/HiveSpace.CatalogService/HiveSpace.CatalogService.Api/HiveSpace.CatalogService.Api.csproj -c Release --no-restore
           echo "CatalogService build completed successfully."
 
       - name: Run Unit Tests
@@ -138,7 +138,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: src/HiveSpace.CatalogService/HiveSpace.CatalogService.API/Dockerfile
+          file: src/HiveSpace.CatalogService/HiveSpace.CatalogService.Api/Dockerfile
           push: true
           platforms: linux/amd64
           cache-from: type=gha
