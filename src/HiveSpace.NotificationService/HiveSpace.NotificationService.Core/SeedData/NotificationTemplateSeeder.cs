@@ -18,14 +18,14 @@ internal sealed class NotificationTemplateSeeder(
         (
             NotificationEventType.OrderConfirmed, NotificationChannel.InApp, "vi",
             "Đơn hàng đã được xác nhận",
-            "Đơn hàng #{{ order_code }} của bạn đã được người bán xác nhận và đang được chuẩn bị."
+            "Đơn hàng #{{ orderCode }} của bạn đã được người bán xác nhận và đang được chuẩn bị."
         ),
         (
             NotificationEventType.OrderConfirmed, NotificationChannel.Email, "vi",
-            "Đơn hàng #{{ order_code }} đã được xác nhận",
+            "Đơn hàng #{{ orderCode }} đã được xác nhận",
             """
             <p>Xin chào,</p>
-            <p>Đơn hàng <strong>#{{ order_code }}</strong> của bạn đã được người bán xác nhận và đang được chuẩn bị giao.</p>
+            <p>Đơn hàng <strong>#{{ orderCode }}</strong> của bạn đã được người bán xác nhận và đang được chuẩn bị giao.</p>
             <p>Cảm ơn bạn đã mua sắm tại HiveSpace!</p>
             """
         ),
@@ -34,16 +34,16 @@ internal sealed class NotificationTemplateSeeder(
         (
             NotificationEventType.OrderCancelled, NotificationChannel.InApp, "vi",
             "Đơn hàng đã bị huỷ",
-            "Đơn hàng #{{ order_code }} của bạn đã bị huỷ.{{ if refund_amount > 0 }} Hoàn tiền {{ refund_amount }}đ sẽ được xử lý trong 3–5 ngày làm việc.{{ end }}"
+            "Đơn hàng #{{ orderCode }} của bạn đã bị huỷ.{{ if refundAmount > 0 }} Hoàn tiền {{ refundAmount }}đ sẽ được xử lý trong 3–5 ngày làm việc.{{ end }}"
         ),
         (
             NotificationEventType.OrderCancelled, NotificationChannel.Email, "vi",
-            "Đơn hàng #{{ order_code }} đã bị huỷ",
+            "Đơn hàng #{{ orderCode }} đã bị huỷ",
             """
             <p>Xin chào,</p>
-            <p>Đơn hàng <strong>#{{ order_code }}</strong> của bạn đã bị huỷ.</p>
-            {{ if refund_amount > 0 }}
-            <p>Khoản hoàn tiền <strong>{{ refund_amount }}đ</strong> sẽ được xử lý trong 3–5 ngày làm việc.</p>
+            <p>Đơn hàng <strong>#{{ orderCode }}</strong> của bạn đã bị huỷ.</p>
+            {{ if refundAmount > 0 }}
+            <p>Khoản hoàn tiền <strong>{{ refundAmount }}đ</strong> sẽ được xử lý trong 3–5 ngày làm việc.</p>
             {{ end }}
             <p>Nếu bạn có thắc mắc, vui lòng liên hệ bộ phận hỗ trợ.</p>
             """
@@ -53,14 +53,14 @@ internal sealed class NotificationTemplateSeeder(
         (
             NotificationEventType.NewOrderReceived, NotificationChannel.InApp, "vi",
             "Đơn hàng mới",
-            "Bạn có đơn hàng mới #{{ order_code }} cần xác nhận."
+            "Bạn có đơn hàng mới #{{ orderCode }} cần xác nhận."
         ),
         (
             NotificationEventType.NewOrderReceived, NotificationChannel.Email, "vi",
-            "Đơn hàng mới #{{ order_code }}",
+            "Đơn hàng mới #{{ orderCode }}",
             """
             <p>Xin chào,</p>
-            <p>Bạn vừa nhận được đơn hàng mới <strong>#{{ order_code }}</strong>.</p>
+            <p>Bạn vừa nhận được đơn hàng mới <strong>#{{ orderCode }}</strong>.</p>
             <p>Vui lòng đăng nhập vào HiveSpace Seller Center để xác nhận đơn hàng trong thời gian sớm nhất.</p>
             """
         ),

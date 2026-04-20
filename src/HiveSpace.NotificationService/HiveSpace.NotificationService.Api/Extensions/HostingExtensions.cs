@@ -47,7 +47,9 @@ internal static class HostingExtensions
         app.UseAuthorization();
 
         app.MapControllers();
-        app.MapHub<NotificationHub>("/hubs/notifications");
+        var hubEndpoint = app.MapHub<NotificationHub>("/hubs/notifications");
+        if (!app.Environment.IsDevelopment())
+            hubEndpoint.RequireAuthorization();
 
         return app;
     }
