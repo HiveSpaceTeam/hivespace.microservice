@@ -41,9 +41,10 @@ internal sealed class CouponSeeder(OrderDbContext db, ILogger<CouponSeeder> logg
                 var existingCodes = await db.Coupons
                     .Where(c => expectedCodes.Contains(c.Code))
                     .Select(c => c.Code)
-                    .ToHashSetAsync(ct);
+                    .ToListAsync(ct);
+                var existingCodeSet = existingCodes.ToHashSet();
 
-                var toInsert = templates.Where(t => !existingCodes.Contains(t.Code)).ToList();
+                var toInsert = templates.Where(t => !existingCodeSet.Contains(t.Code)).ToList();
                 if (toInsert.Count == 0)
                 {
                     logger.LogDebug("All expected Coupons already exist. Skipping.");

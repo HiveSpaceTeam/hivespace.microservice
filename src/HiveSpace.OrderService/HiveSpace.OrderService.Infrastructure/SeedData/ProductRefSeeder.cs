@@ -107,16 +107,18 @@ internal sealed class ProductRefSeeder(OrderDbContext db, ILogger<ProductRefSeed
         var existingProducts = await db.ProductRefs
             .Where(p => productIds.Contains(p.Id))
             .Select(p => p.Id)
-            .ToHashSetAsync(ct);
+            .ToListAsync(ct);
+        var existingProductSet = existingProducts.ToHashSet();
 
         var skuIds = SkuSeeds.Select(s => s.Id).ToList();
         var existingSkus = await db.SkuRefs
             .Where(s => skuIds.Contains(s.Id))
             .Select(s => s.Id)
-            .ToHashSetAsync(ct);
+            .ToListAsync(ct);
+        var existingSkuSet = existingSkus.ToHashSet();
 
-        var productsToAdd = ProductSeeds.Where(p => !existingProducts.Contains(p.ProductId)).ToList();
-        var skusToAdd = SkuSeeds.Where(s => !existingSkus.Contains(s.Id)).ToList();
+        var productsToAdd = ProductSeeds.Where(p => !existingProductSet.Contains(p.ProductId)).ToList();
+        var skusToAdd = SkuSeeds.Where(s => !existingSkuSet.Contains(s.Id)).ToList();
 
         if (productsToAdd.Count == 0 && skusToAdd.Count == 0)
         {
@@ -131,14 +133,16 @@ internal sealed class ProductRefSeeder(OrderDbContext db, ILogger<ProductRefSeed
             var existingProdsNow = await db.ProductRefs
                 .Where(p => productIds.Contains(p.Id))
                 .Select(p => p.Id)
-                .ToHashSetAsync(ct);
+                .ToListAsync(ct);
+            var existingProdsNowSet = existingProdsNow.ToHashSet();
             var existingSkusNow = await db.SkuRefs
                 .Where(s => skuIds.Contains(s.Id))
                 .Select(s => s.Id)
-                .ToHashSetAsync(ct);
+                .ToListAsync(ct);
+            var existingSkusNowSet = existingSkusNow.ToHashSet();
 
-            var toAddProds = ProductSeeds.Where(p => !existingProdsNow.Contains(p.ProductId)).ToList();
-            var toAddSkus = SkuSeeds.Where(s => !existingSkusNow.Contains(s.Id)).ToList();
+            var toAddProds = ProductSeeds.Where(p => !existingProdsNowSet.Contains(p.ProductId)).ToList();
+            var toAddSkus = SkuSeeds.Where(s => !existingSkusNowSet.Contains(s.Id)).ToList();
             if (toAddProds.Count == 0 && toAddSkus.Count == 0) return;
 
             await using var tx = await db.Database.BeginTransactionAsync(ct);

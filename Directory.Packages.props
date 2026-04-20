@@ -7,9 +7,9 @@
     <!-- MediatR -->
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.26.0" />
     <PackageVersion Include="Azure.Storage.Queues" Version="12.24.0" />
-    <PackageVersion Include="MassTransit.Azure.ServiceBus.Core" Version="8.5.7" />
-    <PackageVersion Include="MassTransit.EntityFramework" Version="8.5.7" />
-    <PackageVersion Include="MassTransit.EntityFrameworkCore" Version="8.5.7" />
+    <PackageVersion Include="MassTransit.Azure.ServiceBus.Core" Version="8.4.1" />
+    <PackageVersion Include="MassTransit.EntityFramework" Version="8.4.1" />
+    <PackageVersion Include="MassTransit.EntityFrameworkCore" Version="8.4.1" />
     <PackageVersion Include="MediatR" Version="13.0.0" />
     <PackageVersion Include="Carter" Version="8.2.1" />
     <!-- Microsoft AspNetCore packages -->
@@ -24,11 +24,11 @@
     <PackageVersion Include="Asp.Versioning.Mvc" Version="8.1.0" />
     <!-- Microsoft EntityFrameworkCore packages -->
     <PackageVersion Include="Microsoft.Azure.Functions.Worker.Extensions.Timer" Version="4.3.1" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="9.0.1" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.1" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.1" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.1" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.1" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="8.0.11" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.11" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.11" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.11" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.11" />
     <!-- Microsoft Extensions packages -->
     <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.0" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />
@@ -53,9 +53,9 @@
     <!-- Dapper -->
     <PackageVersion Include="Dapper" Version="2.1.28" />
     <!-- Messaging -->
-    <PackageVersion Include="MassTransit" Version="8.5.7" />
-    <PackageVersion Include="MassTransit.RabbitMQ" Version="8.5.7" />
-    <PackageVersion Include="MassTransit.Kafka" Version="8.5.7" />
+    <PackageVersion Include="MassTransit" Version="8.4.1" />
+    <PackageVersion Include="MassTransit.RabbitMQ" Version="8.4.1" />
+    <PackageVersion Include="MassTransit.Kafka" Version="8.4.1" />
     <PackageVersion Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
     <!-- JWT -->
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.12.0" />
@@ -79,12 +79,12 @@
     <!-- Image Processing -->
     <PackageVersion Include="SixLabors.ImageSharp" Version="3.1.12" />
     <!-- Notification Service -->
-    <PackageVersion Include="StackExchange.Redis" Version="2.7.33" />
+    <PackageVersion Include="StackExchange.Redis" Version="2.12.8" />
     <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.0" />
     <PackageVersion Include="Resend" Version="0.4.0" />
     <PackageVersion Include="Scriban" Version="5.10.0" />
-    <PackageVersion Include="Hangfire.AspNetCore" Version="1.8.9" />
-    <PackageVersion Include="Hangfire.SqlServer" Version="1.8.9" />
+    <PackageVersion Include="Hangfire.AspNetCore" Version="1.8.23" />
+    <PackageVersion Include="Hangfire.SqlServer" Version="1.8.23" />
     <!-- Test Packages -->
     <PackageVersion Include="coverlet.collector" Version="6.0.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />

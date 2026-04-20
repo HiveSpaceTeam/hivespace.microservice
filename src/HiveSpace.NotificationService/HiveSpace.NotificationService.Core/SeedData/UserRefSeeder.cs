@@ -36,9 +36,10 @@ internal sealed class UserRefSeeder(
         var existing = await db.UserRefs
             .Where(u => seedIds.Contains(u.Id))
             .Select(u => u.Id)
-            .ToHashSetAsync(ct);
+            .ToListAsync(ct);
+        var existingSet = existing.ToHashSet();
 
-        var toAdd = Seeds.Where(s => !existing.Contains(s.UserId)).ToList();
+        var toAdd = Seeds.Where(s => !existingSet.Contains(s.UserId)).ToList();
         if (toAdd.Count == 0)
         {
             logger.LogDebug("All expected UserRefs already exist. Skipping.");
@@ -53,9 +54,10 @@ internal sealed class UserRefSeeder(
             var currentExisting = await db.UserRefs
                 .Where(u => seedIds.Contains(u.Id))
                 .Select(u => u.Id)
-                .ToHashSetAsync(ct);
+                .ToListAsync(ct);
+            var currentExistingSet = currentExisting.ToHashSet();
 
-            var toAddNow = Seeds.Where(s => !currentExisting.Contains(s.UserId)).ToList();
+            var toAddNow = Seeds.Where(s => !currentExistingSet.Contains(s.UserId)).ToList();
             if (toAddNow.Count == 0) return;
 
             await using var tx = await db.Database.BeginTransactionAsync(ct);
