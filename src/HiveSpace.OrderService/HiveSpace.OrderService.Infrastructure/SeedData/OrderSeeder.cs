@@ -70,12 +70,13 @@ internal sealed class OrderSeeder(OrderDbContext db, ILogger<OrderSeeder> logger
             var currentIds = await db.Orders
                 .Where(o => StableOrderIds.Contains(o.Id))
                 .Select(o => o.Id)
-                .ToHashSetAsync(ct);
+                .ToListAsync(ct);
+            var currentIdSet = currentIds.ToHashSet();
 
             await using var tx = await db.Database.BeginTransactionAsync(ct);
 
             // ── ReadyToShip ×2 ────────────────────────────────────────────────
-            if (!currentIds.Contains(AliceOrder1Id))
+            if (!currentIdSet.Contains(AliceOrder1Id))
             {
                 var o = Build(AliceOrder1Id, AliceId, "Alice", "0901234567", TikiStoreId,
                               1011L, 10011L, 1012L, 10012L, 15000L, productRefs, skuRefs);
@@ -84,7 +85,7 @@ internal sealed class OrderSeeder(OrderDbContext db, ILogger<OrderSeeder> logger
                 db.Orders.Add(o);
             }
 
-            if (!currentIds.Contains(BobOrder1Id))
+            if (!currentIdSet.Contains(BobOrder1Id))
             {
                 var o = Build(BobOrder1Id, BobId, "Bob", "0987654321", PDStoreId,
                               1003L, 10003L, 1004L, 10004L, 25000L, productRefs, skuRefs);
@@ -95,7 +96,7 @@ internal sealed class OrderSeeder(OrderDbContext db, ILogger<OrderSeeder> logger
             }
 
             // ── ReturnCancel ×2 ───────────────────────────────────────────────
-            if (!currentIds.Contains(AliceOrder2Id))
+            if (!currentIdSet.Contains(AliceOrder2Id))
             {
                 var o = Build(AliceOrder2Id, AliceId, "Alice", "0901234567", GiverStoreId,
                               1001L, 10001L, 1002L, 10002L, 20000L, productRefs, skuRefs);
@@ -104,7 +105,7 @@ internal sealed class OrderSeeder(OrderDbContext db, ILogger<OrderSeeder> logger
                 db.Orders.Add(o);
             }
 
-            if (!currentIds.Contains(BobOrder2Id))
+            if (!currentIdSet.Contains(BobOrder2Id))
             {
                 var o = Build(BobOrder2Id, BobId, "Bob", "0987654321", TikiStoreId,
                               1013L, 10013L, 1014L, 10014L, 15000L, productRefs, skuRefs);
@@ -140,7 +141,7 @@ internal sealed class OrderSeeder(OrderDbContext db, ILogger<OrderSeeder> logger
             db.Orders.Add(bobOrder3);
 
             // ── Shipping ×2 ───────────────────────────────────────────────────
-            if (!currentIds.Contains(AliceOrder4Id))
+            if (!currentIdSet.Contains(AliceOrder4Id))
             {
                 var o = Build(AliceOrder4Id, AliceId, "Alice", "0901234567", PDStoreId,
                               1007L, 10007L, 1008L, 10008L, 25000L, productRefs, skuRefs);
@@ -151,7 +152,7 @@ internal sealed class OrderSeeder(OrderDbContext db, ILogger<OrderSeeder> logger
                 db.Orders.Add(o);
             }
 
-            if (!currentIds.Contains(BobOrder4Id))
+            if (!currentIdSet.Contains(BobOrder4Id))
             {
                 var o = Build(BobOrder4Id, BobId, "Bob", "0987654321", TikiStoreId,
                               1018L, 10018L, 1019L, 10019L, 15000L, productRefs, skuRefs);
@@ -163,7 +164,7 @@ internal sealed class OrderSeeder(OrderDbContext db, ILogger<OrderSeeder> logger
             }
 
             // ── Delivered ×2 ─────────────────────────────────────────────────
-            if (!currentIds.Contains(AliceOrder5Id))
+            if (!currentIdSet.Contains(AliceOrder5Id))
             {
                 var o = Build(AliceOrder5Id, AliceId, "Alice", "0901234567", GiverStoreId,
                               1005L, 10005L, 1006L, 10006L, 20000L, productRefs, skuRefs);
@@ -175,7 +176,7 @@ internal sealed class OrderSeeder(OrderDbContext db, ILogger<OrderSeeder> logger
                 db.Orders.Add(o);
             }
 
-            if (!currentIds.Contains(BobOrder5Id))
+            if (!currentIdSet.Contains(BobOrder5Id))
             {
                 var o = Build(BobOrder5Id, BobId, "Bob", "0987654321", PDStoreId,
                               1003L, 10003L, 1009L, 10009L, 25000L, productRefs, skuRefs);

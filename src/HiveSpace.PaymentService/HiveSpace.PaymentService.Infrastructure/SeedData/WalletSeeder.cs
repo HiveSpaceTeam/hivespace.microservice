@@ -21,9 +21,10 @@ internal sealed class WalletSeeder(PaymentDbContext db, ILogger<WalletSeeder> lo
         var existingIds = await db.Wallets
             .Where(w => seededIds.Contains(w.UserId))
             .Select(w => w.UserId)
-            .ToHashSetAsync(ct);
+            .ToListAsync(ct);
+        var existingIdSet = existingIds.ToHashSet();
 
-        if (existingIds.Contains(AliceId) && existingIds.Contains(BobId))
+        if (existingIdSet.Contains(AliceId) && existingIdSet.Contains(BobId))
         {
             logger.LogDebug("Wallets already seeded. Skipping.");
             return;
@@ -36,18 +37,19 @@ internal sealed class WalletSeeder(PaymentDbContext db, ILogger<WalletSeeder> lo
             var existing = await db.Wallets
                 .Where(w => seededIds.Contains(w.UserId))
                 .Select(w => w.UserId)
-                .ToHashSetAsync(ct);
+                .ToListAsync(ct);
+            var existingSet = existing.ToHashSet();
 
             await using var tx = await db.Database.BeginTransactionAsync(ct);
 
-            if (!existing.Contains(AliceId))
+            if (!existingSet.Contains(AliceId))
             {
                 var aliceWallet = Wallet.CreateForUser(AliceId);
                 aliceWallet.Credit(Money.Create(5_000_000, "VND"), "SEED-TOPUP", "Initial wallet top-up");
                 db.Wallets.Add(aliceWallet);
             }
 
-            if (!existing.Contains(BobId))
+            if (!existingSet.Contains(BobId))
             {
                 var bobWallet = Wallet.CreateForUser(BobId);
                 bobWallet.Credit(Money.Create(3_000_000, "VND"), "SEED-TOPUP", "Initial wallet top-up");

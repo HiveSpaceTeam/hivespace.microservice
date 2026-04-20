@@ -39,9 +39,10 @@ internal sealed class FulfillmentSagaStateSeeder(
         var existing = await db.FulfillmentSagaStates
             .Where(s => pendingIds.Contains(s.CorrelationId))
             .Select(s => s.CorrelationId)
-            .ToHashSetAsync(ct);
+            .ToListAsync(ct);
+        var existingSet = existing.ToHashSet();
 
-        var toSeed = pendingOrders.Where(o => !existing.Contains(o.Id)).ToList();
+        var toSeed = pendingOrders.Where(o => !existingSet.Contains(o.Id)).ToList();
         if (toSeed.Count == 0)
         {
             logger.LogDebug("All expected FulfillmentSagaStates already exist. Skipping.");
@@ -56,9 +57,10 @@ internal sealed class FulfillmentSagaStateSeeder(
             var currentExisting = await db.FulfillmentSagaStates
                 .Where(s => pendingIds.Contains(s.CorrelationId))
                 .Select(s => s.CorrelationId)
-                .ToHashSetAsync(ct);
+                .ToListAsync(ct);
+            var currentExistingSet = currentExisting.ToHashSet();
 
-            var toAddNow = toSeed.Where(o => !currentExisting.Contains(o.Id)).ToList();
+            var toAddNow = toSeed.Where(o => !currentExistingSet.Contains(o.Id)).ToList();
             if (toAddNow.Count == 0) return;
 
             await using var tx = await db.Database.BeginTransactionAsync(ct);

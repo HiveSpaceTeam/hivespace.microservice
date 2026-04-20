@@ -9,8 +9,10 @@ public class NotificationDbContextFactory : IDesignTimeDbContextFactory<Notifica
     public NotificationDbContext CreateDbContext(string[] args)
     {
         var optionsBuilder = new DbContextOptionsBuilder<NotificationDbContext>();
-        optionsBuilder.UseSqlServer(
-            "Server=localhost,1433;Database=NotificationDb;User Id=sa;Password=Passw0rd123!;Encrypt=False;TrustServerCertificate=True");
+        var connectionString =
+            Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+            ?? "Server=localhost,1433;Database=NotificationDb;User Id=sa;Password=;Encrypt=False;TrustServerCertificate=True";
+        optionsBuilder.UseSqlServer(connectionString);
 
         return new NotificationDbContext(optionsBuilder.Options);
     }

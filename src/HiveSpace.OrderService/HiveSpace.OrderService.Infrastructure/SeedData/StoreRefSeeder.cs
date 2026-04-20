@@ -25,9 +25,10 @@ internal sealed class StoreRefSeeder(OrderDbContext db, ILogger<StoreRefSeeder> 
         var existing = await db.StoreRefs
             .Where(s => seedIds.Contains(s.Id))
             .Select(s => s.Id)
-            .ToHashSetAsync(ct);
+            .ToListAsync(ct);
+        var existingSet = existing.ToHashSet();
 
-        var toAdd = Seeds.Where(s => !existing.Contains(s.StoreId)).ToList();
+        var toAdd = Seeds.Where(s => !existingSet.Contains(s.StoreId)).ToList();
         if (toAdd.Count == 0)
         {
             logger.LogDebug("All expected StoreRefs already exist. Skipping.");
@@ -41,9 +42,10 @@ internal sealed class StoreRefSeeder(OrderDbContext db, ILogger<StoreRefSeeder> 
             var currentExisting = await db.StoreRefs
                 .Where(s => seedIds.Contains(s.Id))
                 .Select(s => s.Id)
-                .ToHashSetAsync(ct);
+                .ToListAsync(ct);
+            var currentExistingSet = currentExisting.ToHashSet();
 
-            var toAddNow = Seeds.Where(s => !currentExisting.Contains(s.StoreId)).ToList();
+            var toAddNow = Seeds.Where(s => !currentExistingSet.Contains(s.StoreId)).ToList();
             if (toAddNow.Count == 0) return;
 
             await using var tx = await db.Database.BeginTransactionAsync(ct);

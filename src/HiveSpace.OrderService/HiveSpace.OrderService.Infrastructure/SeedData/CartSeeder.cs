@@ -19,9 +19,10 @@ internal sealed class CartSeeder(OrderDbContext db, ILogger<CartSeeder> logger) 
         var existingCarts = await db.Carts
             .Where(c => userIds.Contains(c.UserId))
             .Select(c => c.UserId)
-            .ToHashSetAsync(ct);
+            .ToListAsync(ct);
+        var existingCartSet = existingCarts.ToHashSet();
 
-        if (existingCarts.Count == userIds.Length)
+        if (existingCartSet.Count == userIds.Length)
         {
             logger.LogDebug("All expected Carts already exist. Skipping.");
             return;
@@ -34,12 +35,13 @@ internal sealed class CartSeeder(OrderDbContext db, ILogger<CartSeeder> logger) 
             var existing = await db.Carts
                 .Where(c => userIds.Contains(c.UserId))
                 .Select(c => c.UserId)
-                .ToHashSetAsync(ct);
+                .ToListAsync(ct);
+            var existingSet = existing.ToHashSet();
 
             int addedCount = 0;
             await using var tx = await db.Database.BeginTransactionAsync(ct);
 
-            if (!existing.Contains(AliceId))
+            if (!existingSet.Contains(AliceId))
             {
                 var aliceCart = Cart.Create(AliceId);
                 aliceCart.AddItem(1011L, 10011L, 1);
@@ -49,7 +51,7 @@ internal sealed class CartSeeder(OrderDbContext db, ILogger<CartSeeder> logger) 
                 addedCount++;
             }
 
-            if (!existing.Contains(BobId))
+            if (!existingSet.Contains(BobId))
             {
                 var bobCart = Cart.Create(BobId);
                 bobCart.AddItem(1012L, 10012L, 1);
