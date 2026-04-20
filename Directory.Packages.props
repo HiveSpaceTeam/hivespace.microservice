@@ -10,6 +10,7 @@
     <PackageVersion Include="MassTransit.Azure.ServiceBus.Core" Version="8.5.7" />
     <PackageVersion Include="MassTransit.EntityFramework" Version="8.5.7" />
     <PackageVersion Include="MassTransit.EntityFrameworkCore" Version="8.5.7" />
+    <PackageVersion Include="MassTransit.Quartz" Version="8.5.7" />
     <PackageVersion Include="MediatR" Version="13.0.0" />
     <PackageVersion Include="Carter" Version="8.2.1" />
     <!-- Microsoft AspNetCore packages -->
