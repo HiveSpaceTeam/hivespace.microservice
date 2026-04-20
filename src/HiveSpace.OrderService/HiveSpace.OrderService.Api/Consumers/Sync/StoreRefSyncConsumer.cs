@@ -16,8 +16,8 @@ public class StoreRefSyncConsumer(OrderDbContext db, ILogger<StoreRefSyncConsume
         var existing = await db.StoreRefs.FindAsync([msg.Id], context.CancellationToken);
         if (existing is null)
         {
-            db.StoreRefs.Add(new StoreRef(msg.Id, msg.StoreName, SellerStatus.Active));
-            logger.LogInformation("StoreRef created. StoreId={StoreId}", msg.Id);
+            db.StoreRefs.Add(new StoreRef(msg.Id, msg.StoreName, SellerStatus.Active, msg.OwnerId));
+            logger.LogInformation("StoreRef created. StoreId={StoreId} OwnerId={OwnerId}", msg.Id, msg.OwnerId);
         }
         else
         {

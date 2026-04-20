@@ -59,6 +59,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Messaging.Publishers
                 product.Id,
                 sku.Id,
                 sku.SkuNo,
+                string.Join(", ", sku.SkuVariants.Select(v => v.Value)),
                 sku.Quantity,
                 sku.Price.Amount,
                 sku.Price.Currency.ToString()

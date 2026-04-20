@@ -17,6 +17,7 @@ public record CartItemDto(
     long? Price,
     string? Currency,
     string? SkuNo,
+    string? SkuName,
     string? SkuImageUrl,
     string? SkuAttributes,
     // From StoreRef

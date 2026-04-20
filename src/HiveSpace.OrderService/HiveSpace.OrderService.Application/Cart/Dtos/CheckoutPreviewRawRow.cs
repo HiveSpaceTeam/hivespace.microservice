@@ -9,6 +9,7 @@ public record CheckoutPreviewRawRow(
     string? ThumbnailUrl,
     long?   Price,
     string? Currency,
+    string? SkuName,
     string? SkuImageUrl,
     string? SkuAttributes,
     Guid    StoreId,

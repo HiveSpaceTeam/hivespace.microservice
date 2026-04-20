@@ -126,6 +126,7 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
                 {
                     ctx.Saga.OrderIds      = ctx.Message.OrderIds;
                     ctx.Saga.OrderStoreMap = ctx.Message.OrderStoreMap;
+                    ctx.Saga.OrderCodeMap  = ctx.Message.OrderCodeMap;
                     ctx.Saga.GrandTotal    = ctx.Message.GrandTotal;
                 })
                 .Request(InventoryReservation, ctx => ctx.Init<ReserveInventory>(new
@@ -306,68 +307,41 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
             When(PaymentInitiation.Completed2)   // PaymentInitiationFailed
                 .Then(ctx =>
                 {
-                    ctx.Saga.FailureReason = ctx.Message.Reason;
-                    ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
+                    ctx.Saga.FailureReason             = ctx.Message.Reason;
+                    ctx.Saga.FailedAt                  = DateTimeOffset.UtcNow;
+                    ctx.Saga.PendingInventoryReleases  = ctx.Saga.OrderIds.Count;
                 })
                 .ThenAsync(ctx => RespondWithFailure(ctx,
                     ctx.Saga.RequestId, ctx.Saga.ResponseAddress,
                     CheckoutErrorType.PaymentFailed, ctx.Saga.FailureReason!))
                 .TransitionTo(Compensating)
-                .ThenAsync(PublishReleaseInventoryForOrders)
-                .ThenAsync(async ctx =>
-                {
-                    foreach (var orderId in ctx.Saga.OrderIds)
-                        await ctx.Publish<CancelOrder>(new
-                        {
-                            ctx.Saga.CorrelationId,
-                            OrderId = orderId,
-                            Reason  = ctx.Saga.FailureReason
-                        });
-                }),
+                .ThenAsync(PublishReleaseInventoryForOrders),
 
             When(PaymentInitiation.Faulted)
                 .Then(ctx =>
                 {
-                    ctx.Saga.FailureReason = "Unexpected error during payment initiation";
-                    ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
+                    ctx.Saga.FailureReason             = "Unexpected error during payment initiation";
+                    ctx.Saga.FailedAt                  = DateTimeOffset.UtcNow;
+                    ctx.Saga.PendingInventoryReleases  = ctx.Saga.OrderIds.Count;
                 })
                 .ThenAsync(ctx => RespondWithFailure(ctx,
                     ctx.Saga.RequestId, ctx.Saga.ResponseAddress,
                     CheckoutErrorType.InternalError, ctx.Saga.FailureReason!))
                 .TransitionTo(Compensating)
-                .ThenAsync(PublishReleaseInventoryForOrders)
-                .ThenAsync(async ctx =>
-                {
-                    foreach (var orderId in ctx.Saga.OrderIds)
-                        await ctx.Publish<CancelOrder>(new
-                        {
-                            ctx.Saga.CorrelationId,
-                            OrderId = orderId,
-                            Reason  = ctx.Saga.FailureReason
-                        });
-                }),
+                .ThenAsync(PublishReleaseInventoryForOrders),
 
             When(PaymentInitiation.TimeoutExpired)
                 .Then(ctx =>
                 {
-                    ctx.Saga.FailureReason = "Payment initiation timed out";
-                    ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
+                    ctx.Saga.FailureReason             = "Payment initiation timed out";
+                    ctx.Saga.FailedAt                  = DateTimeOffset.UtcNow;
+                    ctx.Saga.PendingInventoryReleases  = ctx.Saga.OrderIds.Count;
                 })
                 .ThenAsync(ctx => RespondWithFailure(ctx,
                     ctx.Saga.RequestId, ctx.Saga.ResponseAddress,
                     CheckoutErrorType.Timeout, ctx.Saga.FailureReason!))
                 .TransitionTo(Compensating)
                 .ThenAsync(PublishReleaseInventoryForOrders)
-                .ThenAsync(async ctx =>
-                {
-                    foreach (var orderId in ctx.Saga.OrderIds)
-                        await ctx.Publish<CancelOrder>(new
-                        {
-                            ctx.Saga.CorrelationId,
-                            OrderId = orderId,
-                            Reason  = ctx.Saga.FailureReason
-                        });
-                })
         );
 
         // ── AWAITING PAYMENT ──────────────────────────────────────────────────
@@ -386,41 +360,23 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
             When(PaymentFailed)   // from Kafka
                 .Then(ctx =>
                 {
-                    ctx.Saga.FailureReason = ctx.Message.Reason;
-                    ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
+                    ctx.Saga.FailureReason            = ctx.Message.Reason;
+                    ctx.Saga.FailedAt                 = DateTimeOffset.UtcNow;
+                    ctx.Saga.PendingInventoryReleases = ctx.Saga.OrderIds.Count;
                 })
                 .Unschedule(PaymentTimeoutSchedule)
                 .TransitionTo(Compensating)
-                .ThenAsync(PublishReleaseInventoryForOrders)
-                .ThenAsync(async ctx =>
-                {
-                    foreach (var orderId in ctx.Saga.OrderIds)
-                        await ctx.Publish<CancelOrder>(new
-                        {
-                            ctx.Saga.CorrelationId,
-                            OrderId = orderId,
-                            Reason  = ctx.Saga.FailureReason
-                        });
-                }),
+                .ThenAsync(PublishReleaseInventoryForOrders),
 
             When(PaymentTimeoutSchedule.Received)
                 .Then(ctx =>
                 {
-                    ctx.Saga.FailureReason = "Payment timed out";
-                    ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
+                    ctx.Saga.FailureReason            = "Payment timed out";
+                    ctx.Saga.FailedAt                 = DateTimeOffset.UtcNow;
+                    ctx.Saga.PendingInventoryReleases = ctx.Saga.OrderIds.Count;
                 })
                 .TransitionTo(Compensating)
                 .ThenAsync(PublishReleaseInventoryForOrders)
-                .ThenAsync(async ctx =>
-                {
-                    foreach (var orderId in ctx.Saga.OrderIds)
-                        await ctx.Publish<CancelOrder>(new
-                        {
-                            ctx.Saga.CorrelationId,
-                            OrderId = orderId,
-                            Reason  = ctx.Saga.FailureReason
-                        });
-                })
         );
 
         // ── PAYMENT MARKING ───────────────────────────────────────────────────
@@ -436,68 +392,41 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
             When(PaymentMarking.Completed2)   // MarkOrderAsPaidFailed
                 .Then(ctx =>
                 {
-                    ctx.Saga.FailureReason = ctx.Message.Reason;
-                    ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
+                    ctx.Saga.FailureReason            = ctx.Message.Reason;
+                    ctx.Saga.FailedAt                 = DateTimeOffset.UtcNow;
+                    ctx.Saga.PendingInventoryReleases = ctx.Saga.OrderIds.Count;
                 })
                 .ThenAsync(ctx => RespondWithFailure(ctx,
                     ctx.Saga.RequestId, ctx.Saga.ResponseAddress,
                     CheckoutErrorType.InternalError, ctx.Saga.FailureReason!))
                 .TransitionTo(Compensating)
-                .ThenAsync(PublishReleaseInventoryForOrders)
-                .ThenAsync(async ctx =>
-                {
-                    foreach (var orderId in ctx.Saga.OrderIds)
-                        await ctx.Publish<CancelOrder>(new
-                        {
-                            ctx.Saga.CorrelationId,
-                            OrderId = orderId,
-                            Reason  = ctx.Saga.FailureReason
-                        });
-                }),
+                .ThenAsync(PublishReleaseInventoryForOrders),
 
             When(PaymentMarking.Faulted)
                 .Then(ctx =>
                 {
-                    ctx.Saga.FailureReason = "Unexpected error during payment marking";
-                    ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
+                    ctx.Saga.FailureReason            = "Unexpected error during payment marking";
+                    ctx.Saga.FailedAt                 = DateTimeOffset.UtcNow;
+                    ctx.Saga.PendingInventoryReleases = ctx.Saga.OrderIds.Count;
                 })
                 .ThenAsync(ctx => RespondWithFailure(ctx,
                     ctx.Saga.RequestId, ctx.Saga.ResponseAddress,
                     CheckoutErrorType.InternalError, ctx.Saga.FailureReason!))
                 .TransitionTo(Compensating)
-                .ThenAsync(PublishReleaseInventoryForOrders)
-                .ThenAsync(async ctx =>
-                {
-                    foreach (var orderId in ctx.Saga.OrderIds)
-                        await ctx.Publish<CancelOrder>(new
-                        {
-                            ctx.Saga.CorrelationId,
-                            OrderId = orderId,
-                            Reason  = ctx.Saga.FailureReason
-                        });
-                }),
+                .ThenAsync(PublishReleaseInventoryForOrders),
 
             When(PaymentMarking.TimeoutExpired)
                 .Then(ctx =>
                 {
-                    ctx.Saga.FailureReason = "Payment marking timed out";
-                    ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
+                    ctx.Saga.FailureReason            = "Payment marking timed out";
+                    ctx.Saga.FailedAt                 = DateTimeOffset.UtcNow;
+                    ctx.Saga.PendingInventoryReleases = ctx.Saga.OrderIds.Count;
                 })
                 .ThenAsync(ctx => RespondWithFailure(ctx,
                     ctx.Saga.RequestId, ctx.Saga.ResponseAddress,
                     CheckoutErrorType.Timeout, ctx.Saga.FailureReason!))
                 .TransitionTo(Compensating)
                 .ThenAsync(PublishReleaseInventoryForOrders)
-                .ThenAsync(async ctx =>
-                {
-                    foreach (var orderId in ctx.Saga.OrderIds)
-                        await ctx.Publish<CancelOrder>(new
-                        {
-                            ctx.Saga.CorrelationId,
-                            OrderId = orderId,
-                            Reason  = ctx.Saga.FailureReason
-                        });
-                })
         );
 
         // ── COD MARKING ───────────────────────────────────────────────────────
@@ -513,8 +442,9 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
             When(CODMarking.Completed2)   // MarkOrderAsCODFailed
                 .Then(ctx =>
                 {
-                    ctx.Saga.FailureReason = ctx.Message.Reason;
-                    ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
+                    ctx.Saga.FailureReason            = ctx.Message.Reason;
+                    ctx.Saga.FailedAt                 = DateTimeOffset.UtcNow;
+                    ctx.Saga.PendingInventoryReleases = ctx.Saga.OrderIds.Count;
                 })
                 .ThenAsync(ctx => RespondWithFailure(ctx,
                     ctx.Saga.RequestId, ctx.Saga.ResponseAddress,
@@ -525,8 +455,9 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
             When(CODMarking.Faulted)
                 .Then(ctx =>
                 {
-                    ctx.Saga.FailureReason = "Unexpected error during COD marking";
-                    ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
+                    ctx.Saga.FailureReason            = "Unexpected error during COD marking";
+                    ctx.Saga.FailedAt                 = DateTimeOffset.UtcNow;
+                    ctx.Saga.PendingInventoryReleases = ctx.Saga.OrderIds.Count;
                 })
                 .ThenAsync(ctx => RespondWithFailure(ctx,
                     ctx.Saga.RequestId, ctx.Saga.ResponseAddress,
@@ -537,8 +468,9 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
             When(CODMarking.TimeoutExpired)
                 .Then(ctx =>
                 {
-                    ctx.Saga.FailureReason = "COD marking timed out";
-                    ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
+                    ctx.Saga.FailureReason            = "COD marking timed out";
+                    ctx.Saga.FailedAt                 = DateTimeOffset.UtcNow;
+                    ctx.Saga.PendingInventoryReleases = ctx.Saga.OrderIds.Count;
                 })
                 .ThenAsync(ctx => RespondWithFailure(ctx,
                     ctx.Saga.RequestId, ctx.Saga.ResponseAddress,
@@ -580,7 +512,8 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
                             StoreId        = storeId,
                             ReservationIds = reservations ?? new List<Guid>(),
                             ctx.Saga.GrandTotal,
-                            ctx.Saga.PaymentMethod
+                            ctx.Saga.PaymentMethod,
+                            OrderCode      = ctx.Saga.OrderCodeMap.GetValueOrDefault(orderId, orderId.ToString())
                         });
                     }
                 })
@@ -622,7 +555,8 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
                             StoreId        = storeId,
                             ReservationIds = reservations ?? new List<Guid>(),
                             ctx.Saga.GrandTotal,
-                            ctx.Saga.PaymentMethod
+                            ctx.Saga.PaymentMethod,
+                            OrderCode      = ctx.Saga.OrderCodeMap.GetValueOrDefault(orderId, orderId.ToString())
                         });
                     }
                 })
@@ -672,16 +606,20 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
             When(PaymentTimeoutSchedule.Received).Then(_ => {}),
 
             When(InventoryReleased)
-                .ThenAsync(async ctx =>
-                {
-                    foreach (var orderId in ctx.Saga.OrderIds)
-                        await ctx.Publish<CancelOrder>(new
+                .Then(ctx => ctx.Saga.PendingInventoryReleases--)
+                .If(ctx => ctx.Saga.PendingInventoryReleases == 0,
+                    allReleased => allReleased
+                        .ThenAsync(async ctx =>
                         {
-                            ctx.Message.CorrelationId,
-                            OrderId = orderId,
-                            Reason  = ctx.Saga.FailureReason
-                        });
-                }),
+                            foreach (var orderId in ctx.Saga.OrderIds)
+                                await ctx.Publish<CancelOrder>(new
+                                {
+                                    ctx.Saga.CorrelationId,
+                                    OrderId = orderId,
+                                    Reason  = ctx.Saga.FailureReason
+                                });
+                        })
+                ),
 
             When(OrderCancelled)
                 .TransitionTo(Failed)

@@ -84,6 +84,7 @@ public static class OrderInfrastructureExtension
         services.AddScoped<ISeeder, CouponSeeder>();
         services.AddScoped<ISeeder, CartSeeder>();
         services.AddScoped<ISeeder, OrderSeeder>();
+        services.AddScoped<ISeeder, FulfillmentSagaStateSeeder>();
     }
 
     public static void AddOrderServiceQueries(this IServiceCollection services, string connectionString)

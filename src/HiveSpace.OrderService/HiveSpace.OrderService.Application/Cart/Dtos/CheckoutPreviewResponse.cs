@@ -6,6 +6,7 @@ public record CheckoutPreviewItemDto(
     long    SkuId,
     string? ProductName,
     string? ImageUrl,
+    string? SkuName,
     string? SkuAttributes,
     long    OriginalPrice,
     long    Price,

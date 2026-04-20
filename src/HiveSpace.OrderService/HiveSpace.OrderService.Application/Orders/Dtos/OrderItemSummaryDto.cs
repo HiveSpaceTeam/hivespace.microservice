@@ -6,6 +6,7 @@ public record OrderItemSummaryDto
     public long   ProductId   { get; init; }
     public long   SkuId       { get; init; }
     public string ProductName { get; init; } = null!;
+    public string SkuName     { get; init; } = string.Empty;
     public string ImageUrl    { get; init; } = null!;
     public int    Quantity    { get; init; }
     public long   UnitPrice   { get; init; }

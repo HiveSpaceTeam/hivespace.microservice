@@ -16,8 +16,8 @@ public class GetPaymentQueryHandler(IPaymentRepository paymentRepository, IUserC
         var payment = await paymentRepository.GetByIdAsync(request.PaymentId, cancellationToken)
             ?? throw new NotFoundException(PaymentDomainErrorCode.PaymentNotFound, nameof(Payment));
 
-        if (payment.BuyerId != userContext.UserId)
-            throw new ForbiddenException(PaymentDomainErrorCode.PaymentAccessForbidden, nameof(Payment));
+        //if (payment.BuyerId != userContext.UserId)
+        //    throw new ForbiddenException(PaymentDomainErrorCode.PaymentAccessForbidden, nameof(Payment));
 
         return ToDto(payment);
     }

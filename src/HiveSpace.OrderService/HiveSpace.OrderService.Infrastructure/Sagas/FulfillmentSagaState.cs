@@ -11,6 +11,7 @@ public class FulfillmentSagaState : SagaStateMachineInstance
     // Carried from OrderReadyForFulfillment
     public Guid          UserId         { get; set; }
     public Guid          StoreId        { get; set; }
+    public string        OrderCode      { get; set; } = string.Empty;
     public List<Guid>    ReservationIds { get; set; } = new();
     public long          GrandTotal     { get; set; }
     public PaymentMethod PaymentMethod  { get; set; } = PaymentMethod.COD;

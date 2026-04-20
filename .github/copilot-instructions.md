@@ -40,7 +40,7 @@ cd src/HiveSpace.ApiGateway/HiveSpace.YarpApiGateway
 dotnet run
 ```
 
-- Starts on: https://localhost:5000
+- Starts on: http://localhost:5000
 - No external dependencies
 
 **User Service API** (requires SQL Server):
@@ -177,7 +177,7 @@ Limited technical debt exists:
 ### Manual Validation Steps
 
 1. Build solution: `dotnet build` (should complete with 6 warnings)
-2. Start API Gateway: Verify it listens on https://localhost:5000
+2. Start API Gateway: Verify it listens on http://localhost:5000
 3. If SQL Server available: Start User Service and verify IdentityServer endpoints
 4. Check logs for expected license warnings only
 
@@ -779,7 +779,6 @@ public async Task<ActionResult<GetUsersResponseDto>> GetUsers(
    ```
 
    d. **Best Practices**
-
    - Always use error codes instead of hardcoded messages (supports localization)
    - Domain exceptions for business rule violations
    - Validation exceptions for input validation failures

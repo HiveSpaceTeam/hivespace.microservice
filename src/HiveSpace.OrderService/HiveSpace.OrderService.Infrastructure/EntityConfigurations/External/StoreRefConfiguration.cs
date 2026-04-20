@@ -14,6 +14,7 @@ public class StoreRefConfiguration : IEntityTypeConfiguration<StoreRef>
 
         builder.Property(x => x.Name).IsRequired().HasMaxLength(255);
         builder.Property(x => x.Status).HasConversion<string>().HasMaxLength(50).IsRequired();
+        builder.Property(x => x.OwnerId).IsRequired();
         builder.Property(x => x.CreatedAt).IsRequired();
         builder.Property(x => x.UpdatedAt);
     }

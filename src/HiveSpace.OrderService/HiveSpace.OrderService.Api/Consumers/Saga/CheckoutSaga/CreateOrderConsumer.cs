@@ -207,6 +207,7 @@ public class CreateOrderConsumer(
             message.CorrelationId,
             OrderIds      = createdOrders.Select(o => o.Id).ToList(),
             OrderStoreMap = createdOrders.ToDictionary(o => o.Id, o => o.StoreId),
+            OrderCodeMap  = createdOrders.ToDictionary(o => o.Id, o => o.ShortId),
             GrandTotal    = grandTotal,
             Items         = allItemDtos,
             CreatedAt     = createdOrders.First().CreatedAt

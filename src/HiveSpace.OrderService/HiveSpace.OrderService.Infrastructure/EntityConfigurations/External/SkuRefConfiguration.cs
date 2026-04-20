@@ -15,6 +15,7 @@ public class SkuRefConfiguration : IEntityTypeConfiguration<SkuRef>
 
         builder.Property(x => x.ProductId).IsRequired();
         builder.Property(x => x.SkuNo).IsRequired().HasMaxLength(100);
+        builder.Property(x => x.SkuName).IsRequired().HasMaxLength(200);
         builder.Property(x => x.Price).HasColumnType("bigint").IsRequired();
         builder.Property(x => x.Currency).IsRequired().HasMaxLength(3);
         builder.Property(x => x.ImageUrl).HasMaxLength(500);

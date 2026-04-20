@@ -86,6 +86,7 @@ public class GetCheckoutPreviewQueryHandler(
                     SkuId:         r.SkuId,
                     ProductName:   r.ProductName,
                     ImageUrl:      r.SkuImageUrl ?? r.ThumbnailUrl,
+                    SkuName:       r.SkuName,
                     SkuAttributes: r.SkuAttributes,
                     OriginalPrice: originalPrice,
                     Price:         discountedPrice,

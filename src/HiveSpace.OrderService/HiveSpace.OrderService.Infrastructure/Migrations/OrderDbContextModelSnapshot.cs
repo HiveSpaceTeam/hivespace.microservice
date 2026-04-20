@@ -411,6 +411,11 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
                     b.Property<long>("ProductId")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("SkuName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<string>("SkuNo")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -439,6 +444,9 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -497,6 +505,10 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
                     b.Property<Guid?>("InventoryReservationPendingTokenId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("OrderCodeMap")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<Guid?>("OrderCreationPendingTokenId")
                         .HasColumnType("uniqueidentifier");
 
@@ -534,6 +546,9 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
 
                     b.Property<string>("PaymentUrl")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PendingInventoryReleases")
+                        .HasColumnType("int");
 
                     b.Property<Guid?>("RequestId")
                         .HasColumnType("uniqueidentifier");
@@ -579,6 +594,11 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
 
                     b.Property<long>("GrandTotal")
                         .HasColumnType("bigint");
+
+                    b.Property<string>("OrderCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
 
                     b.Property<bool>("OrderWasConfirmed")
                         .HasColumnType("bit");
