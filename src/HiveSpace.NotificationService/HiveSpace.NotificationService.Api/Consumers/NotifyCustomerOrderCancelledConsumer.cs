@@ -39,11 +39,11 @@ public class NotifyCustomerOrderCancelledConsumer(
             Locale         = user.Locale,
             TemplateData   = new Dictionary<string, object>
             {
-                ["order_id"]      = msg.OrderId,
-                ["order_code"]    = msg.OrderCode,
-                ["refund_amount"] = msg.RefundAmount,
-                ["buyer_name"]    = user.FullName,
-                ["avatar_url"]    = user.AvatarUrl ?? string.Empty,
+                ["orderId"]      = msg.OrderId,
+                ["orderCode"]    = msg.OrderCode,
+                ["refundAmount"] = msg.RefundAmount,
+                ["buyerName"]    = user.FullName,
+                ["avatarUrl"]    = user.AvatarUrl ?? string.Empty,
             }
         }, ct);
 
