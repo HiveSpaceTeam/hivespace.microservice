@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Quartz;
 
 namespace HiveSpace.Infrastructure.Messaging.Extensions;
 
@@ -17,6 +18,9 @@ public static class RabbitMqExtensions
     {
         services.AddMessagingCore(configuration);
 
+        // Configure Quartz
+        services.AddQuartz();
+
         //var kafkaRegistrations = services
         //    .Where(sd => sd.ServiceType == typeof(KafkaRegistration) && sd.ImplementationInstance is KafkaRegistration)
         //    .Select(sd => (KafkaRegistration)sd.ImplementationInstance!)
@@ -26,7 +30,8 @@ public static class RabbitMqExtensions
         {
             configure?.Invoke(bus);
 
-            bus.AddDelayedMessageScheduler();
+            bus.AddPublishMessageScheduler();
+            bus.AddQuartzConsumers();
 
             //foreach (var registration in kafkaRegistrations)
             //{
@@ -85,7 +90,7 @@ public static class RabbitMqExtensions
                     }
                 });
 
-                cfg.UseDelayedMessageScheduler();
+                cfg.UsePublishMessageScheduler();
                 cfg.PrefetchCount = options.PrefetchCount;
                 cfg.ConfigureEndpoints(context);
             });
