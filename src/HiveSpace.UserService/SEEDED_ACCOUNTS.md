@@ -4,8 +4,8 @@ Source: `src/HiveSpace.UserService/HiveSpace.UserService.Infrastructure/SeedData
 
 | Username | Email | Role | Password |
 |---|---|---|---|
-| alice | aliceSmith@gmail.com | Buyer | Pass123$ |
-| bob | bobSmith@gmail.com | Buyer | Pass123$ |
+| alice | aliceSmith@gmail.com | Buyer | AliceSmith123$ |
+| bob | bobSmith@gmail.com | Buyer | BobSmith123$ |
 | sysadmin | sysadmin@hivespace.com | SystemAdmin | SysAdmin123$ |
 | admin | admin@hivespace.com | Admin | Admin123$ |
 | tiki | tiki@gmail.com | Seller | TikiTrading123$ |
