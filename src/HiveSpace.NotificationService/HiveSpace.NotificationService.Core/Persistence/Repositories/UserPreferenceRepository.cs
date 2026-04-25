@@ -7,47 +7,70 @@ namespace HiveSpace.NotificationService.Core.Persistence.Repositories;
 public class UserPreferenceRepository(NotificationDbContext db) : IUserPreferenceRepository
 {
     private static readonly IReadOnlyList<NotificationChannel> DefaultChannels =
-        [NotificationChannel.InApp, NotificationChannel.Email];
+        [NotificationChannel.InApp];
 
     public async Task<IReadOnlyList<NotificationChannel>> GetEnabledChannelsAsync(
-        Guid userId, string eventType, CancellationToken ct = default)
+        Guid userId, string eventGroup, CancellationToken ct = default)
     {
-        var rows = await db.UserPreferences
-                           .Where(p => p.UserId == userId && p.EventType == eventType)
-                           .Select(p => new { p.Channel, p.Enabled })
-                           .ToListAsync(ct);
+        var disabledChannelMasters = await db.UserChannelPreferences
+            .Where(p => p.UserId == userId && !p.Enabled)
+            .Select(p => p.Channel)
+            .ToListAsync(ct);
 
-        if (rows.Count == 0)
-            return DefaultChannels;
+        var disabledGroups = await db.UserGroupPreferences
+            .Where(p => p.UserId == userId && p.EventGroup == eventGroup && !p.Enabled)
+            .Select(p => p.Channel)
+            .ToListAsync(ct);
 
-        return DefaultChannels
-            .Where(ch =>
-            {
-                var row = rows.FirstOrDefault(r => r.Channel == ch);
-                return row is null || row.Enabled;
-            })
-            .ToList();
+        if (disabledChannelMasters.Count == 0 && disabledGroups.Count == 0)
+        {
+            var hasRows = await db.UserChannelPreferences.AnyAsync(p => p.UserId == userId, ct)
+                       || await db.UserGroupPreferences.AnyAsync(p => p.UserId == userId, ct);
+            if (!hasRows) return DefaultChannels;
+        }
+
+        var disabled = disabledChannelMasters.Union(disabledGroups).ToHashSet();
+        return Enum.GetValues<NotificationChannel>()
+                   .Where(ch => !disabled.Contains(ch))
+                   .ToList();
     }
 
-    public async Task<IReadOnlyList<UserPreference>> GetAllForUserAsync(Guid userId, CancellationToken ct = default)
-    {
-        return await db.UserPreferences
-                       .Where(p => p.UserId == userId)
-                       .ToListAsync(ct);
-    }
+    public async Task<IReadOnlyList<UserChannelPreference>> GetAllChannelPrefsAsync(
+        Guid userId, CancellationToken ct = default)
+        => await db.UserChannelPreferences
+                   .Where(p => p.UserId == userId)
+                   .ToListAsync(ct);
 
-    public async Task UpsertAsync(UserPreference preference, CancellationToken ct = default)
+    public async Task<IReadOnlyList<UserGroupPreference>> GetAllGroupPrefsAsync(
+        Guid userId, CancellationToken ct = default)
+        => await db.UserGroupPreferences
+                   .Where(p => p.UserId == userId)
+                   .ToListAsync(ct);
+
+    public async Task UpsertChannelAsync(UserChannelPreference preference, CancellationToken ct = default)
     {
-        var existing = await db.UserPreferences.FirstOrDefaultAsync(
-            p => p.UserId == preference.UserId
-              && p.Channel == preference.Channel
-              && p.EventType == preference.EventType,
-            ct);
+        var existing = await db.UserChannelPreferences.FirstOrDefaultAsync(
+            p => p.UserId == preference.UserId && p.Channel == preference.Channel, ct);
 
         if (existing is null)
-            db.UserPreferences.Add(preference);
+            db.UserChannelPreferences.Add(preference);
         else
-            db.Entry(existing).CurrentValues.SetValues(preference);
+            existing.SetEnabled(preference.Enabled);
+
+        await db.SaveChangesAsync(ct);
+    }
+
+    public async Task UpsertGroupAsync(UserGroupPreference preference, CancellationToken ct = default)
+    {
+        var existing = await db.UserGroupPreferences.FirstOrDefaultAsync(
+            p => p.UserId    == preference.UserId
+              && p.Channel    == preference.Channel
+              && p.EventGroup == preference.EventGroup, ct);
+
+        if (existing is null)
+            db.UserGroupPreferences.Add(preference);
+        else
+            existing.SetEnabled(preference.Enabled);
 
         await db.SaveChangesAsync(ct);
     }

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using HiveSpace.NotificationService.Core.Dtos;
 using HiveSpace.NotificationService.Core.Interfaces;
 
 namespace HiveSpace.NotificationService.Api.Controllers;
@@ -12,15 +13,28 @@ public class NotificationsController(
 {
     [HttpGet]
     public async Task<IActionResult> GetMyNotifications(
-        [FromQuery] int page     = 1,
-        [FromQuery] int pageSize = 20,
-        CancellationToken ct     = default)
+        [FromQuery] int  page       = 1,
+        [FromQuery] int  pageSize   = 20,
+        [FromQuery] bool unreadOnly = false,
+        CancellationToken ct        = default)
     {
         var userId = GetUserId();
         if (userId == Guid.Empty) return Unauthorized();
 
-        var (items, total) = await repo.GetByUserAsync(userId, page, pageSize, ct);
-        return Ok(new { items, total, page, pageSize });
+        var (items, hasMore) = await repo.GetByUserAsync(userId, page, pageSize, unreadOnly, ct);
+
+        var dtos = items.Select(n => new NotificationDto
+        {
+            Id        = n.Id,
+            Channel   = n.Channel,
+            EventType = n.EventType,
+            Status    = n.Status,
+            Payload   = n.Payload,
+            CreatedAt = n.CreatedAt,
+            ReadAt    = n.ReadAt,
+        }).ToList();
+
+        return Ok(new GetNotificationsResponse(dtos, hasMore));
     }
 
     [HttpGet("unread-count")]

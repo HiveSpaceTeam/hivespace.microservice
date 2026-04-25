@@ -4,7 +4,16 @@ namespace HiveSpace.NotificationService.Core.Interfaces;
 
 public interface IUserPreferenceRepository
 {
-    Task<IReadOnlyList<NotificationChannel>> GetEnabledChannelsAsync(Guid userId, string eventType, CancellationToken ct = default);
-    Task<IReadOnlyList<UserPreference>> GetAllForUserAsync(Guid userId, CancellationToken ct = default);
-    Task UpsertAsync(UserPreference preference, CancellationToken ct = default);
+    Task<IReadOnlyList<NotificationChannel>> GetEnabledChannelsAsync(
+        Guid userId, string eventGroup, CancellationToken ct = default);
+
+    Task<IReadOnlyList<UserChannelPreference>> GetAllChannelPrefsAsync(
+        Guid userId, CancellationToken ct = default);
+
+    Task<IReadOnlyList<UserGroupPreference>> GetAllGroupPrefsAsync(
+        Guid userId, CancellationToken ct = default);
+
+    Task UpsertChannelAsync(UserChannelPreference preference, CancellationToken ct = default);
+
+    Task UpsertGroupAsync(UserGroupPreference preference, CancellationToken ct = default);
 }

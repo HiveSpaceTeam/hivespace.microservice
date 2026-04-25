@@ -10,7 +10,8 @@ public class NotificationDbContext(DbContextOptions<NotificationDbContext> optio
     public DbSet<Notification>         Notifications         => Set<Notification>();
     public DbSet<DeliveryAttempt>      DeliveryAttempts      => Set<DeliveryAttempt>();
     public DbSet<UserRef>              UserRefs              => Set<UserRef>();
-    public DbSet<UserPreference>       UserPreferences       => Set<UserPreference>();
+    public DbSet<UserChannelPreference> UserChannelPreferences => Set<UserChannelPreference>();
+    public DbSet<UserGroupPreference>   UserGroupPreferences   => Set<UserGroupPreference>();
     public DbSet<NotificationTemplate> NotificationTemplates => Set<NotificationTemplate>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

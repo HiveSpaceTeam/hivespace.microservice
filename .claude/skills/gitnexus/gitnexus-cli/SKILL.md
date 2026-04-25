@@ -53,14 +53,12 @@ npx gitnexus wiki
 
 Generates repository documentation from the knowledge graph using an LLM. Requires an API key (saved to `~/.gitnexus/config.json` on first use).
 
-> **Prefer environment variables over `--api-key`** to avoid leaking secrets via shell history or process inspection. Set `GITNEXUS_API_KEY` (and optionally `GITNEXUS_BASE_URL`) in your shell profile; the CLI uses them automatically when the flags are omitted.
-
 | Flag                | Effect                                    |
 | ------------------- | ----------------------------------------- |
 | `--force`           | Force full regeneration                   |
 | `--model <model>`   | LLM model (default: minimax/minimax-m2.5) |
 | `--base-url <url>`  | LLM API base URL                          |
-| `--api-key <key>`   | LLM API key (fallback; prefer env vars to avoid shell-history leaks) |
+| `--api-key <key>`   | LLM API key                               |
 | `--concurrency <n>` | Parallel LLM calls (default: 3)           |
 | `--gist`            | Publish wiki as a public GitHub Gist      |
 

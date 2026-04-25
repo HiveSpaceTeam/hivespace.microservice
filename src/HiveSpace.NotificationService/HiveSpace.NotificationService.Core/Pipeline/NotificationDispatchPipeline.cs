@@ -21,7 +21,8 @@ public class NotificationDispatchPipeline(
             return;
         }
 
-        var enabledChannels = await prefs.GetEnabledChannelsAsync(request.UserId, request.EventType, ct);
+        var eventGroup      = NotificationEventGroup.FromEventType(request.EventType);
+        var enabledChannels = await prefs.GetEnabledChannelsAsync(request.UserId, eventGroup, ct);
         if (enabledChannels.Count == 0)
         {
             logger.LogDebug("No enabled channels. UserId={UserId} EventType={EventType}",

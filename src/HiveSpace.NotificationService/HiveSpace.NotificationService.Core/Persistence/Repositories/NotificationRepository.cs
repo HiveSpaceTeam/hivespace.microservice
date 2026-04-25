@@ -20,21 +20,28 @@ public class NotificationRepository(NotificationDbContext db) : INotificationRep
              .Include(n => n.Attempts)
              .FirstOrDefaultAsync(n => n.Id == id, ct);
 
-    public async Task<(IReadOnlyList<Notification> Items, int Total)> GetByUserAsync(
-        Guid userId, int page, int pageSize, CancellationToken ct = default)
+    public async Task<(IReadOnlyList<Notification> Items, bool HasMore)> GetByUserAsync(
+        Guid userId, int page, int pageSize, bool unreadOnly = false, CancellationToken ct = default)
     {
         var query = db.Notifications
                       .Where(n => n.UserId == userId)
-                      .Where(n => n.Channel == NotificationChannel.InApp) // Only in-app for listing
-                      .OrderByDescending(n => n.CreatedAt);
+                      .Where(n => n.Channel == NotificationChannel.InApp)
+                      .Where(n => n.Status == NotificationStatus.Sent || n.Status == NotificationStatus.Read)
+                      .AsQueryable();
 
-        var total = await query.CountAsync(ct);
+        if (unreadOnly)
+            query = query.Where(n => n.Status == NotificationStatus.Sent);
+
         var items = await query
+                          .OrderByDescending(n => n.CreatedAt)
                           .Skip((page - 1) * pageSize)
-                          .Take(pageSize)
+                          .Take(pageSize + 1)
                           .ToListAsync(ct);
 
-        return (items, total);
+        var hasMore = items.Count > pageSize;
+        if (hasMore) items.RemoveAt(items.Count - 1);
+
+        return (items, hasMore);
     }
 
     public Task<int> CountUnreadInAppAsync(Guid userId, CancellationToken ct = default)
