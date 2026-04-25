@@ -4,7 +4,7 @@ public enum NotificationChannel
 {
     Email    = 1,
     InApp    = 2,
-    WebPush  = 3,
-    Telegram = 4,
-    Webhook  = 5,
+    //WebPush  = 3,
+    //Telegram = 4,
+    //Webhook  = 5,
 }

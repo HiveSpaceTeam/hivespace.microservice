@@ -7,8 +7,8 @@ using Microsoft.Extensions.Logging;
 namespace HiveSpace.NotificationService.Core.SeedData;
 
 internal sealed class UserPreferenceSeeder(
-    NotificationDbContext           db,
-    ILogger<UserPreferenceSeeder>   logger) : ISeeder
+    NotificationDbContext         db,
+    ILogger<UserPreferenceSeeder> logger) : ISeeder
 {
     public int Order => 3;
 
@@ -25,46 +25,57 @@ internal sealed class UserPreferenceSeeder(
         new("22222222-2222-2222-2222-222222222222"), // bob
     ];
 
-    // Seller event types
-    private static readonly string[] SellerEventTypes =
-    [
-        NotificationEventType.NewOrderReceived,
-        NotificationEventType.OrderConfirmed,
-        NotificationEventType.OrderCancelled,
-    ];
-
-    // Customer event types
-    private static readonly string[] CustomerEventTypes =
-    [
-        NotificationEventType.OrderConfirmed,
-        NotificationEventType.OrderCancelled,
-        NotificationEventType.PaymentSucceeded,
-        NotificationEventType.PaymentFailed,
-    ];
-
     private static readonly NotificationChannel[] Channels =
     [
         NotificationChannel.InApp,
         NotificationChannel.Email,
     ];
 
+    private static readonly string[] SellerGroups =
+    [
+        NotificationEventGroup.SellerOrders,
+        NotificationEventGroup.OrderUpdates,
+        NotificationEventGroup.Inventory,
+    ];
+
+    private static readonly string[] CustomerGroups =
+    [
+        NotificationEventGroup.OrderUpdates,
+        NotificationEventGroup.Payment,
+        NotificationEventGroup.Promotions,
+    ];
+
     public async Task SeedAsync(CancellationToken ct = default)
     {
         var allUserIds = SellerIds.Concat(CustomerIds).ToList();
-        var existing = await db.UserPreferences
+
+        var existingChannelKeys = await db.UserChannelPreferences
             .Where(p => allUserIds.Contains(p.UserId))
-            .Select(p => new { p.UserId, p.Channel, p.EventType })
+            .Select(p => new { p.UserId, p.Channel })
             .ToListAsync(ct);
 
-        var existingSet = existing
-            .Select(p => (p.UserId, p.Channel, p.EventType))
+        var existingChannelSet = existingChannelKeys
+            .Select(p => (p.UserId, p.Channel))
             .ToHashSet();
 
-        var toAdd = BuildPreferences()
-            .Where(p => !existingSet.Contains((p.UserId, p.Channel, p.EventType)))
+        var existingGroupKeys = await db.UserGroupPreferences
+            .Where(p => allUserIds.Contains(p.UserId))
+            .Select(p => new { p.UserId, p.Channel, p.EventGroup })
+            .ToListAsync(ct);
+
+        var existingGroupSet = existingGroupKeys
+            .Select(p => (p.UserId, p.Channel, p.EventGroup))
+            .ToHashSet();
+
+        var channelToAdd = BuildChannelPreferences()
+            .Where(p => !existingChannelSet.Contains((p.UserId, p.Channel)))
             .ToList();
 
-        if (toAdd.Count == 0)
+        var groupToAdd = BuildGroupPreferences()
+            .Where(p => !existingGroupSet.Contains((p.UserId, p.Channel, p.EventGroup)))
+            .ToList();
+
+        if (channelToAdd.Count == 0 && groupToAdd.Count == 0)
         {
             logger.LogDebug("All expected UserPreferences already exist. Skipping.");
             return;
@@ -74,42 +85,40 @@ internal sealed class UserPreferenceSeeder(
         await strategy.ExecuteAsync(async () =>
         {
             db.ChangeTracker.Clear();
-
-            var currentExisting = await db.UserPreferences
-                .Where(p => allUserIds.Contains(p.UserId))
-                .Select(p => new { p.UserId, p.Channel, p.EventType })
-                .ToListAsync(ct);
-
-            var currentSet = currentExisting
-                .Select(p => (p.UserId, p.Channel, p.EventType))
-                .ToHashSet();
-
-            var toAddNow = BuildPreferences()
-                .Where(p => !currentSet.Contains((p.UserId, p.Channel, p.EventType)))
-                .ToList();
-            if (toAddNow.Count == 0) return;
-
             await using var tx = await db.Database.BeginTransactionAsync(ct);
-            foreach (var pref in toAddNow)
-                db.UserPreferences.Add(pref);
+
+            foreach (var pref in channelToAdd)
+                db.UserChannelPreferences.Add(pref);
+
+            foreach (var pref in groupToAdd)
+                db.UserGroupPreferences.Add(pref);
 
             await db.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
         });
 
-        logger.LogInformation("Seeded {Count} UserPreference(s).", toAdd.Count);
+        logger.LogInformation(
+            "Seeded {ChannelCount} channel preference(s) and {GroupCount} group preference(s).",
+            channelToAdd.Count, groupToAdd.Count);
     }
 
-    private static IEnumerable<UserPreference> BuildPreferences()
+    private static IEnumerable<UserChannelPreference> BuildChannelPreferences()
+    {
+        foreach (var userId in SellerIds.Concat(CustomerIds))
+            foreach (var channel in Channels)
+                yield return UserChannelPreference.Create(userId, channel, enabled: true);
+    }
+
+    private static IEnumerable<UserGroupPreference> BuildGroupPreferences()
     {
         foreach (var userId in SellerIds)
-            foreach (var eventType in SellerEventTypes)
-                foreach (var channel in Channels)
-                    yield return UserPreference.Create(userId, channel, eventType, enabled: true);
+            foreach (var channel in Channels)
+                foreach (var group in SellerGroups)
+                    yield return UserGroupPreference.Create(userId, channel, group, enabled: true);
 
         foreach (var userId in CustomerIds)
-            foreach (var eventType in CustomerEventTypes)
-                foreach (var channel in Channels)
-                    yield return UserPreference.Create(userId, channel, eventType, enabled: true);
+            foreach (var channel in Channels)
+                foreach (var group in CustomerGroups)
+                    yield return UserGroupPreference.Create(userId, channel, group, enabled: true);
     }
 }

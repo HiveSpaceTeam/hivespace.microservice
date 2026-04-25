@@ -94,7 +94,7 @@ public static class SeedData
             new Claim(JwtClaimTypes.GivenName,  "Alice"),
             new Claim(JwtClaimTypes.FamilyName, "Smith"),
             new Claim(JwtClaimTypes.WebSite,    "http://alice.example.com"),
-            new Claim(JwtClaimTypes.Picture,    "https://scontent.fhan7-1.fna.fbcdn.net/v/t39.30808-1/529742079_777341701485971_4020105096641008833_n.jpg?stp=dst-jpg_s200x200_tt6&_nc_cat=106&ccb=1-7&_nc_sid=e99d92&_nc_eui2=AeHOZtTR0YEI1wTAoLhcXxYrZ_lDYDRtnbpn-UNgNG2dujEOqjbJP2jUyZLseGPjOw7m1we5cC62ulwjACTvYMP5&_nc_ohc=u4NsqmH7Ci0Q7kNvwF1-Wi5&_nc_oc=AdrxQ0nCifqlTK4bIxsGMxJIMtJMRNU-mIbx0fPKus5W9-JxM4vEoYZ6jbqIY4FIAIRn0jRamFEn9EGMuNuWWXTt&_nc_zt=24&_nc_ht=scontent.fhan7-1.fna&_nc_gid=_2qgRLt6g8Es9mmKIN6Vlw&_nc_ss=7a3a8&oh=00_Af02at1L9pVGXBbLQ1TXaFSwosarmT2Yv3kwgwda-cFdXg&oe=69E92E54"),
+            new Claim(JwtClaimTypes.Picture,    "https://cdn.discordapp.com/avatars/474579515188707339/24acc2c6b645216504447360a58c0683.webp"),
         ]);
         if (!result.Succeeded)
         {
@@ -164,7 +164,7 @@ public static class SeedData
             new Claim(JwtClaimTypes.FamilyName, "Smith"),
             new Claim(JwtClaimTypes.WebSite,    "http://bob.example.com"),
             new Claim("location",               "somewhere"),
-            new Claim(JwtClaimTypes.Picture,    "https://scontent.fhan7-1.fna.fbcdn.net/v/t39.30808-1/619108846_2920789344795889_1339672122962744350_n.jpg?stp=dst-jpg_s200x200_tt6&_nc_cat=108&ccb=1-7&_nc_sid=e99d92&_nc_eui2=AeGRyZ28lkuXPO966VWTa7-WXJ5jeRHvuA1cnmN5Ee-4DdkXY30zOg5G3Xv5E85oBsdjDBCC81n8TavngkrBmWN7&_nc_ohc=DKnUNDzXPSsQ7kNvwFeEkU5&_nc_oc=AdqslpzU_dqjl89K9X3s70qGjddv8Pi7HzRhAwpQifj7tTJIsSxyG_Ro__Yt2IR87m3-3tCirslSOKeotp7gGJMT&_nc_zt=24&_nc_ht=scontent.fhan7-1.fna&_nc_gid=NgW59NCpuV6NO_P9hLKcew&_nc_ss=7a3a8&oh=00_Af1SoYAMjpm3uOR1QS87h6G3obpvpSgeq6gMaaE3MCDTYQ&oe=69E945C0"),
+            new Claim(JwtClaimTypes.Picture,    "https://cdn.discordapp.com/avatars/743061397037908059/edaa33d7f618405017a26cc7ca42379b.webp"),
         ]);
         if (!result.Succeeded)
         {
