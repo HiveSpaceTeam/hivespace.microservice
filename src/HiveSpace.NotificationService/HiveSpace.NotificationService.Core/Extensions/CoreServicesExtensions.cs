@@ -1,5 +1,5 @@
 using HiveSpace.Infrastructure.Persistence.Seeding;
-using HiveSpace.NotificationService.Core.SeedData;
+using HiveSpace.NotificationService.Core.Persistence.SeedData;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HiveSpace.NotificationService.Core.Extensions;

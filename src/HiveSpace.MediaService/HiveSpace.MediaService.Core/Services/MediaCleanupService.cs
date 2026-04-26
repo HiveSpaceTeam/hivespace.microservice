@@ -1,14 +1,11 @@
-using HiveSpace.MediaService.Core.DomainModels;
 using HiveSpace.MediaService.Core.Interfaces;
-using HiveSpace.MediaService.Core.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace HiveSpace.MediaService.Core.Services;
 
 public class MediaCleanupService(
-    MediaDbContext dbContext,
+    IMediaAssetRepository repository,
     ILogger<MediaCleanupService> logger,
     IConfiguration configuration) : IMediaCleanupService
 {
@@ -27,14 +24,9 @@ public class MediaCleanupService(
 
         try
         {
-            // Keep processing batches until no more expired assets
             while (!cancellationToken.IsCancellationRequested)
             {
-                var expiredAssets = await dbContext.MediaAssets
-                    .Where(x => x.Status == MediaStatus.Pending && x.CreatedAt < cutoffTime)
-                    .OrderBy(x => x.CreatedAt)
-                    .Take(BatchSize)
-                    .ToListAsync(cancellationToken);
+                var expiredAssets = await repository.GetExpiredPendingAsync(cutoffTime, BatchSize, cancellationToken);
 
                 if (expiredAssets.Count == 0)
                     break;
@@ -42,8 +34,8 @@ public class MediaCleanupService(
                 batchCount++;
                 logger.LogInformation("Processing batch {Batch}: {Count} assets", batchCount, expiredAssets.Count);
 
-                dbContext.MediaAssets.RemoveRange(expiredAssets);
-                await dbContext.SaveChangesAsync(cancellationToken);
+                repository.RemoveRange(expiredAssets);
+                await repository.SaveChangesAsync(cancellationToken);
 
                 totalCleaned += expiredAssets.Count;
 

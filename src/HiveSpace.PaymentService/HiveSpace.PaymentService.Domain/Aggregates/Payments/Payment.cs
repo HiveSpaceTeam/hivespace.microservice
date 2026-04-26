@@ -3,7 +3,6 @@ using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Domain.Shared.Interfaces;
 using HiveSpace.Domain.Shared.ValueObjects;
 using HiveSpace.PaymentService.Domain.Aggregates.Payments.Enumerations;
-using HiveSpace.PaymentService.Domain.DomainEvents;
 using HiveSpace.PaymentService.Domain.Exceptions;
 using HiveSpace.PaymentService.Domain.ValueObjects;
 
@@ -59,9 +58,6 @@ public class Payment : AggregateRoot<Guid>, IAuditable
             CreatedAt = DateTimeOffset.UtcNow
         };
 
-        payment.AddDomainEvent(new PaymentInitiatedDomainEvent(
-            payment.Id, payment.OrderId, payment.BuyerId, payment.Amount));
-
         return payment;
     }
 
@@ -75,8 +71,6 @@ public class Payment : AggregateRoot<Guid>, IAuditable
         Status = PaymentStatus.Processing;
         GatewayPaymentUrl = gatewayPaymentUrl;
         UpdatedAt = DateTimeOffset.UtcNow;
-
-        AddDomainEvent(new PaymentProcessingDomainEvent(Id, OrderId));
     }
 
     public void MarkAsSucceeded(string gatewayTransactionId, GatewayResponse response)
@@ -89,9 +83,6 @@ public class Payment : AggregateRoot<Guid>, IAuditable
         GatewayResponse = response;
         PaidAt = DateTimeOffset.UtcNow;
         UpdatedAt = DateTimeOffset.UtcNow;
-
-        AddDomainEvent(new PaymentSucceededDomainEvent(
-            Id, OrderId, BuyerId, Amount, gatewayTransactionId, IdempotencyKey));
     }
 
     public void MarkAsFailed(string reason, GatewayResponse? response = null)
@@ -102,8 +93,6 @@ public class Payment : AggregateRoot<Guid>, IAuditable
         Status = PaymentStatus.Failed;
         GatewayResponse = response;
         UpdatedAt = DateTimeOffset.UtcNow;
-
-        AddDomainEvent(new PaymentFailedDomainEvent(Id, OrderId, BuyerId, reason));
     }
 
     public void Cancel()
@@ -113,8 +102,6 @@ public class Payment : AggregateRoot<Guid>, IAuditable
 
         Status = PaymentStatus.Cancelled;
         UpdatedAt = DateTimeOffset.UtcNow;
-
-        AddDomainEvent(new PaymentCancelledDomainEvent(Id, OrderId, BuyerId));
     }
 
     public void MarkAsExpired()
@@ -123,7 +110,5 @@ public class Payment : AggregateRoot<Guid>, IAuditable
 
         Status = PaymentStatus.Expired;
         UpdatedAt = DateTimeOffset.UtcNow;
-
-        AddDomainEvent(new PaymentExpiredDomainEvent(Id, OrderId, BuyerId));
     }
 }

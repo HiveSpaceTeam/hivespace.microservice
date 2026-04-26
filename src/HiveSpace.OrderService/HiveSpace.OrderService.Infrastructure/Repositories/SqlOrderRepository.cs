@@ -17,10 +17,10 @@ public class SqlOrderRepository(OrderDbContext db)
             .AsSplitQuery()
             .FirstOrDefaultAsync(o => o.Id == orderId, ct);
 
-    public async Task<Order?> GetByShortIdAsync(string shortId, CancellationToken ct = default)
+    public async Task<Order?> GetByOrderCodeAsync(string orderCode, CancellationToken ct = default)
         => await db.Orders
             .Include(o => o.Items)
-            .FirstOrDefaultAsync(o => o.ShortId == shortId, ct);
+            .FirstOrDefaultAsync(o => o.OrderCode == orderCode, ct);
 
     public async Task<Order?> GetByIdAndStoreIdAsync(Guid orderId, Guid storeId, CancellationToken ct = default)
         => await db.Orders

@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 using HiveSpace.Infrastructure.Persistence.Idempotence;
-using HiveSpace.Infrastructure.Persistence.Outbox;
 using HiveSpace.Infrastructure.Persistence.Transaction;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -53,11 +52,8 @@ public static class PersistenceServiceCollectionExtensions
 
     public static IServiceCollection AddAppInterceptors(this IServiceCollection services)
     {
-        // Register all interceptors from the current assembly
         services.AddScoped<ISaveChangesInterceptor, AuditableInterceptor>();
         services.AddScoped<ISaveChangesInterceptor, SoftDeleteInterceptor>();
-        services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventInterceptor>();
-
         return services;
     }
 }

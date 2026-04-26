@@ -5,7 +5,7 @@ using HiveSpace.Domain.Shared.Interfaces;
 using HiveSpace.OrderService.Domain.Enumerations;
 using HiveSpace.OrderService.Domain.Exceptions;
 using HiveSpace.Domain.Shared.ValueObjects;
-using HiveSpace.OrderService.Domain.DomainEvents;
+
 
 namespace HiveSpace.OrderService.Domain.Aggregates.Coupons;
 
@@ -140,9 +140,6 @@ public class Coupon : AggregateRoot<Guid>, IAuditable
             }
         }
 
-        // coupon.AddDomainEvent(new StoreCouponCreatedEvent(coupon.Id, storeId)); // Assuming event exists or sticking to geneic
-        coupon.AddDomainEvent(new CouponCreatedDomainEvent(coupon.Id, code, discountAmount ?? Money.Zero())); // Reusing existing event for now
-
         return coupon;
     }
 
@@ -190,8 +187,6 @@ public class Coupon : AggregateRoot<Guid>, IAuditable
                 throw new InvalidFieldException(OrderDomainErrorCode.CouponMaxDiscountTooSmall, nameof(maxDiscountAmount));
             }
         }
-
-        coupon.AddDomainEvent(new CouponCreatedDomainEvent(coupon.Id, code, discountAmount ?? Money.Zero()));
 
         return coupon;
     }
@@ -427,7 +422,6 @@ public class Coupon : AggregateRoot<Guid>, IAuditable
         CurrentUsageCount++;
 
 
-        AddDomainEvent(new CouponUsedDomainEvent(Id, Code, userId, orderId, discountAmount));
     }
 
     /// <summary>
@@ -518,7 +512,6 @@ public class Coupon : AggregateRoot<Guid>, IAuditable
     public void Deactivate()
     {
         IsActive = false;
-        AddDomainEvent(new CouponDeactivatedDomainEvent(Id, Code));
     }
 
     /// <summary>

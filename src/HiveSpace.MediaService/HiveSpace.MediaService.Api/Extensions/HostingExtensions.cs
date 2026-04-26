@@ -1,3 +1,5 @@
+using HiveSpace.MediaService.Api.Endpoints;
+
 namespace HiveSpace.MediaService.Api.Extensions;
 
 public static class HostingExtensions
@@ -11,10 +13,10 @@ public static class HostingExtensions
         }
 
         app.UseHttpsRedirection();
-
         app.UseAuthentication();
         app.UseAuthorization();
-        app.MapControllers();
+
+        app.MapMediaEndpoints();
 
         return app;
     }

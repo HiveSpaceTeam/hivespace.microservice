@@ -4,5 +4,5 @@ public static class SellerSearchField
 {
     public const string OrderCode    = "OrderCode";
     public const string Product      = "Product";
-    public const string CustomerName = "CustomerName";
+    public const string BuyerName = "BuyerName";
 }

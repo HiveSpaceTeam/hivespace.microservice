@@ -50,7 +50,7 @@ public sealed class UserContext(IHttpContextAccessor httpContextAccessor)
 
     public bool IsSeller => Roles.Contains("Seller", StringComparer.OrdinalIgnoreCase);
 
-    public bool IsCustomer => Roles.Contains("Customer", StringComparer.OrdinalIgnoreCase);
+    public bool IsBuyer => Roles.Contains("Buyer", StringComparer.OrdinalIgnoreCase);
 
     public Guid? StoreId
     {
@@ -66,5 +66,8 @@ public sealed class UserContext(IHttpContextAccessor httpContextAccessor)
     }
 
     public bool IsAuthenticated => User.Identity?.IsAuthenticated ?? throw new UnauthorizedException([]);
+
+    public string? FullName => User.FindFirstValue(JwtRegisteredClaimNames.Name);
+    public string? Locale   => User.FindFirstValue("locale");
 
 }

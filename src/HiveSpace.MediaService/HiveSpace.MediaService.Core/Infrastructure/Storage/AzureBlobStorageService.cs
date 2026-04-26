@@ -1,8 +1,8 @@
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Sas;
+using HiveSpace.MediaService.Core.DomainModels;
 using HiveSpace.MediaService.Core.Interfaces;
-using HiveSpace.MediaService.Core.Enums;
 using HiveSpace.MediaService.Core.Exceptions;
 using HiveSpace.Domain.Shared.Exceptions;
 using Microsoft.Extensions.Configuration;

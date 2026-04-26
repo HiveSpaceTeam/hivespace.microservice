@@ -5,9 +5,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddControllers();
 builder.Services.AddAppServices();
-builder.Services.AddAppValidators();
+builder.Services.AddAppMediatR();
 builder.Services.AddAppDatabase(builder.Configuration);
 
 builder.Services.AddAuthentication("Bearer")

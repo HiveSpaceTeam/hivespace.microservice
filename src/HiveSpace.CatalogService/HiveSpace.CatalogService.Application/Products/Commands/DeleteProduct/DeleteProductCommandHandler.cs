@@ -16,8 +16,9 @@ public class DeleteProductCommandHandler(
         var product = await productRepository.GetByIdAsync(request.ProductId, cancellationToken);
         if (product is null) return false;
 
-        await productRepository.DeleteAsync(product, cancellationToken);
+        productRepository.Remove(product);
         await productEventPublisher.PublishProductDeletedAsync(product, cancellationToken);
+        await productRepository.SaveChangesAsync(cancellationToken);
 
         return true;
     }

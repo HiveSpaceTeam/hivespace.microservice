@@ -27,11 +27,11 @@ internal sealed class OrderSeeder(OrderDbContext db, ILogger<OrderSeeder> logger
     private static readonly Guid GiverOwnerId = new("c3d4e5f6-a7b8-9012-cdef-012345678901");
     private static readonly Guid PDOwnerId    = new("d4e5f6a7-b8c9-0123-def0-123456789012");
 
-    // ── Existing orders (ReadyToShip × 2, ReturnCancel × 2) ──────────────────
+    // ── Existing orders (ReadyToShip × 2, ReturnedOrCancelled × 2) ──────────────────
     private static readonly Guid AliceOrder1Id      = new("aa000001-1111-1111-1111-111111111111"); // Tiki,   Confirmed  (ReadyToShip)
-    private static readonly Guid AliceOrder2Id      = new("aa000002-1111-1111-1111-111111111111"); // Giver,  Rejected   (ReturnCancel)
+    private static readonly Guid AliceOrder2Id      = new("aa000002-1111-1111-1111-111111111111"); // Giver,  Rejected   (ReturnedOrCancelled)
     private static readonly Guid BobOrder1Id        = new("bb000001-2222-2222-2222-222222222222"); // PD,     Confirmed  (ReadyToShip)
-    private static readonly Guid BobOrder2Id        = new("bb000002-2222-2222-2222-222222222222"); // Tiki,   Rejected   (ReturnCancel)
+    private static readonly Guid BobOrder2Id        = new("bb000002-2222-2222-2222-222222222222"); // Tiki,   Rejected   (ReturnedOrCancelled)
     private static readonly Guid BobOrder1PaymentId = new("cc000001-3333-3333-3333-333333333333");
 
     // ── Stable orders (idempotent) ────────────────────────────────────────────
@@ -95,7 +95,7 @@ internal sealed class OrderSeeder(OrderDbContext db, ILogger<OrderSeeder> logger
                 db.Orders.Add(o);
             }
 
-            // ── ReturnCancel ×2 ───────────────────────────────────────────────
+            // ── ReturnedOrCancelled ×2 ───────────────────────────────────────────────
             if (!currentIdSet.Contains(AliceOrder2Id))
             {
                 var o = Build(AliceOrder2Id, AliceId, "Alice", "0901234567", GiverStoreId,
@@ -110,7 +110,7 @@ internal sealed class OrderSeeder(OrderDbContext db, ILogger<OrderSeeder> logger
                 var o = Build(BobOrder2Id, BobId, "Bob", "0987654321", TikiStoreId,
                               1013L, 10013L, 1014L, 10014L, 15000L, productRefs, skuRefs);
                 o.MarkAsCOD();
-                o.Reject("Customer cancelled", TikiOwnerId);
+                o.Reject("Buyer cancelled", TikiOwnerId);
                 db.Orders.Add(o);
             }
 

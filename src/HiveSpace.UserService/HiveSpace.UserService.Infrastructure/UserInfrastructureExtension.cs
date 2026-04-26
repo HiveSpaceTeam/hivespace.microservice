@@ -5,7 +5,6 @@ using HiveSpace.UserService.Infrastructure.DataQueries;
 using HiveSpace.UserService.Application.Interfaces;
 using HiveSpace.UserService.Application.Interfaces.DataQueries;
 using HiveSpace.Infrastructure.Persistence;
-using HiveSpace.Infrastructure.Persistence.Outbox;
 using HiveSpace.Infrastructure.Persistence.Interceptors;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -32,16 +31,8 @@ public static class UserInfrastructureExtension
             throw new HiveSpace.Core.Exceptions.ApplicationException([error], 500, false);
         }
 
-        // Register interceptors manually
-        services.AddScoped<ISaveChangesInterceptor, AuditableInterceptor>();
-        services.AddScoped<ISaveChangesInterceptor, SoftDeleteInterceptor>();
-        services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventInterceptor>();
-
         // Add persistence infrastructure to register other services
         services.AddPersistenceInfrastructure<UserDbContext>();
-
-        // Add specific outbox repository for UserDbContext (for background services)
-        //services.AddOutboxServices<UserDbContext>();
 
         services.AddAppInterceptors();
 

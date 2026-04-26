@@ -8,7 +8,8 @@ namespace HiveSpace.CatalogService.Domain.Repositories
         Task<Product?> GetDetailByIdAsync(int id, bool noTracking, CancellationToken cancellationToken = default);
         Task AddAsync(Product product, CancellationToken cancellationToken = default);
         Task UpdateAsync(Product product, CancellationToken cancellationToken = default);
-        Task DeleteAsync(Product product, CancellationToken cancellationToken = default);
+        void Remove(Product product);
+        Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
         Task<(IReadOnlyList<Product> Items, int Total)> GetPagedAsync(string keyword, int pageIndex, int pageSize, string sort, Guid sellerId, CancellationToken cancellationToken = default);
         Task<(IReadOnlyList<Product> Items, int Total)> GetSummariesPagedAsync(string keyword, int pageIndex, int pageSize, string sort, CancellationToken cancellationToken = default);
     }

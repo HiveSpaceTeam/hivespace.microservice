@@ -7,5 +7,5 @@ public enum SellerOrderProcessStatus
     ReadyToShip = 2,
     Shipping = 3,
     Delivered = 4,
-    ReturnCancel = 5
+    ReturnedOrCancelled = 5
 }

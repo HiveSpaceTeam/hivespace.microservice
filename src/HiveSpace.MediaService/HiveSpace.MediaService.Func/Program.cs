@@ -7,9 +7,7 @@ using HiveSpace.MediaService.Core.Infrastructure.Data;
 using HiveSpace.MediaService.Core.Infrastructure.Storage;
 using HiveSpace.MediaService.Core.Interfaces;
 using HiveSpace.MediaService.Core.Services;
-using HiveSpace.MediaService.Core.Configuration;
-using FluentValidation;
-using HiveSpace.MediaService.Core.Validators;
+using HiveSpace.MediaService.Core.Infrastructure.Configuration;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()
@@ -45,11 +43,7 @@ var host = new HostBuilder()
         // Register Core Services
         services.AddScoped<IStorageService, AzureBlobStorageService>();
         services.AddScoped<IQueueService, AzureQueueService>();
-        services.AddScoped<IMediaService, MediaService>();
         services.AddScoped<IMediaCleanupService, MediaCleanupService>();
-
-        // Register Validators (used by queue/timer functions if needed)
-        services.AddValidatorsFromAssemblyContaining<PresignUrlRequestValidator>();
 
         // Register Database with enhanced retry logic for Azure SQL
         services.AddDbContext<MediaDbContext>((sp, options) =>

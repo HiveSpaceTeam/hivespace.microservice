@@ -35,10 +35,14 @@ namespace HiveSpace.CatalogService.Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(Category category)
+        public void Remove(Category category)
         {
             _context.Categories.Remove(category);
-            await _context.SaveChangesAsync();
+        }
+
+        public async Task<int> SaveChangesAsync()
+        {
+            return await _context.SaveChangesAsync();
         }
     }
 }

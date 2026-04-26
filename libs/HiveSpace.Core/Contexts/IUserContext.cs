@@ -9,6 +9,8 @@ public interface IUserContext
     bool IsAdmin { get; }
     bool IsSystemAdmin { get; }
     bool IsSeller { get; }
-    bool IsCustomer { get; }
+    bool IsBuyer { get; }
     Guid? StoreId { get; }
+    string? FullName { get; }
+    string? Locale { get; }
 }

@@ -246,6 +246,11 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
                     b.Property<bool>("IsShippingPaidBySeller")
                         .HasColumnType("bit");
 
+                    b.Property<string>("OrderCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<DateTimeOffset?>("PaidAt")
                         .HasColumnType("datetimeoffset");
 
@@ -258,11 +263,6 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
 
                     b.Property<Guid?>("ShippingId")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("ShortId")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -280,7 +280,7 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ShortId")
+                    b.HasIndex("OrderCode")
                         .IsUnique();
 
                     b.ToTable("orders", (string)null);

@@ -8,7 +8,8 @@ namespace HiveSpace.CatalogService.Domain.Repositories
         Task<List<Category>> GetAllAsync();
         Task AddAsync(Category category);
         Task UpdateAsync(Category category);
-        Task DeleteAsync(Category category);
+        void Remove(Category category);
+        Task<int> SaveChangesAsync();
     }
 }
 

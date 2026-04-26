@@ -3,7 +3,7 @@ namespace HiveSpace.OrderService.Application.Orders.Dtos;
 public record OrderDetailDto
 {
     public Guid    Id            { get; init; }
-    public string  ShortId       { get; init; } = null!;
+    public string  OrderCode     { get; init; } = null!;
     public Guid    UserId        { get; init; }
     public Guid    StoreId       { get; init; }
     public string  Status        { get; init; } = null!;

@@ -42,6 +42,5 @@ public class MediaAssetEntityConfiguration : IEntityTypeConfiguration<MediaAsset
             .HasMaxLength(20)
             .HasDefaultValue(MediaStatus.Pending);
 
-        builder.Ignore(x => x.DomainEvents);
     }
 }

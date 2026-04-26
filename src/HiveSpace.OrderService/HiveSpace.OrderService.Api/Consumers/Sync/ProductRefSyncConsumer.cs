@@ -8,24 +8,24 @@ using Microsoft.Extensions.Logging;
 namespace HiveSpace.OrderService.Api.Consumers.Sync;
 
 public class ProductRefSyncConsumer(OrderDbContext db, ILogger<ProductRefSyncConsumer> logger)
-    : IConsumer<ProductCreatedEvent>,
-      IConsumer<ProductUpdatedEvent>,
-      IConsumer<ProductDeletedEvent>,
-      IConsumer<ProductSkuUpdatedEvent>
+    : IConsumer<ProductCreatedIntegrationEvent>,
+      IConsumer<ProductUpdatedIntegrationEvent>,
+      IConsumer<ProductDeletedIntegrationEvent>,
+      IConsumer<ProductSkuUpdatedIntegrationEvent>
 {
-    public Task Consume(ConsumeContext<ProductCreatedEvent> context)
+    public Task Consume(ConsumeContext<ProductCreatedIntegrationEvent> context)
     {
         var msg = context.Message;
         return UpsertProductRefAsync(msg.Id, msg.StoreId, msg.Name, msg.ThumbnailUrl, msg.Status, context.CancellationToken);
     }
 
-    public Task Consume(ConsumeContext<ProductUpdatedEvent> context)
+    public Task Consume(ConsumeContext<ProductUpdatedIntegrationEvent> context)
     {
         var msg = context.Message;
         return UpsertProductRefAsync(msg.Id, msg.StoreId, msg.Name, msg.ThumbnailUrl, msg.Status, context.CancellationToken);
     }
 
-    public async Task Consume(ConsumeContext<ProductDeletedEvent> context)
+    public async Task Consume(ConsumeContext<ProductDeletedIntegrationEvent> context)
     {
         var existing = await db.ProductRefs.FindAsync([context.Message.Id], context.CancellationToken);
         if (existing is not null)
@@ -36,7 +36,7 @@ public class ProductRefSyncConsumer(OrderDbContext db, ILogger<ProductRefSyncCon
         }
     }
 
-    public async Task Consume(ConsumeContext<ProductSkuUpdatedEvent> context)
+    public async Task Consume(ConsumeContext<ProductSkuUpdatedIntegrationEvent> context)
     {
         var msg = context.Message;
         var existing = await db.SkuRefs.FindAsync([msg.SkuId], context.CancellationToken);

@@ -11,6 +11,6 @@ public class GetProductDetailQueryHandler(IProductDataQuery productDataQuery)
     public async Task<ProductDetailDto> Handle(GetProductDetailQuery request, CancellationToken cancellationToken)
     {
         return await productDataQuery.GetProductDetailAsync(request.ProductId, cancellationToken)
-            ?? throw new NotFoundException(CatalogErrorCode.ProductNotFound, nameof(ProductDetailDto));
+            ?? throw new NotFoundException(CatalogDomainErrorCode.ProductNotFound, nameof(ProductDetailDto));
     }
 }

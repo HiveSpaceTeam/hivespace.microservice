@@ -3,7 +3,6 @@ using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Domain.Shared.Interfaces;
 using HiveSpace.Domain.Shared.ValueObjects;
 using HiveSpace.PaymentService.Domain.Aggregates.Wallets.Enumerations;
-using HiveSpace.PaymentService.Domain.DomainEvents;
 using HiveSpace.PaymentService.Domain.Exceptions;
 
 namespace HiveSpace.PaymentService.Domain.Aggregates.Wallets;
@@ -42,8 +41,6 @@ public class Wallet : AggregateRoot<Guid>, IAuditable
             CreatedAt = DateTimeOffset.UtcNow
         };
 
-        wallet.AddDomainEvent(new WalletCreatedDomainEvent(wallet.Id, wallet.UserId));
-
         return wallet;
     }
 
@@ -55,7 +52,6 @@ public class Wallet : AggregateRoot<Guid>, IAuditable
         AvailableBalance += amount;
         _transactions.Add(Transaction.CreateCredit(Id, amount, AvailableBalance, reference, description));
         UpdatedAt = DateTimeOffset.UtcNow;
-        AddDomainEvent(new WalletCreditedDomainEvent(Id, UserId, amount, reference));
     }
 
     public void Debit(Money amount, string reference, string description)
@@ -69,7 +65,6 @@ public class Wallet : AggregateRoot<Guid>, IAuditable
         AvailableBalance -= amount;
         _transactions.Add(Transaction.CreateDebit(Id, amount, AvailableBalance, reference, description));
         UpdatedAt = DateTimeOffset.UtcNow;
-        AddDomainEvent(new WalletDebitedDomainEvent(Id, UserId, amount, reference));
     }
 
     public void Suspend(string reason)

@@ -21,7 +21,7 @@ public class FulfillmentSagaStateMachine : MassTransitStateMachine<FulfillmentSa
     public Event<SellerNewOrderNotified>   SellerNewOrderNotified   { get; private set; } = null!;
     public Event<OrderConfirmedBySeller>   OrderConfirmedBySeller   { get; private set; } = null!;
     public Event<OrderRejectedBySeller>    OrderRejectedBySeller    { get; private set; } = null!;
-    public Event<CustomerNotified>         CustomerNotified         { get; private set; } = null!;
+    public Event<BuyerNotified>         BuyerNotified         { get; private set; } = null!;
     public Event<InventoryReleased>        InventoryReleased        { get; private set; } = null!;
     public Event<OrderCancelled>           OrderCancelled           { get; private set; } = null!;
 
@@ -29,7 +29,7 @@ public class FulfillmentSagaStateMachine : MassTransitStateMachine<FulfillmentSa
     public State ConfirmingInventory           { get; private set; } = null!;
     public State NotifyingSeller               { get; private set; } = null!;
     public State WaitingForSellerConfirmation  { get; private set; } = null!;
-    public State NotifyingCustomer             { get; private set; } = null!;
+    public State NotifyingBuyer             { get; private set; } = null!;
     public State Compensating                  { get; private set; } = null!;
     public State Completed                     { get; private set; } = null!;
     public State Failed                        { get; private set; } = null!;
@@ -50,7 +50,7 @@ public class FulfillmentSagaStateMachine : MassTransitStateMachine<FulfillmentSa
         Event(() => SellerNewOrderNotified,   x => x.CorrelateById(m => m.Message.CorrelationId));
         Event(() => OrderConfirmedBySeller,   x => x.CorrelateById(m => m.Message.CorrelationId));
         Event(() => OrderRejectedBySeller,    x => x.CorrelateById(m => m.Message.CorrelationId));
-        Event(() => CustomerNotified,         x => x.CorrelateById(m => m.Message.CorrelationId));
+        Event(() => BuyerNotified,         x => x.CorrelateById(m => m.Message.CorrelationId));
         Event(() => InventoryReleased,        x => x.CorrelateById(m => m.Message.CorrelationId));
         Event(() => OrderCancelled,           x => x.CorrelateById(m => m.Message.CorrelationId));
 
@@ -90,12 +90,12 @@ public class FulfillmentSagaStateMachine : MassTransitStateMachine<FulfillmentSa
         // ── CONFIRMING INVENTORY (after seller confirms) ─────────────────────
         During(InventoryConfirmation.Pending,
             When(InventoryConfirmation.Completed)   // InventoryConfirmed
-                .TransitionTo(NotifyingCustomer)
-                .PublishAsync(ctx => ctx.Init<NotifyCustomerOrderConfirmed>(new
+                .TransitionTo(NotifyingBuyer)
+                .PublishAsync(ctx => ctx.Init<NotifyBuyerOrderConfirmed>(new
                 {
                     ctx.Saga.CorrelationId,
-                    OrderId   = ctx.Saga.CorrelationId,
-                    ctx.Saga.UserId,
+                    OrderId  = ctx.Saga.CorrelationId,
+                    BuyerId  = ctx.Saga.UserId,
                     ctx.Saga.StoreId,
                     ctx.Saga.OrderCode
                 })),
@@ -198,8 +198,8 @@ public class FulfillmentSagaStateMachine : MassTransitStateMachine<FulfillmentSa
         );
 
         // ── NOTIFYING CUSTOMER ───────────────────────────────────────────────
-        During(NotifyingCustomer,
-            When(CustomerNotified)
+        During(NotifyingBuyer,
+            When(BuyerNotified)
                 .IfElse(ctx => ctx.Saga.OrderWasConfirmed,
                     success => success
                         .Then(ctx => ctx.Saga.CompletedAt = DateTimeOffset.UtcNow)
@@ -223,12 +223,12 @@ public class FulfillmentSagaStateMachine : MassTransitStateMachine<FulfillmentSa
                 })),
 
             When(OrderCancelled)
-                .TransitionTo(NotifyingCustomer)
-                .PublishAsync(ctx => ctx.Init<NotifyCustomerOrderCancelled>(new
+                .TransitionTo(NotifyingBuyer)
+                .PublishAsync(ctx => ctx.Init<NotifyBuyerOrderCancelled>(new
                 {
                     ctx.Saga.CorrelationId,
                     OrderId      = ctx.Saga.CorrelationId,
-                    ctx.Saga.UserId,
+                    BuyerId      = ctx.Saga.UserId,
                     RefundAmount = 0L,
                     ctx.Saga.OrderCode
                 }))

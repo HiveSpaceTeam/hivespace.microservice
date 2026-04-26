@@ -82,7 +82,9 @@ src/
 ├── HiveSpace.UserService/                              # Identity & auth (Duende IdentityServer)
 ├── HiveSpace.CatalogService/                           # Product catalog
 ├── HiveSpace.OrderService/                             # Orders, cart, coupons, checkout saga
-└── HiveSpace.MediaService/                             # Media/file handling (Azure Functions + API)
+├── HiveSpace.PaymentService/                           # Payment processing
+├── HiveSpace.MediaService/                             # Media/file handling (Azure Blob + Functions)
+└── HiveSpace.NotificationService/                      # Notifications (email, in-app, SignalR)
 libs/
 ├── HiveSpace.Core/                                     # Exceptions, filters, helpers, pagination models
 ├── HiveSpace.Domain.Shared/                            # AggregateRoot, Entity, ValueObject, IDomainEvent
@@ -90,55 +92,208 @@ libs/
 ├── HiveSpace.Infrastructure.Messaging/                 # MassTransit/Kafka/RabbitMQ abstractions
 ├── HiveSpace.Infrastructure.Messaging.Shared/          # Cross-service saga contracts (commands/events)
 ├── HiveSpace.Infrastructure.Authorization/             # HiveSpaceAuthorizeAttribute, policy helpers
-└── HiveSpace.Infrastructure.Persistence/               # Outbox, idempotence, EF interceptors, transaction service
+└── HiveSpace.Infrastructure.Persistence/               # Idempotence, EF interceptors (audit, soft-delete), transaction service
 ```
 
 All packages are centrally versioned in `Directory.Packages.props` — never specify versions in `.csproj` files.
 
 ## Service Architecture
 
-Services in this repo follow one of two structural patterns.
+Services follow one of two archetypes. **Identify the archetype before any new service or feature work.**
 
-### Full Clean Architecture + Strict DDD
+### Which archetype?
 
-Used by: **UserService**, **CatalogService**, **OrderService**
+| Signal | Full Service | Lite Service |
+|--------|-------------|-------------|
+| Owns business aggregates with lifecycle rules | ✅ | — |
+| Participates in a distributed saga or workflow | ✅ | — |
+| Primarily orchestrates infrastructure (storage, email, notifications) | — | ✅ |
+| Narrow feature scope, small operational footprint | — | ✅ |
 
-Four projects per service with hard layer boundaries:
+**Assignments:**
+- **Full Service**: UserService, CatalogService, OrderService, PaymentService
+- **Lite Service**: MediaService, NotificationService
 
-```text
-[Service].Domain/           # Aggregates, value objects, domain services, repository interfaces
-[Service].Application/      # MediatR commands/queries/handlers, FluentValidation validators, data query interfaces
-[Service].Infrastructure/   # EF Core repo implementations, Dapper data queries, messaging publishers
-[Service].Api/              # Controllers or minimal endpoints, MassTransit saga state machines, consumers
-```
+---
 
-Rules:
+### Full Service
 
-- All business logic lives in Domain aggregates and domain services
-- Application layer orchestrates — no business rules here
-- Infrastructure never referenced from Domain or Application (dependency inversion)
-- Saga state machines and their consumers live in the Api project under `Api/Sagas/` and `Api/Consumers/`
-
-### Lightweight / Non-DDD
-
-Used by: **MediaService**
-
-One to three projects — typically a Core project plus an Api project, and optionally additional host projects (e.g. Azure Functions):
+Four projects with hard layer boundaries. Dependency direction: `Domain ← Application ← Infrastructure ← Api`.
 
 ```text
-[Service].Core/    # Domain models, interfaces, service classes, validators — all in one place
-[Service].Api/     # Controllers, DI wiring
-[Service].Func/    # Optional: additional host (Azure Functions, workers, etc.)
+[Service].Domain/
+  Aggregates/[Root]/
+    [Root].cs                    # extends AggregateRoot<TKey>
+  Enumerations/
+  Exceptions/
+    [Service]DomainErrorCode.cs  # extends DomainErrorCode — REQUIRED
+  Repositories/
+    I[Root]Repository.cs
+  ValueObjects/                  # optional
+
+[Service].Application/
+  [Feature]/                     # FLEXIBLE — CQRS or Service-based (see below)
+  Interfaces/
+    Messaging/
+      I[Service]EventPublisher.cs
+
+[Service].Infrastructure/
+  Data/
+    [Service]DbContext.cs
+  EntityConfigurations/
+    [Entity]EntityConfiguration.cs
+  Repositories/
+    Sql[Root]Repository.cs
+  DataQueries/                   # optional — only when Dapper reads are used
+  Messaging/
+    Publishers/
+      [Service]EventPublisher.cs
+  Sagas/                         # saga state persistence (optional)
+  Migrations/
+
+[Service].Api/
+  # FLEXIBLE — Controllers or Minimal Endpoints (see below)
+  Consumers/
+    Saga/[SagaName]/
+    Sync/
+  Sagas/
+    [SagaName]/[SagaName]StateMachine.cs
+  Extensions/
+    HostingExtensions.cs
+    ServiceCollectionExtensions.cs
+  Program.cs
 ```
 
-Rules:
+**Mandatory rules:**
+- Domain has zero references to Application, Infrastructure, or Api
+- Application references only Domain and shared libs — never Infrastructure
+- `[Service]DomainErrorCode` required in `Domain/Exceptions/`
+- All entities: private setters — no public mutation from outside the class
+- Write path: load aggregate → call domain method → save (never `ExecuteUpdateAsync`)
+- `AddScoped` for all repositories, services, and data queries
+- Every command/query with user input must have a validator; register all validators + `ValidationPipelineBehavior<,>` in `AddMediatR` — see **Validation pipeline** rule in Coding Rules
 
-- No strict Application/Infrastructure split required
-- Business logic lives in service classes rather than domain aggregates
-- Entities still use **private setters** — no public property mutation from outside the class
-- EF configurations, storage logic, etc. can live directly in Core
+**Flexible decision points — agent must ask before implementing:**
 
-## Two Patterns for Feature Implementation
+| Decision | Option A | Option B | Rule |
+|----------|----------|----------|------|
+| Application layer | **CQRS** — `ICommand`/`IQuery` + handlers per operation | **Service-based** — `I[Feature]Service` + `[Feature]Service` | Follow what the aggregate already uses; ask if first feature |
+| API surface | **MVC Controllers** — `[Feature]Controller : ControllerBase` | **Minimal Endpoints** — static `Map[Feature]Endpoints()` | Follow existing service convention; ask if new service |
+| Complex reads | **EF Core only** — via repository | **Dapper hybrid** — `I[Feature]DataQuery` interface + `DataQueries/` impl | Use Dapper only for paginated list / reporting queries |
+
+**CQRS layout (when chosen):**
+
+```text
+Application/[Feature]/
+  Commands/
+    [Action][Entity]/
+      [Action][Entity]Command.cs
+      [Action][Entity]CommandHandler.cs
+      [Action][Entity]Validator.cs
+  Queries/
+    [Get][Entity]/
+      [Get][Entity]Query.cs
+      [Get][Entity]QueryHandler.cs
+  Dtos/
+```
+
+**Service-based layout (when chosen):**
+
+```text
+Application/
+  Interfaces/
+    I[Feature]Service.cs
+  Services/
+    [Feature]Service.cs
+  Validators/
+    [Request]Validator.cs
+  Dtos/
+```
+
+**New service checklist — Full:**
+1. Run from repo root: `.\scripts\new-service.ps1 -ServiceName HiveSpace.[Name]Service -TemplateName ms-full -AddToSolution`
+2. Create `Domain/Exceptions/[Name]DomainErrorCode.cs` (choose a unique error code prefix — see table in Coding Rules)
+3. Wire DI in `Extensions/ServiceCollectionExtensions.cs` and `Extensions/HostingExtensions.cs`
+4. Run first migration: `dotnet ef migrations add InitialCreate --project src/HiveSpace.[Name]Service/HiveSpace.[Name]Service.Infrastructure --startup-project src/HiveSpace.[Name]Service/HiveSpace.[Name]Service.Api`
+
+---
+
+### Lite Service
+
+Two projects required; a third host project is optional.
+
+```text
+[Service].Core/
+  Features/
+    [Feature]/                    # one folder per bounded concern
+      Commands/
+        [Action][Entity]/
+          [Action][Entity]Command.cs
+          [Action][Entity]CommandHandler.cs
+          [Action][Entity]Validator.cs
+      Queries/
+        [Get][Entity]/
+          [Get][Entity]Query.cs
+          [Get][Entity]QueryHandler.cs
+      Dtos/                       # feature-specific response types
+  DomainModels/
+    [Entity].cs                   # private setters required
+    Enum/
+    External/                     # cross-service read-only refs (optional)
+  Exceptions/
+    [Service]DomainErrorCode.cs   # REQUIRED
+  Interfaces/                     # cross-feature: repo + infra interfaces
+  Services/                       # cross-cutting impls (dedup, rate-limit, template renderer, etc.)
+  Persistence/
+    [Service]DbContext.cs
+    EntityConfigurations/
+      [Entity]EntityConfiguration.cs
+    Repositories/
+      [Entity]Repository.cs
+    Migrations/
+    SeedData/                     # optional
+  Infrastructure/                 # external integrations: Azure, email, channel providers, config
+    [Provider]/
+  BackgroundJobs/                 # Hangfire jobs (optional)
+  Dispatch/                       # optional — pipeline + router + internal models
+
+[Service].Api/
+  Endpoints/
+    [Feature]Endpoints.cs         # static Map[Feature]Endpoints() extension methods
+  Consumers/                      # MassTransit consumers (if service listens to events)
+  Hubs/                           # SignalR hubs (optional)
+  Extensions/
+    HostingExtensions.cs
+    ServiceCollectionExtensions.cs
+  Program.cs
+
+[Service].Func/                   # OPTIONAL — only for a genuinely separate function/worker host
+  Functions/
+  Program.cs
+```
+
+**Mandatory rules:**
+- `[Service]DomainErrorCode` required in `Core/Exceptions/`
+- All entities: private setters — no public mutation from outside the class
+- `AddScoped` for all handlers and repositories
+- Exceptions: `HiveSpace.Domain.Shared.Exceptions` types only — never `System.*`
+- CQRS (`ICommand`/`IQuery` + handlers) for all user-facing operations — no `I[Feature]Service` pattern for Lite Services
+- Handlers always inject repositories — never `DbContext` directly
+- Cross-cutting infrastructure services (pipeline, router, dedup, rate-limiter) use named interfaces in `Interfaces/` — not exposed directly by endpoints
+- Always Minimal Endpoints — no MVC Controllers
+- Always EF Core only — no Dapper
+- Every command/query with user input must have a validator; register all validators + `ValidationPipelineBehavior<,>` in `AddMediatR` — see **Validation pipeline** rule in Coding Rules
+- Add `.Func` project only when a genuinely separate process host is required; background jobs belong in Hangfire inside `Core/BackgroundJobs/`
+
+**New service checklist — Lite:**
+1. Run from repo root: `.\scripts\new-service.ps1 -ServiceName HiveSpace.[Name]Service -TemplateName ms-lite -AddToSolution`
+2. Create `Core/Exceptions/[Name]DomainErrorCode.cs` (choose a unique error code prefix)
+3. Wire DI in `Extensions/ServiceCollectionExtensions.cs` and `Extensions/HostingExtensions.cs`
+4. Run first migration: `dotnet ef migrations add InitialCreate --project src/HiveSpace.[Name]Service/HiveSpace.[Name]Service.Core --startup-project src/HiveSpace.[Name]Service/HiveSpace.[Name]Service.Api`
+
+## Feature Implementation — Full Services
+
+> Applies to **Full Services** only. Lite Services always use the service-based approach: define an interface in `Core/Interfaces/`, implement it in `Core/Services/`, and call it from the controller.
 
 ### Pattern 1 — Command / Write operations (domain-first)
 
@@ -158,6 +313,8 @@ Used for paginated lists and reporting reads that don't need domain logic. Bypas
 3. **Api**: Call via application service or directly via `ISender`
 
 ## DDD Building Blocks
+
+> Applies to **Full Services** only.
 
 ### Domain Services
 
@@ -210,37 +367,9 @@ private readonly IUserContext _userContext;
 // Provides: _userContext.UserId, _userContext.StoreId, etc.
 ```
 
-## API Layer
-
-**UserService** uses MVC controllers:
-
-```csharp
-[ApiController]
-[Route("api/v{version:apiVersion}/[controller]")]
-[ApiVersion("1.0")]
-public class UsersController : ControllerBase { ... }
-```
-
-**OrderService** uses minimal API endpoints via static extension methods (Carter-style):
-
-```csharp
-// src/HiveSpace.OrderService/HiveSpace.OrderService.Api/Endpoints/OrderEndpoints.cs
-public static class OrderEndpoints
-{
-    public static IEndpointRouteBuilder MapOrderEndpoints(this IEndpointRouteBuilder app)
-    {
-        app.MapPost("/api/v1/orders/checkout", async (...) => { ... })
-           .RequireAuthorization()
-           .WithName("InitiateCheckout")
-           .WithTags("Order");
-        return app;
-    }
-}
-```
-
-Use `HiveSpaceAuthorizeAttribute.Seller.Policy` for seller-only endpoints.
-
 ## Sagas (MassTransit)
+
+> Applies to **Full Services** only.
 
 Sagas are distributed workflows orchestrated via MassTransit state machines. A service can have multiple sagas. Contracts (commands and events) are shared via `libs/HiveSpace.Infrastructure.Messaging.Shared/`.
 
@@ -271,6 +400,22 @@ Request/Response steps should always define a timeout (e.g. 30 minutes). Compens
 Always call `await db.SaveChangesAsync(ct)` after publishing to persist outbox records in the same transaction.
 
 ## Coding Rules
+
+## Linked documentation files
+
+`CLAUDE.md` and `AGENTS.md` are kept in sync by a PostToolUse hook (`.claude/hooks/sync-docs.sh`). After editing either file, you **must** update the other:
+- Changes to `## Service Architecture` in CLAUDE.md → update the service table and hard rules in AGENTS.md
+- Changes to the service table or rules in AGENTS.md → update `## Service Architecture` in CLAUDE.md
+
+## PR process
+
+Never run `gh pr create` directly. A PreToolUse hook (`.claude/hooks/guard-pr.sh`) blocks it. Required flow:
+1. Run `bash scripts/sync-config.sh` to sync all `appsettings.json` / `local.settings.json` to `hivespace.config/`
+2. Run `npx gitnexus analyze` to sync the GitNexus index with current changes
+3. Tell the user to **start a new session** in this repository
+4. In the new session, run `/review` to review all current changes
+5. Apply any fixes from the review
+6. Only then: `gh pr create`
 
 ## Git Commit Guardrails
 
@@ -354,9 +499,39 @@ RuleFor(x => x.Email)
 
 Commands implement `ICommand<TResult>` from `HiveSpace.Application.Shared` (wraps MediatR `IRequest<TResult>`). Query handlers for complex reads implement `IQueryHandler<TQuery, TResult>` from `HiveSpace.Application.Shared`.
 
-### Domain events to integration events
+### Validation pipeline — MANDATORY for all services
 
-Domain events raised via `AggregateRoot.RaiseDomainEvent()` are captured by `DomainEventToOutboxInterceptor` and written to the outbox table. The outbox processor publishes them as integration events via MassTransit.
+Every service that uses CQRS **must** register `ValidationPipelineBehavior<,>` from `HiveSpace.Application.Shared.Behaviors` as an open MediatR pipeline behavior. This runs all registered `IValidator<TRequest>` automatically before the handler executes.
+
+```csharp
+// In AddMediatR / AddAppMediatR:
+services.AddValidatorsFromAssemblyContaining<MyCommand>(); // register all validators in the assembly
+services.AddMediatR(cfg =>
+{
+    cfg.RegisterServicesFromAssemblyContaining<MyCommand>();
+    cfg.AddOpenBehavior(typeof(ValidationPipelineBehavior<,>)); // runs validators automatically
+});
+```
+
+**Validator rules:**
+- Every command or query that accepts user input **must** have a corresponding `[Name]Validator` file in the same feature folder
+- Validators use `.WithState(_ => new Error(ErrorCode, nameof(field)))` — never `.WithMessage()`
+- Use `CommonErrorCode.Required` for empty/null checks, `CommonErrorCode.InvalidPageNumber`/`InvalidPageSize` for pagination, `CommonErrorCode.InvalidArgument` for range/format errors
+- Commands or queries with no user-controlled parameters (e.g. `GetUnreadCountQuery()`) do not need validators
+
+### Integration event publishing
+
+Publish integration events directly from command/service handlers via `I[Service]EventPublisher`. Always call the publisher **before** `SaveChangesAsync()` so MassTransit's bus outbox writes the message to the DB in the same transaction as your domain data.
+
+```csharp
+// ✅ Correct — publisher before save; MassTransit bus outbox commits both atomically
+await eventPublisher.PublishSomethingAsync(aggregate, ct);
+await repository.SaveChangesAsync(ct);
+
+// ❌ Wrong — event lost if service crashes, or published before DB commit
+await repository.SaveChangesAsync(ct);
+await eventPublisher.PublishSomethingAsync(aggregate, ct);
+```
 
 ### Monetary values
 
@@ -407,12 +582,14 @@ var order = _repo.GetByIdAsync(id).Result;
 
 Use a domain prefix so error codes are traceable across services:
 
-| Scope          | Prefix    | Example                                              |
-| -------------- | --------- | ---------------------------------------------------- |
-| Shared/common  | `APP0xxx` | `APP0004` — in `HiveSpace.Core` as `CommonErrorCode` |
-| UserService    | `USR1xxx` | `USR1001` — `UserDomainErrorCode`                    |
-| OrderService   | `ORD2xxx` | `ORD2001` — `OrderDomainErrorCode`                   |
-| CatalogService | `CAT3xxx` | `CAT3001` — `CatalogDomainErrorCode`                 |
+| Scope               | Prefix    | Example                                              |
+| ------------------- | --------- | ---------------------------------------------------- |
+| Shared/common       | `APP0xxx` | `APP0004` — in `HiveSpace.Core` as `CommonErrorCode` |
+| UserService         | `USR1xxx` | `USR1001` — `UserDomainErrorCode`                    |
+| OrderService        | `ORD2xxx` | `ORD2001` — `OrderDomainErrorCode`                   |
+| CatalogService      | `CAT3xxx` | `CAT3001` — `CatalogDomainErrorCode`                 |
+| NotificationService | `NTF4xxx` | `NTF4001` — `NotificationDomainErrorCode`            |
+| MediaService        | `MED1xxx` | `MED1001` — `MediaDomainErrorCode`                   |
 
 ### One type per file
 
@@ -424,10 +601,68 @@ CreateOrderCommandHandler.cs   → class CreateOrderCommandHandler
 CreateOrderValidator.cs        → class CreateOrderValidator
 ```
 
+### IUserContext — User Identity in Handlers
+
+`IUserContext` (from `HiveSpace.Core.Contexts`) is the authoritative source for the authenticated user's identity in HTTP-facing code. Registration is handled by `AddCoreServices()` — never register it manually.
+
+**Inject it in every HTTP-facing handler that needs user identity:**
+
+```csharp
+public class MyCommandHandler(IMyRepository repo, IUserContext userContext)
+    : ICommandHandler<MyCommand>
+{
+    public async Task Handle(MyCommand request, CancellationToken cancellationToken)
+    {
+        // Identity
+        var userId = userContext.UserId;       // Guid — from JWT "sub" claim
+        var email  = userContext.Email;        // string
+        var name   = userContext.FullName;     // string? — JWT "name" claim, may be null
+        var locale = userContext.Locale;       // string? — JWT "locale" claim, may be null
+
+        // Role helpers — prefer these over raw Roles list
+        if (userContext.IsSeller)      { /* seller logic */ }
+        if (userContext.IsBuyer)       { /* buyer logic */ }
+        if (userContext.IsAdmin)       { /* admin logic */ }
+        if (userContext.IsSystemAdmin) { /* sysadmin logic */ }
+        var storeId = userContext.StoreId;     // Guid? — null for non-sellers
+    }
+}
+```
+
+**Always prefer typed boolean helpers over raw role strings:**
+
+```csharp
+// ✅ Use typed helpers
+if (userContext.IsSeller) { ... }
+
+// ❌ Avoid raw role string parsing
+if (userContext.Roles.FirstOrDefault() == "Seller") { ... }
+```
+
+**`FullName` and `Locale` — JWT-first, UserRef fallback:**
+
+```csharp
+// Use IUserContext for the current user — no DB round-trip
+var name   = userContext.FullName ?? "there";     // personalise templates
+var locale = userContext.Locale   ?? "en";        // template language
+
+// Use IUserRefRepository only for other users (e.g., dispatch consumers)
+// or when avatar URL / store name is needed (not in JWT)
+var ref = await userRefRepo.GetByIdAsync(targetUserId, ct);
+```
+
+**Do NOT inject `IUserContext` in these scopes — there is no HTTP context:**
+
+| Scope | Correct alternative |
+|-------|-------------------|
+| MassTransit consumers | Read user identity from the message payload |
+| Hangfire background jobs | Pass user data as job arguments at enqueue time |
+| SignalR hubs | Use `Context.User` (ClaimsPrincipal captured at handshake) and `Context.UserIdentifier` (set by `IUserIdProvider`) |
+
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **hivespace.microservice** (6538 symbols, 16144 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **hivespace.microservice** (6535 symbols, 16144 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 

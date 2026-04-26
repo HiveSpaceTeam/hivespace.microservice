@@ -14,7 +14,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Messaging.Publishers
             var sku = product.Skus.FirstOrDefault();
             var image = sku?.Images.FirstOrDefault();
 
-            var @event = new ProductCreatedEvent(
+            var @event = new ProductCreatedIntegrationEvent(
                 product.Id,
                 product.SellerId,
                 product.Name,
@@ -31,7 +31,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Messaging.Publishers
             var sku = product.Skus.FirstOrDefault();
             var image = sku?.Images.FirstOrDefault();
 
-            var @event = new ProductUpdatedEvent(
+            var @event = new ProductUpdatedIntegrationEvent(
                 product.Id,
                 product.SellerId,
                 product.Name,
@@ -45,7 +45,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Messaging.Publishers
 
         public Task PublishProductDeletedAsync(Product product, CancellationToken cancellationToken = default)
         {
-            var @event = new ProductDeletedEvent(
+            var @event = new ProductDeletedIntegrationEvent(
                 product.Id,
                 product.SellerId,
                 product.Name
@@ -55,7 +55,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Messaging.Publishers
 
         public Task PublishSkuUpdatedAsync(Product product, CancellationToken cancellationToken = default)
         {
-            var tasks = product.Skus.Select(sku => new ProductSkuUpdatedEvent(
+            var tasks = product.Skus.Select(sku => new ProductSkuUpdatedIntegrationEvent(
                 product.Id,
                 sku.Id,
                 sku.SkuNo,

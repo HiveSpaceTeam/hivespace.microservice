@@ -8,9 +8,9 @@ namespace HiveSpace.NotificationService.Api.Consumers.Sync;
 
 public class UserSyncConsumer(
     IUserRefRepository         userRefs,
-    ILogger<UserSyncConsumer>  logger) : IConsumer<UserCreatedEvent>, IConsumer<UserUpdatedEvent>
+    ILogger<UserSyncConsumer>  logger) : IConsumer<UserCreatedIntegrationEvent>, IConsumer<UserUpdatedIntegrationEvent>
 {
-    public async Task Consume(ConsumeContext<UserCreatedEvent> context)
+    public async Task Consume(ConsumeContext<UserCreatedIntegrationEvent> context)
     {
         var msg = context.Message;
         logger.LogInformation("Syncing UserRef for UserId={UserId}", msg.UserId);
@@ -20,7 +20,7 @@ public class UserSyncConsumer(
         await userRefs.UpsertAsync(userRef, context.CancellationToken);
     }
 
-    public async Task Consume(ConsumeContext<UserUpdatedEvent> context)
+    public async Task Consume(ConsumeContext<UserUpdatedIntegrationEvent> context)
     {
         var msg = context.Message;
         logger.LogInformation("Updating UserRef for UserId={UserId}", msg.UserId);
