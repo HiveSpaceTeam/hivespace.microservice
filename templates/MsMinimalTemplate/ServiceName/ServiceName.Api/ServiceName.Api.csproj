@@ -8,7 +8,14 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
-    <PackageReference Include="Swashbuckle.AspNetCore"/>
+    <PackageReference Include="Scalar.AspNetCore" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceName.Core\ServiceName.Core.csproj" />
+    <ProjectReference Include="..\..\..\libs\HiveSpace.Core\HiveSpace.Core.csproj" />
+    <ProjectReference Include="..\..\..\libs\HiveSpace.Infrastructure.Authorization\HiveSpace.Infrastructure.Authorization.csproj" />
+    <ProjectReference Include="..\..\..\libs\HiveSpace.Infrastructure.Messaging\HiveSpace.Infrastructure.Messaging.csproj" />
   </ItemGroup>
 
 </Project>

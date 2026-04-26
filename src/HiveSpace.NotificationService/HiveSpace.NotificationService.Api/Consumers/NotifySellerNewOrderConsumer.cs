@@ -2,7 +2,7 @@ using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Commands;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Events;
 using HiveSpace.NotificationService.Core.DomainModels;
 using HiveSpace.NotificationService.Core.Interfaces;
-using HiveSpace.NotificationService.Core.Models;
+using HiveSpace.NotificationService.Core.Dispatch.Models;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 
@@ -39,7 +39,7 @@ public class NotifySellerNewOrderConsumer(
                 ["orderId"]   = msg.OrderId,
                 ["orderCode"] = msg.OrderCode,
                 ["storeId"]   = msg.StoreId,
-                ["buyerName"] = buyer?.FullName ?? "Customer",
+                ["buyerName"] = buyer?.FullName ?? "Buyer",
                 ["avatarUrl"] = buyer?.AvatarUrl ?? string.Empty,
             }
         }, ct);

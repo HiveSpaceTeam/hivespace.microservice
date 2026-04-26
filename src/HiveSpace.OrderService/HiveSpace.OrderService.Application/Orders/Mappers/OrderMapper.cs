@@ -8,7 +8,7 @@ public static class OrderMapper
     public static OrderDetailDto ToDetailDto(this Order order) => new()
     {
         Id            = order.Id,
-        ShortId       = order.ShortId,
+        OrderCode     = order.OrderCode,
         UserId        = order.UserId,
         StoreId       = order.StoreId,
         Status        = order.Status.Name,
@@ -43,23 +43,23 @@ public static class OrderMapper
         IsCOD       = item.IsCOD
     };
 
-    public static CustomerOrderSummaryDto ToCustomerSummaryDto(this Order order)
+    public static BuyerOrderSummaryDto ToBuyerSummaryDto(this Order order)
     {
         var currency = order.TotalAmount.Currency.ToString();
-        return new CustomerOrderSummaryDto
+        return new BuyerOrderSummaryDto
         {
             Id          = order.Id,
-            ShortId     = order.ShortId,
+            OrderCode   = order.OrderCode,
             Status      = order.Status.Name,
             TotalAmount = order.TotalAmount.Amount,
             Currency    = currency,
             CreatedAt   = order.CreatedAt,
             ItemCount   = order.Items.Count,
-            Items       = order.Items.Select(i => i.ToCustomerItemDto(currency)).ToList()
+            Items       = order.Items.Select(i => i.ToBuyerItemDto(currency)).ToList()
         };
     }
 
-    public static CustomerOrderItemDto ToCustomerItemDto(this OrderItem item, string currency) => new()
+    public static BuyerOrderItemDto ToBuyerItemDto(this OrderItem item, string currency) => new()
     {
         Id            = item.Id,
         ProductName   = item.ProductSnapshot.ProductName,
@@ -75,7 +75,7 @@ public static class OrderMapper
     public static SellerOrderSummaryDto ToSellerSummaryDto(this Order order) => new()
     {
         Id            = order.Id,
-        OrderCode     = order.ShortId,
+        OrderCode     = order.OrderCode,
         BuyerName     = order.DeliveryAddress.RecipientName,
         Status        = order.Status.Name,
         PaymentMethod = order.Checkouts.FirstOrDefault()?.PaymentMethod.Name,

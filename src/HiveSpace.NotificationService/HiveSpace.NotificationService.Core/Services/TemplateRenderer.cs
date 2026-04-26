@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using Scriban;
 using HiveSpace.NotificationService.Core.DomainModels;
 using HiveSpace.NotificationService.Core.Interfaces;
-using HiveSpace.NotificationService.Core.Models;
+using HiveSpace.NotificationService.Core.Dispatch.Models;
 
 namespace HiveSpace.NotificationService.Core.Services;
 

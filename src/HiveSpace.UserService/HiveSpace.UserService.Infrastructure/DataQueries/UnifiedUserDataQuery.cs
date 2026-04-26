@@ -108,9 +108,9 @@ public class UnifiedUserDataQuery : IUnifiedUserDataQuery
                     {
                         conditions.Add("u.RoleName = 'Seller'");
                     }
-                    else if (request.Role == RoleFilter.Customer)
+                    else if (request.Role == RoleFilter.Buyer)
                     {
-                        conditions.Add("(u.RoleName IS NULL OR u.RoleName NOT IN ('Seller', 'Admin', 'SystemAdmin'))");
+                        conditions.Add("(u.RoleName = 'Buyer' OR u.RoleName IS NULL)");
                     }
                     break;
                 

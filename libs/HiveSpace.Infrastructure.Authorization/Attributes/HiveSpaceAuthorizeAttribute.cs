@@ -33,7 +33,7 @@ public class HiveSpaceAuthorizeAttribute : AuthorizeAttribute
     }
 
     /// <summary>
-    /// Requires User roles (Seller + Customer - general user access)
+    /// Requires User roles (Seller + Buyer - general user access)
     /// </summary>
     public static class User
     {
@@ -41,11 +41,11 @@ public class HiveSpaceAuthorizeAttribute : AuthorizeAttribute
     }
 
     /// <summary>
-    /// Requires Customer role only (regular customer access)
+    /// Requires Buyer role only (regular buyer access)
     /// </summary>
-    public static class Customer
+    public static class Buyer
     {
-        public const string Policy = "RequireCustomer";
+        public const string Policy = "RequireBuyer";
     }
 
     /// <summary>
@@ -83,9 +83,9 @@ public class RequireUserAttribute : AuthorizeAttribute
     public RequireUserAttribute() : base(HiveSpaceAuthorizeAttribute.User.Policy) { }
 }
 
-public class RequireCustomerAttribute : AuthorizeAttribute
+public class RequireBuyerAttribute : AuthorizeAttribute
 {
-    public RequireCustomerAttribute() : base(HiveSpaceAuthorizeAttribute.Customer.Policy) { }
+    public RequireBuyerAttribute() : base(HiveSpaceAuthorizeAttribute.Buyer.Policy) { }
 }
 
 public class RequireAdminOrUserAttribute : AuthorizeAttribute

@@ -2,13 +2,13 @@
   "$schema": "http://json.schemastore.org/template",
   "author": "HiveSpace",
   "classifications": [
-    "Minimal API",
-    "Web API",
-    "Simple"
+    "Microservice",
+    "Lite Service",
+    "Web API"
   ],
-  "name": "Minimal API Template",
-  "identity": "MinimalApi.Template",
-  "shortName": "minimalapi",
+  "name": "Lite Service Template",
+  "identity": "HiveSpace.LiteServiceTemplate",
+  "shortName": "ms-lite",
   "tags": {
     "language": "C#",
     "type": "project"
@@ -29,6 +29,28 @@
           ]
         }
       ]
+    }
+  ],
+  "postActions": [
+    {
+      "condition": "(!skipRestore)",
+      "description": "Restore NuGet packages required by this project.",
+      "manualInstructions": [
+        {
+          "text": "Run 'dotnet restore'"
+        }
+      ],
+      "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9025",
+      "continueOnError": true
+    },
+    {
+      "description": "Remove template placeholder files used to create empty folders.",
+      "manualInstructions": [
+        {
+          "text": "Run in PowerShell: Get-ChildItem -Path . -Recurse -Filter __EMPTY_FOLDER__README.md | Remove-Item -Force -ErrorAction SilentlyContinue"
+        }
+      ],
+      "actionId": "E2C2F14B-3C34-4DF4-9B1C-1C7A731B6C46"
     }
   ]
 }

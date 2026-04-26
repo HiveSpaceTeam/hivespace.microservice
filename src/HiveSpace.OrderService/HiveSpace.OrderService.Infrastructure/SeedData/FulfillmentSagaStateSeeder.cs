@@ -73,7 +73,7 @@ internal sealed class FulfillmentSagaStateSeeder(
                     CurrentState                     = "WaitingForSellerConfirmation",
                     UserId                           = o.UserId,
                     StoreId                          = o.StoreId,
-                    OrderCode                        = o.ShortId,
+                    OrderCode                        = o.OrderCode,
                     ReservationIds                   = [],
                     GrandTotal                       = o.TotalAmount.Amount,
                     PaymentMethod                    = PaymentMethod.COD,

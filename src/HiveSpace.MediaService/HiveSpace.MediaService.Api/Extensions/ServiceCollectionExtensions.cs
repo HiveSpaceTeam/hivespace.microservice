@@ -1,12 +1,15 @@
 using FluentValidation;
-using HiveSpace.MediaService.Core.Configuration;
+using HiveSpace.Application.Shared.Behaviors;
+using HiveSpace.MediaService.Core.Infrastructure.Configuration;
 using HiveSpace.MediaService.Core.Infrastructure.Data;
 using HiveSpace.MediaService.Core.Infrastructure.Storage;
 using HiveSpace.MediaService.Core.Interfaces;
+using HiveSpace.MediaService.Core.Features.Media.Commands.GeneratePresignedUrl;
+using HiveSpace.MediaService.Core.Persistence.Repositories;
+using HiveSpace.MediaService.Core.Services;
+using MediatR;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using CoreMediaService = HiveSpace.MediaService.Core.Services.MediaService;
-using CoreMediaCleanupService = HiveSpace.MediaService.Core.Services.MediaCleanupService;
 
 namespace HiveSpace.MediaService.Api.Extensions;
 
@@ -17,16 +20,20 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<StorageConfiguration>();
         services.AddScoped<IStorageService, AzureBlobStorageService>();
         services.AddScoped<IQueueService, AzureQueueService>();
-        services.AddScoped<IMediaService, CoreMediaService>();
-        services.AddScoped<IMediaCleanupService, CoreMediaCleanupService>();
+        services.AddScoped<IMediaAssetRepository, MediaAssetRepository>();
+        services.AddScoped<IMediaCleanupService, MediaCleanupService>();
 
         return services;
     }
 
-    public static IServiceCollection AddAppValidators(this IServiceCollection services)
+    public static IServiceCollection AddAppMediatR(this IServiceCollection services)
     {
-        services.AddValidatorsFromAssembly(typeof(StorageConfiguration).Assembly);
-
+        services.AddValidatorsFromAssembly(typeof(GeneratePresignedUrlCommand).Assembly);
+        services.AddMediatR(cfg =>
+        {
+            cfg.RegisterServicesFromAssemblyContaining<GeneratePresignedUrlCommand>();
+            cfg.AddOpenBehavior(typeof(ValidationPipelineBehavior<,>));
+        });
         return services;
     }
 
@@ -54,6 +61,12 @@ public static class ServiceCollectionExtensions
                 .CommandTimeout(120));
         });
 
+        return services;
+    }
+
+    public static IServiceCollection AddAppExceptionHandling(this IServiceCollection services)
+    {
+        services.AddProblemDetails();
         return services;
     }
 }

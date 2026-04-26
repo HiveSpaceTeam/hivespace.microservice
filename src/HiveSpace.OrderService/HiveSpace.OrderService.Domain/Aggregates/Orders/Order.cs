@@ -13,7 +13,7 @@ namespace HiveSpace.OrderService.Domain.Aggregates.Orders;
 
 public class Order : AggregateRoot<Guid>, IAuditable
 {
-    public string ShortId { get; private set; } = null!;
+    public string OrderCode { get; private set; } = null!;
     public Guid UserId { get; private set; }
     public Guid StoreId { get; private set; }
     public DeliveryAddress DeliveryAddress { get; private set; } = null!;
@@ -61,13 +61,13 @@ public class Order : AggregateRoot<Guid>, IAuditable
 
     private Order(
         Guid id,
-        string shortId,
+        string orderCode,
         Guid userId,
         Guid storeId,
         DeliveryAddress deliveryAddress)
     {
         Id = id;
-        ShortId = shortId;
+        OrderCode = orderCode;
         UserId = userId;
         StoreId = storeId;
         DeliveryAddress = deliveryAddress;
@@ -95,9 +95,9 @@ public class Order : AggregateRoot<Guid>, IAuditable
             throw new InvalidFieldException(OrderDomainErrorCode.OrderStoreIdRequired, nameof(storeId));
 
         var orderId = (id.HasValue && id.Value != Guid.Empty) ? id.Value : IdGenerator.NewId<Guid>();
-        var shortId = GenerateShortId();
+        var orderCode = GenerateOrderCode();
 
-        var order = new Order(orderId, shortId, userId, storeId, deliveryAddress);
+        var order = new Order(orderId, orderCode, userId, storeId, deliveryAddress);
         order.AddTracking(OrderTrackingType.Created, ExecutorType.System, null, "Order created");
 
         return order;
@@ -356,7 +356,7 @@ public class Order : AggregateRoot<Guid>, IAuditable
         _trackings.Add(OrderTracking.Create(type, executorType, executorId, message));
     }
 
-    private static string GenerateShortId()
+    private static string GenerateOrderCode()
     {
         var timestamp = DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmss");
         var random = Random.Shared.Next(100_000, 999_999);

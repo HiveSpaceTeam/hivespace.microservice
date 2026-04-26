@@ -21,7 +21,7 @@ public static class OrderEndpoints
             CancellationToken ct,
             int page = 1,
             int pageSize = 20,
-            CustomerOrderProcessStatus? processStatus = null,
+            BuyerOrderProcessStatus? processStatus = null,
             string? searchField = null,
             string? searchValue = null) =>
         {
@@ -66,7 +66,7 @@ public static class OrderEndpoints
         .WithName("GetSellerOrders")
         .WithTags("Order")
         .WithSummary("Get seller orders")
-        .WithDescription("Returns a paginated list of orders belonging to the seller's store. searchField is case-insensitive; supported values: OrderCode, Product, CustomerName.");
+        .WithDescription("Returns a paginated list of orders belonging to the seller's store. searchField is case-insensitive; supported values: OrderCode, Product, BuyerName.");
 
         app.MapPost("/api/v1/orders/{orderId:guid}/confirm", async (
             Guid orderId,

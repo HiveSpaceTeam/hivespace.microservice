@@ -10,6 +10,7 @@
     <ProjectReference Include="..\ServiceName.Application\ServiceName.Application.csproj" />
     <ProjectReference Include="..\ServiceName.Domain\ServiceName.Domain.csproj" />
     <ProjectReference Include="..\..\..\libs\HiveSpace.Infrastructure.Persistence\HiveSpace.Infrastructure.Persistence.csproj" />
+    <ProjectReference Include="..\..\..\libs\HiveSpace.Infrastructure.Messaging\HiveSpace.Infrastructure.Messaging.csproj" />
   </ItemGroup>
 
 </Project>

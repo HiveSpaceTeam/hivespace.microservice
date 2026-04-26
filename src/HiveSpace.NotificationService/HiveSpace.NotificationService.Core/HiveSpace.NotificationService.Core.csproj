@@ -22,6 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../../../libs/HiveSpace.Application.Shared/HiveSpace.Application.Shared.csproj" />
     <ProjectReference Include="../../../libs/HiveSpace.Core/HiveSpace.Core.csproj" />
     <ProjectReference Include="../../../libs/HiveSpace.Domain.Shared/HiveSpace.Domain.Shared.csproj" />
     <ProjectReference Include="../../../libs/HiveSpace.Infrastructure.Messaging.Shared/HiveSpace.Infrastructure.Messaging.Shared.csproj" />

@@ -9,8 +9,8 @@ public class GetOrderListQueryValidator : AbstractValidator<GetOrderListQuery>
 {
     private static readonly string[] SupportedSearchFields =
     [
-        CustomerSearchField.OrderCode,
-        CustomerSearchField.Product
+        BuyerSearchField.OrderCode,
+        BuyerSearchField.Product
     ];
 
     public GetOrderListQueryValidator()

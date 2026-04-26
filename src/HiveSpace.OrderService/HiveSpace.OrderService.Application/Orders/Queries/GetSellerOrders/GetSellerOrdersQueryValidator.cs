@@ -11,7 +11,7 @@ public class GetSellerOrdersQueryValidator : AbstractValidator<GetSellerOrdersQu
     [
         SellerSearchField.OrderCode,
         SellerSearchField.Product,
-        SellerSearchField.CustomerName
+        SellerSearchField.BuyerName
     ];
 
     public GetSellerOrdersQueryValidator()

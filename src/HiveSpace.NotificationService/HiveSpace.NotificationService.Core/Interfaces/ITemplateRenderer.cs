@@ -1,5 +1,5 @@
 using HiveSpace.NotificationService.Core.DomainModels;
-using HiveSpace.NotificationService.Core.Models;
+using HiveSpace.NotificationService.Core.Dispatch.Models;
 
 namespace HiveSpace.NotificationService.Core.Interfaces;
 

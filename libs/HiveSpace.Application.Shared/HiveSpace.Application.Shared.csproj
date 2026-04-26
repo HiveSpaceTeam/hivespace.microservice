@@ -8,6 +8,11 @@
 
   <ItemGroup>
     <PackageReference Include="MediatR" />
+    <PackageReference Include="FluentValidation" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HiveSpace.Core\HiveSpace.Core.csproj" />
   </ItemGroup>
 
 </Project>

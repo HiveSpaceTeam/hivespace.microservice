@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.SignalR;
-using HiveSpace.NotificationService.Core.Channels.InApp;
+using HiveSpace.NotificationService.Core.Infrastructure.Channels.InApp;
 using HiveSpace.NotificationService.Core.Interfaces;
 
 namespace HiveSpace.NotificationService.Api.Hubs;

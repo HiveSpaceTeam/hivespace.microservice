@@ -1,8 +1,8 @@
 using System.Text.Json;
 using HiveSpace.MediaService.Core.Infrastructure.Data;
+using HiveSpace.MediaService.Core.Infrastructure.Configuration;
 using HiveSpace.MediaService.Core.DomainModels;
-using HiveSpace.MediaService.Core.Configuration;
-using HiveSpace.MediaService.Core.Contracts;
+using HiveSpace.MediaService.Core.Features.Media.Dtos;
 using HiveSpace.MediaService.Core.Interfaces;
 using HiveSpace.Domain.Shared.Exceptions;
 using Microsoft.Azure.Functions.Worker;

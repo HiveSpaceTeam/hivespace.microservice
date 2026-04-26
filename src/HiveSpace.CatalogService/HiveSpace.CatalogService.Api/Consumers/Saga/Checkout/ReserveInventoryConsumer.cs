@@ -21,7 +21,7 @@ public class ReserveInventoryConsumer : IConsumer<ReserveInventory>
         var message = context.Message;
 
         if (message.OrderIds.Count == 0)
-            throw new InvalidFieldException(CatalogErrorCode.InvalidQuantity, nameof(message.OrderIds));
+            throw new InvalidFieldException(CatalogDomainErrorCode.InvalidQuantity, nameof(message.OrderIds));
 
         _logger.LogInformation(
             "ReserveInventory received for order {OrderIds} — {ItemCount} item(s), expiration {ExpirationMinutes}m",

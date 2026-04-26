@@ -4,5 +4,5 @@ using HiveSpace.OrderService.Application.Orders.Dtos;
 namespace HiveSpace.OrderService.Application.Orders.Queries.GetOrderList;
 
 public record GetOrderListResponse(
-    List<CustomerOrderSummaryDto> Orders,
+    List<BuyerOrderSummaryDto> Orders,
     PaginationMetadata Pagination);

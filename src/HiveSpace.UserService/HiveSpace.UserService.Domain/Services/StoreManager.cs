@@ -3,7 +3,6 @@ using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Domain.Shared.Errors;
 using HiveSpace.UserService.Domain.Aggregates.Store;
 using HiveSpace.UserService.Domain.Aggregates.User;
-using HiveSpace.UserService.Domain.DomainEvents;
 using HiveSpace.UserService.Domain.Enums;
 using HiveSpace.UserService.Domain.Exceptions;
 using HiveSpace.UserService.Domain.Repositories;
@@ -52,7 +51,7 @@ public class StoreManager : IDomainService
         CancellationToken cancellationToken = default)
     {
         // Validate owner exists and is active
-        await ValidateStoreOwnerAsync(ownerId, cancellationToken);
+        var owner = await ValidateStoreOwnerAsync(ownerId, cancellationToken);
         
         // Check if user can own more stores (max 1 store per user)
         if (!await CanUserCreateStoreAsync(ownerId, cancellationToken))
@@ -68,10 +67,9 @@ public class StoreManager : IDomainService
         
         // Create new store using internal factory method (includes validation)
         var store = Store.Create(name, description, logoUrl, storeAddress, ownerId, storeId);
-        
-        // Raise domain event for store creation
-        store.AddDomainEvent(new StoreCreatedDomainEvent(store.Id, ownerId));
-        
+
+        owner.AssignStore(store.Id);
+
         return store;
     }
     

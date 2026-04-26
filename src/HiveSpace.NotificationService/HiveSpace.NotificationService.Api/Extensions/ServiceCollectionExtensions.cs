@@ -1,5 +1,8 @@
-using HiveSpace.Core.Filters;
+using FluentValidation;
+using HiveSpace.Application.Shared.Behaviors;
+using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Infrastructure.Authorization.Extensions;
+using MediatR;
 using HiveSpace.Infrastructure.Messaging.Configurations;
 using HiveSpace.Infrastructure.Messaging.Extensions;
 using HiveSpace.NotificationService.Api.Consumers;
@@ -7,14 +10,15 @@ using HiveSpace.NotificationService.Api.Consumers.Sync;
 using HiveSpace.NotificationService.Api.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using HiveSpace.NotificationService.Core.BackgroundJobs;
-using HiveSpace.NotificationService.Core.Channels.Email;
-using HiveSpace.NotificationService.Core.Channels.InApp;
+using HiveSpace.NotificationService.Core.Infrastructure.Channels.Email;
+using HiveSpace.NotificationService.Core.Infrastructure.Channels.InApp;
+using HiveSpace.NotificationService.Core.Exceptions;
 using HiveSpace.NotificationService.Core.Extensions;
 using HiveSpace.NotificationService.Core.Interfaces;
+using HiveSpace.NotificationService.Core.Features.Notifications.Queries.GetNotifications;
 using HiveSpace.NotificationService.Core.Persistence;
 using HiveSpace.NotificationService.Core.Persistence.Repositories;
-using HiveSpace.NotificationService.Core.Pipeline;
-using HiveSpace.NotificationService.Core.Routing;
+using HiveSpace.NotificationService.Core.Dispatch;
 using HiveSpace.NotificationService.Core.Services;
 using Hangfire;
 using Hangfire.SqlServer;
@@ -28,12 +32,8 @@ namespace HiveSpace.NotificationService.Api.Extensions;
 
 internal static class ServiceCollectionExtensions
 {
-    public static void AddAppApiControllers(this IServiceCollection services)
+    public static void AddAppEndpointInfrastructure(this IServiceCollection services)
     {
-        services.AddControllers(options =>
-        {
-            options.Filters.Add<CustomExceptionFilter>();
-        });
     }
 
     public static void AddAppOpenApi(this IServiceCollection services)
@@ -85,7 +85,7 @@ internal static class ServiceCollectionExtensions
     public static void AddAppRedis(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("Redis")
-            ?? throw new InvalidOperationException("Redis connection string is missing.");
+            ?? throw new InvalidFieldException(NotificationDomainErrorCode.InvalidConfiguration, "Redis:ConnectionString");
 
         services.AddSingleton<IConnectionMultiplexer>(
             ConnectionMultiplexer.Connect(connectionString));
@@ -112,6 +112,16 @@ internal static class ServiceCollectionExtensions
 
         services.AddHangfireServer();
         services.AddSingleton<IBackgroundJobClient, BackgroundJobClient>();
+    }
+
+    public static void AddAppMediatR(this IServiceCollection services)
+    {
+        services.AddValidatorsFromAssemblyContaining<GetNotificationsQuery>();
+        services.AddMediatR(cfg =>
+        {
+            cfg.RegisterServicesFromAssemblyContaining<GetNotificationsQuery>();
+            cfg.AddOpenBehavior(typeof(ValidationPipelineBehavior<,>));
+        });
     }
 
     public static void AddNotificationCoreServices(this IServiceCollection services, IConfiguration configuration)
@@ -145,7 +155,7 @@ internal static class ServiceCollectionExtensions
         services.Configure<ResendClientOptions>(o =>
         {
             o.ApiToken = configuration["Resend:ApiToken"]
-                ?? throw new InvalidOperationException("Resend:ApiToken is missing.");
+                ?? throw new InvalidFieldException(NotificationDomainErrorCode.InvalidConfiguration, "Resend:ApiToken");
         });
         services.AddTransient<IResend, ResendClient>();
 
@@ -161,8 +171,8 @@ internal static class ServiceCollectionExtensions
         services.AddMassTransitWithRabbitMq<NotificationDbContext>(configuration, cfg =>
         {
             cfg.AddConsumer<NotifySellerNewOrderConsumer>();
-            cfg.AddConsumer<NotifyCustomerOrderConfirmedConsumer>();
-            cfg.AddConsumer<NotifyCustomerOrderCancelledConsumer>();
+            cfg.AddConsumer<NotifyBuyerOrderConfirmedConsumer>();
+            cfg.AddConsumer<NotifyBuyerOrderCancelledConsumer>();
             cfg.AddConsumer<UserSyncConsumer>();
             cfg.AddConsumer<StoreSyncConsumer>();
         });

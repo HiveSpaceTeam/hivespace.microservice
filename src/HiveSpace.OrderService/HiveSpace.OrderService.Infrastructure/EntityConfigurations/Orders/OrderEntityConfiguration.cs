@@ -15,11 +15,11 @@ public class OrderEntityConfiguration : IEntityTypeConfiguration<Order>
 
         builder.ToTable("orders");
 
-        builder.Property(o => o.ShortId)
+        builder.Property(o => o.OrderCode)
             .IsRequired()
             .HasMaxLength(50);
 
-        builder.HasIndex(o => o.ShortId)
+        builder.HasIndex(o => o.OrderCode)
             .IsUnique();
 
         builder.Property(o => o.StoreId).IsRequired();

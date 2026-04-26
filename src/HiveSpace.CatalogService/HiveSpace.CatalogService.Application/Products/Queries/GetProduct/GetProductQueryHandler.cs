@@ -12,6 +12,6 @@ public class GetProductQueryHandler(IProductRepository productRepository)
     public async Task<Product> Handle(GetProductQuery request, CancellationToken cancellationToken)
     {
         return await productRepository.GetDetailByIdAsync(request.ProductId, true, cancellationToken)
-            ?? throw new NotFoundException(CatalogErrorCode.ProductNotFound, nameof(Product));
+            ?? throw new NotFoundException(CatalogDomainErrorCode.ProductNotFound, nameof(Product));
     }
 }

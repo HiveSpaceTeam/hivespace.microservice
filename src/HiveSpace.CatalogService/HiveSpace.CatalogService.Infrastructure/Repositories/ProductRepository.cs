@@ -35,10 +35,14 @@ namespace HiveSpace.CatalogService.Infrastructure.Repositories
             _context.Products.Update(product);
         }
 
-        public async Task DeleteAsync(Product product, CancellationToken cancellationToken = default)
+        public void Remove(Product product)
         {
             _context.Products.Remove(product);
-            // Don't call SaveChangesAsync here - let the transaction service handle it
+        }
+
+        public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            return await _context.SaveChangesAsync(cancellationToken);
         }
 
         public async Task<Product?> GetDetailByIdAsync(int id, bool noTracking = true, CancellationToken cancellationToken = default)

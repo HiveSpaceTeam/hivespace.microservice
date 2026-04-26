@@ -1,4 +1,4 @@
-using HiveSpace.MediaService.Core.Enums;
+using HiveSpace.MediaService.Core.DomainModels;
 
 namespace HiveSpace.MediaService.Core.Interfaces;
 

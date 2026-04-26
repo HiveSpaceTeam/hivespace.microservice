@@ -1,4 +1,6 @@
 using HiveSpace.Core;
+using HiveSpace.Core.Helpers;
+using HiveSpace.NotificationService.Api.Endpoints;
 using HiveSpace.NotificationService.Api.Hubs;
 using HiveSpace.NotificationService.Core;
 using Scalar.AspNetCore;
@@ -12,7 +14,7 @@ internal static class HostingExtensions
     {
         var configuration = builder.Configuration;
 
-        builder.Services.AddAppApiControllers();
+        builder.Services.AddAppEndpointInfrastructure();
         builder.Services.AddAppOpenApi();
         builder.Services.AddNotificationDbContext(configuration);
         builder.Services.AddCoreServices();
@@ -20,6 +22,7 @@ internal static class HostingExtensions
         builder.Services.AddAppRedis(configuration);
         builder.Services.AddAppHangfire(configuration);
         builder.Services.AddNotificationCoreServices(configuration);
+        builder.Services.AddAppMediatR();
         builder.Services.AddAppMessaging(configuration);
         builder.Services.AddAppAuthentication(configuration);
 
@@ -42,11 +45,32 @@ internal static class HostingExtensions
             Console.WriteLine("Database migrations completed.");
         }
 
+        app.UseExceptionHandler(exceptionHandlerApp =>
+        {
+            exceptionHandlerApp.Run(async context =>
+            {
+                var feature   = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerPathFeature>();
+                var exception = feature?.Error;
+                if (exception != null)
+                {
+                    var errorResponse = ExceptionResponseFactory.CreateResponse(exception);
+                    context.Response.StatusCode  = int.Parse(errorResponse.Status);
+                    context.Response.ContentType = "application/json";
+                    await context.Response.WriteAsJsonAsync(errorResponse);
+                }
+            });
+        });
+
         app.UseStaticFiles();
         app.UseAuthentication();
         app.UseAuthorization();
 
-        app.MapControllers();
+        app.MapNotificationEndpoints();
+        app.MapPreferenceEndpoints();
+
+        if (app.Environment.IsDevelopment())
+            app.MapDevEndpoints();
+
         var hubEndpoint = app.MapHub<NotificationHub>("/hubs/notifications");
         if (!app.Environment.IsDevelopment())
             hubEndpoint.RequireAuthorization();

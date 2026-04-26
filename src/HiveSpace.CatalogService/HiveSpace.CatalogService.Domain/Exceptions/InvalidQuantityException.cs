@@ -10,7 +10,7 @@ namespace HiveSpace.CatalogService.Domain.Exceptions
     public class InvalidQuantityException : DomainException
     {
         public InvalidQuantityException()
-            : base(400, CatalogErrorCode.InvalidQuantity, nameof(InvalidQuantityException))
+            : base(400, CatalogDomainErrorCode.InvalidQuantity, nameof(InvalidQuantityException))
         {
         }
     }

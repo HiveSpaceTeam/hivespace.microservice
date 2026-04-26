@@ -8,7 +8,7 @@ public interface IOrderDataQuery
 {
     Task<GetOrderListResponse> GetPagedOrdersAsync(
         Guid userId, int page, int pageSize,
-        CustomerOrderProcessStatus? processStatus,
+        BuyerOrderProcessStatus? processStatus,
         string? searchField, string? searchValue,
         CancellationToken ct = default);
 

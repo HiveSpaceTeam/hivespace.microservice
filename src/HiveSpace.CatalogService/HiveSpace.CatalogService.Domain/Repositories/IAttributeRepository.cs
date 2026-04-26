@@ -8,7 +8,8 @@ namespace HiveSpace.CatalogService.Domain.Repositories
         Task<List<AttributeDefinition>> GetAllAsync();
         Task AddAsync(AttributeDefinition attribute);
         Task UpdateAsync(AttributeDefinition attribute);
-        Task DeleteAsync(AttributeDefinition attribute);
+        void Remove(AttributeDefinition attribute);
+        Task<int> SaveChangesAsync();
     }
 }
 

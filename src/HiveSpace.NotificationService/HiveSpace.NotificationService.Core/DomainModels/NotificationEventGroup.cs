@@ -1,3 +1,5 @@
+using HiveSpace.Core.Contexts;
+
 namespace HiveSpace.NotificationService.Core.DomainModels;
 
 public static class NotificationEventGroup
@@ -15,14 +17,26 @@ public static class NotificationEventGroup
     public static readonly IReadOnlyList<string> SellerGroups =
         [SellerOrders, Inventory, OrderUpdates, Payment];
 
-    public static readonly IReadOnlyList<string> CustomerGroups =
+    public static readonly IReadOnlyList<string> BuyerGroups =
         [OrderUpdates, Payment, Promotions, Surveys];
+
+    public static readonly IReadOnlyList<string> AdminGroups = [];
 
     public static IReadOnlyList<string> ForRole(string? role) => role switch
     {
-        "Seller" or "Admin" or "SystemAdmin" => SellerGroups,
-        _                                    => CustomerGroups,
+        "Seller"                      => SellerGroups,
+        "Buyer"                       => BuyerGroups,
+        "Admin" or "SystemAdmin"      => AdminGroups,
+        _                             => [],
     };
+
+    public static IReadOnlyList<string> ForRole(IUserContext ctx)
+    {
+        if (ctx.IsSeller)                     return SellerGroups;
+        if (ctx.IsBuyer)                      return BuyerGroups;
+        if (ctx.IsAdmin || ctx.IsSystemAdmin) return AdminGroups;
+        return [];
+    }
 
     public static string FromEventType(string eventType) => eventType switch
     {

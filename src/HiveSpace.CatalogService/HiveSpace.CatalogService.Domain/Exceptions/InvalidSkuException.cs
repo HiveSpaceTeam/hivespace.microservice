@@ -5,7 +5,7 @@ namespace HiveSpace.CatalogService.Domain.Exceptions;
 public class InvalidSkuException : DomainException
 {
     public InvalidSkuException()
-        : base(422, CatalogErrorCode.InvalidSku, nameof(InvalidSkuException))
+        : base(422, CatalogDomainErrorCode.InvalidSku, nameof(InvalidSkuException))
     {
     }
 } 

@@ -58,19 +58,19 @@ public static class AuthorizationServiceCollectionExtensions
                 .RequireAssertion(ctx =>
                 {
                     var role = ctx.User.FindFirst("role")?.Value;
-                    return role == "Seller" || role == "Customer";
+                    return role == "Seller" || role == "Buyer";
                 })
                 .Build());
 
-            options.AddPolicy("RequireCustomer", ScopedPolicy()
-                .RequireAssertion(ctx => ctx.User.FindFirst("role")?.Value == "Customer")
+            options.AddPolicy("RequireBuyer", ScopedPolicy()
+                .RequireAssertion(ctx => ctx.User.FindFirst("role")?.Value == "Buyer")
                 .Build());
 
             options.AddPolicy("RequireAdminOrUser", ScopedPolicy()
                 .RequireAssertion(ctx =>
                 {
                     var role = ctx.User.FindFirst("role")?.Value;
-                    return role == "Admin" || role == "SystemAdmin" || role == "Seller" || role == "Customer";
+                    return role == "Admin" || role == "SystemAdmin" || role == "Seller" || role == "Buyer";
                 })
                 .Build());
         });

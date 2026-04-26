@@ -23,7 +23,7 @@ public class CheckoutSagaState : SagaStateMachineInstance
     // Set after CreateOrder — list of created order IDs (one per store)
     public List<Guid>             OrderIds      { get; set; } = new();
     public Dictionary<Guid, Guid>   OrderStoreMap { get; set; } = new();   // OrderId → StoreId
-    public Dictionary<Guid, string> OrderCodeMap  { get; set; } = new();   // OrderId → ShortId
+    public Dictionary<Guid, string> OrderCodeMap  { get; set; } = new();   // OrderId → OrderCode
     public long                     GrandTotal    { get; set; }
 
     // Set after ReserveInventory
