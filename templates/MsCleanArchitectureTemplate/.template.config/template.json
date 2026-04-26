@@ -3,13 +3,14 @@
   "author": "Your Name",
   "classifications": [
     "Microservice",
+    "Full Service",
     "Clean Architecture",
-    "Projects",
+    "DDD",
     "Web API"
   ],
-  "name": "Clean Architecture Microservice Template",
-  "identity": "CleanArchitecture.MicroserviceTemplate",
-  "shortName": "clean-architecture-ms",
+  "name": "Full Service Template",
+  "identity": "HiveSpace.FullServiceTemplate",
+  "shortName": "ms-full",
   "tags": {
     "language": "C#",
     "type": "project"
