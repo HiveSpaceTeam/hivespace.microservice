@@ -8,9 +8,10 @@ public record OrderDetailDto
     public Guid    StoreId       { get; init; }
     public string  Status        { get; init; } = null!;
     public long    SubTotal      { get; init; }
+    public long    ShippingFee   { get; init; }
     public long    TotalAmount   { get; init; }
     public string  Currency      { get; init; } = null!;
-
+    public string? PaymentMethod { get; init; }
     public string  RecipientName  { get; init; } = null!;
     public string  Phone          { get; init; } = null!;
     public string  StreetAddress  { get; init; } = null!;
