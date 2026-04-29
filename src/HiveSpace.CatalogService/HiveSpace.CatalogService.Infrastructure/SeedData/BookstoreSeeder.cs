@@ -12,6 +12,8 @@ namespace HiveSpace.CatalogService.Infrastructure.SeedData;
 internal sealed class BookstoreSeeder(CatalogDbContext db, ILogger<BookstoreSeeder> logger) : ISeeder
 {
     public int Order => 4;
+    private const int ProductIdStart = 1001;
+    private const int SkuIdStart = 10001;
 
     public async Task SeedAsync(CancellationToken ct = default)
     {
@@ -50,12 +52,42 @@ internal sealed class BookstoreSeeder(CatalogDbContext db, ILogger<BookstoreSeed
             BuildThuongTienTuu(now, attrMap, categoryId),
         };
 
+        var seededSkus = new List<(int ProductId, Sku Sku)>(products.Count);
+        for (var i = 0; i < products.Count; i++)
+        {
+            var product = products[i];
+            var productId = ProductIdStart + i;
+            var skuId = SkuIdStart + i;
+
+            db.Entry(product).Property(p => p.Id).CurrentValue = productId;
+
+            var sku = product.Skus.Single();
+            db.Entry(sku).Property(s => s.Id).CurrentValue = skuId;
+            seededSkus.Add((productId, sku));
+
+            product.UpdateSkus([]);
+        }
+
         var strategy = db.Database.CreateExecutionStrategy();
         await strategy.ExecuteAsync(async () =>
         {
             await using var tx = await db.Database.BeginTransactionAsync(ct);
+
+            await db.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT products ON", ct);
             await db.Products.AddRangeAsync(products, ct);
             await db.SaveChangesAsync(ct);
+            await db.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT products OFF", ct);
+
+            foreach (var (productId, sku) in seededSkus)
+            {
+                db.Skus.Add(sku);
+                db.Entry(sku).Property("ProductId").CurrentValue = productId;
+            }
+
+            await db.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT skus ON", ct);
+            await db.SaveChangesAsync(ct);
+            await db.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT skus OFF", ct);
+
             await tx.CommitAsync(ct);
         });
         logger.LogInformation("Seeded {Count} products for Nhà Sách Tiki.", products.Count);
