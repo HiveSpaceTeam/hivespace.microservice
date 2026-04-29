@@ -204,7 +204,7 @@ internal sealed class OrderSeeder(OrderDbContext db, ILogger<OrderSeeder> logger
     {
         var address = new DeliveryAddress(recipientName, new PhoneNumber(phone),
             userId == AliceId ? "123 Main St" : "456 Side St",
-            userId == AliceId ? "District 1"  : "District 2",
+            userId == AliceId ? "Commune 1"  : "Commune 2",
             "HCM City");
 
         var order = OrderAggregate.Create(userId, address, storeId, orderId);

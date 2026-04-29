@@ -1,5 +1,7 @@
 using Duende.IdentityServer;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HiveSpace.Infrastructure.Authorization.Extensions;
@@ -83,5 +85,28 @@ public static class AuthorizationServiceCollectionExtensions
     public static void AddHiveSpaceAuthorizationForLocalApi(this IServiceCollection services, string serviceScope)
     {
         services.AddHiveSpaceAuthorization(serviceScope, useLocalApi: true, useJwtBearer: false);
+    }
+
+    /// <summary>
+    /// Configures JWT Bearer authentication and HiveSpace authorization policies in one call.
+    /// Use <paramref name="configure"/> to add service-specific JwtBearerOptions (e.g. SignalR token handling).
+    /// </summary>
+    public static IServiceCollection AddHiveSpaceJwtBearerAuthentication(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        string scope,
+        Action<JwtBearerOptions>? configure = null)
+    {
+        services.AddAuthentication("Bearer")
+            .AddJwtBearer("Bearer", options =>
+            {
+                options.Authority            = configuration["Authentication:Authority"];
+                options.Audience             = configuration["Authentication:Audience"];
+                options.RequireHttpsMetadata = configuration.GetValue<bool>("Authentication:RequireHttpsMetadata", true);
+                options.MapInboundClaims     = false;
+                configure?.Invoke(options);
+            });
+        services.AddHiveSpaceAuthorization(scope);
+        return services;
     }
 }

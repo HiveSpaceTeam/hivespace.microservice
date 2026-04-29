@@ -6,7 +6,7 @@ public record UserAddressRequestDto(
     string FullName,
     string PhoneNumber,
     string Street,
-    string District,
+    string Commune,
     string Province,
     string Country,
     string? ZipCode,

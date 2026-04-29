@@ -3,8 +3,8 @@ using HiveSpace.Infrastructure.Messaging.Extensions;
 using HiveSpace.UserService.Infrastructure;
 using HiveSpace.UserService.Infrastructure.Data;
 using HiveSpace.Infrastructure.Messaging.Configurations;
+using Scalar.AspNetCore;
 using Serilog;
-using Swashbuckle.AspNetCore.SwaggerUI;
 
 namespace HiveSpace.UserService.Api.Extensions;
 
@@ -16,7 +16,7 @@ internal static class HostingExtensions
         // builder.Services.AddMediatRRegistration(configuration);
         builder.Services.AddAppApiControllers();
         builder.Services.AddRazorPages();
-        builder.Services.AddAppSwagger();
+        builder.Services.AddAppOpenApi();
         
         // Add Session support
         builder.Services.AddDistributedMemoryCache();
@@ -43,30 +43,6 @@ internal static class HostingExtensions
 
         var messagingOptions = configuration.GetSection(MessagingOptions.SectionName).Get<MessagingOptions>();
 
-        if (messagingOptions?.EnableKafka == true)
-        {
-            //builder.Services.AddMassTransitWithKafka(configuration,
-            //    rider =>
-            //    {
-            //        rider.AddConsumer<UserAnalyticsConsumer>();
-            //        rider.AddConsumer<UserAuditConsumer>();
-            //    },
-            //    (kafka, ctx) =>
-            //    {
-            //        var kafkaOptions = ctx.GetRequiredService<IOptions<KafkaOptions>>().Value;
-                    
-            //        kafka.TopicEndpoint<Ignore, UserCreatedIntegrationEvent>("user-created", kafkaOptions.ConsumerGroup, e =>
-            //        {
-            //            e.ConfigureConsumer<UserAnalyticsConsumer>(ctx);
-            //        });
-
-            //        kafka.TopicEndpoint<Ignore, UserUpdatedIntegrationEvent>("user-updated", kafkaOptions.ConsumerGroup, e =>
-            //        {
-            //            e.ConfigureConsumer<UserAuditConsumer>(ctx);
-            //        });
-            //    });
-        }
-
         if (messagingOptions?.EnableRabbitMq == true)
         {
             builder.Services.AddMassTransitWithRabbitMq<UserDbContext>(configuration, cfg =>
@@ -86,17 +62,10 @@ internal static class HostingExtensions
         {
             app.UseDeveloperExceptionPage();
             
-            // Enable Swagger in development
             app.UseSwagger();
-            app.UseSwaggerUI(options =>
-            {
-                options.SwaggerEndpoint("/swagger/v1/swagger.json", "HiveSpace User Service API v1");
-                options.RoutePrefix = "swagger";
-                options.DocumentTitle = "HiveSpace User Service API";
-                options.DocExpansion(DocExpansion.List);
-                options.DefaultModelsExpandDepth(-1);
-                options.DisplayRequestDuration();
-            });
+            app.MapScalarApiReference(options => options
+                .WithTitle("HiveSpace UserService API")
+                .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient));
         }
 
         app.UseStaticFiles();
@@ -117,10 +86,9 @@ internal static class HostingExtensions
         
         app.MapRazorPages().RequireAuthorization();
 
-        // Redirect root URL to Swagger in development
         if (app.Environment.IsDevelopment())
         {
-            app.MapGet("/", () => Results.Redirect("/swagger")).ExcludeFromDescription();
+            app.MapGet("/", () => Results.Redirect("/scalar/v1")).ExcludeFromDescription();
         }
 
         // Uncomment to enable health checks

@@ -1,7 +1,7 @@
 using Asp.Versioning;
 using Duende.IdentityServer;
-using HiveSpace.Core.Contexts;
-using HiveSpace.Core.Filters;
+using HiveSpace.Core;
+using HiveSpace.Core.OpenApi;
 using HiveSpace.Infrastructure.Authorization.Extensions;
 using HiveSpace.UserService.Api.Configs;
 using HiveSpace.UserService.Api.Services.Localization;
@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Identity;
 using HiveSpace.UserService.Application.Services;
 using HiveSpace.UserService.Application.Interfaces.Services;
 using HiveSpace.UserService.Infrastructure.Settings;
-using Microsoft.OpenApi.Models;
 using System.Globalization;
 using Microsoft.AspNetCore.Localization;
 using HiveSpace.UserService.Api.Middleware;
@@ -27,12 +26,8 @@ internal static class ServiceCollectionExtensions
 {
     public static void AddAppApiControllers(this IServiceCollection services)
     {
-        services.AddControllers(options =>
-        {
-            options.Filters.Add<CustomExceptionFilter>();
-        });
+        services.AddHiveSpaceControllers();
 
-        // Configure global route prefix using built-in .NET support
         services.Configure<RouteOptions>(options =>
         {
             options.LowercaseUrls = true;
@@ -64,11 +59,7 @@ internal static class ServiceCollectionExtensions
 
     public static void AddAppApplicationServices(this IServiceCollection services)
     {
-        // Add MediatR and register handlers
         services.AddApplication();
-
-        // Register application services
-        services.AddScoped<IUserContext, UserContext>();
         services.AddScoped<IAdminService, AdminService>();
         services.AddScoped<IStoreService, StoreService>();
         services.AddScoped<IUserService, Application.Services.UserService>();
@@ -220,58 +211,18 @@ internal static class ServiceCollectionExtensions
         });
     }
 
-    public static void AddAppSwagger(this IServiceCollection services)
+    public static void AddAppOpenApi(this IServiceCollection services)
     {
-        services.AddEndpointsApiExplorer();
+        services.AddHiveSpaceSwaggerGen(
+            "HiveSpace User Service API",
+            "API for managing users, authentication, and authorization in the HiveSpace platform");
+
         services.AddSwaggerGen(options =>
         {
-            // Basic API Info
-            options.SwaggerDoc("v1", new OpenApiInfo
-            {
-                Title = "HiveSpace User Service API",
-                Version = "v1.0",
-                Description = "API for managing users, authentication, and authorization in the HiveSpace platform",
-                Contact = new OpenApiContact
-                {
-                    Name = "HiveSpace Team",
-                    Email = "support@hivespace.com"
-                }
-            });
-
-            // JWT Bearer Authentication
-            options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-            {
-                Name = "Authorization",
-                Type = SecuritySchemeType.Http,
-                Scheme = "bearer",
-                BearerFormat = "JWT",
-                In = ParameterLocation.Header,
-                Description = "Enter your JWT token in the format: Bearer {your token}"
-            });
-
-            // Apply security requirements globally
-            options.AddSecurityRequirement(new OpenApiSecurityRequirement
-            {
-                {
-                    new OpenApiSecurityScheme
-                    {
-                        Reference = new OpenApiReference
-                        {
-                            Type = ReferenceType.SecurityScheme,
-                            Id = "Bearer"
-                        }
-                    },
-                    Array.Empty<string>()
-                }
-            });
-
-            // Include XML documentation (if available)
             var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
             var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
             if (File.Exists(xmlPath))
-            {
                 options.IncludeXmlComments(xmlPath);
-            }
         });
     }
 }

@@ -18,17 +18,6 @@ try
     var builder = WebApplication.CreateBuilder(args);
     var configuration = builder.Configuration;
 
-    // Configure Session
-    builder.Services.AddDistributedMemoryCache();
-    builder.Services.AddSession(options =>
-    {
-        options.IdleTimeout = TimeSpan.FromMinutes(30);
-        options.Cookie.HttpOnly = true;
-        options.Cookie.IsEssential = true;
-        options.Cookie.SameSite = SameSiteMode.Lax;
-        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-    });
-
     // Configure Forwarded Headers for Azure Container Apps
     builder.Services.Configure<ForwardedHeadersOptions>(options =>
     {
@@ -58,7 +47,7 @@ try
     if (app.Environment.IsDevelopment())
     {
         Log.Information("Seeding database...");
-        await SeedData.EnsureSeedDataAsync(app);
+        await DataSeeder.EnsureSeedDataAsync(app);
 
         app.Lifetime.ApplicationStopping.Register(() =>
         {

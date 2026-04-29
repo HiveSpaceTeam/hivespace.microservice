@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using HiveSpace.Core.Contexts;
@@ -42,5 +43,13 @@ public static class CoreServiceCollectionExtensions
         services.AddHostedService<IdGeneratorInitializer>();
 
         return services;
+    }
+
+    public static IMvcBuilder AddHiveSpaceControllers(this IServiceCollection services)
+    {
+        return services.AddControllers(options =>
+        {
+            options.Filters.Add<CustomExceptionFilter>();
+        });
     }
 }

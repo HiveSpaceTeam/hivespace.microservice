@@ -1,59 +1,22 @@
-using HiveSpace.Core.Filters;
+using HiveSpace.Core;
+using HiveSpace.Core.OpenApi;
 using HiveSpace.Infrastructure.Authorization.Extensions;
 using HiveSpace.Infrastructure.Messaging.Configurations;
 using HiveSpace.Infrastructure.Messaging.Extensions;
 using HiveSpace.PaymentService.Api.Consumers.Saga.CheckoutSaga;
-using HiveSpace.PaymentService.Application.Payments.Commands.ProcessPaymentWebhook;
 using HiveSpace.PaymentService.Infrastructure;
 using HiveSpace.PaymentService.Infrastructure.Data;
 using MassTransit;
-using Microsoft.OpenApi.Models;
-using Scalar.AspNetCore;
 
 namespace HiveSpace.PaymentService.Api.Extensions;
 
 internal static class ServiceCollectionExtensions
 {
     public static void AddAppApiControllers(this IServiceCollection services)
-    {
-        services.AddControllers(options =>
-        {
-            options.Filters.Add<CustomExceptionFilter>();
-        });
-    }
+        => services.AddHiveSpaceControllers();
 
     public static void AddAppOpenApi(this IServiceCollection services)
-    {
-        services.AddEndpointsApiExplorer();
-        services.AddSwaggerGen(c =>
-        {
-            c.SwaggerDoc("v1", new OpenApiInfo
-            {
-                Title       = "HiveSpace.PaymentService API",
-                Version     = "v1",
-                Description = "HiveSpace.PaymentService microservice"
-            });
-            c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-            {
-                Name         = "Authorization",
-                Type         = SecuritySchemeType.Http,
-                Scheme       = "bearer",
-                BearerFormat = "JWT",
-                In           = ParameterLocation.Header,
-                Description  = "Enter your JWT token in the format: Bearer {your token}"
-            });
-            c.AddSecurityRequirement(new OpenApiSecurityRequirement
-            {
-                {
-                    new OpenApiSecurityScheme
-                    {
-                        Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
-                    },
-                    Array.Empty<string>()
-                }
-            });
-        });
-    }
+        => services.AddHiveSpaceSwaggerGen("HiveSpace.PaymentService API", "HiveSpace.PaymentService microservice");
 
     public static void AddAppMessaging(this IServiceCollection services, IConfiguration configuration)
     {
@@ -67,23 +30,5 @@ internal static class ServiceCollectionExtensions
     }
 
     public static void AddAppAuthentication(this IServiceCollection services, IConfiguration configuration)
-    {
-        services.AddAuthentication("Bearer")
-            .AddJwtBearer("Bearer", options =>
-            {
-                options.Authority             = configuration["Authentication:Authority"];
-                options.Audience              = configuration["Authentication:Audience"];
-                options.RequireHttpsMetadata  = configuration.GetValue<bool>("Authentication:RequireHttpsMetadata", true);
-                options.MapInboundClaims      = false;
-            });
-        services.AddHiveSpaceAuthorization("payment.fullaccess");
-    }
-
-    public static void AddAppMediatR(this IServiceCollection services)
-    {
-        services.AddMediatR(cfg =>
-        {
-            cfg.RegisterServicesFromAssemblyContaining<ProcessPaymentWebhookCommand>();
-        });
-    }
+        => services.AddHiveSpaceJwtBearerAuthentication(configuration, "payment.fullaccess");
 }
