@@ -16,7 +16,7 @@ internal static class ServiceCollectionExtensions
         => services.AddHiveSpaceControllers();
 
     public static void AddAppOpenApi(this IServiceCollection services)
-        => services.AddHiveSpaceOpenApi("HiveSpace.PaymentService API", "HiveSpace.PaymentService microservice");
+        => services.AddHiveSpaceSwaggerGen("HiveSpace.PaymentService API", "HiveSpace.PaymentService microservice");
 
     public static void AddAppMessaging(this IServiceCollection services, IConfiguration configuration)
     {

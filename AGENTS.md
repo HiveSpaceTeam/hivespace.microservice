@@ -86,7 +86,7 @@ Three files control service startup. Each has a fixed responsibility — never m
 
 | Method | Namespace | Purpose |
 |--------|-----------|---------|
-| `AddHiveSpaceOpenApi(title, description)` | `HiveSpace.Core.OpenApi` | SwaggerGen + Bearer security definition |
+| `AddHiveSpaceSwaggerGen(title, description)` | `HiveSpace.Core.OpenApi` | SwaggerGen + Bearer security definition |
 | `AddHiveSpaceJwtBearerAuthentication(config, scope, configure?)` | `HiveSpace.Infrastructure.Authorization.Extensions` | JWT Bearer + `AddHiveSpaceAuthorization(scope)`; optional callback for service-specific options |
 | `AddHiveSpaceControllers()` | `HiveSpace.Core` | `AddControllers` + `CustomExceptionFilter`; returns `IMvcBuilder` for chaining |
 | `UseHiveSpaceExceptionHandler()` | `HiveSpace.Core.Extensions` | `UseExceptionHandler` + `ExceptionResponseFactory` pipeline |
@@ -96,7 +96,7 @@ Three files control service startup. Each has a fixed responsibility — never m
 ```csharp
 // ✅ Thin wrapper — correct
 public static void AddAppOpenApi(this IServiceCollection services)
-    => services.AddHiveSpaceOpenApi("HiveSpace.CatalogService API", "HiveSpace.CatalogService microservice");
+    => services.AddHiveSpaceSwaggerGen("HiveSpace.CatalogService API", "HiveSpace.CatalogService microservice");
 
 // ❌ Inline re-implementation — wrong
 public static void AddAppOpenApi(this IServiceCollection services)

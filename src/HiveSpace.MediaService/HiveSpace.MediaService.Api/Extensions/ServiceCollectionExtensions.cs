@@ -52,7 +52,7 @@ public static class ServiceCollectionExtensions
     }
 
     public static IServiceCollection AddAppOpenApi(this IServiceCollection services)
-        => services.AddHiveSpaceOpenApi("HiveSpace.MediaService API", "HiveSpace.MediaService microservice");
+        => services.AddHiveSpaceSwaggerGen("HiveSpace.MediaService API", "HiveSpace.MediaService microservice");
 
     public static IServiceCollection AddAppAuthentication(this IServiceCollection services, IConfiguration configuration)
         => services.AddHiveSpaceJwtBearerAuthentication(configuration, "media.fullaccess");

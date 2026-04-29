@@ -29,7 +29,7 @@ namespace HiveSpace.NotificationService.Api.Extensions;
 internal static class ServiceCollectionExtensions
 {
     public static void AddAppOpenApi(this IServiceCollection services)
-        => services.AddHiveSpaceOpenApi("HiveSpace.NotificationService API", "HiveSpace.NotificationService microservice");
+        => services.AddHiveSpaceSwaggerGen("HiveSpace.NotificationService API", "HiveSpace.NotificationService microservice");
 
     public static void AddNotificationDbContext(this IServiceCollection services, IConfiguration configuration)
     {

@@ -213,7 +213,7 @@ internal static class ServiceCollectionExtensions
 
     public static void AddAppOpenApi(this IServiceCollection services)
     {
-        services.AddHiveSpaceOpenApi(
+        services.AddHiveSpaceSwaggerGen(
             "HiveSpace User Service API",
             "API for managing users, authentication, and authorization in the HiveSpace platform");
 

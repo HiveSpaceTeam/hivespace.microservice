@@ -1,4 +1,4 @@
-using Asp.Versioning;
+﻿using Asp.Versioning;
 using HiveSpace.CatalogService.Application;
 using HiveSpace.Core;
 using HiveSpace.Core.OpenApi;
@@ -12,7 +12,7 @@ namespace HiveSpace.CatalogService.Api.Extensions
             => services.AddHiveSpaceControllers();
 
         public static void AddAppOpenApi(this IServiceCollection services)
-            => services.AddHiveSpaceOpenApi("HiveSpace.CatalogService API", "HiveSpace.CatalogService microservice");
+            => services.AddHiveSpaceSwaggerGen("HiveSpace.CatalogService API", "HiveSpace.CatalogService microservice");
 
         public static void AddAppAuthentication(this IServiceCollection services, IConfiguration configuration)
             => services.AddHiveSpaceJwtBearerAuthentication(configuration, "catalog.fullaccess");

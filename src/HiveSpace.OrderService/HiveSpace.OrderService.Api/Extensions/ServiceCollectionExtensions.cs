@@ -31,7 +31,7 @@ internal static class ServiceCollectionExtensions
     }
 
     public static void AddAppOpenApi(this IServiceCollection services)
-        => services.AddHiveSpaceOpenApi("HiveSpace.OrderService API", "HiveSpace.OrderService microservice");
+        => services.AddHiveSpaceSwaggerGen("HiveSpace.OrderService API", "HiveSpace.OrderService microservice");
 
     public static void AddAppMessaging(this IServiceCollection services, IConfiguration configuration)
     {
