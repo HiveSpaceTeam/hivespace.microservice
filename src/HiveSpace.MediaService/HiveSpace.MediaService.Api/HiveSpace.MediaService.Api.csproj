@@ -5,9 +5,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
-    <PackageReference Include="Asp.Versioning.Mvc" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
+    <PackageReference Include="Scalar.AspNetCore" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -16,5 +15,6 @@
   <ItemGroup>
     <ProjectReference Include="..\HiveSpace.MediaService.Core\HiveSpace.MediaService.Core.csproj" />
     <ProjectReference Include="..\..\..\libs\HiveSpace.Core\HiveSpace.Core.csproj" />
+    <ProjectReference Include="..\..\..\libs\HiveSpace.Infrastructure.Authorization\HiveSpace.Infrastructure.Authorization.csproj" />
   </ItemGroup>
 </Project>

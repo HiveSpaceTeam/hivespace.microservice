@@ -3,35 +3,44 @@ using HiveSpace.CatalogService.Api.Consumers.Sync;
 using HiveSpace.CatalogService.Infrastructure;
 using HiveSpace.CatalogService.Infrastructure.Data;
 using HiveSpace.Core;
+using HiveSpace.Core.Extensions;
+using HiveSpace.Core.Middlewares;
+using HiveSpace.Infrastructure.Messaging.Configurations;
 using HiveSpace.Infrastructure.Messaging.Extensions;
 using HiveSpace.Infrastructure.Persistence;
-using HiveSpace.Infrastructure.Messaging.Configurations;
+using Scalar.AspNetCore;
 
-namespace HiveSpace.CatalogService.Api.Extentions
+namespace HiveSpace.CatalogService.Api.Extensions
 {
     internal static class HostingExtensions
     {
-        public static WebApplication ConfigureServices(this WebApplicationBuilder builder, IConfiguration configuration)
+        public static WebApplication ConfigureServices(this WebApplicationBuilder builder)
         {
             builder.Services.AddAppApiControllers();
-            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddAppOpenApi();
             builder.Services.AddAppApiVersioning();
-             builder.Services.AddAppApplicationServices();
-            builder.Services.AddCatalogDbContext(configuration);
-            
-            // Add Core services for UserContext and other core functionality
+            builder.Services.AddAppApplicationServices();
+            builder.Services.AddCatalogDbContext(builder.Configuration);
             builder.Services.AddCoreServices();
-            
-            builder.Services.AddAppAuthentication(configuration);
-
-            // Add Persistence services for TransactionService
+            builder.Services.AddAppAuthentication(builder.Configuration);
             builder.Services.AddPersistenceInfrastructure<CatalogDbContext>();
 
+            var messagingOptions = builder.Configuration
+                .GetSection(MessagingOptions.SectionName)
+                .Get<MessagingOptions>();
 
-            var messagingOptions = configuration.GetSection(MessagingOptions.SectionName).Get<MessagingOptions>();
-
-            if (messagingOptions?.EnableKafka == true)
+            if (messagingOptions?.EnableRabbitMq == true)
             {
+                builder.Services.AddMassTransitWithRabbitMq<CatalogDbContext>(builder.Configuration, cfg =>
+                {
+                    cfg.AddConsumer<StoreRefSyncConsumer>();
+                    cfg.AddConsumer<ReserveInventoryConsumer>();
+                    cfg.AddConsumer<ConfirmInventoryConsumer>();
+                    cfg.AddConsumer<ReleaseInventoryConsumer>();
+                });
+            }
+            // if (messagingOptions?.EnableKafka == true)
+            // {
                 //builder.Services.AddMassTransitWithKafka(configuration,
                 //    rider =>
                 //    {
@@ -52,18 +61,7 @@ namespace HiveSpace.CatalogService.Api.Extentions
                 //            e.ConfigureConsumer<ProductAuditConsumer>(ctx);
                 //        });
                 //    });
-            }
-
-            if (messagingOptions?.EnableRabbitMq == true)
-            {
-                builder.Services.AddMassTransitWithRabbitMq<CatalogDbContext>(configuration, cfg =>
-                {
-                    cfg.AddConsumer<StoreRefSyncConsumer>();
-                    cfg.AddConsumer<ReserveInventoryConsumer>();
-                    cfg.AddConsumer<ConfirmInventoryConsumer>();
-                    cfg.AddConsumer<ReleaseInventoryConsumer>();
-                });
-            }
+            // }
 
             return builder.Build();
         }
@@ -72,10 +70,17 @@ namespace HiveSpace.CatalogService.Api.Extentions
         {
             if (app.Environment.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
+                app.UseSwagger();
+                app.MapScalarApiReference(options => options
+                    .WithTitle("HiveSpace CatalogService API")
+                    .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient));
             }
 
             app.UseHttpsRedirection();
+            app.UseMiddleware<RequestIdMiddleware>();
+
+            app.UseHiveSpaceExceptionHandler();
+
             app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();
@@ -84,4 +89,3 @@ namespace HiveSpace.CatalogService.Api.Extentions
         }
     }
 }
-

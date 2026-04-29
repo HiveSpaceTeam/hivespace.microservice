@@ -1,13 +1,11 @@
-using FluentValidation;
-using HiveSpace.Application.Shared.Behaviors;
+using HiveSpace.Core.OpenApi;
+using HiveSpace.Infrastructure.Authorization.Extensions;
 using HiveSpace.MediaService.Core.Infrastructure.Configuration;
 using HiveSpace.MediaService.Core.Infrastructure.Data;
 using HiveSpace.MediaService.Core.Infrastructure.Storage;
 using HiveSpace.MediaService.Core.Interfaces;
-using HiveSpace.MediaService.Core.Features.Media.Commands.GeneratePresignedUrl;
 using HiveSpace.MediaService.Core.Persistence.Repositories;
 using HiveSpace.MediaService.Core.Services;
-using MediatR;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,17 +21,6 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IMediaAssetRepository, MediaAssetRepository>();
         services.AddScoped<IMediaCleanupService, MediaCleanupService>();
 
-        return services;
-    }
-
-    public static IServiceCollection AddAppMediatR(this IServiceCollection services)
-    {
-        services.AddValidatorsFromAssembly(typeof(GeneratePresignedUrlCommand).Assembly);
-        services.AddMediatR(cfg =>
-        {
-            cfg.RegisterServicesFromAssemblyContaining<GeneratePresignedUrlCommand>();
-            cfg.AddOpenBehavior(typeof(ValidationPipelineBehavior<,>));
-        });
         return services;
     }
 
@@ -64,9 +51,9 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    public static IServiceCollection AddAppExceptionHandling(this IServiceCollection services)
-    {
-        services.AddProblemDetails();
-        return services;
-    }
+    public static IServiceCollection AddAppOpenApi(this IServiceCollection services)
+        => services.AddHiveSpaceOpenApi("HiveSpace.MediaService API", "HiveSpace.MediaService microservice");
+
+    public static IServiceCollection AddAppAuthentication(this IServiceCollection services, IConfiguration configuration)
+        => services.AddHiveSpaceJwtBearerAuthentication(configuration, "media.fullaccess");
 }

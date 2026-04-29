@@ -29,11 +29,11 @@ public class UserAddressValidator : AbstractValidator<UserAddressRequestDto>
             .MaximumLength(200)
             .WithState(_ => new Error(UserDomainErrorCode.InvalidAddress, nameof(UserAddressRequestDto.Street)));
 
-        RuleFor(x => x.District)
+        RuleFor(x => x.Commune)
             .NotEmpty()
-            .WithState(_ => new Error(CommonErrorCode.Required, nameof(UserAddressRequestDto.District)))
+            .WithState(_ => new Error(CommonErrorCode.Required, nameof(UserAddressRequestDto.Commune)))
             .MaximumLength(100)
-            .WithState(_ => new Error(UserDomainErrorCode.InvalidAddress, nameof(UserAddressRequestDto.District)));
+            .WithState(_ => new Error(UserDomainErrorCode.InvalidAddress, nameof(UserAddressRequestDto.Commune)));
 
         RuleFor(x => x.Province)
             .NotEmpty()

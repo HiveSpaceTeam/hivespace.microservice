@@ -61,8 +61,52 @@ A `PreToolUse` hook enforces this — `gh pr create` is blocked until the proces
 ## Linked files
 
 CLAUDE.md and AGENTS.md are kept in sync via a `PostToolUse` hook. When you edit either file, you **must** update the other:
-- Edit CLAUDE.md `## Service Architecture` → update AGENTS.md service table + hard rules
-- Edit AGENTS.md service table or rules → update CLAUDE.md `## Service Architecture`
+- Edit CLAUDE.md service type table → update AGENTS.md service table + hard rules
+- Edit AGENTS.md service table or rules → update CLAUDE.md service type table
+
+Detailed reference docs (read on demand, not always loaded):
+- `.claude/docs/service-architecture.md` — Full/Lite layouts, new service checklists
+- `.claude/docs/startup-conventions.md` — File roles, shared helpers, pipeline
+- `.claude/docs/feature-implementation.md` — Commands, queries, DDD building blocks, sagas
+- `.claude/docs/coding-rules.md` — Error handling, validation, IUserContext, DTOs, events
+
+---
+
+## Startup file conventions
+
+Three files control service startup. Each has a fixed responsibility — never mix them.
+
+| File | Responsibility |
+|------|---------------|
+| `Program.cs` | Wire `builder` → `app`, call `ConfigureServices` + `ConfigurePipelineAsync`, nothing else |
+| `HostingExtensions.cs` | `ConfigureServices()` calls `builder.Services.Add*()` helpers; `ConfigurePipelineAsync()` builds the middleware pipeline |
+| `ServiceCollectionExtensions.cs` | Thin `AddApp*()` wrappers — each delegates to a shared lib helper or adds service-specific extras |
+
+### Shared startup helpers — use these, do not re-implement
+
+| Method | Namespace | Purpose |
+|--------|-----------|---------|
+| `AddHiveSpaceOpenApi(title, description)` | `HiveSpace.Core.OpenApi` | SwaggerGen + Bearer security definition |
+| `AddHiveSpaceJwtBearerAuthentication(config, scope, configure?)` | `HiveSpace.Infrastructure.Authorization.Extensions` | JWT Bearer + `AddHiveSpaceAuthorization(scope)`; optional callback for service-specific options |
+| `AddHiveSpaceControllers()` | `HiveSpace.Core` | `AddControllers` + `CustomExceptionFilter`; returns `IMvcBuilder` for chaining |
+| `UseHiveSpaceExceptionHandler()` | `HiveSpace.Core.Extensions` | `UseExceptionHandler` + `ExceptionResponseFactory` pipeline |
+
+**Rule:** `AddApp*()` methods in `ServiceCollectionExtensions.cs` must be thin wrappers — one line delegating to a shared helper, plus any service-specific extras on top. Never duplicate the shared implementation inline.
+
+```csharp
+// ✅ Thin wrapper — correct
+public static void AddAppOpenApi(this IServiceCollection services)
+    => services.AddHiveSpaceOpenApi("HiveSpace.CatalogService API", "HiveSpace.CatalogService microservice");
+
+// ❌ Inline re-implementation — wrong
+public static void AddAppOpenApi(this IServiceCollection services)
+{
+    services.AddEndpointsApiExplorer();
+    services.AddSwaggerGen(c => { c.SwaggerDoc(...); c.AddSecurityDefinition(...); ... });
+}
+```
+
+**UserService exception:** UserService uses LocalApi + Google OAuth — it does NOT use `AddHiveSpaceJwtBearerAuthentication` or `UseHiveSpaceExceptionHandler`.
 
 ---
 
@@ -80,20 +124,21 @@ CLAUDE.md and AGENTS.md are kept in sync via a `PostToolUse` hook. When you edit
 
 ## Error code prefix table
 
-| Service | Prefix | Example |
-|---------|--------|---------|
+| Service | Prefix(es) | Example |
+|---------|------------|---------|
 | Shared/common | `APP0xxx` | `CommonErrorCode` in `HiveSpace.Core` |
-| UserService | `USR1xxx` | `UserDomainErrorCode` |
-| OrderService | `ORD2xxx` | `OrderDomainErrorCode` |
+| UserService | `USR0xxx` | `UserDomainErrorCode` |
+| OrderService | `ORD1xxx`, `ORD3–11xxx` | Sub-ranges per aggregate — `OrderDomainErrorCode` |
 | CatalogService | `CAT3xxx` | `CatalogDomainErrorCode` |
+| PaymentService | `PAY1xxx`, `PAY2xxx`, `PAY3xxx` | Sub-ranges per aggregate — `PaymentDomainErrorCode` |
 | NotificationService | `NTF4xxx` | `NotificationDomainErrorCode` |
 | MediaService | `MED1xxx` | `MediaDomainErrorCode` |
-| New services | `[SVC]Nxxx` | Choose next available block |
+| New services | `[SVC]Nxxx` | Choose next available block; never renumber existing codes |
 
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **hivespace.microservice** (6521 symbols, 16094 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **hivespace.microservice** (6535 symbols, 16105 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 

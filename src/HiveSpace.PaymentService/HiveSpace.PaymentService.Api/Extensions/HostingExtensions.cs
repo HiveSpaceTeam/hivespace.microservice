@@ -1,6 +1,8 @@
 using HiveSpace.Core;
+using HiveSpace.Core.Extensions;
 using HiveSpace.Core.Middlewares;
 using HiveSpace.PaymentService.Api.Endpoints;
+using HiveSpace.PaymentService.Application;
 using HiveSpace.PaymentService.Infrastructure;
 using Scalar.AspNetCore;
 
@@ -16,7 +18,7 @@ internal static class HostingExtensions
         builder.Services.AddCoreServices();
         builder.Services.AddAppMessaging(builder.Configuration);
         builder.Services.AddAppAuthentication(builder.Configuration);
-        builder.Services.AddAppMediatR();
+        builder.Services.AddApplication();
 
         return builder.Build();
     }
@@ -33,21 +35,7 @@ internal static class HostingExtensions
 
         app.UseHttpsRedirection();
         app.UseMiddleware<RequestIdMiddleware>();
-        app.UseExceptionHandler(exceptionHandlerApp =>
-        {
-            exceptionHandlerApp.Run(async context =>
-            {
-                var feature   = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerPathFeature>();
-                var exception = feature?.Error;
-                if (exception != null)
-                {
-                    var errorResponse = HiveSpace.Core.Helpers.ExceptionResponseFactory.CreateResponse(exception);
-                    context.Response.StatusCode  = int.Parse(errorResponse.Status);
-                    context.Response.ContentType = "application/json";
-                    await context.Response.WriteAsJsonAsync(errorResponse);
-                }
-            });
-        });
+        app.UseHiveSpaceExceptionHandler();
 
         app.UseAuthentication();
         app.UseAuthorization();

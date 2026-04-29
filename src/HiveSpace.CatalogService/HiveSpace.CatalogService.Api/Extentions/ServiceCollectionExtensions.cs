@@ -1,44 +1,24 @@
-﻿using Asp.Versioning;
+using Asp.Versioning;
 using HiveSpace.CatalogService.Application;
-using HiveSpace.CatalogService.Application.Interfaces;
-using HiveSpace.CatalogService.Application.Services;
-using HiveSpace.Core.Filters;
+using HiveSpace.Core;
+using HiveSpace.Core.OpenApi;
 using HiveSpace.Infrastructure.Authorization.Extensions;
 
-namespace HiveSpace.CatalogService.Api.Extentions
+namespace HiveSpace.CatalogService.Api.Extensions
 {
     internal static class ServiceCollectionExtensions
     {
         public static void AddAppApiControllers(this IServiceCollection services)
-        {
-            services.AddControllers(options =>
-            {
-                options.Filters.Add<CustomExceptionFilter>();
-            });
-        }
+            => services.AddHiveSpaceControllers();
+
+        public static void AddAppOpenApi(this IServiceCollection services)
+            => services.AddHiveSpaceOpenApi("HiveSpace.CatalogService API", "HiveSpace.CatalogService microservice");
 
         public static void AddAppAuthentication(this IServiceCollection services, IConfiguration configuration)
-        {
-            // 1. Configure Authentication (Validate the Token)
-            services.AddAuthentication("Bearer")
-                .AddJwtBearer("Bearer", options =>
-                {
-                    options.Authority = configuration["Authentication:Authority"];
-                    options.Audience = configuration["Authentication:Audience"];
-                    options.RequireHttpsMetadata = configuration.GetValue<bool>("Authentication:RequireHttpsMetadata", true);
-                    options.MapInboundClaims = false;
-                });
-
-            // 2. Configure Authorization (Check Permissions)
-            services.AddHiveSpaceAuthorization("catalog.fullaccess");
-        }
+            => services.AddHiveSpaceJwtBearerAuthentication(configuration, "catalog.fullaccess");
 
         public static void AddAppApplicationServices(this IServiceCollection services)
-        {
-            // Add MediatR and register handlers
-            services.AddApplication();
-            services.AddScoped<ICategoryService, CategoryService>();
-        }
+            => services.AddApplication();
 
         public static void AddAppApiVersioning(this IServiceCollection services)
         {

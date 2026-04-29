@@ -1,3 +1,8 @@
+---
+name: new-service
+description: "Use when the user asks to create a new microservice, scaffold a service, or spin up a new service. Examples: \"Create a new BillingService\", \"Scaffold a new Full Service\", \"Add a new microservice\""
+---
+
 # /new-service — Scaffold a New Microservice
 
 Use this skill when the user asks to create a new microservice, scaffold a service, or spin up a new service.

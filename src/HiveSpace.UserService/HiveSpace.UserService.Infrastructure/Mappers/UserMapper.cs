@@ -155,7 +155,7 @@ public static class UserMapper
                     domainAddress.FullName,
                     domainAddress.PhoneNumber,
                     domainAddress.Street,
-                    domainAddress.District,
+                    domainAddress.Commune,
                     domainAddress.Province,
                     domainAddress.Country,
                     domainAddress.ZipCode,

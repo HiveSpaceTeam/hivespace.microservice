@@ -2,7 +2,7 @@ using HiveSpace.CatalogService.Domain.Aggregates.AttributeAggregate;
 using HiveSpace.CatalogService.Domain.Aggregates.CategoryAggregate;
 using HiveSpace.CatalogService.Domain.Aggregates.External;
 using HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate;
-using HiveSpace.CatalogService.Infrastructure.Data.Configurations;
+using HiveSpace.CatalogService.Infrastructure.EntityConfigurations;
 using HiveSpace.Infrastructure.Messaging.Extensions;
 using HiveSpace.Infrastructure.Persistence;
 using HiveSpace.Infrastructure.Persistence.Idempotence;

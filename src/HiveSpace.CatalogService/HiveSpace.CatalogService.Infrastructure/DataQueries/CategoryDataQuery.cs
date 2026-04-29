@@ -7,29 +7,29 @@ namespace HiveSpace.CatalogService.Infrastructure.DataQueries;
 
 public class CategoryDataQuery(CatalogDbContext dbContext) : ICategoryDataQuery
 {
-    public async Task<List<CategoryDto>> GetCategoriesAsync()
+    public async Task<List<CategoryDto>> GetCategoriesAsync(CancellationToken cancellationToken = default)
     {
         return await dbContext.Categories
             .Where(c => c.CategoryAttributes.Any())
             .Select(c => new CategoryDto(c.Id, c.Name, c.Name, string.Empty))
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 
-    public async Task<List<CategoryDto>> GetHomepageCategoriesAsync()
+    public async Task<List<CategoryDto>> GetHomepageCategoriesAsync(CancellationToken cancellationToken = default)
     {
         return await dbContext.Categories
             .Where(c => c.FilePath != null)
             .Select(c => new CategoryDto(c.Id, c.Name, c.Name, c.FilePath!))
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 
-    public async Task<List<AttributeDto>> GetAttributesByCategoryIdAsync(int categoryId)
+    public async Task<List<AttributeDto>> GetAttributesByCategoryIdAsync(int categoryId, CancellationToken cancellationToken = default)
     {
         var attributeIds = await dbContext.Categories
             .Where(c => c.Id == categoryId)
             .SelectMany(c => c.CategoryAttributes.Select(ca => ca.AttributeId))
             .Distinct()
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         if (attributeIds.Count == 0) return [];
 
@@ -38,7 +38,7 @@ public class CategoryDataQuery(CatalogDbContext dbContext) : ICategoryDataQuery
             .AsNoTracking()
             .OrderBy(v => v.SortOrder)
             .Select(v => new AttributeValueDto(v.Id, v.AttributeId, v.Name, v.DisplayName, v.ParentValueId, v.IsActive, v.SortOrder))
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         var attributeValuesDict = attributeValues
             .GroupBy(v => v.AttributeId)
@@ -48,7 +48,7 @@ public class CategoryDataQuery(CatalogDbContext dbContext) : ICategoryDataQuery
             .Where(a => attributeIds.Contains(a.Id))
             .AsNoTracking()
             .Select(a => new { a.Id, a.Name, a.Type.ValueType, a.Type.InputType, a.Type.IsMandatory, a.Type.MaxValueCount, a.IsActive, a.CreatedAt, a.UpdatedAt })
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         return attributeMetas
             .Select(a => new AttributeDto(

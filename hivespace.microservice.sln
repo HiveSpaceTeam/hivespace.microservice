@@ -43,8 +43,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.CatalogService.Do
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.CatalogService.Infrastructure", "src\HiveSpace.CatalogService\HiveSpace.CatalogService.Infrastructure\HiveSpace.CatalogService.Infrastructure.csproj", "{9EB41060-B453-4816-AD32-5D3040CCF4A6}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "HiveSpace", "HiveSpace", "{EE818222-7D45-30D7-4A47-18D467CC099A}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.MediaService.Func", "src\HiveSpace.MediaService\HiveSpace.MediaService.Func\HiveSpace.MediaService.Func.csproj", "{10D27F4D-6958-4B7F-BED2-9F8B57E4D909}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveSpace.Infrastructure.Messaging.Shared", "libs\HiveSpace.Infrastructure.Messaging.Shared\HiveSpace.Infrastructure.Messaging.Shared.csproj", "{8236F463-FD72-4401-8FCB-171C86EE3C1A}"

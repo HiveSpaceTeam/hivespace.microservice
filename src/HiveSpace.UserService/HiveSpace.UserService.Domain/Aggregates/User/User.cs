@@ -197,10 +197,10 @@ public class User : AggregateRoot<Guid>, IAuditable, ISoftDeletable
         StoreId = null;
     }
     
-    public Address AddAddress(string fullName, string phoneNumber, string street, string district, 
+    public Address AddAddress(string fullName, string phoneNumber, string street, string commune, 
         string province, string country, string? zipCode, AddressType addressType, bool setAsDefault = false)
     {
-        var address = new Address(fullName, phoneNumber, street, district, province, country, zipCode, addressType);
+        var address = new Address(fullName, phoneNumber, street, commune, province, country, zipCode, addressType);
         
         if (setAsDefault)
         {
@@ -216,10 +216,10 @@ public class User : AggregateRoot<Guid>, IAuditable, ISoftDeletable
     }
     
     public void UpdateAddress(Guid addressId, string? fullName, string? phoneNumber, string? street, 
-        string? district, string? province, string? country, string? zipCode, AddressType? addressType)
+        string? commune, string? province, string? country, string? zipCode, AddressType? addressType)
     {
         var address = _addresses.FirstOrDefault(a => a.Id == addressId) ?? throw new NotFoundException(UserDomainErrorCode.AddressNotFound, nameof(Address));
-        address.UpdateDetails(fullName, phoneNumber, street, district, province, country, zipCode, addressType);
+        address.UpdateDetails(fullName, phoneNumber, street, commune, province, country, zipCode, addressType);
     }
     
     public void RemoveAddress(Guid addressId)
