@@ -81,7 +81,8 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
             List<Sku> skus,
             List<ProductVariant> variants,
             DateTimeOffset createdAt,
-            string createdBy)
+            string createdBy,
+            int? id = null)
         {
             var product = new Product
             {
@@ -96,6 +97,10 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
                 CreatedAt        = createdAt,
                 CreatedBy        = createdBy,
             };
+            if (id.HasValue)
+            {
+                product.Id = id.Value;
+            }
             if (categories is not null) product._categories.AddRange(categories);
             if (attributes is not null) product._attributes.AddRange(attributes);
             if (images     is not null) product._images.AddRange(images);
