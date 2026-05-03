@@ -46,7 +46,7 @@ public static class DataSeeder
 
         await SeedAliceAsync(userMgr, context, logger, ct);
         await SeedBobAsync(userMgr, context, logger, ct);
-        await SeedSystemAdminAsync(userMgr, logger, ct);
+        await SeedSystemAdminAsync(userMgr, context, logger, ct);
         await SeedAdminAsync(userMgr, context, logger, ct);
         await SeedSellersAsync(userMgr, storeManager, context, logger, ct);
     }
@@ -196,12 +196,15 @@ public static class DataSeeder
     }
 
     private static async Task SeedSystemAdminAsync(
-        UserManager<ApplicationUser> userMgr, ILogger logger, CancellationToken ct)
+        UserManager<ApplicationUser> userMgr, UserDbContext context, ILogger logger, CancellationToken ct)
     {
         var systemAdmin = await userMgr.FindByNameAsync("sysadmin");
         if (systemAdmin != null)
         {
-            await EnsureAvatarUrlAsync(userMgr, systemAdmin, SystemAdminAvatarUrl, logger);
+            if (await EnsureAvatarUrlAsync(userMgr, systemAdmin, SystemAdminAvatarUrl, logger))
+            {
+                await context.SaveChangesAsync(ct);
+            }
             logger.LogDebug("sysadmin already exists");
             return;
         }
@@ -429,7 +432,7 @@ public static class DataSeeder
 
             if (store is null)
             {
-                var newStore = await storeManager.RegisterStoreAsync(
+                var registration = await storeManager.RegisterStoreAsync(
                     name:         seed.StoreName,
                     description:  seed.StoreDescription,
                     logoUrl:      seed.LogoUrl,
@@ -437,7 +440,7 @@ public static class DataSeeder
                     ownerId:      seed.SellerId,
                     storeId:      seed.StoreId);
 
-                context.Stores.Add(newStore);
+                context.Stores.Add(registration.Store);
                 await context.SaveChangesAsync(ct);
                 logger.LogDebug("Created store {StoreName} for seller {Username}.", seed.StoreName, seed.Username);
             }
@@ -451,6 +454,7 @@ public static class DataSeeder
             if (seller.StoreId != seed.StoreId)
             {
                 seller.StoreId = seed.StoreId;
+                seller.RoleName = Role.RoleNames.Seller;
                 var updateResult = await userMgr.UpdateAsync(seller);
                 if (!updateResult.Succeeded)
                 {

@@ -1,0 +1,17 @@
+- generic [ref=e4]:
+  - img [ref=e11] [cursor=pointer]
+  - generic [ref=e27]:
+    - generic [ref=e30] [cursor=pointer]:
+      - generic [ref=e31]:
+        - combobox [ref=e33]
+        - generic [ref=e35]:
+          - img [ref=e36]:
+            - img [ref=e37]
+          - generic [ref=e40]: English
+      - generic:
+        - img:
+          - img
+    - button "Appearance" [ref=e42] [cursor=pointer]:
+      - img [ref=e43]:
+        - img [ref=e44]
+      - generic [ref=e46]: Appearance
