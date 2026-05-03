@@ -9,6 +9,7 @@ public class ApplicationUser : IdentityUser<Guid>, ISoftDeletable
 {
     // Additional fields from User domain entity that are not in IdentityUser
     public string FullName { get; set; } = string.Empty;
+    public string? AvatarUrl { get; set; }
     public Guid? StoreId { get; set; }
     public DateTime? DateOfBirth { get; set; }
     public int? Gender { get; set; }

@@ -21,6 +21,7 @@ public class User : AggregateRoot<Guid>, IAuditable, ISoftDeletable
     
     // Profile
     public string FullName { get; private set; }  // Primitive value
+    public string? AvatarUrl { get; private set; }
     public PhoneNumber? PhoneNumber { get; private set; }
     public DateOfBirth? DateOfBirth { get; private set; }
     public Gender? Gender { get; private set; }
@@ -48,12 +49,13 @@ public class User : AggregateRoot<Guid>, IAuditable, ISoftDeletable
         UserName = string.Empty;
         PasswordHash = null!;
         FullName = string.Empty;
+        AvatarUrl = null;
         Role = null!;
         EmailConfirmed = false;
     }
 
     internal User(Email email, string userName, string passwordHash, string fullName, Role? role = null, 
-        PhoneNumber? phoneNumber = null, DateOfBirth? dateOfBirth = null, Gender? gender = null, 
+        string? avatarUrl = null, PhoneNumber? phoneNumber = null, DateOfBirth? dateOfBirth = null, Gender? gender = null, 
         Guid? storeId = null, UserStatus status = UserStatus.Active, bool emailConfirmed = false,
         DateTimeOffset? createdAt = null, DateTimeOffset? updatedAt = null, DateTimeOffset? lastLoginAt = null)
     {
@@ -62,6 +64,7 @@ public class User : AggregateRoot<Guid>, IAuditable, ISoftDeletable
         UserName = userName.Trim();
         PasswordHash = passwordHash;
         FullName = fullName.Trim();
+        AvatarUrl = avatarUrl?.Trim();
         Status = status;
         StoreId = storeId;
         Role = role;
@@ -87,6 +90,7 @@ public class User : AggregateRoot<Guid>, IAuditable, ISoftDeletable
         string passwordHash,
         string fullName,
         Role? role,
+        string? avatarUrl,
         PhoneNumber? phoneNumber,
         DateOfBirth? dateOfBirth,
         Gender? gender,
@@ -102,7 +106,7 @@ public class User : AggregateRoot<Guid>, IAuditable, ISoftDeletable
         Theme theme = Theme.Light,
         Culture culture = Culture.Vi)
     {
-        var user = new User(email, userName, passwordHash, fullName, role, phoneNumber, dateOfBirth, gender, storeId, status, emailConfirmed, createdAt, updatedAt, lastLoginAt);
+        var user = new User(email, userName, passwordHash, fullName, role, avatarUrl, phoneNumber, dateOfBirth, gender, storeId, status, emailConfirmed, createdAt, updatedAt, lastLoginAt);
         user.Id = id; // protected setter available within the assembly
 
         // Initialize settings
@@ -120,7 +124,7 @@ public class User : AggregateRoot<Guid>, IAuditable, ISoftDeletable
     }
     
     internal static User Create(Email email, string userName, string passwordHash, string fullName, Role? role = null,
-        PhoneNumber? phoneNumber = null, DateOfBirth? dateOfBirth = null, Gender? gender = null, 
+        string? avatarUrl = null, PhoneNumber? phoneNumber = null, DateOfBirth? dateOfBirth = null, Gender? gender = null, 
         Guid? storeId = null, UserStatus status = UserStatus.Active, 
         DateTimeOffset? createdAt = null, DateTimeOffset? updatedAt = null, DateTimeOffset? lastLoginAt = null)
     {
@@ -129,7 +133,7 @@ public class User : AggregateRoot<Guid>, IAuditable, ISoftDeletable
         // Business rule: Admin and SystemAdmin users should have EmailConfirmed = true, others = false
         var emailConfirmed = role?.Name == Role.RoleNames.Admin || role?.Name == Role.RoleNames.SystemAdmin;
         
-        return new User(email, userName, passwordHash, fullName, role, phoneNumber, dateOfBirth, gender, 
+        return new User(email, userName, passwordHash, fullName, role, avatarUrl, phoneNumber, dateOfBirth, gender,
             storeId, status, emailConfirmed, createdAt, updatedAt, lastLoginAt);
     }
     

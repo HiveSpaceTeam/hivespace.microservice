@@ -2,8 +2,6 @@ using HiveSpace.Core.Contexts;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.UserService.Application.DTOs.User;
 using HiveSpace.UserService.Application.Interfaces.Services;
-using HiveSpace.UserService.Application.Models.Requests.User;
-using HiveSpace.UserService.Application.Models.Responses.User;
 using HiveSpace.UserService.Domain.Aggregates.User;
 using HiveSpace.UserService.Domain.Exceptions;
 using HiveSpace.UserService.Domain.Repositories;
@@ -59,6 +57,7 @@ public class UserService : IUserService
             user.FullName,
             user.UserName,
             user.Email.Value,
+            user.AvatarUrl,
             user.PhoneNumber?.Value,
             user.Gender,
             user.DateOfBirth?.Value

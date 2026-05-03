@@ -3,8 +3,7 @@ using HiveSpace.UserService.Application.Interfaces.Messaging;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Domain.Shared.Errors;
 using HiveSpace.UserService.Application.Interfaces.Services;
-using HiveSpace.UserService.Application.Models.Requests.Store;
-using HiveSpace.UserService.Application.Models.Responses.Store;
+using HiveSpace.UserService.Application.DTOs.Store;
 using HiveSpace.UserService.Domain.Repositories;
 using HiveSpace.UserService.Domain.Services;
 

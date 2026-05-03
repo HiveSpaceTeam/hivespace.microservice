@@ -2,7 +2,7 @@ using Asp.Versioning;
 using HiveSpace.Core.Helpers;
 using HiveSpace.Infrastructure.Authorization;
 using HiveSpace.UserService.Application.Interfaces.Services;
-using HiveSpace.UserService.Application.Models.Requests.Account;
+using HiveSpace.UserService.Application.DTOs.Account;
 using HiveSpace.UserService.Application.Validators.Account;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

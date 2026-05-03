@@ -118,16 +118,13 @@ Application/
     [Feature]Service.cs
   Validators/
     [Request]Validator.cs
-  Models/
-    Requests/
-      [Feature]/
-    Responses/
-      [Feature]/
+  DTOs/
+    [Module]/                    # flat per-module folder (e.g. Admin/, User/, Store/, Account/)
   Constant/
     Enum/                        # query-shaping enums (filter values, sort options) — not domain enums
 ```
 
-> Note: service-based Application layers use a flat `Models/Requests/` + `Models/Responses/` structure instead of per-feature `Dtos/` folders. Validators are called manually in controllers (no MediatR pipeline needed).
+> Note: service-based Application layers use a flat `DTOs/[Module]/` structure — requests and responses together per module, distinguished by naming suffix (`RequestDto`/`ResponseDto`). Validators are called manually in controllers (no MediatR pipeline needed).
 
 **New service checklist — Full:**
 1. Run from repo root: `.\scripts\new-service.ps1 -ServiceName HiveSpace.[Name]Service -TemplateName ms-full -AddToSolution`

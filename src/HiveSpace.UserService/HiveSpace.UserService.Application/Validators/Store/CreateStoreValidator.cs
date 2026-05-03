@@ -3,7 +3,7 @@ using HiveSpace.Core;
 using HiveSpace.Core.Exceptions;
 using HiveSpace.Core.Exceptions.Models;
 using HiveSpace.Domain.Shared.Exceptions;
-using HiveSpace.UserService.Application.Models.Requests.Store;
+using HiveSpace.UserService.Application.DTOs.Store;
 using HiveSpace.UserService.Domain.Exceptions;
 
 namespace HiveSpace.UserService.Application.Validators.Store;

@@ -16,9 +16,35 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Inspect the existing layer before changing it.
 - Keep the generated solution minimal, coherent, and production-oriented.
 
+## Behavioral Guardrails
+
+### Think Before Coding
+
+- State assumptions explicitly before implementing when they affect the design.
+- If multiple interpretations or tradeoffs exist, surface them instead of picking silently.
+- If something is unclear and the repo does not answer it, stop and ask.
+
+### Simplicity First
+
+- Implement only the requested behavior.
+- Do not add speculative abstractions, configurability, or impossible-scenario handling.
+- If the solution feels larger than the problem, simplify it before proceeding.
+
+### Surgical Changes
+
+- Touch only the code and docs required for the request.
+- Do not refactor adjacent code, comments, or formatting unless the task requires it.
+- Remove only the unused code or imports created by your own change; mention unrelated cleanup separately.
+
+### Goal-Driven Execution
+
+- Define a concrete verification target before implementing.
+- Prefer tests when they exist; otherwise verify with the smallest concrete check that fits the change, such as `dotnet build`, targeted startup, or a focused manual path.
+- Every changed line should trace directly to the request and to a verification step.
+
 ## Always Clarify Implementation Pattern Before Starting
 
-Before implementing any new feature — whether in plan mode or not — always ask which pattern to use for the Application layer:
+Before implementing any new feature, first check the existing service architecture. If the target service already has a fixed Application-layer pattern, follow it. Ask which pattern to use only when the target context is genuinely undecided, new, or an intentional exception:
 
 **Option A — CQRS (MediatR)**
 Each operation is a discrete command or query handler. Use this when the feature maps cleanly to a single intent (create, update, cancel, list, get).
@@ -46,7 +72,7 @@ Application/
     [Feature]Service.cs
 ```
 
-**When to ask:** Always — even for small features. The two patterns are not equivalent and mixing them without intent creates inconsistency. If the existing service already uses one pattern for the same aggregate, follow it unless there is a clear reason to diverge.
+**When to ask:** Ask only when the service architecture or feature context does not already decide the pattern. The two patterns are not equivalent, and agents must not mix them without explicit approval. If the existing service or aggregate already uses one pattern, follow it unless the user explicitly approves an exception.
 
 → Feature implementation patterns, DDD building blocks, sagas: `.claude/docs/feature-implementation.md`
 

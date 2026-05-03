@@ -3,8 +3,6 @@ using HiveSpace.Core.Helpers;
 using HiveSpace.Infrastructure.Authorization;
 using HiveSpace.UserService.Application.DTOs.User;
 using HiveSpace.UserService.Application.Interfaces.Services;
-using HiveSpace.UserService.Application.Models.Requests.User;
-using HiveSpace.UserService.Application.Models.Responses.User;
 using HiveSpace.UserService.Application.Validators.User;
 using Microsoft.AspNetCore.Mvc;
 

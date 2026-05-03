@@ -1,7 +1,6 @@
 using HiveSpace.Core.Models.Pagination;
 using HiveSpace.UserService.Application.Constant.Enum;
-using HiveSpace.UserService.Application.Models.Queries;
-using HiveSpace.UserService.Application.Models.Responses.Admin;
+using HiveSpace.UserService.Application.DTOs.Admin;
 
 namespace HiveSpace.UserService.Application.Interfaces.DataQueries;
 

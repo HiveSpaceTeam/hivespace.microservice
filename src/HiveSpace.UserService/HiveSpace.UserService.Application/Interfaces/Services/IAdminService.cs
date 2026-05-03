@@ -1,6 +1,5 @@
 using HiveSpace.UserService.Application.Constant.Enum;
-using HiveSpace.UserService.Application.Models.Requests.Admin;
-using HiveSpace.UserService.Application.Models.Responses.Admin;
+using HiveSpace.UserService.Application.DTOs.Admin;
 
 namespace HiveSpace.UserService.Application.Interfaces.Services;
 

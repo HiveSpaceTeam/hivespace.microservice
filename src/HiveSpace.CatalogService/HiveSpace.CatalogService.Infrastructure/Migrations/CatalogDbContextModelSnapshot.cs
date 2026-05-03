@@ -96,12 +96,10 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
 
                     b.Property<string>("FilePath")
                         .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasColumnName("FilePath");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<bool?>("IsActive")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsActive");
+                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -761,8 +759,8 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                             b1.Property<int>("SkuId")
                                 .HasColumnType("int");
 
-                            b1.Property<decimal>("Amount")
-                                .HasColumnType("decimal(18,2)");
+                            b1.Property<long>("Amount")
+                                .HasColumnType("bigint");
 
                             b1.Property<int>("Currency")
                                 .HasColumnType("int");

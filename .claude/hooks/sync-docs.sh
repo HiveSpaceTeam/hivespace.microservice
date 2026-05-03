@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# PostToolUse hook: when CLAUDE.md or AGENTS.md is edited/written,
-# remind Claude to keep the other file in sync.
+# PostToolUse hook: validate that AGENTS.md and CLAUDE.md stay in sync.
+
+set -euo pipefail
 
 INPUT=$(cat)
 
@@ -17,7 +18,6 @@ FILE_PATH=$(echo "$INPUT" | python -c "$PARSE_FILE_PATH" 2>/dev/null \
   || echo "$INPUT" | python3 -c "$PARSE_FILE_PATH" 2>/dev/null \
   || echo "")
 
-# Fallback: grep the raw JSON if Python unavailable
 if [[ -z "$FILE_PATH" ]]; then
     if echo "$INPUT" | grep -q '"file_path".*CLAUDE\.md'; then
         FILE_PATH="CLAUDE.md"
@@ -26,14 +26,44 @@ if [[ -z "$FILE_PATH" ]]; then
     fi
 fi
 
-if [[ "$FILE_PATH" == *"CLAUDE.md" ]]; then
-    echo "CLAUDE.md was updated."
-    echo "You MUST now update AGENTS.md to keep the quick reference in sync."
-    echo "Specifically check: the service type table and the hard rules section."
-    echo "Do not skip this — AGENTS.md must always reflect CLAUDE.md."
-elif [[ "$FILE_PATH" == *"AGENTS.md" ]]; then
-    echo "AGENTS.md was updated."
-    echo "Check if CLAUDE.md needs the same update — specifically the Service Architecture section."
+case "$FILE_PATH" in
+    *AGENTS.md|*CLAUDE.md) ;;
+    *) exit 0 ;;
+esac
+
+ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
+AGENTS_FILE="$ROOT_DIR/AGENTS.md"
+CLAUDE_FILE="$ROOT_DIR/CLAUDE.md"
+
+normalize_file() {
+    local target_file="$1"
+    python - "$target_file" <<'PY'
+import pathlib
+import sys
+
+path = pathlib.Path(sys.argv[1])
+text = path.read_text(encoding="utf-8")
+lines = text.splitlines()
+if len(lines) < 3:
+    sys.stderr.write(f"Unexpected short file: {path}\n")
+    sys.exit(2)
+try:
+    start = lines.index("## Tech Stack")
+except ValueError:
+    sys.stderr.write(f"Missing '## Tech Stack' heading in {path}\n")
+    sys.exit(2)
+print("\n".join(lines[start:]).strip())
+PY
+}
+
+AGENTS_BODY=$(normalize_file "$AGENTS_FILE")
+CLAUDE_BODY=$(normalize_file "$CLAUDE_FILE")
+
+if [[ "$AGENTS_BODY" != "$CLAUDE_BODY" ]]; then
+    echo "Instruction drift detected: AGENTS.md and CLAUDE.md no longer match."
+    echo "Keep the two files synchronized. The file title and one-line intro may differ, but the remaining body must be identical."
+    exit 2
 fi
 
+echo "Instruction sync verified: AGENTS.md and CLAUDE.md match."
 exit 0

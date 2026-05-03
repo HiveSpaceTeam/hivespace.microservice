@@ -1,5 +1,5 @@
 using HiveSpace.UserService.Domain.Aggregates.User;
-using HiveSpace.UserService.Application.Models.Responses.Admin;
+using HiveSpace.UserService.Application.DTOs.Admin;
 
 namespace HiveSpace.UserService.Application.Extensions;
 
@@ -23,7 +23,7 @@ public static class UserMappingExtensions
             domainUser.CreatedAt,
             domainUser.UpdatedAt,
             domainUser.LastLoginAt,
-            null // AvatarUrl not available in domain model
+            domainUser.AvatarUrl
         );
     }
 
@@ -42,7 +42,7 @@ public static class UserMappingExtensions
             domainUser.CreatedAt,
             domainUser.UpdatedAt,
             domainUser.LastLoginAt,
-            null // AvatarUrl not available in domain model
+            domainUser.AvatarUrl
         );
     }
 
@@ -60,7 +60,7 @@ public static class UserMappingExtensions
             domainUser.CreatedAt,
             domainUser.UpdatedAt,
             domainUser.LastLoginAt,
-            null, // AvatarUrl not available in domain model
+            domainUser.AvatarUrl,
             domainUser.IsSeller
         );
     }
@@ -79,7 +79,7 @@ public static class UserMappingExtensions
             domainUser.CreatedAt,
             domainUser.UpdatedAt,
             domainUser.LastLoginAt,
-            null, // AvatarUrl not available in domain model
+            domainUser.AvatarUrl,
             domainUser.IsSystemAdmin
         );
     }
@@ -99,7 +99,7 @@ public static class UserMappingExtensions
             domainUser.UpdatedAt,
             domainUser.LastLoginAt,
             domainUser.DeletedAt,
-            null, // AvatarUrl not available in domain model
+            domainUser.AvatarUrl,
             domainUser.IsSeller,
             deletedBy
         );

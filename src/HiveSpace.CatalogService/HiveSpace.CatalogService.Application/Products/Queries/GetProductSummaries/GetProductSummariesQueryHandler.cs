@@ -14,10 +14,10 @@ public class GetProductSummariesQueryHandler(IProductRepository productRepositor
     {
         var payload = request.Payload;
         var (items, total) = await productRepository.GetSummariesPagedAsync(
-            payload.Keyword ?? string.Empty, payload.PageIndex, payload.PageSize, payload.Sort, cancellationToken);
+            payload.Keyword ?? string.Empty, payload.Page, payload.PageSize, payload.Sort, cancellationToken);
 
         var dtos = items.Select(p => p.ToSummaryDto()).ToList();
 
-        return new PagedResult<ProductSummaryDto>(dtos, payload.PageIndex + 1, payload.PageSize, total);
+        return new PagedResult<ProductSummaryDto>(dtos, payload.Page + 1, payload.PageSize, total);
     }
 }

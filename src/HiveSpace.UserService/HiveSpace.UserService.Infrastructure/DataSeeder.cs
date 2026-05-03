@@ -20,6 +20,13 @@ public static class DataSeeder
 {
     public static readonly Guid AliceId = new Guid("11111111-1111-1111-1111-111111111111");
     public static readonly Guid BobId = new Guid("22222222-2222-2222-2222-222222222222");
+    private const string AliceAvatarUrl = "https://cdn.discordapp.com/avatars/474579515188707339/24acc2c6b645216504447360a58c0683.webp";
+    private const string BobAvatarUrl = "https://cdn.discordapp.com/avatars/743061397037908059/edaa33d7f618405017a26cc7ca42379b.webp";
+    private const string SystemAdminAvatarUrl = "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.0.3&q=80&w=1080";
+    private const string AdminAvatarUrl = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.0.3&q=80&w=1080";
+    private const string TikiAvatarUrl = "https://images.unsplash.com/photo-1595152772835-219674b2a8a6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.0.3&q=80&w=1080";
+    private const string GiverAvatarUrl = "https://images.unsplash.com/photo-1596793884200-971f7b08b63a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.0.3&q=80&w=1080";
+    private const string PhuongDongAvatarUrl = "https://images.unsplash.com/photo-1621694691319-0d74e2d9a79c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.0.3&q=80&w=1080";
     public static async Task EnsureSeedDataAsync(WebApplication app, CancellationToken ct = default)
     {
         await using var scope = app.Services.CreateAsyncScope();
@@ -51,6 +58,11 @@ public static class DataSeeder
         var alice = await userMgr.FindByNameAsync("alice");
         if (alice != null)
         {
+            if (await EnsureAvatarUrlAsync(userMgr, alice, AliceAvatarUrl, logger))
+            {
+                await context.SaveChangesAsync(ct);
+            }
+
             logger.LogDebug("alice already exists");
             return;
         }
@@ -60,8 +72,9 @@ public static class DataSeeder
             Id             = AliceId,
             UserName       = "alice",
             Email          = "aliceSmith@gmail.com",
-            EmailConfirmed = false,
+            EmailConfirmed = true,
             FullName       = "Alice Smith",
+            AvatarUrl      = AliceAvatarUrl,
             PhoneNumber    = "+84901234567",
             DateOfBirth    = new DateTime(1990, 1, 15),
             Gender         = (int)Gender.Female,
@@ -94,7 +107,7 @@ public static class DataSeeder
             new Claim(JwtClaimTypes.GivenName,  "Alice"),
             new Claim(JwtClaimTypes.FamilyName, "Smith"),
             new Claim(JwtClaimTypes.WebSite,    "http://alice.example.com"),
-            new Claim(JwtClaimTypes.Picture,    "https://cdn.discordapp.com/avatars/474579515188707339/24acc2c6b645216504447360a58c0683.webp"),
+            new Claim(JwtClaimTypes.Picture,    AliceAvatarUrl),
         ]);
         if (!result.Succeeded)
         {
@@ -113,6 +126,11 @@ public static class DataSeeder
         var bob = await userMgr.FindByNameAsync("bob");
         if (bob != null)
         {
+            if (await EnsureAvatarUrlAsync(userMgr, bob, BobAvatarUrl, logger))
+            {
+                await context.SaveChangesAsync(ct);
+            }
+
             logger.LogDebug("bob already exists");
             return;
         }
@@ -124,6 +142,7 @@ public static class DataSeeder
             Email          = "bobSmith@gmail.com",
             EmailConfirmed = false,
             FullName       = "Bob Smith",
+            AvatarUrl      = BobAvatarUrl,
             PhoneNumber    = "+84987654321",
             DateOfBirth    = new DateTime(1985, 6, 20),
             Gender         = (int)Gender.Male,
@@ -164,7 +183,7 @@ public static class DataSeeder
             new Claim(JwtClaimTypes.FamilyName, "Smith"),
             new Claim(JwtClaimTypes.WebSite,    "http://bob.example.com"),
             new Claim("location",               "somewhere"),
-            new Claim(JwtClaimTypes.Picture,    "https://cdn.discordapp.com/avatars/743061397037908059/edaa33d7f618405017a26cc7ca42379b.webp"),
+            new Claim(JwtClaimTypes.Picture,    BobAvatarUrl),
         ]);
         if (!result.Succeeded)
         {
@@ -182,6 +201,7 @@ public static class DataSeeder
         var systemAdmin = await userMgr.FindByNameAsync("sysadmin");
         if (systemAdmin != null)
         {
+            await EnsureAvatarUrlAsync(userMgr, systemAdmin, SystemAdminAvatarUrl, logger);
             logger.LogDebug("sysadmin already exists");
             return;
         }
@@ -192,6 +212,7 @@ public static class DataSeeder
             Email          = "sysadmin@hivespace.com",
             EmailConfirmed = true,
             FullName       = "System Administrator",
+            AvatarUrl      = SystemAdminAvatarUrl,
             PhoneNumber    = "+84911111111",
             DateOfBirth    = new DateTime(1980, 3, 10),
             Gender         = (int)Gender.Male,
@@ -235,6 +256,11 @@ public static class DataSeeder
         var admin = await userMgr.FindByNameAsync("admin");
         if (admin != null)
         {
+            if (await EnsureAvatarUrlAsync(userMgr, admin, AdminAvatarUrl, logger))
+            {
+                await context.SaveChangesAsync(ct);
+            }
+
             logger.LogDebug("admin already exists");
             return;
         }
@@ -245,6 +271,7 @@ public static class DataSeeder
             Email          = "admin@hivespace.com",
             EmailConfirmed = true,
             FullName       = "Admin User",
+            AvatarUrl      = AdminAvatarUrl,
             PhoneNumber    = "+84922222222",
             DateOfBirth    = new DateTime(1985, 8, 22),
             Gender         = (int)Gender.Female,
@@ -303,6 +330,7 @@ public static class DataSeeder
                 DateOfBirth  = new DateTime(1988, 12, 5),
                 Gender       = (int)Gender.Male,
                 Password     = "TikiTrading123$",
+                AvatarUrl    = TikiAvatarUrl,
                 StoreName    = "Tiki Trading",
                 StoreDescription = "OFFICIAL_STORE • 4.7 ★ (5.5tr+ đánh giá) • 513.1k+ người theo dõi",
                 LogoUrl      = "https://vcdn.tikicdn.com/ts/seller/d1/3f/ae/13ce3d83ab6b6c5e77e6377ad61dc4a5.jpg",
@@ -321,6 +349,7 @@ public static class DataSeeder
                 DateOfBirth  = new DateTime(1989, 1, 5),
                 Gender       = (int)Gender.Male,
                 Password     = "GiverBooks123$",
+                AvatarUrl    = GiverAvatarUrl,
                 StoreName    = "GIVER BOOKS & MEDIA",
                 StoreDescription = "OFFICIAL_STORE • 4.8 ★ (8.2k+ đánh giá) • 6.0k+ người theo dõi",
                 LogoUrl      = "https://vcdn.tikicdn.com/ts/seller/89/9e/7d/d19991a65a04abc9b0a410058307d255.jpg",
@@ -339,6 +368,7 @@ public static class DataSeeder
                 DateOfBirth  = new DateTime(1990, 2, 10),
                 Gender       = (int)Gender.Male,
                 Password     = "PhuongDongBooks123$",
+                AvatarUrl    = PhuongDongAvatarUrl,
                 StoreName    = "Phương Đông Books",
                 StoreDescription = "4.8 ★ (38k+ đánh giá) • 14.5k+ người theo dõi",
                 LogoUrl      = "https://vcdn.tikicdn.com/ts/seller/2e/85/b7/e76104ae5f1beaf244f319e2f0d2d413.jpg",
@@ -368,8 +398,9 @@ public static class DataSeeder
                     Id             = seed.SellerId,
                     UserName       = seed.Username,
                     Email          = seed.Email,
-                    EmailConfirmed = false,
+                    EmailConfirmed = true,
                     FullName       = seed.FullName,
+                    AvatarUrl      = seed.AvatarUrl,
                     PhoneNumber    = seed.Phone,
                     DateOfBirth    = seed.DateOfBirth,
                     Gender         = seed.Gender,
@@ -387,6 +418,10 @@ public static class DataSeeder
                         seed.Username, createResult.Errors.First().Description);
                     throw new InvalidFieldException(UserDomainErrorCode.UserCreationFailed, nameof(ApplicationUser));
                 }
+            }
+            else
+            {
+                await EnsureAvatarUrlAsync(userMgr, seller, seed.AvatarUrl, logger);
             }
 
             var store = await context.Stores.FirstOrDefaultAsync(s => s.Id == seed.StoreId, ct)
@@ -470,5 +505,28 @@ public static class DataSeeder
             logger.LogDebug("Seller seed ensured for {Username} (SellerId={SellerId}, StoreId={StoreId}).",
                 seed.Username, seed.SellerId, seed.StoreId);
         }
+    }
+
+    private static async Task<bool> EnsureAvatarUrlAsync(
+        UserManager<ApplicationUser> userMgr,
+        ApplicationUser user,
+        string avatarUrl,
+        ILogger logger)
+    {
+        if (string.Equals(user.AvatarUrl, avatarUrl, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        user.AvatarUrl = avatarUrl;
+        var updateResult = await userMgr.UpdateAsync(user);
+        if (!updateResult.Succeeded)
+        {
+            logger.LogError("Failed to update AvatarUrl for {Username}: {Error}",
+                user.UserName, updateResult.Errors.First().Description);
+            throw new InvalidFieldException(UserDomainErrorCode.UserCreationFailed, nameof(ApplicationUser));
+        }
+
+        return true;
     }
 }

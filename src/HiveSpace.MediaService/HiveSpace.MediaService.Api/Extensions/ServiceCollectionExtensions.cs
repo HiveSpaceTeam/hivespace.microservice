@@ -28,19 +28,19 @@ public static class ServiceCollectionExtensions
     {
         var baseConnectionString = configuration["Database:MediaServiceDb"];
 
-        var connectionStringBuilder = new SqlConnectionStringBuilder(baseConnectionString)
-        {
-            ConnectTimeout = 60,
-            ConnectRetryCount = 3,
-            ConnectRetryInterval = 10,
-            Pooling = true,
-            MinPoolSize = 0,
-            MaxPoolSize = 100
-        };
+        // var connectionStringBuilder = new SqlConnectionStringBuilder(baseConnectionString)
+        // {
+        //     ConnectTimeout = 60,
+        //     ConnectRetryCount = 3,
+        //     ConnectRetryInterval = 10,
+        //     Pooling = true,
+        //     MinPoolSize = 0,
+        //     MaxPoolSize = 100
+        // };
 
         services.AddDbContext<MediaDbContext>((_, options) =>
         {
-            options.UseSqlServer(connectionStringBuilder.ConnectionString, sqlOptions => sqlOptions
+            options.UseSqlServer(baseConnectionString, sqlOptions => sqlOptions
                 .EnableRetryOnFailure(
                     maxRetryCount: 5,
                     maxRetryDelay: TimeSpan.FromSeconds(30),
