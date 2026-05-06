@@ -8,6 +8,7 @@ using HiveSpace.MediaService.Core.Infrastructure.Storage;
 using HiveSpace.MediaService.Core.Interfaces;
 using HiveSpace.MediaService.Core.Services;
 using HiveSpace.MediaService.Core.Infrastructure.Configuration;
+using HiveSpace.MediaService.Core.Persistence.Repositories;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()
@@ -43,6 +44,7 @@ var host = new HostBuilder()
         // Register Core Services
         services.AddScoped<IStorageService, AzureBlobStorageService>();
         services.AddScoped<IQueueService, AzureQueueService>();
+        services.AddScoped<IMediaAssetRepository, MediaAssetRepository>();
         services.AddScoped<IMediaCleanupService, MediaCleanupService>();
 
         // Register Database with enhanced retry logic for Azure SQL

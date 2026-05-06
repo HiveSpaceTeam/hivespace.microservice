@@ -29,6 +29,9 @@ public class ApplicationUserEntityConfiguration : IEntityTypeConfiguration<Appli
             .IsRequired()
             .HasMaxLength(100);
 
+        builder.Property(u => u.AvatarUrl)
+            .HasMaxLength(2048);
+
         builder.Property(u => u.PhoneNumber)
             .HasMaxLength(20);
 

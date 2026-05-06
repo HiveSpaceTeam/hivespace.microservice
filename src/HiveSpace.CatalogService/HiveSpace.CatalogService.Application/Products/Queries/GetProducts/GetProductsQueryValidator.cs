@@ -9,7 +9,7 @@ public class GetProductsQueryValidator : AbstractValidator<GetProductsQuery>
         RuleFor(x => x.Payload.PageSize)
             .InclusiveBetween(1, 100);
 
-        RuleFor(x => x.Payload.PageIndex)
+        RuleFor(x => x.Payload.Page)
             .GreaterThanOrEqualTo(0);
 
         RuleFor(x => x.Payload.Keyword)

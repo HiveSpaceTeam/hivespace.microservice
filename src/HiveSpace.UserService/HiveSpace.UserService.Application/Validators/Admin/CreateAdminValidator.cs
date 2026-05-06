@@ -1,7 +1,7 @@
 using FluentValidation;
 using HiveSpace.Core.Exceptions;
 using HiveSpace.Core.Exceptions.Models;
-using HiveSpace.UserService.Application.Models.Requests.Admin;
+using HiveSpace.UserService.Application.DTOs.Admin;
 using HiveSpace.UserService.Domain.Exceptions;
 
 namespace HiveSpace.UserService.Application.Validators.Admin;

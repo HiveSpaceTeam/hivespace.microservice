@@ -14,7 +14,7 @@ public class GetOrderByIdQueryHandler(IOrderRepository orderRepository, IUserCon
 {
     public async Task<OrderDetailDto> Handle(GetOrderByIdQuery request, CancellationToken cancellationToken)
     {
-        var order = await orderRepository.GetByIdAsync(request.OrderId, cancellationToken)
+        var order = await orderRepository.GetDetailByIdAsync(request.OrderId, cancellationToken)
             ?? throw new NotFoundException(OrderDomainErrorCode.OrderNotFound, nameof(Order));
 
         if (order.UserId != userContext.UserId)

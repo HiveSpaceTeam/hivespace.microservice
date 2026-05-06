@@ -29,6 +29,7 @@ public static class UserMapper
             EmailConfirmed = domainUser.EmailConfirmed,
             PhoneNumber = domainUser.PhoneNumber?.Value,
             FullName = domainUser.FullName,
+            AvatarUrl = domainUser.AvatarUrl,
             StoreId = domainUser.StoreId,
             DateOfBirth = domainUser.DateOfBirth?.Value.DateTime,
             Gender = (int?)domainUser.Gender,
@@ -78,6 +79,7 @@ public static class UserMapper
             passwordHash: applicationUser.PasswordHash ?? string.Empty,
             fullName: applicationUser.FullName ?? string.Empty,
             role: userRole,
+            avatarUrl: applicationUser.AvatarUrl,
             phoneNumber: phoneNumber,
             dateOfBirth: dateOfBirth,
             gender: gender,
@@ -110,6 +112,7 @@ public static class UserMapper
         applicationUser.Email = domainUser.Email.Value;
         applicationUser.PhoneNumber = domainUser.PhoneNumber?.Value;
         applicationUser.FullName = domainUser.FullName;
+        applicationUser.AvatarUrl = domainUser.AvatarUrl;
         applicationUser.StoreId = domainUser.StoreId;
         applicationUser.DateOfBirth = domainUser.DateOfBirth?.Value.DateTime;
         applicationUser.Gender = (int?)domainUser.Gender;

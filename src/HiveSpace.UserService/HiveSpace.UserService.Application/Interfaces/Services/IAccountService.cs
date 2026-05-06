@@ -1,4 +1,4 @@
-using HiveSpace.UserService.Application.Models.Requests.Account;
+using HiveSpace.UserService.Application.DTOs.Account;
 
 namespace HiveSpace.UserService.Application.Interfaces.Services;
 

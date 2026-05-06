@@ -41,7 +41,7 @@ public class StoreManager : IDomainService
         return owner;
     }
 
-    public async Task<Store> RegisterStoreAsync(
+    public async Task<StoreRegistrationResult> RegisterStoreAsync(
         string name,
         string? description,
         string logoUrl,
@@ -70,7 +70,7 @@ public class StoreManager : IDomainService
 
         owner.AssignStore(store.Id);
 
-        return store;
+        return new StoreRegistrationResult(store, owner);
     }
     
     /// <summary>
