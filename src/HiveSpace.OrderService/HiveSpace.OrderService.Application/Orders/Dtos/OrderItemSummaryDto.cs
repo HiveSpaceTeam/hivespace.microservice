@@ -13,4 +13,8 @@ public record OrderItemSummaryDto
     public long   LineTotal   { get; init; }
     public string Currency    { get; init; } = null!;
     public bool   IsCOD       { get; init; }
+    public long   SnapshotPrice { get; init; }
+    public string SnapshotCurrency { get; init; } = null!;
+    public DateTimeOffset SnapshotCapturedAt { get; init; }
+    public Dictionary<string, string> Attributes { get; init; } = [];
 }
