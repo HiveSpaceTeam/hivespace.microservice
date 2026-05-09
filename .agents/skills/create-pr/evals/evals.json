@@ -1,0 +1,23 @@
+{
+  "skill_name": "create-pr",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I just finished implementing the order checkout saga — new commands, handlers, and a couple of domain events. I'm on master right now. Can you create a PR for me?",
+      "expected_output": "Should: (1) run dotnet build and check for errors, (2) ask for / suggest a branch name like Features/order-checkout-saga and create it, (3) run gitnexus_detect_changes, (4) stage non-JSON files and list any .json files that were skipped, (5) commit with a meaningful message, (6) fetch + rebase origin/master, (7) push with -u, (8) run bash scripts/sync-config.sh, (9) run npx gitnexus analyze, (10) tell user to start a new session and run /review before gh pr create.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "push and PR my changes — I already have a branch called Features/catalog-search-filter and the build is passing",
+      "expected_output": "Should: confirm build passes (or re-run dotnet build), stay on existing branch Features/catalog-search-filter, run gitnexus_detect_changes, stage non-JSON files, commit, push, run sync-config.sh, run gitnexus analyze, and hand off to new session for /review. Should NOT create a new branch since one already exists.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "I've made changes to appsettings.json and some C# files. I want to submit everything. Create a PR.",
+      "expected_output": "Should: run dotnet build first. When staging, should explicitly list appsettings.json as a JSON file that was NOT staged and tell the user they need to handle it manually. Should stage only the .cs / non-JSON files. Should ask user to confirm before committing. Should follow all remaining steps through the new-session handoff.",
+      "files": []
+    }
+  ]
+}
