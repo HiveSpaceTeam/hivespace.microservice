@@ -38,6 +38,30 @@ public class OrderDomainErrorCode : DomainErrorCode
 }
 ```
 
+## MassTransit consumers — exception handling
+
+- **Never return silently when an entity is not found.** Throw `NotFoundException` (or the appropriate domain exception) so MassTransit retries per the retry policy and routes to the dead-letter queue after exhausting retries. A silent `return` swallows the failure permanently with no observability.
+- Use domain exception types (`NotFoundException`, `InvalidFieldException`, etc.) in consumers — never `System.InvalidOperationException` or `System.ArgumentException`.
+- **Publish integration events before `SaveChangesAsync()`** even in consumers. If a consumer both mutates an entity and publishes a follow-up event, the publish must come first so the outbox commits both atomically.
+
+```csharp
+// ✅ Correct consumer pattern
+var entity = await db.Things.FirstOrDefaultAsync(t => t.FileId == fileId, ct);
+if (entity is null)
+    throw new NotFoundException(MyDomainErrorCode.ThingNotFound, nameof(entity)); // retried, then dead-lettered
+
+entity.Update(value);
+await publisher.PublishUpdateAsync(entity, ct); // before save — outbox pattern
+await db.SaveChangesAsync(ct);
+
+// ❌ Wrong — silent drop, no retry, event lost
+if (entity is null) return;
+
+// ❌ Wrong — event lost if service crashes between save and publish
+await db.SaveChangesAsync(ct);
+await publisher.PublishUpdateAsync(entity, ct);
+```
+
 ## Commands — always go through the domain
 
 ```csharp

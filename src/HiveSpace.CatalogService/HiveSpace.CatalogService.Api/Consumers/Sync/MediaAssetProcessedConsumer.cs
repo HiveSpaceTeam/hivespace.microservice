@@ -1,5 +1,7 @@
 using HiveSpace.CatalogService.Application.Interfaces.Messaging;
+using HiveSpace.CatalogService.Domain.Exceptions;
 using HiveSpace.CatalogService.Infrastructure.Data;
+using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Infrastructure.Messaging.Shared.Events.Media;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +18,7 @@ public class MediaAssetProcessedConsumer(
     public async Task Consume(ConsumeContext<MediaAssetProcessedIntegrationEvent> context)
     {
         var msg = context.Message;
-        var fileId = msg.FileId.ToString();
+        var fileId = msg.FileId;
         var ct = context.CancellationToken;
 
         switch (msg.EntityType)
@@ -47,8 +49,8 @@ public class MediaAssetProcessedConsumer(
     {
         var product = await dbContext.Products
             .FirstOrDefaultAsync(p => p.ThumbnailFileId == fileId, ct);
-
-        if (product is null) return;
+        if (product is null)
+            throw new NotFoundException(CatalogDomainErrorCode.ProductNotFound, nameof(product));
 
         product.SetThumbnailUrl(publicUrl);
         await dbContext.SaveChangesAsync(ct);
@@ -60,8 +62,8 @@ public class MediaAssetProcessedConsumer(
         var product = await dbContext.Products
             .Include(p => p.Images)
             .FirstOrDefaultAsync(p => p.Images.Any(i => i.FileId == fileId), ct);
-
-        if (product is null) return;
+        if (product is null)
+            throw new NotFoundException(CatalogDomainErrorCode.ProductNotFound, nameof(product));
 
         product.UpdateProductImageUrl(fileId, publicUrl);
         await dbContext.SaveChangesAsync(ct);
@@ -74,14 +76,13 @@ public class MediaAssetProcessedConsumer(
             .Include(p => p.Skus).ThenInclude(s => s.Images)
             .Include(p => p.Skus).ThenInclude(s => s.SkuVariants)
             .FirstOrDefaultAsync(p => p.Skus.Any(s => s.Images.Any(i => i.FileId == fileId)), ct);
-
-        if (product is null) return;
+        if (product is null)
+            throw new NotFoundException(CatalogDomainErrorCode.ProductNotFound, nameof(product));
 
         var sku = product.Skus.First(s => s.Images.Any(i => i.FileId == fileId));
         sku.UpdateSkuImageUrl(fileId, publicUrl);
-        await dbContext.SaveChangesAsync(ct);
-
         await productEventPublisher.PublishSkuUpdatedAsync(product, ct);
+        await dbContext.SaveChangesAsync(ct);
         logger.LogInformation("Updated ImageUrl for sku image and re-published SKU event. FileId={FileId}.", fileId);
     }
 
@@ -89,8 +90,8 @@ public class MediaAssetProcessedConsumer(
     {
         var category = await dbContext.Categories
             .FirstOrDefaultAsync(c => c.ImageFileId == fileId, ct);
-
-        if (category is null) return;
+        if (category is null)
+            throw new NotFoundException(CatalogDomainErrorCode.CategoryNotFound, nameof(category));
 
         category.SetImageUrl(publicUrl);
         await dbContext.SaveChangesAsync(ct);

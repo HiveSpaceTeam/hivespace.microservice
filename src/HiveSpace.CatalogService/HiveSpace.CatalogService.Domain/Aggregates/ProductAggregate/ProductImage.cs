@@ -1,4 +1,6 @@
+using HiveSpace.CatalogService.Domain.Exceptions;
 using HiveSpace.Domain.Shared.Entities;
+using HiveSpace.Domain.Shared.Exceptions;
 
 namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate;
 
@@ -8,7 +10,12 @@ public class ProductImage(int productId, string fileId, string? imageUrl = null)
     public string FileId { get; private set; } = fileId;
     public string? ImageUrl { get; private set; } = imageUrl;
 
-    public ProductImage WithImageUrl(string url) => new(ProductId, FileId, url);
+    public ProductImage WithImageUrl(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            throw new InvalidFieldException(CatalogDomainErrorCode.InvalidImageUrl, nameof(url));
+        return new(ProductId, FileId, url);
+    }
 
     protected override IEnumerable<object> GetEqualityComponents()
     {

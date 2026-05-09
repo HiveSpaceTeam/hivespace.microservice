@@ -13,7 +13,7 @@ public static class ProductMapper
             Id: product.Id,
             Name: product.Name,
             Price: sku?.Price.Amount ?? 0m,
-            ImageURL: product.ThumbnailUrl ?? string.Empty
+            ImageURL: product.ThumbnailUrl
         );
     }
 }

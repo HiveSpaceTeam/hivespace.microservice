@@ -1,12 +1,20 @@
+using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Infrastructure.Messaging.Shared.Events.Media;
+using HiveSpace.UserService.Application.Interfaces.Messaging;
+using HiveSpace.UserService.Domain.Aggregates.Store;
+using HiveSpace.UserService.Domain.Exceptions;
 using HiveSpace.UserService.Infrastructure.Data;
+using HiveSpace.UserService.Infrastructure.Identity;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace HiveSpace.UserService.Api.Consumers.Sync;
 
-public class MediaAssetProcessedConsumer(UserDbContext db, ILogger<MediaAssetProcessedConsumer> logger)
+public class MediaAssetProcessedConsumer(
+    UserDbContext db,
+    IStoreEventPublisher storeEventPublisher,
+    ILogger<MediaAssetProcessedConsumer> logger)
     : IConsumer<MediaAssetProcessedIntegrationEvent>
 {
     public async Task Consume(ConsumeContext<MediaAssetProcessedIntegrationEvent> context)
@@ -27,32 +35,25 @@ public class MediaAssetProcessedConsumer(UserDbContext db, ILogger<MediaAssetPro
         }
     }
 
-    private async Task HandleUserAvatarAsync(Guid fileId, string publicUrl, CancellationToken ct)
+    private async Task HandleUserAvatarAsync(string fileId, string publicUrl, CancellationToken ct)
     {
-        var fileIdStr = fileId.ToString();
-        var appUser = await db.Users.FirstOrDefaultAsync(u => u.AvatarFileId == fileIdStr, ct);
+        var appUser = await db.Users.FirstOrDefaultAsync(u => u.AvatarFileId == fileId, ct);
         if (appUser is null)
-        {
-            logger.LogWarning("No user found with AvatarFileId={FileId}", fileId);
-            return;
-        }
+            throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(ApplicationUser));
 
-        appUser.AvatarUrl = publicUrl;
+        appUser.SetAvatarUrl(publicUrl);
         await db.SaveChangesAsync(ct);
         logger.LogInformation("User avatar URL updated. UserId={UserId}", appUser.Id);
     }
 
-    private async Task HandleStoreLogoAsync(Guid fileId, string publicUrl, CancellationToken ct)
+    private async Task HandleStoreLogoAsync(string fileId, string publicUrl, CancellationToken ct)
     {
-        var fileIdStr = fileId.ToString();
-        var store = await db.Stores.FirstOrDefaultAsync(s => s.LogoFileId == fileIdStr, ct);
+        var store = await db.Stores.FirstOrDefaultAsync(s => s.LogoFileId == fileId, ct);
         if (store is null)
-        {
-            logger.LogWarning("No store found with LogoFileId={FileId}", fileId);
-            return;
-        }
+            throw new NotFoundException(UserDomainErrorCode.StoreNotFound, nameof(Store));
 
         store.SetLogoUrl(publicUrl);
+        await storeEventPublisher.PublishStoreUpdatedAsync(store, ct);
         await db.SaveChangesAsync(ct);
         logger.LogInformation("Store logo URL updated. StoreId={StoreId}", store.Id);
     }

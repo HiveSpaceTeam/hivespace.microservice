@@ -1,11 +1,10 @@
-
 using HiveSpace.Infrastructure.Messaging.Events;
 
 namespace HiveSpace.Infrastructure.Messaging.Shared.Events.Stores;
 
-public record StoreCreatedIntegrationEvent : IntegrationEvent
+public record StoreUpdatedIntegrationEvent : IntegrationEvent
 {
-    public StoreCreatedIntegrationEvent(Guid id, Guid ownerId, string storeName, string? description, string logoFileId, string? logoUrl, string address)
+    public StoreUpdatedIntegrationEvent(Guid id, Guid ownerId, string storeName, string? description, string logoFileId, string? logoUrl, string address)
     {
         Id = id;
         OwnerId = ownerId;
@@ -24,4 +23,3 @@ public record StoreCreatedIntegrationEvent : IntegrationEvent
     public string? LogoUrl { get; private set; }
     public string Address { get; private set; }
 }
-

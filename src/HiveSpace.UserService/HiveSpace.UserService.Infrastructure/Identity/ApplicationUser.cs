@@ -1,7 +1,9 @@
-using Microsoft.AspNetCore.Identity;
+using HiveSpace.Domain.Shared.Exceptions;
+using HiveSpace.Domain.Shared.Interfaces;
 using HiveSpace.UserService.Domain.Aggregates.User;
 using HiveSpace.UserService.Domain.Enums;
-using HiveSpace.Domain.Shared.Interfaces;
+using HiveSpace.UserService.Domain.Exceptions;
+using Microsoft.AspNetCore.Identity;
 
 namespace HiveSpace.UserService.Infrastructure.Identity;
 
@@ -31,4 +33,11 @@ public class ApplicationUser : IdentityUser<Guid>, ISoftDeletable
     // ISoftDeletable
     public bool IsDeleted { get; set; }
     public DateTimeOffset? DeletedAt { get; set; }
+
+    public void SetAvatarUrl(string url)
+    {
+        if (string.IsNullOrEmpty(AvatarFileId))
+            throw new InvalidFieldException(UserDomainErrorCode.InvalidField, nameof(AvatarFileId));
+        AvatarUrl = url;
+    }
 }

@@ -148,6 +148,8 @@ See error handling, DI lifetime, validation pipeline, `IUserContext`, DTOs, inte
 
 **Value object copying**: Never reconstruct a value object from its own properties (`new Money(x.Amount, x.Currency)`). Use the typed static method instead — e.g. `Money.Copy(amount)`. Both `Copy<T>(T source)` (static) and `Copy<T>()` (instance) are defined on `ValueObject` and produce a shallow clone. Required wherever EF Core OwnsOne tracking demands distinct CLR instances, or to make defensive-copy intent explicit.
 
+**MassTransit consumers — never return silently**: When an entity is not found by its key, `throw new NotFoundException(...)` — never `return` silently. MassTransit retries the message and routes to the dead-letter queue on exhaustion; a silent `return` permanently swallows the failure with no observability. Always use domain exceptions (`NotFoundException`, `InvalidFieldException`) in consumers, never `System.InvalidOperationException`. Publish integration events **before** `SaveChangesAsync()` in consumers — same outbox rule as in handlers. Full rules with examples: `docs/agent/coding-rules.md` § "MassTransit consumers".
+
 ## Shared Agent Assets
 
 The repository keeps shared agent assets in canonical root-level locations:

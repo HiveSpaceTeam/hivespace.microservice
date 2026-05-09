@@ -181,7 +181,7 @@ public class ImageProcessingFunction(
         await dbContext.SaveChangesAsync();
 
         await publishEndpoint.Publish(new MediaAssetProcessedIntegrationEvent(
-            mediaAsset.Id,
+            mediaAsset.Id.ToString(),
             mediaAsset.EntityType,
             mediaAsset.EntityId,
             publicUrl,

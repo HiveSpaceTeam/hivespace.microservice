@@ -26,5 +26,6 @@ public class CatalogDomainErrorCode(int id, string name, string code) : DomainEr
     public static readonly CatalogDomainErrorCode InvalidAttribute       = new(3033, "InvalidAttribute",       "CAT3033");
 
     // Value objects
-    public static readonly CatalogDomainErrorCode InvalidMoney = new(3040, "InvalidMoney", "CAT3040");
+    public static readonly CatalogDomainErrorCode InvalidMoney     = new(3040, "InvalidMoney",     "CAT3040");
+    public static readonly CatalogDomainErrorCode InvalidImageUrl  = new(3041, "InvalidImageUrl",  "CAT3041");
 }
