@@ -144,7 +144,9 @@ Full detail on layouts, mandatory rules, and new service checklists: `docs/agent
 
 ## Coding Rules
 
-See error handling, DI lifetime, validation pipeline, `IUserContext`, DTOs, integration events, async, monetary values, and one-type-per-file: `docs/agent/coding-rules.md`
+See error handling, DI lifetime, validation pipeline, `IUserContext`, DTOs, integration events, async, monetary values, one-type-per-file, and image/media field pattern: `docs/agent/coding-rules.md`
+
+**Value object copying**: Never reconstruct a value object from its own properties (`new Money(x.Amount, x.Currency)`). Use the typed static method instead — e.g. `Money.Copy(amount)`. Both `Copy<T>(T source)` (static) and `Copy<T>()` (instance) are defined on `ValueObject` and produce a shallow clone. Required wherever EF Core OwnsOne tracking demands distinct CLR instances, or to make defensive-copy intent explicit.
 
 ## Shared Agent Assets
 

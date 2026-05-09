@@ -9,5 +9,6 @@ public record ProductSkuUpdatedIntegrationEvent(
     string SkuName,
     int Quantity,
     long Price,
-    string Currency
+    string Currency,
+    string? ThumbnailUrl = null
 ) : IntegrationEvent;

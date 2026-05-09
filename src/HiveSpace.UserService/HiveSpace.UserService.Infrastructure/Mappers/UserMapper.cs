@@ -29,6 +29,7 @@ public static class UserMapper
             EmailConfirmed = domainUser.EmailConfirmed,
             PhoneNumber = domainUser.PhoneNumber?.Value,
             FullName = domainUser.FullName,
+            AvatarFileId = domainUser.AvatarFileId,
             AvatarUrl = domainUser.AvatarUrl,
             StoreId = domainUser.StoreId,
             DateOfBirth = domainUser.DateOfBirth?.Value.DateTime,
@@ -93,18 +94,11 @@ public static class UserMapper
             isDeleted: applicationUser.IsDeleted,
             deletedAt: applicationUser.DeletedAt,
             theme: applicationUser.Theme,
-            culture: applicationUser.Culture);
+            culture: applicationUser.Culture,
+            avatarFileId: applicationUser.AvatarFileId);
         return user;
     }
 
-    /// <summary>
-    /// Update ApplicationUser with changes from Domain User
-    /// Preserves EF Core change tracking
-    /// </summary>
-    /// <summary>
-    /// Update ApplicationUser with changes from Domain User
-    /// Preserves EF Core change tracking and updates related collections
-    /// </summary>
     public static void UpdateApplicationUser(this ApplicationUser applicationUser, User domainUser)
     {
         applicationUser.UserName = domainUser.UserName;
@@ -112,6 +106,7 @@ public static class UserMapper
         applicationUser.Email = domainUser.Email.Value;
         applicationUser.PhoneNumber = domainUser.PhoneNumber?.Value;
         applicationUser.FullName = domainUser.FullName;
+        applicationUser.AvatarFileId = domainUser.AvatarFileId;
         applicationUser.AvatarUrl = domainUser.AvatarUrl;
         applicationUser.StoreId = domainUser.StoreId;
         applicationUser.DateOfBirth = domainUser.DateOfBirth?.Value.DateTime;

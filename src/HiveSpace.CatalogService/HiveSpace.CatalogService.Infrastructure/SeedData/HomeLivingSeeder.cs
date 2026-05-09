@@ -106,12 +106,12 @@ internal sealed class HomeLivingSeeder(CatalogDbContext db, ILogger<HomeLivingSe
     {
         var images = new List<ProductImage>
         {
-            new(0, "https://salt.tikicdn.com/ts/product/2b/1d/bd/5423d42a062b2355da77809294fb3cb5.png"),
-            new(0, "https://salt.tikicdn.com/ts/product/2a/e9/7e/556bf38e373de9a5db1c3d95f3b6fcaa.jpg"),
-            new(0, "https://salt.tikicdn.com/ts/product/ba/5c/f4/0e2e8c129ea9062615d30d419e705d3b.jpg"),
-            new(0, "https://salt.tikicdn.com/ts/product/2f/06/a2/17728f80098c49134d71a9520c83c194.jpg"),
-            new(0, "https://salt.tikicdn.com/ts/product/a6/be/5b/311220cdc7ab51eefb9c150261f27fe0.jpg"),
-            new(0, "https://salt.tikicdn.com/ts/product/4f/3d/b0/744b1d68a63be081ad45b711ec796c32.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/2b/1d/bd/5423d42a062b2355da77809294fb3cb5.png"),
+            Img("https://salt.tikicdn.com/ts/product/2a/e9/7e/556bf38e373de9a5db1c3d95f3b6fcaa.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/ba/5c/f4/0e2e8c129ea9062615d30d419e705d3b.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/2f/06/a2/17728f80098c49134d71a9520c83c194.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/a6/be/5b/311220cdc7ab51eefb9c150261f27fe0.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/4f/3d/b0/744b1d68a63be081ad45b711ec796c32.jpg"),
         };
 
         var attributes = BuildHomeLivingAttrs(attrMap, thuongHieu: "Elmich", xuatXu: "Trung Quốc");
@@ -136,12 +136,12 @@ internal sealed class HomeLivingSeeder(CatalogDbContext db, ILogger<HomeLivingSe
     {
         var images = new List<ProductImage>
         {
-            new(0, "https://salt.tikicdn.com/ts/product/b6/fe/b4/165dc71a83cea9aaaf58e002cd446722.jpg"),
-            new(0, "https://salt.tikicdn.com/ts/product/0b/47/45/d49cbace2e31882249dd4520191c43a8.jpg"),
-            new(0, "https://salt.tikicdn.com/ts/product/13/a7/2d/9a72c03e008f37da655f9b236aa45b2e.jpg"),
-            new(0, "https://salt.tikicdn.com/ts/product/61/87/2d/1011e28884941bd59bb5e59bcc1ef1d2.jpg"),
-            new(0, "https://salt.tikicdn.com/ts/product/67/4a/54/30bd8529d35a5dbedd0de28372e72900.jpg"),
-            new(0, "https://salt.tikicdn.com/ts/product/ed/d5/96/9e3e9ffc817172eed497dae32209ff9f.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/b6/fe/b4/165dc71a83cea9aaaf58e002cd446722.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/0b/47/45/d49cbace2e31882249dd4520191c43a8.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/13/a7/2d/9a72c03e008f37da655f9b236aa45b2e.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/61/87/2d/1011e28884941bd59bb5e59bcc1ef1d2.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/67/4a/54/30bd8529d35a5dbedd0de28372e72900.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/ed/d5/96/9e3e9ffc817172eed497dae32209ff9f.jpg"),
         };
 
         var attributes = BuildHomeLivingAttrs(attrMap, thuongHieu: "Elmich", xuatXu: "Trung Quốc");
@@ -169,12 +169,12 @@ internal sealed class HomeLivingSeeder(CatalogDbContext db, ILogger<HomeLivingSe
     {
         var images = new List<ProductImage>
         {
-            new(0, "https://salt.tikicdn.com/ts/product/4b/00/0a/a8078f70ef255fc82e613468f35bcf8b.jpg"),
-            new(0, "https://salt.tikicdn.com/ts/product/a4/e6/a3/21217af4a63afd83ce67905f00587d04.jpg"),
-            new(0, "https://salt.tikicdn.com/ts/product/35/1b/3a/53f9bbab49cbe0e0519a8a752daba038.jpg"),
-            new(0, "https://salt.tikicdn.com/ts/product/5d/13/de/0d8a472c9ed7955be1d5d1bfaec628dc.jpg"),
-            new(0, "https://salt.tikicdn.com/ts/product/5c/f7/84/8a9c22b009437266010896b41cfb164a.jpg"),
-            new(0, "https://salt.tikicdn.com/ts/product/5c/85/34/f5808302590712616c854f48ad1753c0.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/4b/00/0a/a8078f70ef255fc82e613468f35bcf8b.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/a4/e6/a3/21217af4a63afd83ce67905f00587d04.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/35/1b/3a/53f9bbab49cbe0e0519a8a752daba038.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/5d/13/de/0d8a472c9ed7955be1d5d1bfaec628dc.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/5c/f7/84/8a9c22b009437266010896b41cfb164a.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/5c/85/34/f5808302590712616c854f48ad1753c0.jpg"),
         };
 
         var attributes = BuildHomeLivingAttrs(attrMap, thuongHieu: "Elmich", xuatXu: "Việt Nam");
@@ -205,13 +205,13 @@ internal sealed class HomeLivingSeeder(CatalogDbContext db, ILogger<HomeLivingSe
     {
         var images = new List<ProductImage>
         {
-            new(0, "https://salt.tikicdn.com/ts/product/2c/41/54/b7d3d8acdcfa218a1180dfc271272788.png"),
-            new(0, "https://salt.tikicdn.com/ts/product/29/0b/20/06b78a1077a349ba5f3860a5aa206f22.png"),
-            new(0, "https://salt.tikicdn.com/ts/product/40/fe/70/b900cf836a930eb4525d05ab72f2fd00.png"),
-            new(0, "https://salt.tikicdn.com/ts/product/6a/3b/b1/7020f0d87f524e38d2df5c89ee336eb7.png"),
-            new(0, "https://salt.tikicdn.com/ts/product/8b/e7/e9/1c163ddfa6dc9bb4072a8c342aaa15bc.png"),
-            new(0, "https://salt.tikicdn.com/ts/product/a6/a3/94/ff907fb9ab6fc54b3a01217e82d8f7a0.png"),
-            new(0, "https://salt.tikicdn.com/ts/product/fd/a5/d7/4415c6f7f5ebab88256fe9afab5e7105.png"),
+            Img("https://salt.tikicdn.com/ts/product/2c/41/54/b7d3d8acdcfa218a1180dfc271272788.png"),
+            Img("https://salt.tikicdn.com/ts/product/29/0b/20/06b78a1077a349ba5f3860a5aa206f22.png"),
+            Img("https://salt.tikicdn.com/ts/product/40/fe/70/b900cf836a930eb4525d05ab72f2fd00.png"),
+            Img("https://salt.tikicdn.com/ts/product/6a/3b/b1/7020f0d87f524e38d2df5c89ee336eb7.png"),
+            Img("https://salt.tikicdn.com/ts/product/8b/e7/e9/1c163ddfa6dc9bb4072a8c342aaa15bc.png"),
+            Img("https://salt.tikicdn.com/ts/product/a6/a3/94/ff907fb9ab6fc54b3a01217e82d8f7a0.png"),
+            Img("https://salt.tikicdn.com/ts/product/fd/a5/d7/4415c6f7f5ebab88256fe9afab5e7105.png"),
         };
 
         var attributes = BuildHomeLivingAttrs(attrMap, thuongHieu: "Elmich", xuatXu: "Trung Quốc");
@@ -241,14 +241,14 @@ internal sealed class HomeLivingSeeder(CatalogDbContext db, ILogger<HomeLivingSe
     {
         var images = new List<ProductImage>
         {
-            new(0, "https://salt.tikicdn.com/media/catalog/producttmp/f7/83/26/63c82f21261db908c65d8e0dad707da1.png"),
-            new(0, "https://salt.tikicdn.com/ts/product/91/3b/57/21660068c2950d2a4a6f64a278ae972a.jpg"),
-            new(0, "https://salt.tikicdn.com/ts/product/e9/e8/c8/3b4fdc16c9d2dcd0a93ceda9b300b84e.jpg"),
-            new(0, "https://salt.tikicdn.com/media/catalog/producttmp/76/33/0d/a482b792994b77042042a446f31408f6.jpg"),
-            new(0, "https://salt.tikicdn.com/ts/product/73/cc/93/4867a8950fcd50293dc214aa1a2167ad.jpg"),
-            new(0, "https://salt.tikicdn.com/ts/product/a1/d8/e1/d261f9575bd997199cd0e4b2f386fa80.jpg"),
-            new(0, "https://salt.tikicdn.com/ts/product/3e/e7/85/aeb9974685f6fc832ed7fd2d65c16001.jpg"),
-            new(0, "https://salt.tikicdn.com/ts/product/e1/e3/33/12885c3f16e4f0b2670228ccbc2ed4cf.jpg"),
+            Img("https://salt.tikicdn.com/media/catalog/producttmp/f7/83/26/63c82f21261db908c65d8e0dad707da1.png"),
+            Img("https://salt.tikicdn.com/ts/product/91/3b/57/21660068c2950d2a4a6f64a278ae972a.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/e9/e8/c8/3b4fdc16c9d2dcd0a93ceda9b300b84e.jpg"),
+            Img("https://salt.tikicdn.com/media/catalog/producttmp/76/33/0d/a482b792994b77042042a446f31408f6.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/73/cc/93/4867a8950fcd50293dc214aa1a2167ad.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/a1/d8/e1/d261f9575bd997199cd0e4b2f386fa80.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/3e/e7/85/aeb9974685f6fc832ed7fd2d65c16001.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/e1/e3/33/12885c3f16e4f0b2670228ccbc2ed4cf.jpg"),
         };
 
         var attributes = BuildHomeLivingAttrs(attrMap, thuongHieu: "Elmich", xuatXu: "Trung Quốc");
@@ -271,7 +271,7 @@ internal sealed class HomeLivingSeeder(CatalogDbContext db, ILogger<HomeLivingSe
     {
         var images = new List<ProductImage>
         {
-            new(0, "https://salt.tikicdn.com/ts/product/f5/a4/76/b640154bcbead272f5785380fd6c0599.png"),
+            Img("https://salt.tikicdn.com/ts/product/f5/a4/76/b640154bcbead272f5785380fd6c0599.png"),
         };
 
         var attributes = BuildHomeLivingAttrs(attrMap, thuongHieu: "Scrub Daddy", xuatXu: "Việt Nam");
@@ -291,6 +291,10 @@ internal sealed class HomeLivingSeeder(CatalogDbContext db, ILogger<HomeLivingSe
             "Miếng rửa chén Scrub Daddy FlexTexture, không mùi, không trầy xước, 4 màu.",
             "7715635354376", 119000m, SeedConstants.TikiSellerId, categoryId, images, attributes, description, now);
     }
+
+    // ── Image helpers ─────────────────────────────────────────────────────────────
+    private static ProductImage Img(string url) => new(0, Guid.NewGuid().ToString(), url);
+    private static SkuImage SkuImg(string url) => new(Guid.NewGuid().ToString(), url);
 
     // ── Helpers ──────────────────────────────────────────────────────────────────
     private static List<ProductAttribute> BuildHomeLivingAttrs(
@@ -321,11 +325,11 @@ internal sealed class HomeLivingSeeder(CatalogDbContext db, ILogger<HomeLivingSe
         var categories = new List<ProductCategory> { new(categoryId) };
         var skus = new List<Sku>
         {
-            new(skuNo, [], images.Take(1).Select(img => new SkuImage(img.FileId)).ToList(),
+            new(skuNo, [], images.Take(1).Select(img => new SkuImage(img.FileId, img.ImageUrl)).ToList(),
                 quantity: 100, isActive: true, price: Money.FromVND((long)(price)))
         };
 
-        return Product.CreateProduct(
+        var product = Product.CreateProduct(
             name:             name,
             slug:             slug,
             description:      description,
@@ -340,8 +344,12 @@ internal sealed class HomeLivingSeeder(CatalogDbContext db, ILogger<HomeLivingSe
             skus:             skus,
             variants:         [],
             createdAt:        now,
-            createdBy:        "seed"
+            createdBy:        "seed",
+            thumbnailFileId:  images.FirstOrDefault()?.FileId
         );
+        var thumbnailUrl = images.FirstOrDefault()?.ImageUrl;
+        if (thumbnailUrl is not null) product.SetThumbnailUrl(thumbnailUrl);
+        return product;
     }
 
     private static Product Build(
@@ -349,14 +357,14 @@ internal sealed class HomeLivingSeeder(CatalogDbContext db, ILogger<HomeLivingSe
         string skuNo, decimal price, string thumbnailUrl, int categoryId, DateTimeOffset createdAt)
     {
         var categories = new List<ProductCategory> { new(categoryId) };
-        var images = new List<ProductImage> { new(0, thumbnailUrl) };
+        var images = new List<ProductImage> { Img(thumbnailUrl) };
         var skus = new List<Sku>
         {
-            new(skuNo, [], [new SkuImage(thumbnailUrl)], quantity: 100, isActive: true,
+            new(skuNo, [], [SkuImg(thumbnailUrl)], quantity: 100, isActive: true,
                 price: Money.FromVND((long)(price)))
         };
 
-        return Product.CreateProduct(
+        var product = Product.CreateProduct(
             name:             name,
             slug:             slug,
             description:      description,
@@ -371,8 +379,11 @@ internal sealed class HomeLivingSeeder(CatalogDbContext db, ILogger<HomeLivingSe
             skus:             skus,
             variants:         [],
             createdAt:        createdAt,
-            createdBy:        "seed"
+            createdBy:        "seed",
+            thumbnailFileId:  images.FirstOrDefault()?.FileId
         );
+        product.SetThumbnailUrl(thumbnailUrl);
+        return product;
     }
 }
 

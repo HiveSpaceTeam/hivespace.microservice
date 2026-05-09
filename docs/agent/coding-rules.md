@@ -251,3 +251,7 @@ var ref = await userRefRepo.GetByIdAsync(targetUserId, ct);
 | MassTransit consumers | Read user identity from the message payload |
 | Hangfire background jobs | Pass user data as job arguments at enqueue time |
 | SignalR hubs | Use `Context.User` (ClaimsPrincipal captured at handshake) and `Context.UserIdentifier` |
+
+## Image & media fields
+
+Every image-bearing entity stores a `*FileId` (set at creation, never changed) and a `*Url` (nullable, resolved after processing by `MediaAssetProcessedConsumer`). Never store only a URL; never expose a FileId as a URL. See the full dual-field pattern, EntityType table, consumer rules, and EF config conventions: `docs/agent/media-asset-patterns.md`

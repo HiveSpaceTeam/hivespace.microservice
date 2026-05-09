@@ -21,6 +21,7 @@ public class User : AggregateRoot<Guid>, IAuditable, ISoftDeletable
     
     // Profile
     public string FullName { get; private set; }  // Primitive value
+    public string? AvatarFileId { get; private set; }
     public string? AvatarUrl { get; private set; }
     public PhoneNumber? PhoneNumber { get; private set; }
     public DateOfBirth? DateOfBirth { get; private set; }
@@ -104,10 +105,12 @@ public class User : AggregateRoot<Guid>, IAuditable, ISoftDeletable
         DateTimeOffset? deletedAt = null,
         IEnumerable<Address>? addresses = null,
         Theme theme = Theme.Light,
-        Culture culture = Culture.Vi)
+        Culture culture = Culture.Vi,
+        string? avatarFileId = null)
     {
         var user = new User(email, userName, passwordHash, fullName, role, avatarUrl, phoneNumber, dateOfBirth, gender, storeId, status, emailConfirmed, createdAt, updatedAt, lastLoginAt);
         user.Id = id; // protected setter available within the assembly
+        user.AvatarFileId = avatarFileId;
 
         // Initialize settings
         user.Settings = new UserSettings(theme, culture);
@@ -165,6 +168,17 @@ public class User : AggregateRoot<Guid>, IAuditable, ISoftDeletable
         return !userName.All(c => char.IsLetterOrDigit(c) || c == '_' || c == '-' || c == '@' || c == '.');
     }
     
+    public void SetAvatar(string fileId)
+    {
+        AvatarFileId = fileId;
+        AvatarUrl = null;
+    }
+
+    public void SetAvatarUrl(string url)
+    {
+        AvatarUrl = url;
+    }
+
     public void UpdateProfile(string? fullName, PhoneNumber? phoneNumber, DateOfBirth? dateOfBirth, Gender? gender, string? userName = null)
     {
         if (!string.IsNullOrWhiteSpace(fullName)) FullName = fullName.Trim();

@@ -29,6 +29,9 @@ public class ApplicationUserEntityConfiguration : IEntityTypeConfiguration<Appli
             .IsRequired()
             .HasMaxLength(100);
 
+        builder.Property(u => u.AvatarFileId)
+            .HasMaxLength(100);
+
         builder.Property(u => u.AvatarUrl)
             .HasMaxLength(2048);
 

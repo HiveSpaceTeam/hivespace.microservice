@@ -1,5 +1,6 @@
 using HiveSpace.Core;
 using HiveSpace.Infrastructure.Messaging.Extensions;
+using HiveSpace.UserService.Api.Consumers.Sync;
 using HiveSpace.UserService.Infrastructure;
 using HiveSpace.UserService.Infrastructure.Data;
 using HiveSpace.Infrastructure.Messaging.Configurations;
@@ -47,6 +48,7 @@ internal static class HostingExtensions
         {
             builder.Services.AddMassTransitWithRabbitMq<UserDbContext>(configuration, cfg =>
             {
+                cfg.AddConsumer<MediaAssetProcessedConsumer>();
             });
         }
 

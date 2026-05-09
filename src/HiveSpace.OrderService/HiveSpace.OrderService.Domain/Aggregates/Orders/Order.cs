@@ -152,9 +152,8 @@ public class Order : AggregateRoot<Guid>, IAuditable
             throw new InvalidFieldException(OrderDomainErrorCode.CouponStoreNotApplicable, nameof(coupon.StoreId));
 
         var calculatedDiscount = coupon.CalculateDiscount(SubTotal);
-        var discountAmount = new Money(calculatedDiscount.Amount, calculatedDiscount.Currency);
-
-        var persistedDiscountAmount = new Money(discountAmount.Amount, discountAmount.Currency);
+        var discountAmount = Money.Copy(calculatedDiscount);
+        var persistedDiscountAmount = Money.Copy(discountAmount);
 
         var discount = coupon.OwnerType == CouponOwnerType.Store
             ? Discount.CreateStoreDiscount(coupon.Id, coupon.Code, persistedDiscountAmount, coupon.Scope)

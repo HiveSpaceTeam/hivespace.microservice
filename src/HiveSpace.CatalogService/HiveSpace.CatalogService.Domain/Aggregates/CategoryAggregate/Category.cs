@@ -1,37 +1,42 @@
-﻿using HiveSpace.Domain.Shared.Entities;
+using HiveSpace.Domain.Shared.Entities;
 
 namespace HiveSpace.CatalogService.Domain.Aggregates.CategoryAggregate
 {
-    public class Category: AggregateRoot<int>
+    public class Category : AggregateRoot<int>
     {
         public string Name { get; private set; }
         public int? ParentId { get; private set; }
         public int? ProductSetId { get; private set; }
         public bool? IsActive { get; private set; }
-        public string? FilePath { get; private set; }
+        public string? ImageFileId { get; private set; }
+        public string? ImageUrl { get; private set; }
 
         private readonly List<CategoryAttribute> _categoryAttributes = [];
         public IReadOnlyCollection<CategoryAttribute> CategoryAttributes => _categoryAttributes.AsReadOnly();
 
-        // Parameterless constructor for Entity Framework
         private Category()
         {
             Name = string.Empty;
         }
 
-        public Category(string name, int? parentId = null, int? productSetId = null, bool? isActive = null, string? filePath = null)
+        public Category(string name, int? parentId = null, int? productSetId = null, bool? isActive = null, string? imageFileId = null)
         {
             Name = name;
             ParentId = parentId;
             ProductSetId = productSetId;
             IsActive = isActive;
-            FilePath = filePath;
+            ImageFileId = imageFileId;
         }
 
-        public Category(int id, string name, int? parentId = null, int? productSetId = null, bool? isActive = null, string? filePath = null)
-            : this(name, parentId, productSetId, isActive, filePath)
+        public Category(int id, string name, int? parentId = null, int? productSetId = null, bool? isActive = null, string? imageFileId = null)
+            : this(name, parentId, productSetId, isActive, imageFileId)
         {
             Id = id;
+        }
+
+        public void SetImageUrl(string url)
+        {
+            ImageUrl = url;
         }
 
         public void AddAttribute(int attributeId)

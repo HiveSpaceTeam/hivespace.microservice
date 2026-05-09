@@ -30,8 +30,8 @@ public class Transaction : Entity<Guid>
             // as owned entities of other aggregates (Payment.Amount, Wallet.AvailableBalance)
             // in the same DbContext. Sharing the same CLR instance across two OwnsOne owners
             // corrupts EF Core's ownership map and causes DbUpdateConcurrencyException.
-            Amount = new Money(amount.Amount, amount.Currency),
-            BalanceAfter = new Money(balanceAfter.Amount, balanceAfter.Currency),
+            Amount = Money.Copy(amount),
+            BalanceAfter = Money.Copy(balanceAfter),
             Reference = reference,
             Description = description,
             TransactedAt = DateTimeOffset.UtcNow
@@ -45,8 +45,8 @@ public class Transaction : Entity<Guid>
             WalletId = walletId,
             Type = DetermineType(reference),
             Direction = TransactionDirection.Debit,
-            Amount = new Money(amount.Amount, amount.Currency),
-            BalanceAfter = new Money(balanceAfter.Amount, balanceAfter.Currency),
+            Amount = Money.Copy(amount),
+            BalanceAfter = Money.Copy(balanceAfter),
             Reference = reference,
             Description = description,
             TransactedAt = DateTimeOffset.UtcNow

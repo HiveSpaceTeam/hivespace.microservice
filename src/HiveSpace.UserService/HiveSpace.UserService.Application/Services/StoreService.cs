@@ -1,7 +1,5 @@
 using HiveSpace.Core.Contexts;
 using HiveSpace.UserService.Application.Interfaces.Messaging;
-using HiveSpace.Domain.Shared.Exceptions;
-using HiveSpace.Domain.Shared.Errors;
 using HiveSpace.UserService.Application.Interfaces.Services;
 using HiveSpace.UserService.Application.DTOs.Store;
 using HiveSpace.UserService.Domain.Repositories;
@@ -24,11 +22,11 @@ public class StoreService : IStoreService
         IUserRepository userRepository,
         IStoreEventPublisher storeEventPublisher)
     {
-        _userContext = userContext ?? throw new InvalidFieldException(DomainErrorCode.ArgumentNull, nameof(userContext));
-        _storeManager = storeManager ?? throw new InvalidFieldException(DomainErrorCode.ArgumentNull, nameof(storeManager));
-        _storeRepository = storeRepository ?? throw new InvalidFieldException(DomainErrorCode.ArgumentNull, nameof(storeRepository));
-        _userRepository = userRepository ?? throw new InvalidFieldException(DomainErrorCode.ArgumentNull, nameof(userRepository));
-        _storeEventPublisher = storeEventPublisher ?? throw new InvalidFieldException(DomainErrorCode.ArgumentNull, nameof(storeEventPublisher));
+        _userContext = userContext;
+        _storeManager = storeManager;
+        _storeRepository = storeRepository;
+        _userRepository = userRepository;
+        _storeEventPublisher = storeEventPublisher;
     }
     
     public async Task<CreateStoreResponseDto> CreateStoreAsync(CreateStoreRequestDto request, CancellationToken cancellationToken = default)
@@ -42,16 +40,16 @@ public class StoreService : IStoreService
             null,
             cancellationToken);
 
-        // Save through repository
+        // Save through repository — both writes share the same DbContext and commit atomically
         _storeRepository.Add(registration.Store);
-        
-        await _storeEventPublisher.PublishStoreCreatedAsync(registration.Store, cancellationToken);
         await _userRepository.UpdateUserAsync(registration.Owner, cancellationToken);
+
+        await _storeEventPublisher.PublishStoreCreatedAsync(registration.Store, cancellationToken);
         return new CreateStoreResponseDto(
             registration.Store.Id,
             registration.Store.StoreName,
             registration.Store.Description,
-            registration.Store.LogoUrl,
+            registration.Store.LogoFileId,
             registration.Store.Address);
     }
 }

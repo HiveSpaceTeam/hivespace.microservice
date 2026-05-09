@@ -11,130 +11,128 @@ public class Store : AggregateRoot<Guid>
     public Guid OwnerId { get; private set; }
     public string StoreName { get; private set; }
     public string? Description { get; private set; }
-    public string LogoUrl { get; private set; }
+    public string LogoFileId { get; private set; }
+    public string? LogoUrl { get; private set; }
     public string Address { get; private set; }
     public StoreStatus Status { get; private set; }
-    
+
     // Audit
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
 
     private Store()
     {
-        
+        LogoFileId = string.Empty;
     }
-    
-    // Internal factory method for domain service use only
-    internal static Store Create(string storeName, string? description, string logoUrl, string storeAddress, Guid ownerId, Guid? storeId)
+
+    internal static Store Create(string storeName, string? description, string logoFileId, string storeAddress, Guid ownerId, Guid? storeId)
     {
-        ValidateAndThrow(storeName, description, logoUrl, storeAddress, ownerId);
-        
+        ValidateAndThrow(storeName, description, logoFileId, storeAddress, ownerId);
+
         return new Store
         {
             Id = storeId ?? Guid.NewGuid(),
             StoreName = storeName.Trim(),
             Description = description?.Trim(),
-            LogoUrl = logoUrl.Trim(),
+            LogoFileId = logoFileId.Trim(),
+            LogoUrl = null,
             Address = storeAddress.Trim(),
             OwnerId = ownerId,
             Status = StoreStatus.Active,
-            CreatedAt = DateTimeOffset.UtcNow
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow
         };
     }
-    
-    private static void ValidateAndThrow(string? storeName, string? description, string? logoUrl, string? storeAddress, Guid ownerId)
+
+    private static void ValidateAndThrow(string? storeName, string? description, string? logoFileId, string? storeAddress, Guid ownerId)
     {
         if (string.IsNullOrWhiteSpace(storeName))
             throw new InvalidFieldException(UserDomainErrorCode.InvalidField, nameof(Store.StoreName));
-        if (string.IsNullOrWhiteSpace(logoUrl))
-            throw new InvalidFieldException(UserDomainErrorCode.InvalidField, nameof(Store.LogoUrl));
+        if (string.IsNullOrWhiteSpace(logoFileId))
+            throw new InvalidFieldException(UserDomainErrorCode.InvalidField, nameof(Store.LogoFileId));
         if (string.IsNullOrWhiteSpace(storeAddress))
             throw new InvalidFieldException(UserDomainErrorCode.InvalidField, nameof(Store.Address));
         if (ownerId == Guid.Empty)
             throw new InvalidFieldException(UserDomainErrorCode.InvalidField, nameof(Store.OwnerId));
-            
+
         ValidateStoreName(storeName);
         ValidateStoreDescription(description);
-        ValidateLogoUrl(logoUrl);
+        ValidateLogoFileId(logoFileId);
         ValidateStoreAddress(storeAddress);
     }
-    
+
     private static void ValidateStoreName(string storeName)
     {
-        var trimmedStoreName = storeName.Trim();
-        if (trimmedStoreName.Length < 2 || trimmedStoreName.Length > 100)
+        var trimmed = storeName.Trim();
+        if (trimmed.Length < 2 || trimmed.Length > 100)
             throw new InvalidFieldException(UserDomainErrorCode.InvalidField, nameof(Store.StoreName));
     }
-    
+
     private static void ValidateStoreDescription(string? description)
     {
-        if (!string.IsNullOrEmpty(description))
-        {
-            var trimmedDescription = description.Trim();
-            if (trimmedDescription.Length > 500)
-                throw new InvalidFieldException(UserDomainErrorCode.InvalidField, nameof(Store.Description));
-        }
+        if (!string.IsNullOrEmpty(description) && description.Trim().Length > 500)
+            throw new InvalidFieldException(UserDomainErrorCode.InvalidField, nameof(Store.Description));
     }
-    
-    private static void ValidateLogoUrl(string? logoUrl)
+
+    private static void ValidateLogoFileId(string? logoFileId)
     {
-        if (string.IsNullOrEmpty(logoUrl))
-            throw new InvalidFieldException(UserDomainErrorCode.InvalidField, nameof(Store.LogoUrl));
-            
-        var trimmedLogoUrl = logoUrl.Trim();
-        if (trimmedLogoUrl.Length > 500)
-            throw new InvalidFieldException(UserDomainErrorCode.InvalidField, nameof(Store.LogoUrl));
+        if (string.IsNullOrEmpty(logoFileId))
+            throw new InvalidFieldException(UserDomainErrorCode.InvalidField, nameof(Store.LogoFileId));
+        if (logoFileId.Trim().Length > 100)
+            throw new InvalidFieldException(UserDomainErrorCode.InvalidField, nameof(Store.LogoFileId));
     }
-    
+
     private static void ValidateStoreAddress(string? storeAddress)
     {
-        if (string.IsNullOrEmpty(storeAddress))
-            throw new InvalidFieldException(UserDomainErrorCode.InvalidField, nameof(Store.Address));
-            
-        var trimmedAddress = storeAddress.Trim();
-        if (trimmedAddress.Length > 500)
+        if (string.IsNullOrEmpty(storeAddress) || storeAddress.Trim().Length > 500)
             throw new InvalidFieldException(UserDomainErrorCode.InvalidField, nameof(Store.Address));
     }
-    
-    // Domain Methods
-    public void UpdateDetails(string? storeName, string? storeDescription, string? logoUrl, string? storeAddress)
+
+    public void UpdateDetails(string? storeName, string? storeDescription, string? logoFileId, string? storeAddress)
     {
         if (!string.IsNullOrWhiteSpace(storeName))
         {
             ValidateStoreName(storeName);
             StoreName = storeName.Trim();
         }
-        
+
         if (storeDescription != null)
         {
             ValidateStoreDescription(storeDescription);
             Description = storeDescription.Trim();
         }
-        
-        if (!string.IsNullOrWhiteSpace(logoUrl))
+
+        if (!string.IsNullOrWhiteSpace(logoFileId))
         {
-            ValidateLogoUrl(logoUrl);
-            LogoUrl = logoUrl.Trim();
+            ValidateLogoFileId(logoFileId);
+            LogoFileId = logoFileId.Trim();
+            LogoUrl = null;
         }
-        
+
         if (!string.IsNullOrWhiteSpace(storeAddress))
         {
             ValidateStoreAddress(storeAddress);
             Address = storeAddress.Trim();
         }
     }
-    
-    public void UpdateLogo(string logoUrl)
+
+    public void UpdateLogo(string logoFileId)
     {
-        ValidateLogoUrl(logoUrl);
-        LogoUrl = string.IsNullOrWhiteSpace(logoUrl) ? string.Empty : logoUrl.Trim();
+        ValidateLogoFileId(logoFileId);
+        LogoFileId = logoFileId.Trim();
+        LogoUrl = null;
     }
-    
+
+    public void SetLogoUrl(string url)
+    {
+        LogoUrl = url;
+    }
+
     public void Activate()
     {
         Status = StoreStatus.Active;
     }
-    
+
     public void Deactivate()
     {
         Status = StoreStatus.Inactive;

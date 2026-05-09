@@ -3,14 +3,8 @@ using HiveSpace.UserService.Application.DTOs.Admin;
 
 namespace HiveSpace.UserService.Application.Extensions;
 
-/// <summary>
-/// Extension methods for mapping Domain User to Application DTOs
-/// </summary>
 public static class UserMappingExtensions
 {
-    /// <summary>
-    /// Convert Domain User to UserDto for API responses
-    /// </summary>
     public static UserDto ToUserDto(this User domainUser)
     {
         return new UserDto(
@@ -27,9 +21,6 @@ public static class UserMappingExtensions
         );
     }
 
-    /// <summary>
-    /// Convert Domain User to AdminDto for API responses
-    /// </summary>
     public static AdminDto ToAdminDto(this User domainUser)
     {
         return new AdminDto(
@@ -46,9 +37,6 @@ public static class UserMappingExtensions
         );
     }
 
-    /// <summary>
-    /// Convert Domain User to SetUserStatusResponseDto for status update responses
-    /// </summary>
     public static SetUserStatusResponseDto ToSetUserStatusResponseDto(this User domainUser)
     {
         return new SetUserStatusResponseDto(
@@ -65,9 +53,6 @@ public static class UserMappingExtensions
         );
     }
 
-    /// <summary>
-    /// Convert Domain User to SetAdminStatusResponseDto for status update responses
-    /// </summary>
     public static SetAdminStatusResponseDto ToSetAdminStatusResponseDto(this User domainUser)
     {
         return new SetAdminStatusResponseDto(
@@ -84,9 +69,6 @@ public static class UserMappingExtensions
         );
     }
 
-    /// <summary>
-    /// Convert Domain User to DeleteUserResponseDto for user deletion responses
-    /// </summary>
     public static DeleteUserResponseDto ToDeleteUserResponseDto(this User domainUser, string deletedBy)
     {
         return new DeleteUserResponseDto(

@@ -1,3 +1,4 @@
+using MassTransit;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -56,6 +57,19 @@ var host = new HostBuilder()
                     maxRetryDelay: TimeSpan.FromSeconds(30),
                     errorNumbersToAdd: null)
                 .CommandTimeout(120));
+        });
+
+        // Register MassTransit for publishing integration events (publish-only, no consumers)
+        services.AddMassTransit(x =>
+        {
+            x.UsingRabbitMq((_, cfg) =>
+            {
+                cfg.Host(configuration["RabbitMq:Host"], h =>
+                {
+                    h.Username(configuration["RabbitMq:Username"] ?? "guest");
+                    h.Password(configuration["RabbitMq:Password"] ?? "guest");
+                });
+            });
         });
     })
     .Build();

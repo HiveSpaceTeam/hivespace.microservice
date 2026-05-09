@@ -17,9 +17,14 @@ public class StoreEntityConfiguration : IEntityTypeConfiguration<Store>
         builder.Property(s => s.Description)
             .HasMaxLength(500);
 
-        builder.Property(s => s.LogoUrl)
-            .HasMaxLength(500)
+        builder.Property(s => s.LogoFileId)
+            .HasColumnName("logo_file_id")
+            .HasMaxLength(100)
             .IsRequired();
+
+        builder.Property(s => s.LogoUrl)
+            .HasColumnName("logo_url")
+            .HasMaxLength(500);
 
         builder.Property(s => s.Address)
             .HasMaxLength(500)

@@ -95,10 +95,14 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
                     .Metadata.SetValueComparer(comparer);
             });
 
+            builder.Property(p => p.ThumbnailFileId).HasMaxLength(100);
+            builder.Property(p => p.ThumbnailUrl).HasMaxLength(500);
+
             builder.OwnsMany(p => p.Images, pi =>
             {
                 pi.ToTable("product_images");
                 pi.WithOwner().HasForeignKey(x => x.ProductId);
+                pi.Property(x => x.ImageUrl).HasMaxLength(500);
             });
 
             builder.HasMany(p => p.Variants)

@@ -98,14 +98,14 @@ internal sealed class BookstoreSeeder(CatalogDbContext db, ILogger<BookstoreSeed
     {
         var images = new List<ProductImage>
         {
-            new(0, "https://salt.tikicdn.com/ts/product/9b/b4/9c/5a987bea2919a2142f5db4f77c3fb5e7.png"),
-            new(0, "https://salt.tikicdn.com/ts/product/1a/93/81/8eeb330966ef1fc7ba332c20e2ab219d.png"),
-            new(0, "https://salt.tikicdn.com/ts/product/30/05/c8/ca5085308f31316b285d21b01a123c8f.png"),
-            new(0, "https://salt.tikicdn.com/ts/product/81/4d/97/4198cb21a16cba040ff5cb6df4e8680a.png"),
-            new(0, "https://salt.tikicdn.com/ts/product/50/0b/b8/bc88f2edbb913342905fd4dd0cca038a.png"),
-            new(0, "https://salt.tikicdn.com/ts/product/cd/b1/ff/592a186a9e5c55d749aa2c22574215f2.png"),
-            new(0, "https://salt.tikicdn.com/ts/product/1d/71/a9/35e277d0f48d353c50a127a72dbf19d1.png"),
-            new(0, "https://salt.tikicdn.com/ts/product/c7/76/e4/e4367bcc37770142e22507d095b8c991.png"),
+            Img("https://salt.tikicdn.com/ts/product/9b/b4/9c/5a987bea2919a2142f5db4f77c3fb5e7.png"),
+            Img("https://salt.tikicdn.com/ts/product/1a/93/81/8eeb330966ef1fc7ba332c20e2ab219d.png"),
+            Img("https://salt.tikicdn.com/ts/product/30/05/c8/ca5085308f31316b285d21b01a123c8f.png"),
+            Img("https://salt.tikicdn.com/ts/product/81/4d/97/4198cb21a16cba040ff5cb6df4e8680a.png"),
+            Img("https://salt.tikicdn.com/ts/product/50/0b/b8/bc88f2edbb913342905fd4dd0cca038a.png"),
+            Img("https://salt.tikicdn.com/ts/product/cd/b1/ff/592a186a9e5c55d749aa2c22574215f2.png"),
+            Img("https://salt.tikicdn.com/ts/product/1d/71/a9/35e277d0f48d353c50a127a72dbf19d1.png"),
+            Img("https://salt.tikicdn.com/ts/product/c7/76/e4/e4367bcc37770142e22507d095b8c991.png"),
         };
 
         var attributes = BuildBookAttrs(attrMap,
@@ -149,16 +149,16 @@ internal sealed class BookstoreSeeder(CatalogDbContext db, ILogger<BookstoreSeed
     {
         var images = new List<ProductImage>
         {
-            new(0, "https://salt.tikicdn.com/ts/product/a5/33/3b/7df8544dc35fe951c9f1e8d7e11af086.png"),
-            new(0, "https://salt.tikicdn.com/ts/product/c5/27/f2/74caaff9befc3d584bb4eb0e49d68bff.png"),
-            new(0, "https://salt.tikicdn.com/ts/product/2f/99/1f/56519f1f711e17e0db92dc3ac62e4da9.png"),
-            new(0, "https://salt.tikicdn.com/ts/product/ea/e2/fb/2bd37c350866427c6b29167da2b41cf6.png"),
-            new(0, "https://salt.tikicdn.com/ts/product/5d/eb/d0/5855d8a3707fcee0c9b1f20330dd9d67.png"),
-            new(0, "https://salt.tikicdn.com/ts/product/97/02/9d/43d6567159594cc431106586f29d4494.png"),
-            new(0, "https://salt.tikicdn.com/ts/product/d0/1f/26/85293d007816538059223f596bd03bea.png"),
-            new(0, "https://salt.tikicdn.com/ts/product/08/c8/69/9f2f3e18fc5f9e6bd84d0b299757387a.png"),
-            new(0, "https://salt.tikicdn.com/ts/product/89/ff/f7/966e4aa2b274644acf77159252cb0028.png"),
-            new(0, "https://salt.tikicdn.com/ts/product/84/46/59/faee8952cc5a386bb735981205da919c.png"),
+            Img("https://salt.tikicdn.com/ts/product/a5/33/3b/7df8544dc35fe951c9f1e8d7e11af086.png"),
+            Img("https://salt.tikicdn.com/ts/product/c5/27/f2/74caaff9befc3d584bb4eb0e49d68bff.png"),
+            Img("https://salt.tikicdn.com/ts/product/2f/99/1f/56519f1f711e17e0db92dc3ac62e4da9.png"),
+            Img("https://salt.tikicdn.com/ts/product/ea/e2/fb/2bd37c350866427c6b29167da2b41cf6.png"),
+            Img("https://salt.tikicdn.com/ts/product/5d/eb/d0/5855d8a3707fcee0c9b1f20330dd9d67.png"),
+            Img("https://salt.tikicdn.com/ts/product/97/02/9d/43d6567159594cc431106586f29d4494.png"),
+            Img("https://salt.tikicdn.com/ts/product/d0/1f/26/85293d007816538059223f596bd03bea.png"),
+            Img("https://salt.tikicdn.com/ts/product/08/c8/69/9f2f3e18fc5f9e6bd84d0b299757387a.png"),
+            Img("https://salt.tikicdn.com/ts/product/89/ff/f7/966e4aa2b274644acf77159252cb0028.png"),
+            Img("https://salt.tikicdn.com/ts/product/84/46/59/faee8952cc5a386bb735981205da919c.png"),
         };
 
         var attributes = BuildBookAttrs(attrMap,
@@ -202,8 +202,8 @@ internal sealed class BookstoreSeeder(CatalogDbContext db, ILogger<BookstoreSeed
     {
         var images = new List<ProductImage>
         {
-            new(0, "https://salt.tikicdn.com/ts/product/ea/f7/82/a783af353ebf7dd91319b414b266c3b8.jpg"),
-            new(0, "https://salt.tikicdn.com/ts/product/e8/77/c6/3b2e45875c2c70391badf1b5bfc7bfd0.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/ea/f7/82/a783af353ebf7dd91319b414b266c3b8.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/e8/77/c6/3b2e45875c2c70391badf1b5bfc7bfd0.jpg"),
         };
 
         var attributes = BuildBookAttrs(attrMap,
@@ -242,7 +242,7 @@ internal sealed class BookstoreSeeder(CatalogDbContext db, ILogger<BookstoreSeed
     {
         var images = new List<ProductImage>
         {
-            new(0, "https://salt.tikicdn.com/ts/product/5c/2c/6e/b132dd51b7db43b8a9b2694d0b7b609f.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/5c/2c/6e/b132dd51b7db43b8a9b2694d0b7b609f.jpg"),
         };
 
         var attributes = BuildBookAttrs(attrMap,
@@ -281,9 +281,9 @@ internal sealed class BookstoreSeeder(CatalogDbContext db, ILogger<BookstoreSeed
     {
         var images = new List<ProductImage>
         {
-            new(0, "https://salt.tikicdn.com/ts/product/52/ed/fb/484f032ea38a92bb080d8211ae55a039.jpg"),
-            new(0, "https://salt.tikicdn.com/ts/product/1b/fa/c1/c3115ee82bcc5001db442a0ad8581332.jpg"),
-            new(0, "https://salt.tikicdn.com/ts/product/53/91/b2/7bd4b0d9ce68a5d934dde4d657751680.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/52/ed/fb/484f032ea38a92bb080d8211ae55a039.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/1b/fa/c1/c3115ee82bcc5001db442a0ad8581332.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/53/91/b2/7bd4b0d9ce68a5d934dde4d657751680.jpg"),
         };
 
         var attributes = BuildBookAttrs(attrMap,
@@ -343,15 +343,15 @@ internal sealed class BookstoreSeeder(CatalogDbContext db, ILogger<BookstoreSeed
     {
         var images = new List<ProductImage>
         {
-            new(0, "https://salt.tikicdn.com/ts/product/15/8d/9a/6cdf5d8b69e75654e892dbdb3a94167b.jpg"),
-            new(0, "https://salt.tikicdn.com/ts/product/16/0e/a1/c0e86ae79a376559959d756d577f2aab.jpeg"),
-            new(0, "https://salt.tikicdn.com/ts/product/98/44/13/b833174bbdd377a0eb76422a675c8841.jpg"),
-            new(0, "https://salt.tikicdn.com/ts/product/a1/34/94/0a052acd1d637b396f6f47a0542d445d.jpg"),
-            new(0, "https://salt.tikicdn.com/ts/product/f0/92/c9/1fcf6fa6810e3ce1be4ce013cf07be9c.jpg"),
-            new(0, "https://salt.tikicdn.com/ts/product/db/2d/84/95a96c8bb158ff22824e3463f936cec8.jpg"),
-            new(0, "https://salt.tikicdn.com/ts/product/af/85/0f/7ada1013dbb9bf80463983513b4b0ccb.jpg"),
-            new(0, "https://salt.tikicdn.com/ts/product/aa/6a/50/229b5fd0fbd50099ff53b2d0e294bf51.jpg"),
-            new(0, "https://salt.tikicdn.com/ts/product/8f/dc/d8/6e2dbeea971cffd73df6d8aeb0bffb7a.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/15/8d/9a/6cdf5d8b69e75654e892dbdb3a94167b.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/16/0e/a1/c0e86ae79a376559959d756d577f2aab.jpeg"),
+            Img("https://salt.tikicdn.com/ts/product/98/44/13/b833174bbdd377a0eb76422a675c8841.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/a1/34/94/0a052acd1d637b396f6f47a0542d445d.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/f0/92/c9/1fcf6fa6810e3ce1be4ce013cf07be9c.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/db/2d/84/95a96c8bb158ff22824e3463f936cec8.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/af/85/0f/7ada1013dbb9bf80463983513b4b0ccb.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/aa/6a/50/229b5fd0fbd50099ff53b2d0e294bf51.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/8f/dc/d8/6e2dbeea971cffd73df6d8aeb0bffb7a.jpg"),
         };
 
         var attributes = BuildBookAttrs(attrMap,
@@ -387,8 +387,8 @@ internal sealed class BookstoreSeeder(CatalogDbContext db, ILogger<BookstoreSeed
     {
         var images = new List<ProductImage>
         {
-            new(0, "https://salt.tikicdn.com/ts/product/5b/8c/d8/760d6721d631b232b540673126d238a2.jpg"),
-            new(0, "https://salt.tikicdn.com/ts/product/84/6d/36/9171810107aa035465e16868e8313ab1.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/5b/8c/d8/760d6721d631b232b540673126d238a2.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/84/6d/36/9171810107aa035465e16868e8313ab1.jpg"),
         };
 
         var attributes = BuildBookAttrs(attrMap,
@@ -424,10 +424,10 @@ internal sealed class BookstoreSeeder(CatalogDbContext db, ILogger<BookstoreSeed
     {
         var images = new List<ProductImage>
         {
-            new(0, "https://salt.tikicdn.com/ts/product/11/d7/be/894c2ecc2d617695ad920f21e3abcae7.jpg"),
-            new(0, "https://salt.tikicdn.com/ts/product/ba/94/eb/c1f51038435413d8f49728f18cd78447.jpg"),
-            new(0, "https://salt.tikicdn.com/ts/product/48/45/3d/dea2310efbc687e636ef04b594a268b1.jpg"),
-            new(0, "https://salt.tikicdn.com/ts/product/fd/38/72/41cdfa19b077fc7e4ad56c66025e553b.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/11/d7/be/894c2ecc2d617695ad920f21e3abcae7.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/ba/94/eb/c1f51038435413d8f49728f18cd78447.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/48/45/3d/dea2310efbc687e636ef04b594a268b1.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/fd/38/72/41cdfa19b077fc7e4ad56c66025e553b.jpg"),
         };
 
         var attributes = BuildBookAttrs(attrMap,
@@ -476,9 +476,9 @@ internal sealed class BookstoreSeeder(CatalogDbContext db, ILogger<BookstoreSeed
     {
         var images = new List<ProductImage>
         {
-            new(0, "https://salt.tikicdn.com/ts/product/84/9b/c7/2f34a84035816c04f622084184aef72d.jpg"),
-            new(0, "https://salt.tikicdn.com/ts/product/be/71/3e/27aa28c1ccc9f9bf7531391ba4d3c074.jpg"),
-            new(0, "https://salt.tikicdn.com/ts/product/18/3b/91/3ca36234dcdced1b9ef0217978e216e7.png"),
+            Img("https://salt.tikicdn.com/ts/product/84/9b/c7/2f34a84035816c04f622084184aef72d.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/be/71/3e/27aa28c1ccc9f9bf7531391ba4d3c074.jpg"),
+            Img("https://salt.tikicdn.com/ts/product/18/3b/91/3ca36234dcdced1b9ef0217978e216e7.png"),
         };
 
         var attributes = BuildBookAttrs(attrMap,
@@ -512,7 +512,7 @@ internal sealed class BookstoreSeeder(CatalogDbContext db, ILogger<BookstoreSeed
     {
         var images = new List<ProductImage>
         {
-            new(0, "https://salt.tikicdn.com/ts/product/4a/cc/00/765d85f5afe39b8e8f5c351e7f0ac430.png"),
+            Img("https://salt.tikicdn.com/ts/product/4a/cc/00/765d85f5afe39b8e8f5c351e7f0ac430.png"),
         };
 
         var attributes = BuildBookAttrs(attrMap,
@@ -543,6 +543,10 @@ internal sealed class BookstoreSeeder(CatalogDbContext db, ILogger<BookstoreSeed
             description:      description,
             now:              now);
     }
+
+    // ── Image helpers ─────────────────────────────────────────────────────────
+    private static ProductImage Img(string url) => new(0, Guid.NewGuid().ToString(), url);
+    private static SkuImage SkuImg(string url) => new(Guid.NewGuid().ToString(), url);
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -576,11 +580,11 @@ internal sealed class BookstoreSeeder(CatalogDbContext db, ILogger<BookstoreSeed
         var categories = new List<ProductCategory> { new(categoryId) };
         var skus = new List<Sku>
         {
-            new(skuNo, [], images.Take(1).Select(img => new SkuImage(img.FileId)).ToList(),
+            new(skuNo, [], images.Take(1).Select(img => new SkuImage(img.FileId, img.ImageUrl)).ToList(),
                 quantity: 100, isActive: true, price: Money.FromVND((long)(price)))
         };
 
-        return Product.CreateProduct(
+        var product = Product.CreateProduct(
             name:             name,
             slug:             slug,
             description:      description,
@@ -595,8 +599,12 @@ internal sealed class BookstoreSeeder(CatalogDbContext db, ILogger<BookstoreSeed
             skus:             skus,
             variants:         [],
             createdAt:        now,
-            createdBy:        "seed"
+            createdBy:        "seed",
+            thumbnailFileId:  images.FirstOrDefault()?.FileId
         );
+        var thumbnailUrl = images.FirstOrDefault()?.ImageUrl;
+        if (thumbnailUrl is not null) product.SetThumbnailUrl(thumbnailUrl);
+        return product;
     }
 }
 

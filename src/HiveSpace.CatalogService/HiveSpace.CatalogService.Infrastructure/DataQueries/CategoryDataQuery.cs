@@ -11,15 +11,15 @@ public class CategoryDataQuery(CatalogDbContext dbContext) : ICategoryDataQuery
     {
         return await dbContext.Categories
             .Where(c => c.CategoryAttributes.Any())
-            .Select(c => new CategoryDto(c.Id, c.Name, c.Name, string.Empty))
+            .Select(c => new CategoryDto(c.Id, c.Name, c.Name, c.ImageFileId, c.ImageUrl))
             .ToListAsync(cancellationToken);
     }
 
     public async Task<List<CategoryDto>> GetHomepageCategoriesAsync(CancellationToken cancellationToken = default)
     {
         return await dbContext.Categories
-            .Where(c => c.FilePath != null)
-            .Select(c => new CategoryDto(c.Id, c.Name, c.Name, c.FilePath!))
+            .Where(c => c.ImageFileId != null)
+            .Select(c => new CategoryDto(c.Id, c.Name, c.Name, c.ImageFileId, c.ImageUrl))
             .ToListAsync(cancellationToken);
     }
 

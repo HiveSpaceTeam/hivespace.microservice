@@ -62,7 +62,8 @@ namespace HiveSpace.CatalogService.Infrastructure.Messaging.Publishers
                 string.Join(", ", sku.SkuVariants.Select(v => v.Value)),
                 sku.Quantity,
                 sku.Price.Amount,
-                sku.Price.Currency.ToString()
+                sku.Price.Currency.ToString(),
+                sku.Images.FirstOrDefault()?.ImageUrl
             )).Select(evt => _eventPublisher.PublishAsync(evt, cancellationToken));
 
             return Task.WhenAll(tasks);

@@ -4,6 +4,7 @@ using HiveSpace.OrderService.Application.Cart.Commands.UpdateCartItems;
 using FluentValidation;
 using HiveSpace.Core.Helpers;
 using HiveSpace.OrderService.Application.Cart.Queries.GetCartItems;
+using HiveSpace.OrderService.Application.Cart.Queries.GetSelectedCartItemsCount;
 using HiveSpace.Infrastructure.Authorization;
 using MediatR;
 
@@ -54,5 +55,13 @@ public static class CartEndpoints
         })
         .Produces<GetCartItemsResponse>(StatusCodes.Status200OK)
         .WithSummary("Get paginated cart items");
+
+        group.MapGet("/selected/count", async (ISender sender, CancellationToken ct) =>
+        {
+            var count = await sender.Send(new GetSelectedCartItemsCountQuery(), ct);
+            return Results.Ok(new { count });
+        })
+        .Produces(StatusCodes.Status200OK)
+        .WithSummary("Get selected cart item count");
     }
 }

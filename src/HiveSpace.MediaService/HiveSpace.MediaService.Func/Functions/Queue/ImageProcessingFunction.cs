@@ -4,7 +4,8 @@ using HiveSpace.MediaService.Core.Infrastructure.Configuration;
 using HiveSpace.MediaService.Core.DomainModels;
 using HiveSpace.MediaService.Core.Features.Media.Dtos;
 using HiveSpace.MediaService.Core.Interfaces;
-using HiveSpace.Domain.Shared.Exceptions;
+using HiveSpace.Infrastructure.Messaging.Shared.Events.Media;
+using MassTransit;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
@@ -18,7 +19,8 @@ public class ImageProcessingFunction(
     IConfiguration configuration,
     IStorageService storageService,
     StorageConfiguration storageConfig,
-    MediaDbContext dbContext
+    MediaDbContext dbContext,
+    IPublishEndpoint publishEndpoint
     )
 {
     private const string QueueName = "image-processing-queue";
@@ -177,6 +179,13 @@ public class ImageProcessingFunction(
 
         mediaAsset.MarkAsProcessed(publicUrl, thumbnailUrl);
         await dbContext.SaveChangesAsync();
+
+        await publishEndpoint.Publish(new MediaAssetProcessedIntegrationEvent(
+            mediaAsset.Id,
+            mediaAsset.EntityType,
+            mediaAsset.EntityId,
+            publicUrl,
+            thumbnailUrl));
     }
 
     private string GetPublicUrl(string path)
