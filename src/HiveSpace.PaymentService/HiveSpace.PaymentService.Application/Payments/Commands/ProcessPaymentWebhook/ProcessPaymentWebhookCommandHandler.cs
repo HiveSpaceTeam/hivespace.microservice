@@ -3,7 +3,6 @@ using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.PaymentService.Application.Interfaces.Messaging;
 using HiveSpace.PaymentService.Domain.Aggregates.Payments;
 using HiveSpace.PaymentService.Domain.Aggregates.Payments.Enumerations;
-using HiveSpace.PaymentService.Domain.Aggregates.Wallets;
 using HiveSpace.PaymentService.Domain.Exceptions;
 using HiveSpace.PaymentService.Domain.Repositories;
 using HiveSpace.PaymentService.Domain.Services;
@@ -13,7 +12,6 @@ namespace HiveSpace.PaymentService.Application.Payments.Commands.ProcessPaymentW
 
 public class ProcessPaymentWebhookCommandHandler(
     IPaymentRepository paymentRepository,
-    IWalletRepository walletRepository,
     IPaymentEventPublisher paymentEventPublisher,
     IPaymentGatewayFactory gatewayFactory)
     : ICommandHandler<ProcessPaymentWebhookCommand>
@@ -37,18 +35,6 @@ public class ProcessPaymentWebhookCommandHandler(
         if (result.Success)
         {
             payment.MarkAsSucceeded(result.TransactionId, gatewayResponse);
-
-            // Credit wallet atomically with payment (previously in CreditWalletOnPaymentSucceededHandler)
-            var wallet = await walletRepository.GetByUserIdWithTransactionsAsync(payment.BuyerId, cancellationToken);
-            var isNew = wallet is null;
-            if (isNew)
-                wallet = Wallet.CreateForUser(payment.BuyerId);
-            wallet!.Credit(payment.Amount, $"PAYMENT-{payment.Id}", "Payment received");
-            var newTransaction = wallet.Transactions.Last();
-            if (isNew)
-                walletRepository.Add(wallet);
-            walletRepository.AddTransaction(newTransaction);
-
             await paymentEventPublisher.PublishPaymentSucceededAsync(payment, sagaCorrelationId, cancellationToken);
         }
         else

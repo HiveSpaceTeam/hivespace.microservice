@@ -56,6 +56,7 @@ namespace HiveSpace.CatalogService.Infrastructure
 
             services.AddScoped<ISeeder, CategorySeeder>();
             services.AddScoped<ISeeder, AttributeSeeder>();
+            services.AddScoped<ISeeder, CategoryAttributeSeeder>();
             services.AddScoped<ISeeder, StoreSeeder>();
             services.AddScoped<ISeeder, BookstoreSeeder>();
             services.AddScoped<ISeeder, HomeLivingSeeder>();

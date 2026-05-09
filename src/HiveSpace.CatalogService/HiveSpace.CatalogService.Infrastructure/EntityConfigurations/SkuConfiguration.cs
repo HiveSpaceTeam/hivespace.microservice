@@ -21,6 +21,7 @@ public class SkuConfiguration : IEntityTypeConfiguration<Sku>
         {
             si.ToTable("sku_images");
             si.WithOwner().HasForeignKey("SkuId");
+            si.Property(x => x.ImageUrl).HasMaxLength(500);
         });
 
         entity.OwnsMany(s => s.SkuVariants, v =>

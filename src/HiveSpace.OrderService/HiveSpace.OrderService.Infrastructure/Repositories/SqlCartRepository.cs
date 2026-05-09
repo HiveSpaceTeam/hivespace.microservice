@@ -21,4 +21,10 @@ public class SqlCartRepository : BaseRepository<Cart, Guid>, ICartRepository
             .Include(c => c.Items)
             .FirstOrDefaultAsync(c => c.UserId == userId, cancellationToken);
     }
+
+    public Task<int> CountSelectedItemsAsync(Guid userId, CancellationToken cancellationToken = default)
+        => _orderDbContext.Set<Cart>()
+            .Where(c => c.UserId == userId)
+            .SelectMany(c => c.Items)
+            .CountAsync(i => i.IsSelected, cancellationToken);
 }

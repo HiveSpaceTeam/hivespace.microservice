@@ -39,3 +39,4 @@ docker
 *.pfx
 *.p12
 .gitnexus
+.playwright-mcp/

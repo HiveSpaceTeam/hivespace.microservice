@@ -1,7 +1,7 @@
 using FluentValidation;
 using HiveSpace.Core.Exceptions;
 using HiveSpace.Core.Exceptions.Models;
-using HiveSpace.UserService.Application.Models.Requests.User;
+using HiveSpace.UserService.Application.DTOs.User;
 using HiveSpace.UserService.Domain.Aggregates.User;
 using HiveSpace.UserService.Domain.Enums;
 

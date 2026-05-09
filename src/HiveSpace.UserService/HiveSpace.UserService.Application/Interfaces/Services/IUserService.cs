@@ -1,6 +1,4 @@
 using HiveSpace.UserService.Application.DTOs.User;
-using HiveSpace.UserService.Application.Models.Requests.User;
-using HiveSpace.UserService.Application.Models.Responses.User;
 
 namespace HiveSpace.UserService.Application.Interfaces.Services;
 

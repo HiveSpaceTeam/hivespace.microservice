@@ -4,9 +4,7 @@ using HiveSpace.UserService.Application.Constant.Enum;
 using HiveSpace.UserService.Application.Extensions;
 using HiveSpace.UserService.Application.Interfaces.DataQueries;
 using HiveSpace.UserService.Application.Interfaces.Services;
-using HiveSpace.UserService.Application.Models.Queries;
-using HiveSpace.UserService.Application.Models.Requests.Admin;
-using HiveSpace.UserService.Application.Models.Responses.Admin;
+using HiveSpace.UserService.Application.DTOs.Admin;
 using HiveSpace.UserService.Domain.Aggregates.User;
 using HiveSpace.UserService.Domain.Exceptions;
 using HiveSpace.UserService.Domain.Repositories;
@@ -144,7 +142,7 @@ public class AdminService : IAdminService
             ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
 
         // Validate deletion permissions using domain service
-        _domainUserManager.ValidateUserDeletionAsync(currentAdmin, targetUser, cancellationToken);
+        _domainUserManager.ValidateUserDeletion(currentAdmin, targetUser, cancellationToken);
 
         // Use EF Core Remove() - SoftDeleteInterceptor will handle soft delete automatically
         var deletedUser = await _userRepository.RemoveUserAsync(userId, cancellationToken);

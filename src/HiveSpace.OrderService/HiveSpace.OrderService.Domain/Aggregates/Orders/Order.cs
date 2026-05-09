@@ -151,11 +151,13 @@ public class Order : AggregateRoot<Guid>, IAuditable
         if (coupon.OwnerType == CouponOwnerType.Store && coupon.StoreId != StoreId)
             throw new InvalidFieldException(OrderDomainErrorCode.CouponStoreNotApplicable, nameof(coupon.StoreId));
 
-        var discountAmount = coupon.CalculateDiscount(SubTotal);
+        var calculatedDiscount = coupon.CalculateDiscount(SubTotal);
+        var discountAmount = Money.Copy(calculatedDiscount);
+        var persistedDiscountAmount = Money.Copy(discountAmount);
 
         var discount = coupon.OwnerType == CouponOwnerType.Store
-            ? Discount.CreateStoreDiscount(coupon.Id, coupon.Code, discountAmount, coupon.Scope)
-            : Discount.CreatePlatformDiscount(coupon.Id, coupon.Code, discountAmount, coupon.Scope);
+            ? Discount.CreateStoreDiscount(coupon.Id, coupon.Code, persistedDiscountAmount, coupon.Scope)
+            : Discount.CreatePlatformDiscount(coupon.Id, coupon.Code, persistedDiscountAmount, coupon.Scope);
 
         _discounts.Add(discount);
         RecalculateTotals();

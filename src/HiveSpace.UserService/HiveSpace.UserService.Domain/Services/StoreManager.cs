@@ -41,36 +41,36 @@ public class StoreManager : IDomainService
         return owner;
     }
 
-    public async Task<Store> RegisterStoreAsync(
+    public async Task<StoreRegistrationResult> RegisterStoreAsync(
         string name,
         string? description,
-        string logoUrl,
+        string logoFileId,
         string storeAddress,
         Guid ownerId,
         Guid? storeId = null,
         CancellationToken cancellationToken = default)
     {
+        // Fail-fast: validate name characters before any DB calls
+        if (!string.IsNullOrWhiteSpace(name) && ContainsInvalidCharacters(name.Trim()))
+            throw new InvalidStoreInformationException();
+
         // Validate owner exists and is active
         var owner = await ValidateStoreOwnerAsync(ownerId, cancellationToken);
-        
+
         // Check if user can own more stores (max 1 store per user)
         if (!await CanUserCreateStoreAsync(ownerId, cancellationToken))
             throw new UserStoreExistsException();
-        
+
         // Check if store with name already exists (case-insensitive)
         if (!await IsStoreNameAvailableAsync(name, cancellationToken))
             throw new ConflictException(UserDomainErrorCode.StoreNameAlreadyExists, nameof(Store));
-        
-        // Additional business rule: Check for invalid characters in store name
-        if (!string.IsNullOrWhiteSpace(name) && ContainsInvalidCharacters(name.Trim()))
-            throw new InvalidStoreInformationException();
-        
+
         // Create new store using internal factory method (includes validation)
-        var store = Store.Create(name, description, logoUrl, storeAddress, ownerId, storeId);
+        var store = Store.Create(name, description, logoFileId, storeAddress, ownerId, storeId);
 
         owner.AssignStore(store.Id);
 
-        return store;
+        return new StoreRegistrationResult(store, owner);
     }
     
     /// <summary>

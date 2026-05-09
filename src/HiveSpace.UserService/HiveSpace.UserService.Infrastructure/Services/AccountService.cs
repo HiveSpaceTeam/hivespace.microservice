@@ -3,7 +3,7 @@ using HiveSpace.Core.Exceptions;
 using HiveSpace.Core.Exceptions.Models;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.UserService.Application.Interfaces.Services;
-using HiveSpace.UserService.Application.Models.Requests.Account;
+using HiveSpace.UserService.Application.DTOs.Account;
 using HiveSpace.UserService.Domain.Aggregates.User;
 using HiveSpace.UserService.Domain.Exceptions;
 using HiveSpace.UserService.Infrastructure.Identity;

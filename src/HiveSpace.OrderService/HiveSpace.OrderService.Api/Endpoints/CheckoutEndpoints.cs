@@ -8,7 +8,6 @@ using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Commands;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Events;
 using HiveSpace.OrderService.Api.Models;
 using HiveSpace.OrderService.Application.Cart.Queries.GetCheckoutPreview;
-using HiveSpace.OrderService.Application.Orders.Queries.GetCheckoutStatus;
 using HiveSpace.OrderService.Domain.Exceptions;
 using MassTransit;
 using MediatR;
@@ -58,20 +57,6 @@ public static class CheckoutEndpoints
         .WithTags("Checkout")
         .WithSummary("Initiate a checkout")
         .WithDescription("Starts the checkout saga for the given cart.");
-
-        app.MapGet("/api/v1/orders/checkout/{orderId:guid}", async (
-            Guid orderId,
-            ISender sender,
-            CancellationToken ct) =>
-        {
-            var result = await sender.Send(new GetCheckoutStatusQuery(orderId), ct);
-            return Results.Ok(result);
-        })
-        .RequireAuthorization()
-        .WithName("GetCheckoutStatus")
-        .WithTags("Checkout")
-        .WithSummary("Get checkout status")
-        .WithDescription("Returns the checkout saga status by orderId. The orderId is the correlationId returned when checkout is initiated.");
 
         app.MapPost("/api/v1/orders/checkout/preview", async (
             CheckoutPreviewRequest request,

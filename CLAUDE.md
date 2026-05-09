@@ -16,11 +16,37 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Inspect the existing layer before changing it.
 - Keep the generated solution minimal, coherent, and production-oriented.
 
+## Behavioral Guardrails
+
+### Think Before Coding
+
+- State assumptions explicitly before implementing when they affect the design.
+- If multiple interpretations or tradeoffs exist, surface them instead of picking silently.
+- If something is unclear and the repo does not answer it, stop and ask.
+
+### Simplicity First
+
+- Implement only the requested behavior.
+- Do not add speculative abstractions, configurability, or impossible-scenario handling.
+- If the solution feels larger than the problem, simplify it before proceeding.
+
+### Surgical Changes
+
+- Touch only the code and docs required for the request.
+- Do not refactor adjacent code, comments, or formatting unless the task requires it.
+- Remove only the unused code or imports created by your own change; mention unrelated cleanup separately.
+
+### Goal-Driven Execution
+
+- Define a concrete verification target before implementing.
+- Prefer tests when they exist; otherwise verify with the smallest concrete check that fits the change, such as `dotnet build`, targeted startup, or a focused manual path.
+- Every changed line should trace directly to the request and to a verification step.
+
 ## Always Clarify Implementation Pattern Before Starting
 
-Before implementing any new feature — whether in plan mode or not — always ask which pattern to use for the Application layer:
+Before implementing any new feature, first check the existing service architecture. If the target service already has a fixed Application-layer pattern, follow it. Ask which pattern to use only when the target context is genuinely undecided, new, or an intentional exception:
 
-**Option A — CQRS (MediatR)**
+**Option A - CQRS (MediatR)**
 Each operation is a discrete command or query handler. Use this when the feature maps cleanly to a single intent (create, update, cancel, list, get).
 
 ```text
@@ -35,7 +61,7 @@ Application/
       [Get][Entity]QueryHandler.cs
 ```
 
-**Option B — Service / Interface**
+**Option B - Service / Interface**
 A service class groups related operations behind an interface. Use this when multiple operations share state, context, or helpers that would be awkward to repeat across individual handlers.
 
 ```text
@@ -46,14 +72,14 @@ Application/
     [Feature]Service.cs
 ```
 
-**When to ask:** Always — even for small features. The two patterns are not equivalent and mixing them without intent creates inconsistency. If the existing service already uses one pattern for the same aggregate, follow it unless there is a clear reason to diverge.
+**When to ask:** Ask only when the service architecture or feature context does not already decide the pattern. The two patterns are not equivalent, and agents must not mix them without explicit approval. If the existing service or aggregate already uses one pattern, follow it unless the user explicitly approves an exception.
 
-→ Feature implementation patterns, DDD building blocks, sagas: `.claude/docs/feature-implementation.md`
+See feature implementation patterns, DDD building blocks, and sagas: `docs/agent/feature-implementation.md`
 
 ## Build & Run
 
 ```bash
-# From repo root — always run in this order
+# From repo root - always run in this order
 dotnet restore
 dotnet build   # Expect 6 nullability warnings in HiveSpace.Domain.Shared; non-blocking
 
@@ -68,40 +94,40 @@ dotnet ef migrations add <Name> --project src/HiveSpace.OrderService/HiveSpace.O
 dotnet ef database update --project src/HiveSpace.OrderService/HiveSpace.OrderService.Infrastructure --startup-project src/HiveSpace.OrderService/HiveSpace.OrderService.Api
 ```
 
-No test projects exist — `dotnet test` returns immediately.
+No test projects exist - `dotnet test` returns immediately.
 
 **Infrastructure requirements**: SQL Server on `localhost:1433` (sa/Passw0rd123!), RabbitMQ on `localhost:5672` (guest/guest), Kafka on `localhost:9092`.
 
-Expected startup warnings: Duende IdentityServer license and MediatR license reminders — development use is permitted.
+Expected startup warnings: Duende IdentityServer license and MediatR license reminders - development use is permitted.
 
 ## Architecture
 
-Clean Architecture / DDD. Each service has four layers: `Domain → Application → Infrastructure → Api`.
+Clean Architecture / DDD. Each service has four layers: `Domain -> Application -> Infrastructure -> Api`.
 
-```
+```text
 src/
-├── HiveSpace.ApiGateway/HiveSpace.YarpApiGateway/     # YARP reverse proxy, no DB
-├── HiveSpace.UserService/                              # Identity & auth (Duende IdentityServer)
-├── HiveSpace.CatalogService/                           # Product catalog
-├── HiveSpace.OrderService/                             # Orders, cart, coupons, checkout saga
-├── HiveSpace.PaymentService/                           # Payment processing
-├── HiveSpace.MediaService/                             # Media/file handling (Azure Blob + Functions)
-└── HiveSpace.NotificationService/                      # Notifications (email, in-app, SignalR)
+|-- HiveSpace.ApiGateway/HiveSpace.YarpApiGateway/     # YARP reverse proxy, no DB
+|-- HiveSpace.UserService/                              # Identity & auth (Duende IdentityServer)
+|-- HiveSpace.CatalogService/                           # Product catalog
+|-- HiveSpace.OrderService/                             # Orders, cart, coupons, checkout saga
+|-- HiveSpace.PaymentService/                           # Payment processing
+|-- HiveSpace.MediaService/                             # Media/file handling (Azure Blob + Functions)
+`-- HiveSpace.NotificationService/                      # Notifications (email, in-app, SignalR)
 libs/
-├── HiveSpace.Core/                                     # Exceptions, filters, helpers, pagination models
-├── HiveSpace.Domain.Shared/                            # AggregateRoot, Entity, ValueObject, IDomainEvent
-├── HiveSpace.Application.Shared/                       # ICommand, IQuery, ICommandHandler, IQueryHandler
-├── HiveSpace.Infrastructure.Messaging/                 # MassTransit/Kafka/RabbitMQ abstractions
-├── HiveSpace.Infrastructure.Messaging.Shared/          # Cross-service saga contracts (commands/events)
-├── HiveSpace.Infrastructure.Authorization/             # HiveSpaceAuthorizeAttribute, policy helpers
-└── HiveSpace.Infrastructure.Persistence/               # Idempotence, EF interceptors (audit, soft-delete), transaction service
+|-- HiveSpace.Core/                                     # Exceptions, filters, helpers, pagination models
+|-- HiveSpace.Domain.Shared/                            # AggregateRoot, Entity, ValueObject, IDomainEvent
+|-- HiveSpace.Application.Shared/                       # ICommand, IQuery, ICommandHandler, IQueryHandler
+|-- HiveSpace.Infrastructure.Messaging/                 # MassTransit/Kafka/RabbitMQ abstractions
+|-- HiveSpace.Infrastructure.Messaging.Shared/          # Cross-service saga contracts (commands/events)
+|-- HiveSpace.Infrastructure.Authorization/             # HiveSpaceAuthorizeAttribute, policy helpers
+`-- HiveSpace.Infrastructure.Persistence/               # Idempotence, EF interceptors (audit, soft-delete), transaction service
 ```
 
-All packages are centrally versioned in `Directory.Packages.props` — never specify versions in `.csproj` files.
+All packages are centrally versioned in `Directory.Packages.props` - never specify versions in `.csproj` files.
 
-→ Startup file conventions (`Program.cs`, `HostingExtensions.cs`, `ServiceCollectionExtensions.cs`): `.claude/docs/startup-conventions.md`
+See startup file conventions (`Program.cs`, `HostingExtensions.cs`, `ServiceCollectionExtensions.cs`): `docs/agent/startup-conventions.md`
 
-## Service Types — Quick Reference
+## Service Types - Quick Reference
 
 | Service | Type | Application layer | API surface |
 |---------|------|-------------------|-------------|
@@ -114,21 +140,47 @@ All packages are centrally versioned in `Directory.Packages.props` — never spe
 
 The Application layer pattern in the table above is **fixed per service**. Agents must follow it and must not introduce the other pattern without explicit user approval. Specifically: UserService uses Service-based; all other services use CQRS exclusively.
 
-Full detail on layouts, mandatory rules, and new service checklists: `.claude/docs/service-architecture.md`
+Full detail on layouts, mandatory rules, and new service checklists: `docs/agent/service-architecture.md`
 
 ## Coding Rules
 
-→ Error handling, DI lifetime, validation pipeline, IUserContext, DTOs, integration events, async, monetary values, one-type-per-file: `.claude/docs/coding-rules.md`
+See error handling, DI lifetime, validation pipeline, `IUserContext`, DTOs, integration events, async, monetary values, one-type-per-file, and image/media field pattern: `docs/agent/coding-rules.md`
+
+**Value object copying**: Never reconstruct a value object from its own properties (`new Money(x.Amount, x.Currency)`). Use the typed static method instead — e.g. `Money.Copy(amount)`. Both `Copy<T>(T source)` (static) and `Copy<T>()` (instance) are defined on `ValueObject` and produce a shallow clone. Required wherever EF Core OwnsOne tracking demands distinct CLR instances, or to make defensive-copy intent explicit.
+
+**MassTransit consumers — never return silently**: When an entity is not found by its key, `throw new NotFoundException(...)` — never `return` silently. MassTransit retries the message and routes to the dead-letter queue on exhaustion; a silent `return` permanently swallows the failure with no observability. Always use domain exceptions (`NotFoundException`, `InvalidFieldException`) in consumers, never `System.InvalidOperationException`. Publish integration events **before** `SaveChangesAsync()` in consumers — same outbox rule as in handlers. Full rules with examples: `docs/agent/coding-rules.md` § "MassTransit consumers".
+
+## Shared Agent Assets
+
+The repository keeps shared agent assets in canonical root-level locations:
+
+- Shared reference docs live in `docs/agent/`
+- Shared skill source lives in `.agent-source/skills/`
+- Shared hook logic lives in `scripts/agent/`
+- Synced skill copies live in `.agents/skills/` and `.claude/skills/`
+- Thin hook wrappers live in `.agents/hooks/` and `.claude/hooks/`
+- Codex repo config lives in `.codex/`
+
+When adding or changing a shared skill:
+
+1. Update `.agent-source/skills/`
+2. Sync the skill copies into `.agents/skills/` and `.claude/skills/`
+3. Update both `AGENTS.md` and `CLAUDE.md` if the workflow or expectations changed
+
+When adding or changing shared hook behavior:
+
+1. Update the implementation in `scripts/agent/`
+2. Update the thin wrappers in `.agents/hooks/` and `.claude/hooks/` if needed
+3. Update `.codex/hooks.json` or `.claude/settings.json` if the hook wiring changed
+4. Update both `AGENTS.md` and `CLAUDE.md` if the workflow or expectations changed
 
 ## Linked Documentation Files
 
-`CLAUDE.md` and `AGENTS.md` are kept in sync by a PostToolUse hook (`.claude/hooks/sync-docs.sh`). After editing either file, you **must** update the other:
-- Changes to service type table in CLAUDE.md → update the service table in AGENTS.md
-- Changes to the service table or rules in AGENTS.md → update service type table in CLAUDE.md
+`CLAUDE.md` and `AGENTS.md` are kept in sync by a PostToolUse hook wrapper at `.claude/hooks/sync-docs.sh`, which delegates to the shared instruction validator in `scripts/agent/`. After editing either file, you **must** update the other. When shared docs, skills, or hook behavior change, update the mirrored agent folders and both top-level instruction files in the same task.
 
 ## PR Process
 
-Never run `gh pr create` directly. A PreToolUse hook (`.claude/hooks/guard-pr.sh`) blocks it. Required flow:
+Never run `gh pr create` directly. A PreToolUse hook wrapper at `.claude/hooks/guard-pr.sh` blocks it. Required flow:
 1. Run `bash scripts/sync-config.sh` to sync all `appsettings.json` / `local.settings.json` to `hivespace.config/`
 2. Run `npx gitnexus analyze` to sync the GitNexus index with current changes
 3. Tell the user to **start a new session** in this repository
@@ -147,7 +199,7 @@ Never run `gh pr create` directly. A PreToolUse hook (`.claude/hooks/guard-pr.sh
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **hivespace.microservice** (6574 symbols, 16203 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **hivespace.microservice** (6861 symbols, 16843 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 

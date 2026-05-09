@@ -1,3 +1,4 @@
+using MassTransit;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,6 +9,7 @@ using HiveSpace.MediaService.Core.Infrastructure.Storage;
 using HiveSpace.MediaService.Core.Interfaces;
 using HiveSpace.MediaService.Core.Services;
 using HiveSpace.MediaService.Core.Infrastructure.Configuration;
+using HiveSpace.MediaService.Core.Persistence.Repositories;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()
@@ -43,6 +45,7 @@ var host = new HostBuilder()
         // Register Core Services
         services.AddScoped<IStorageService, AzureBlobStorageService>();
         services.AddScoped<IQueueService, AzureQueueService>();
+        services.AddScoped<IMediaAssetRepository, MediaAssetRepository>();
         services.AddScoped<IMediaCleanupService, MediaCleanupService>();
 
         // Register Database with enhanced retry logic for Azure SQL
@@ -54,6 +57,19 @@ var host = new HostBuilder()
                     maxRetryDelay: TimeSpan.FromSeconds(30),
                     errorNumbersToAdd: null)
                 .CommandTimeout(120));
+        });
+
+        // Register MassTransit for publishing integration events (publish-only, no consumers)
+        services.AddMassTransit(x =>
+        {
+            x.UsingRabbitMq((_, cfg) =>
+            {
+                cfg.Host(configuration["RabbitMq:Host"], h =>
+                {
+                    h.Username(configuration["RabbitMq:Username"] ?? "guest");
+                    h.Password(configuration["RabbitMq:Password"] ?? "guest");
+                });
+            });
         });
     })
     .Build();

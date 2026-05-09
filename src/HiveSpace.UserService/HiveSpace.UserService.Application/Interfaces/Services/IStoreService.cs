@@ -1,5 +1,4 @@
-using HiveSpace.UserService.Application.Models.Requests.Store;
-using HiveSpace.UserService.Application.Models.Responses.Store;
+using HiveSpace.UserService.Application.DTOs.Store;
 
 namespace HiveSpace.UserService.Application.Interfaces.Services;
 

@@ -6,4 +6,5 @@ namespace HiveSpace.OrderService.Domain.Repositories;
 public interface ICartRepository : IRepository<Cart>
 {
     Task<Cart?> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<int> CountSelectedItemsAsync(Guid userId, CancellationToken cancellationToken = default);
 }

@@ -37,5 +37,8 @@ public abstract class ValueObject
             .Aggregate((x, y) => x ^ y);
     }
 
-    public ValueObject? GetCopy() => this.MemberwiseClone() as ValueObject;
+    // Shallow clone by design — EF Core OwnsOne requires distinct CLR instances, not deep copies.
+    public T Copy<T>() where T : ValueObject => (T)MemberwiseClone();
+
+    public static T Copy<T>(T source) where T : ValueObject => source.Copy<T>();
 }

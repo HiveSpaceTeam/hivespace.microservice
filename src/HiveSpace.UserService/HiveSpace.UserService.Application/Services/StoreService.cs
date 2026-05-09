@@ -1,10 +1,7 @@
 using HiveSpace.Core.Contexts;
 using HiveSpace.UserService.Application.Interfaces.Messaging;
-using HiveSpace.Domain.Shared.Exceptions;
-using HiveSpace.Domain.Shared.Errors;
 using HiveSpace.UserService.Application.Interfaces.Services;
-using HiveSpace.UserService.Application.Models.Requests.Store;
-using HiveSpace.UserService.Application.Models.Responses.Store;
+using HiveSpace.UserService.Application.DTOs.Store;
 using HiveSpace.UserService.Domain.Repositories;
 using HiveSpace.UserService.Domain.Services;
 
@@ -15,23 +12,26 @@ public class StoreService : IStoreService
     private readonly IUserContext _userContext;
     private readonly StoreManager _storeManager;
     private readonly IStoreRepository _storeRepository;
+    private readonly IUserRepository _userRepository;
     private readonly IStoreEventPublisher _storeEventPublisher;
 
     public StoreService(
         IUserContext userContext,
         StoreManager storeManager,
         IStoreRepository storeRepository,
+        IUserRepository userRepository,
         IStoreEventPublisher storeEventPublisher)
     {
-        _userContext = userContext ?? throw new InvalidFieldException(DomainErrorCode.ArgumentNull, nameof(userContext));
-        _storeManager = storeManager ?? throw new InvalidFieldException(DomainErrorCode.ArgumentNull, nameof(storeManager));
-        _storeRepository = storeRepository ?? throw new InvalidFieldException(DomainErrorCode.ArgumentNull, nameof(storeRepository));
-        _storeEventPublisher = storeEventPublisher ?? throw new InvalidFieldException(DomainErrorCode.ArgumentNull, nameof(storeEventPublisher));
+        _userContext = userContext;
+        _storeManager = storeManager;
+        _storeRepository = storeRepository;
+        _userRepository = userRepository;
+        _storeEventPublisher = storeEventPublisher;
     }
     
     public async Task<CreateStoreResponseDto> CreateStoreAsync(CreateStoreRequestDto request, CancellationToken cancellationToken = default)
     {
-        var store = await _storeManager.RegisterStoreAsync(
+        var registration = await _storeManager.RegisterStoreAsync(
             request.StoreName,
             request.Description,
             request.StoreLogoFileId,
@@ -40,16 +40,16 @@ public class StoreService : IStoreService
             null,
             cancellationToken);
 
-        // Save through repository
-        _storeRepository.Add(store);
-        
-        await _storeEventPublisher.PublishStoreCreatedAsync(store, cancellationToken);
-        await _storeRepository.SaveChangesAsync(cancellationToken);
+        // Save through repository — both writes share the same DbContext and commit atomically
+        _storeRepository.Add(registration.Store);
+        await _userRepository.UpdateUserAsync(registration.Owner, cancellationToken);
+
+        await _storeEventPublisher.PublishStoreCreatedAsync(registration.Store, cancellationToken);
         return new CreateStoreResponseDto(
-            store.Id,
-            store.StoreName,
-            store.Description,
-            store.LogoUrl,
-            store.Address);
+            registration.Store.Id,
+            registration.Store.StoreName,
+            registration.Store.Description,
+            registration.Store.LogoFileId,
+            registration.Store.Address);
     }
 }

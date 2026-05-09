@@ -59,10 +59,18 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
         #region Methods
         public void UpdateQuantity(int quantity)
         {
-            if (quantity < 0) { 
+            if (quantity < 0) {
                 throw new InvalidQuantityException();
             }
             Quantity = quantity;
+        }
+
+        public void UpdateSkuImageUrl(string fileId, string imageUrl)
+        {
+            var existing = _images.FirstOrDefault(i => i.FileId == fileId);
+            if (existing is null) return;
+            _images.Remove(existing);
+            _images.Add(existing.WithImageUrl(imageUrl));
         }
         #endregion
     }

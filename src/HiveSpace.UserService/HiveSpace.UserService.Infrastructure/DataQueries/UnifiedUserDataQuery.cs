@@ -2,8 +2,7 @@ using Dapper;
 using HiveSpace.Core.Models.Pagination;
 using HiveSpace.UserService.Application.Constant.Enum;
 using HiveSpace.UserService.Application.Interfaces.DataQueries;
-using HiveSpace.UserService.Application.Models.Queries;
-using HiveSpace.UserService.Application.Models.Responses.Admin;
+using HiveSpace.UserService.Application.DTOs.Admin;
 using Microsoft.Data.SqlClient;
 
 using HiveSpace.Domain.Shared.Exceptions;
@@ -38,7 +37,7 @@ public class UnifiedUserDataQuery : IUnifiedUserDataQuery
                     CAST(u.CreatedAt AT TIME ZONE 'UTC' AS DATETIMEOFFSET) AS CreatedAt,
                     CAST(u.UpdatedAt AT TIME ZONE 'UTC' AS DATETIMEOFFSET) AS UpdatedAt,
                     CAST(u.LastLoginAt AT TIME ZONE 'UTC' AS DATETIMEOFFSET) AS LastLoginAt,
-                    '' AS AvatarUrl
+                    u.AvatarUrl
                 FROM users u
                 {GetRoleFilter(queryType)}
                 {whereConditions}

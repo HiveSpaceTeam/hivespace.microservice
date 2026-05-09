@@ -35,12 +35,13 @@ public class ProductDataQuery(CatalogDbContext dbContext) : IProductDataQuery
 
         return new ProductDetailDto
         {
-            Id          = product.Id,
-            SellerId    = product.SellerId,
-            Name        = product.Name,
-            Description = product.Description,
-            Categories  = product.Categories.ToList(),
-            Images      = product.Images.ToList(),
+            Id           = product.Id,
+            SellerId     = product.SellerId,
+            Name         = product.Name,
+            Description  = product.Description,
+            ThumbnailUrl = product.ThumbnailUrl,
+            Categories   = product.Categories.ToList(),
+            Images       = product.Images.Select(i => new ProductImageDto(i.FileId, i.ImageUrl)).ToList(),
             Attributes  = product.Attributes.Select(a =>
             {
                 attributeLookup.TryGetValue(a.AttributeId, out var attrMeta);

@@ -25,6 +25,9 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
         public bool Featured { get; private set; }
         public ProductCondition Condition { get; private set; }
 
+        public string? ThumbnailFileId { get; private set; }
+        public string? ThumbnailUrl { get; private set; }
+
         public Weight? Weight { get; private set; }
         public Dimensions? Dimensions { get; private set; }
 
@@ -82,7 +85,8 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
             List<ProductVariant> variants,
             DateTimeOffset createdAt,
             string createdBy,
-            int? id = null)
+            int? id = null,
+            string? thumbnailFileId = null)
         {
             var product = new Product
             {
@@ -96,6 +100,7 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
                 Featured         = featured,
                 CreatedAt        = createdAt,
                 CreatedBy        = createdBy,
+                ThumbnailFileId  = thumbnailFileId,
             };
             if (id.HasValue)
             {
@@ -172,6 +177,25 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
         {
             UpdatedAt = DateTimeOffset.UtcNow;
             UpdatedBy = updatedBy;
+        }
+
+        public void UpdateProductImageUrl(string fileId, string imageUrl)
+        {
+            var existing = _images.FirstOrDefault(i => i.FileId == fileId);
+            if (existing is null) return;
+            _images.Remove(existing);
+            _images.Add(existing.WithImageUrl(imageUrl));
+        }
+
+        public void UpdateThumbnail(string thumbnailFileId)
+        {
+            ThumbnailFileId = thumbnailFileId;
+            ThumbnailUrl = null;
+        }
+
+        public void SetThumbnailUrl(string url)
+        {
+            ThumbnailUrl = url;
         }
         #endregion
     }

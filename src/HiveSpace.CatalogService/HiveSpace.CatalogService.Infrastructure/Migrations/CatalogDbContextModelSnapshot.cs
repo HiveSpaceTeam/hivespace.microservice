@@ -94,14 +94,18 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                     b.Property<int>("Id")
                         .HasColumnType("int");
 
-                    b.Property<string>("FilePath")
+                    b.Property<string>("ImageFileId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("image_file_id");
+
+                    b.Property<string>("ImageUrl")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)")
-                        .HasColumnName("FilePath");
+                        .HasColumnName("image_url");
 
                     b.Property<bool?>("IsActive")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsActive");
+                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -135,7 +139,6 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("LogoUrl")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("OwnerId")
@@ -200,6 +203,14 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
+
+                    b.Property<string>("ThumbnailFileId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ThumbnailUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
@@ -597,6 +608,10 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                                 .IsRequired()
                                 .HasColumnType("nvarchar(max)");
 
+                            b1.Property<string>("ImageUrl")
+                                .HasMaxLength(500)
+                                .HasColumnType("nvarchar(500)");
+
                             b1.HasKey("ProductId", "Id");
 
                             b1.ToTable("product_images", (string)null);
@@ -719,6 +734,10 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                                 .IsRequired()
                                 .HasColumnType("nvarchar(max)");
 
+                            b1.Property<string>("ImageUrl")
+                                .HasMaxLength(500)
+                                .HasColumnType("nvarchar(500)");
+
                             b1.HasKey("SkuId", "Id");
 
                             b1.ToTable("sku_images", (string)null);
@@ -761,8 +780,8 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                             b1.Property<int>("SkuId")
                                 .HasColumnType("int");
 
-                            b1.Property<decimal>("Amount")
-                                .HasColumnType("decimal(18,2)");
+                            b1.Property<long>("Amount")
+                                .HasColumnType("bigint");
 
                             b1.Property<int>("Currency")
                                 .HasColumnType("int");
