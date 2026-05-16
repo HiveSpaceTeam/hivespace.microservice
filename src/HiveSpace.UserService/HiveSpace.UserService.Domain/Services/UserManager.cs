@@ -2,6 +2,7 @@ using HiveSpace.Domain.Shared.Interfaces;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Domain.Shared.Errors;
 using HiveSpace.UserService.Domain.Aggregates.User;
+using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.UserService.Domain.Enums;
 using HiveSpace.UserService.Domain.Exceptions;
 using HiveSpace.UserService.Domain.Repositories;

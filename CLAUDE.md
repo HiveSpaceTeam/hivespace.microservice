@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Tech Stack
 
-- .NET 8, ASP.NET Core Minimal APIs or Controller
+- .NET 8, ASP.NET Core Minimal APIs for service APIs; UserService remains the temporary controller/Razor Pages exception
 - Entity Framework Core 8
-- Mediator for CQRS pattern (source-generated) or using interface with implementation
+- Mediator for CQRS pattern (source-generated) for all service feature work; UserService legacy code may still contain service-based implementation
 - FluentValidation for request validation
 - Scalar for API documentation (OpenAPI)
 
@@ -44,7 +44,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Always Clarify Implementation Pattern Before Starting
 
-Before implementing any new feature, first check the existing service architecture. If the target service already has a fixed Application-layer pattern, follow it. Ask which pattern to use only when the target context is genuinely undecided, new, or an intentional exception:
+Before implementing any new feature, first check the existing service architecture. All new feature work uses CQRS plus Minimal API. `UserService` may still contain legacy service-based code, but that legacy pattern must not be extended to new work:
 
 **Option A - CQRS (MediatR)**
 Each operation is a discrete command or query handler. Use this when the feature maps cleanly to a single intent (create, update, cancel, list, get).
@@ -61,18 +61,7 @@ Application/
       [Get][Entity]QueryHandler.cs
 ```
 
-**Option B - Service / Interface**
-A service class groups related operations behind an interface. Use this when multiple operations share state, context, or helpers that would be awkward to repeat across individual handlers.
-
-```text
-Application/
-  Interfaces/
-    I[Feature]Service.cs
-  Services/
-    [Feature]Service.cs
-```
-
-**When to ask:** Ask only when the service architecture or feature context does not already decide the pattern. The two patterns are not equivalent, and agents must not mix them without explicit approval. If the existing service or aggregate already uses one pattern, follow it unless the user explicitly approves an exception.
+**When to ask:** Ask only when the repo leaves an interface, route, or migration detail unclear. Do not ask to choose between CQRS and service-based patterns for feature work; CQRS is the rule.
 
 See feature implementation patterns, DDD building blocks, and sagas: `docs/agent/feature-implementation.md`
 
@@ -131,18 +120,20 @@ See startup file conventions (`Program.cs`, `HostingExtensions.cs`, `ServiceColl
 
 | Service | Type | Application layer | API surface |
 |---------|------|-------------------|-------------|
-| UserService | **Full** | Service-based | Controllers |
-| CatalogService | **Full** | CQRS | Controllers |
+| UserService | **Full** | Legacy service-based | Legacy controllers + Razor Pages |
+| CatalogService | **Full** | CQRS | Minimal Endpoints |
 | OrderService | **Full** | CQRS | Minimal Endpoints |
-| PaymentService | **Full** | CQRS | Mixed |
+| PaymentService | **Full** | CQRS | Minimal Endpoints |
 | MediaService | **Lite** | CQRS | Minimal Endpoints |
 | NotificationService | **Lite** | CQRS | Minimal Endpoints |
 
-The Application layer pattern in the table above is **fixed per service**. Agents must follow it and must not introduce the other pattern without explicit user approval. Specifically: UserService uses Service-based; all other services use CQRS exclusively.
+The Application layer pattern in the table above is **fixed per service**. Agents must not introduce new service-based feature implementations. Specifically: all feature work uses CQRS and Minimal API endpoints; `UserService` legacy service/controller code may be maintained only when required by the existing implementation.
 
 Full detail on layouts, mandatory rules, and new service checklists: `docs/agent/service-architecture.md`
 
 ## Coding Rules
+
+**Type name usage**: Use short type names like `Order` by default. Prefer `using` directives, and use fully qualified type names only for a real ambiguity or name collision. If repeated disambiguation is needed in one file, prefer an alias.
 
 See error handling, DI lifetime, validation pipeline, `IUserContext`, DTOs, integration events, async, monetary values, one-type-per-file, and image/media field pattern: `docs/agent/coding-rules.md`
 
@@ -193,7 +184,7 @@ Never run `gh pr create` directly. A PreToolUse hook wrapper at `.claude/hooks/g
 - Agents must never stage or commit any `*.json` file.
 - If a task changes one or more `*.json` files, agents must ask the user to add/stage those JSON files manually.
 - Agents can stage and commit only non-JSON files after user confirmation that JSON staging is handled.
-- After finishing a task, agents must delete temporary files they created (for example: ad-hoc error logs, scratch/debug files, or one-off investigation artifacts) unless the user explicitly asks to keep them.
+- After finishing a task, agents must delete temporary files and temporary folders they created (for example: ad-hoc error logs, scratch/debug files, temporary build folders like `.codex-build`, language-service cache files like `*.csproj.lscache`, or one-off investigation artifacts) unless the user explicitly asks to keep them.
 - Agents must not stage or commit temporary files created only for debugging or task tracking.
 
 <!-- gitnexus:start -->

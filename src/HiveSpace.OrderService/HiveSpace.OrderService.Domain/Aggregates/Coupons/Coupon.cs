@@ -387,6 +387,9 @@ public class Coupon : AggregateRoot<Guid>, IAuditable
     /// </summary>
     public void MarkAsUsed(Guid userId, Guid orderId, Money discountAmount)
     {
+        if (_usages.Any(u => u.OrderId == orderId))
+            return;
+
         // Note: Real validation should happen before MarkAsUsed, likely in the Service layer.
         // We verify liveness and limits here.
         // Since we pass Money.Zero(), min order amount check will fail if MinOrderAmount > 0.
@@ -417,11 +420,25 @@ public class Coupon : AggregateRoot<Guid>, IAuditable
                  throw new InvalidFieldException(OrderDomainErrorCode.CouponUserLimitReached, nameof(MaxUsagePerUser));
         }
 
-        var usage = CouponUsage.Create(userId, orderId, discountAmount);
+        var usage = CouponUsage.Create(Id, userId, orderId, discountAmount);
         _usages.Add(usage);
         CurrentUsageCount++;
 
 
+    }
+
+    public void ReleaseUsage(Guid orderId)
+    {
+        if (orderId == Guid.Empty)
+            throw new InvalidFieldException(OrderDomainErrorCode.CouponInvalid, nameof(orderId));
+
+        var usage = _usages.FirstOrDefault(u => u.OrderId == orderId);
+        if (usage is null)
+            return;
+
+        _usages.Remove(usage);
+        if (CurrentUsageCount > 0)
+            CurrentUsageCount--;
     }
 
     /// <summary>

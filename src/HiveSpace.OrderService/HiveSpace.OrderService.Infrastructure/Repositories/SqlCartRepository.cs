@@ -19,6 +19,8 @@ public class SqlCartRepository : BaseRepository<Cart, Guid>, ICartRepository
     {
         return await _orderDbContext.Set<Cart>()
             .Include(c => c.Items)
+            .Include(c => c.AppliedPlatformCoupons)
+            .Include(c => c.AppliedStoreCoupons)
             .FirstOrDefaultAsync(c => c.UserId == userId, cancellationToken);
     }
 

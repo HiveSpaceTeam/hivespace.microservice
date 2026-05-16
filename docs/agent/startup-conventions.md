@@ -16,7 +16,7 @@ These helpers live in shared libs and must be used instead of re-implementing th
 |--------|-----------|--------------|
 | `services.AddHiveSpaceSwaggerGen(title, description)` | `HiveSpace.Core.OpenApi` | `AddEndpointsApiExplorer` + `AddSwaggerGen` with Bearer security definition |
 | `services.AddHiveSpaceJwtBearerAuthentication(config, scope, configure?)` | `HiveSpace.Infrastructure.Authorization.Extensions` | `AddJwtBearer` + `AddHiveSpaceAuthorization(scope)` in one call. Pass the optional `configure` callback for service-specific options (e.g. SignalR token handling in NotificationService). |
-| `services.AddHiveSpaceControllers()` | `HiveSpace.Core` | `AddControllers` + `CustomExceptionFilter`. Returns `IMvcBuilder` for chaining `.AddJsonOptions()`. |
+| `services.AddHiveSpaceControllers()` | `HiveSpace.Core` | `AddControllers` + `CustomExceptionFilter`. Use only for `UserService` or an explicitly approved controller exception. Returns `IMvcBuilder` for chaining `.AddJsonOptions()`. |
 | `app.UseHiveSpaceExceptionHandler()` | `HiveSpace.Core.Extensions` | `UseExceptionHandler` + `ExceptionResponseFactory` JSON response. Call in every service's `ConfigurePipeline`. |
 
 ## `ServiceCollectionExtensions.cs` — Thin Wrapper Pattern
@@ -73,13 +73,13 @@ public static WebApplication ConfigurePipeline(this WebApplication app)
 
     app.UseAuthentication();
     app.UseAuthorization();
-    app.MapControllers();                      // or MapXxxEndpoints() for Minimal API services
+    app.MapXxxEndpoints();                     // default for all non-UserService services
 
     return app;
 }
 ```
 
-**UserService exception**: Keeps its own pipeline (IdentityServer, Razor Pages, Serilog, session, culture middleware). Does not call `UseHiveSpaceExceptionHandler`.
+**UserService exception**: Keeps its own pipeline (IdentityServer, Razor Pages, Serilog, session, culture middleware). It is also the only current service allowed to keep controller-based APIs. It does not call `UseHiveSpaceExceptionHandler`.
 
 ## Database Migration & Seeding
 

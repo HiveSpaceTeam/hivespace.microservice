@@ -1,5 +1,6 @@
 using HiveSpace.CatalogService.Api.Consumers.Saga.Checkout;
 using HiveSpace.CatalogService.Api.Consumers.Sync;
+using HiveSpace.CatalogService.Api.Endpoints;
 using HiveSpace.CatalogService.Infrastructure;
 using HiveSpace.CatalogService.Infrastructure.Data;
 using HiveSpace.Core;
@@ -16,7 +17,6 @@ namespace HiveSpace.CatalogService.Api.Extensions
     {
         public static WebApplication ConfigureServices(this WebApplicationBuilder builder)
         {
-            builder.Services.AddAppApiControllers();
             builder.Services.AddAppOpenApi();
             builder.Services.AddAppApiVersioning();
             builder.Services.AddAppApplicationServices();
@@ -84,7 +84,8 @@ namespace HiveSpace.CatalogService.Api.Extensions
 
             app.UseAuthentication();
             app.UseAuthorization();
-            app.MapControllers();
+            app.MapProductEndpoints();
+            app.MapCategoryEndpoints();
 
             return app;
         }

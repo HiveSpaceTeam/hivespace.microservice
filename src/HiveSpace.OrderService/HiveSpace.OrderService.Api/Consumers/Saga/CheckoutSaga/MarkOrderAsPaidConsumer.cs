@@ -17,6 +17,7 @@ public class MarkOrderAsPaidConsumer(
     {
         var message = context.Message;
         var ct = context.CancellationToken;
+        var orders = new List<Domain.Aggregates.Orders.Order>();
 
         foreach (var orderId in message.OrderIds)
         {
@@ -33,6 +34,11 @@ public class MarkOrderAsPaidConsumer(
                 return;
             }
 
+            orders.Add(order);
+        }
+
+        foreach (var order in orders)
+        {
             try
             {
                 order.MarkAsPaid(message.PaymentId);
@@ -40,11 +46,11 @@ public class MarkOrderAsPaidConsumer(
             catch (DomainException ex) when (
                 ex.ErrorCode.Code == OrderDomainErrorCode.OrderInvalidStatusForPayment.Code)
             {
-                logger.LogWarning("Order {OrderId} cannot be marked as paid: {ErrorCode}", orderId, ex.ErrorCode.Code);
+                logger.LogWarning("Order {OrderId} cannot be marked as paid: {ErrorCode}", order.Id, ex.ErrorCode.Code);
                 await context.RespondAsync<MarkOrderAsPaidFailed>(new
                 {
                     message.CorrelationId,
-                    OrderId = orderId,
+                    OrderId = order.Id,
                     Reason  = ex.Message
                 });
                 return;

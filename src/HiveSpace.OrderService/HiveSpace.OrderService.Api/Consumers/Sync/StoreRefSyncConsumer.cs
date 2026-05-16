@@ -8,22 +8,43 @@ using Microsoft.Extensions.Logging;
 namespace HiveSpace.OrderService.Api.Consumers.Sync;
 
 public class StoreRefSyncConsumer(OrderDbContext db, ILogger<StoreRefSyncConsumer> logger)
-    : IConsumer<StoreCreatedIntegrationEvent>
+    : IConsumer<StoreCreatedIntegrationEvent>,
+      IConsumer<StoreUpdatedIntegrationEvent>
 {
     public async Task Consume(ConsumeContext<StoreCreatedIntegrationEvent> context)
+        => await UpsertStoreRefAsync(
+            context.Message.Id,
+            context.Message.OwnerId,
+            context.Message.StoreName,
+            context.Message.LogoUrl,
+            context.CancellationToken);
+
+    public async Task Consume(ConsumeContext<StoreUpdatedIntegrationEvent> context)
+        => await UpsertStoreRefAsync(
+            context.Message.Id,
+            context.Message.OwnerId,
+            context.Message.StoreName,
+            context.Message.LogoUrl,
+            context.CancellationToken);
+
+    private async Task UpsertStoreRefAsync(
+        Guid storeId,
+        Guid ownerId,
+        string storeName,
+        string? logoUrl,
+        CancellationToken cancellationToken)
     {
-        var msg = context.Message;
-        var existing = await db.StoreRefs.FindAsync([msg.Id], context.CancellationToken);
+        var existing = await db.StoreRefs.FindAsync([storeId], cancellationToken);
         if (existing is null)
         {
-            db.StoreRefs.Add(new StoreRef(msg.Id, msg.StoreName, SellerStatus.Active, msg.OwnerId));
-            logger.LogInformation("StoreRef created. StoreId={StoreId} OwnerId={OwnerId}", msg.Id, msg.OwnerId);
+            db.StoreRefs.Add(new StoreRef(storeId, storeName, logoUrl, SellerStatus.Active, ownerId));
+            logger.LogInformation("StoreRef created. StoreId={StoreId} OwnerId={OwnerId}", storeId, ownerId);
         }
         else
         {
-            existing.Update(msg.StoreName, SellerStatus.Active);
-            logger.LogInformation("StoreRef updated. StoreId={StoreId}", msg.Id);
+            existing.Update(storeName, logoUrl, SellerStatus.Active);
+            logger.LogInformation("StoreRef updated. StoreId={StoreId}", storeId);
         }
-        await db.SaveChangesAsync(context.CancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
     }
 }

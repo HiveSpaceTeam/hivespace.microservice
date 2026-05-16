@@ -8,6 +8,6 @@ public record CheckoutInitiated
     public Guid               CorrelationId   { get; init; }
     public Guid               UserId          { get; init; }
     public DeliveryAddressDto DeliveryAddress { get; init; } = null!;
-    public List<string>       CouponCodes     { get; init; } = new();
+    public CheckoutCouponSelectionDto CouponSelections { get; init; } = new();
     public PaymentMethod      PaymentMethod   { get; init; } = PaymentMethod.COD;
 }

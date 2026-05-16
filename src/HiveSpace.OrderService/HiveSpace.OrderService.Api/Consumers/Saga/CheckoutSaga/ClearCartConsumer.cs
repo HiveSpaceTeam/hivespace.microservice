@@ -17,9 +17,9 @@ public class ClearCartConsumer(
         var cart = await cartRepository.GetByUserIdAsync(message.UserId, ct);
         if (cart is not null && !cart.IsEmpty())
         {
-            cart.ClearSelectedItems();
+            cart.ClearSelectedItems(message.PurchasedStoreIds);
             await cartRepository.SaveChangesAsync(ct);
-            logger.LogInformation("Selected cart items cleared for user {UserId} (checkout {CorrelationId})",
+            logger.LogInformation("Selected cart items and purchased-store coupons cleared for user {UserId} (checkout {CorrelationId})",
                 message.UserId, message.CorrelationId);
         }
 

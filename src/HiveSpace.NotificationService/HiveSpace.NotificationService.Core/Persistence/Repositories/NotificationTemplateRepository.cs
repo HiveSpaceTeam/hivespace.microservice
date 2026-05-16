@@ -1,3 +1,4 @@
+using HiveSpace.Domain.Shared.Enumerations;
 using Microsoft.EntityFrameworkCore;
 using HiveSpace.NotificationService.Core.DomainModels;
 using HiveSpace.NotificationService.Core.Interfaces;
@@ -7,7 +8,7 @@ namespace HiveSpace.NotificationService.Core.Persistence.Repositories;
 public class NotificationTemplateRepository(NotificationDbContext db) : INotificationTemplateRepository
 {
     public Task<NotificationTemplate?> GetAsync(
-        string eventType, NotificationChannel channel, string locale, CancellationToken ct = default)
+        string eventType, NotificationChannel channel, Culture locale, CancellationToken ct = default)
         => db.NotificationTemplates.FirstOrDefaultAsync(
                t => t.EventType == eventType && t.Channel == channel && t.Locale == locale,
                ct);

@@ -3,6 +3,7 @@ using Duende.IdentityServer;
 using Duende.IdentityServer.Events;
 using Duende.IdentityServer.Services;
 using HiveSpace.UserService.Infrastructure.Identity;
+using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.UserService.Domain.Enums;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;

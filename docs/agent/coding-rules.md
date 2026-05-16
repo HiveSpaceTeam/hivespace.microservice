@@ -276,6 +276,22 @@ var ref = await userRefRepo.GetByIdAsync(targetUserId, ct);
 | Hangfire background jobs | Pass user data as job arguments at enqueue time |
 | SignalR hubs | Use `Context.User` (ClaimsPrincipal captured at handshake) and `Context.UserIdentifier` |
 
+## Type name usage
+
+Use short type names in normal code. Prefer `using` directives over fully qualified type names in method bodies, local variable declarations, generic arguments, and return types:
+
+```csharp
+// Prefer short names with a using directive
+using HiveSpace.OrderService.Domain.Aggregates.Orders;
+
+var orders = new List<Order>();
+
+// Avoid fully qualified names when there is no ambiguity
+var orders = new List<Domain.Aggregates.Orders.Order>();
+```
+
+Only use a fully qualified type name when there is a real ambiguity or name collision that cannot be resolved cleanly. If the same disambiguation is needed repeatedly in a file, prefer a namespace or type alias over repeating the fully qualified name.
+
 ## Image & media fields
 
 Every image-bearing entity stores a `*FileId` (set at creation, never changed) and a `*Url` (nullable, resolved after processing by `MediaAssetProcessedConsumer`). Never store only a URL; never expose a FileId as a URL. See the full dual-field pattern, EntityType table, consumer rules, and EF config conventions: `docs/agent/media-asset-patterns.md`

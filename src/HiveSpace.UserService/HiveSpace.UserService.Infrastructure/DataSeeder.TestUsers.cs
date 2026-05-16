@@ -1,6 +1,7 @@
 using Duende.IdentityModel;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.UserService.Domain.Aggregates.User;
+using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.UserService.Domain.Enums;
 using HiveSpace.UserService.Domain.Exceptions;
 using HiveSpace.UserService.Infrastructure.Data;

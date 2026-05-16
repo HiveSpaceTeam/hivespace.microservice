@@ -1,6 +1,7 @@
 using HiveSpace.Application.Shared.Handlers;
 using HiveSpace.Core.Contexts;
 using HiveSpace.Domain.Shared.Exceptions;
+using HiveSpace.OrderService.Application.Cart;
 using HiveSpace.OrderService.Domain.Aggregates.Carts;
 using HiveSpace.OrderService.Domain.Exceptions;
 using HiveSpace.OrderService.Domain.External;
@@ -10,6 +11,8 @@ namespace HiveSpace.OrderService.Application.Cart.Commands.UpdateCartItems;
 
 public class UpdateCartItemsCommandHandler(
     ICartRepository cartRepository,
+    ICouponRepository couponRepository,
+    IProductRefRepository productRefRepository,
     ISkuRefRepository skuRefRepository,
     IUserContext userContext)
     : ICommandHandler<UpdateCartItemsCommand>
@@ -36,6 +39,43 @@ public class UpdateCartItemsCommandHandler(
             }
 
             cart.UpdateItemById(itemRequest.CartItemId, itemRequest.SkuId, itemRequest.Quantity, itemRequest.IsSelected);
+        }
+
+        if (cart.AppliedStoreCoupons.Count > 0)
+        {
+            var selectedItems = cart.Items
+                .Where(x => x.IsSelected)
+                .ToList();
+
+            var productIds = selectedItems
+                .Select(x => x.ProductId)
+                .Distinct()
+                .ToList();
+            var skuIds = selectedItems
+                .Select(x => x.SkuId)
+                .Distinct()
+                .ToList();
+
+            var productsById = productIds.Count > 0
+                ? (await productRefRepository.GetByIdsAsync(productIds, cancellationToken))
+                    .ToDictionary(x => x.Id)
+                : new Dictionary<long, ProductRef>();
+            var skusById = skuIds.Count > 0
+                ? (await skuRefRepository.GetByIdsAsync(skuIds, cancellationToken))
+                    .ToDictionary(x => x.Id)
+                : new Dictionary<long, SkuRef>();
+
+            var snapshots = SelectedCartCouponEvaluator.BuildStoreSnapshots(
+                cart.Items,
+                productsById,
+                skusById);
+
+            await PersistedCartCouponState.RemoveInvalidStoreCouponsAsync(
+                cart,
+                snapshots,
+                couponRepository,
+                userId,
+                cancellationToken);
         }
 
         await cartRepository.SaveChangesAsync(cancellationToken);

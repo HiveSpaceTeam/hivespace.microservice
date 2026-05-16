@@ -3,6 +3,7 @@ using HiveSpace.OrderService.Application.Coupons.Commands.UpdateCoupon;
 using HiveSpace.OrderService.Application.Coupons.Commands.DeleteCoupon;
 using HiveSpace.OrderService.Application.Coupons.Commands.EndCoupon;
 using HiveSpace.OrderService.Application.Coupons.Dtos;
+using HiveSpace.OrderService.Application.Coupons.Queries.GetAvailableCoupons;
 using HiveSpace.OrderService.Application.Coupons.Queries.GetCouponById;
 using HiveSpace.OrderService.Application.Coupons.Queries.GetCouponList;
 using HiveSpace.Infrastructure.Authorization;
@@ -16,6 +17,20 @@ public static class CouponEndpoints
 {
     public static void MapCouponEndpoints(this IEndpointRouteBuilder app)
     {
+        app.MapGet("/api/v1/coupons/available", async (Guid storeId, string? productIds, ISender sender, CancellationToken ct) =>
+        {
+            var parsedProductIds = ParseProductIds(productIds);
+            var result = await sender.Send(new GetAvailableCouponsQuery(storeId, parsedProductIds), ct);
+            return Results.Ok(result);
+        })
+        .RequireAuthorization(HiveSpaceAuthorizeAttribute.User.Policy)
+        .WithTags("Coupons")
+        .WithOpenApi()
+        .Produces<GetAvailableCouponsResponse>(StatusCodes.Status200OK)
+        .ProducesProblem(StatusCodes.Status404NotFound)
+        .ProducesProblem(StatusCodes.Status400BadRequest)
+        .WithSummary("Get ongoing store coupons with applicability");
+
         var group = app.MapGroup("/api/v1/coupons")
             .WithTags("Coupons")
             .WithOpenApi()
@@ -82,5 +97,24 @@ public static class CouponEndpoints
         .ProducesProblem(StatusCodes.Status404NotFound)
         .ProducesProblem(StatusCodes.Status403Forbidden)
         .WithSummary("Update a coupon by ID");
+    }
+
+    private static IReadOnlyCollection<long>? ParseProductIds(string? productIds)
+    {
+        if (string.IsNullOrWhiteSpace(productIds))
+            return null;
+
+        var parsedProductIds = new HashSet<long>();
+        foreach (var rawValue in productIds.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (!long.TryParse(rawValue, out var productId) || productId <= 0)
+            {
+                throw new InvalidFieldException(OrderDomainErrorCode.SnapshotInvalidProductId, nameof(productIds));
+            }
+
+            parsedProductIds.Add(productId);
+        }
+
+        return parsedProductIds.Count == 0 ? null : parsedProductIds.ToList();
     }
 }

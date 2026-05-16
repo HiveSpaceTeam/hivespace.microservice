@@ -1,3 +1,4 @@
+using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Commands;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Events;
 using HiveSpace.NotificationService.Core.DomainModels;
@@ -33,7 +34,7 @@ public class NotifySellerNewOrderConsumer(
             UserId         = msg.SellerId,
             EventType      = NotificationEventType.NewOrderReceived,
             IdempotencyKey = $"{NotificationEventType.NewOrderReceived}:{msg.OrderId}",
-            Locale         = seller?.Locale ?? "vi",
+            Locale         = seller?.Locale ?? Culture.Vi,
             TemplateData   = new Dictionary<string, object>
             {
                 ["orderId"]   = msg.OrderId,

@@ -3,6 +3,7 @@ using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Dtos;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace HiveSpace.OrderService.Infrastructure.Sagas;
@@ -10,6 +11,11 @@ namespace HiveSpace.OrderService.Infrastructure.Sagas;
 public class CheckoutSagaStateEntityConfiguration : IEntityTypeConfiguration<CheckoutSagaState>
 {
     private static readonly JsonSerializerOptions _jsonOptions = new();
+
+    private static ValueComparer<T> JsonComparer<T>() => new(
+        (c1, c2) => JsonSerializer.Serialize(c1, _jsonOptions) == JsonSerializer.Serialize(c2, _jsonOptions),
+        c => JsonSerializer.Serialize(c, _jsonOptions).GetHashCode(),
+        c => JsonSerializer.Deserialize<T>(JsonSerializer.Serialize(c, _jsonOptions), _jsonOptions)!);
 
     public void Configure(EntityTypeBuilder<CheckoutSagaState> builder)
     {
@@ -26,22 +32,26 @@ public class CheckoutSagaStateEntityConfiguration : IEntityTypeConfiguration<Che
             .HasMaxLength(50)
             .IsRequired();
 
-        builder.Property(s => s.CouponCodes)
+        builder.Property(s => s.CouponSelections)
             .HasConversion(
                 v => JsonSerializer.Serialize(v, _jsonOptions),
-                v => JsonSerializer.Deserialize<List<string>>(v, _jsonOptions) ?? new())
+                v => JsonSerializer.Deserialize<CheckoutCouponSelectionDto>(v, _jsonOptions) ?? new(),
+                JsonComparer<CheckoutCouponSelectionDto>())
+            .HasColumnName("CouponCodes")
             .HasColumnType("nvarchar(max)");
 
         builder.Property(s => s.OrderIds)
             .HasConversion(
                 v => JsonSerializer.Serialize(v, _jsonOptions),
-                v => JsonSerializer.Deserialize<List<Guid>>(v, _jsonOptions) ?? new())
+                v => JsonSerializer.Deserialize<List<Guid>>(v, _jsonOptions) ?? new(),
+                JsonComparer<List<Guid>>())
             .HasColumnType("nvarchar(max)");
 
         builder.Property(s => s.ReservationIds)
             .HasConversion(
                 v => JsonSerializer.Serialize(v, _jsonOptions),
-                v => JsonSerializer.Deserialize<List<Guid>>(v, _jsonOptions) ?? new())
+                v => JsonSerializer.Deserialize<List<Guid>>(v, _jsonOptions) ?? new(),
+                JsonComparer<List<Guid>>())
             .HasColumnType("nvarchar(max)");
 
         builder.Property(s => s.DeliveryAddress)
@@ -53,19 +63,22 @@ public class CheckoutSagaStateEntityConfiguration : IEntityTypeConfiguration<Che
         builder.Property(s => s.OrderStoreMap)
             .HasConversion(
                 v => JsonSerializer.Serialize(v, _jsonOptions),
-                v => JsonSerializer.Deserialize<Dictionary<Guid, Guid>>(v, _jsonOptions) ?? new())
+                v => JsonSerializer.Deserialize<Dictionary<Guid, Guid>>(v, _jsonOptions) ?? new(),
+                JsonComparer<Dictionary<Guid, Guid>>())
             .HasColumnType("nvarchar(max)");
 
         builder.Property(s => s.OrderCodeMap)
             .HasConversion(
                 v => JsonSerializer.Serialize(v, _jsonOptions),
-                v => JsonSerializer.Deserialize<Dictionary<Guid, string>>(v, _jsonOptions) ?? new())
+                v => JsonSerializer.Deserialize<Dictionary<Guid, string>>(v, _jsonOptions) ?? new(),
+                JsonComparer<Dictionary<Guid, string>>())
             .HasColumnType("nvarchar(max)");
 
         builder.Property(s => s.OrderReservationMap)
             .HasConversion(
                 v => JsonSerializer.Serialize(v, _jsonOptions),
-                v => JsonSerializer.Deserialize<Dictionary<Guid, List<Guid>>>(v, _jsonOptions) ?? new())
+                v => JsonSerializer.Deserialize<Dictionary<Guid, List<Guid>>>(v, _jsonOptions) ?? new(),
+                JsonComparer<Dictionary<Guid, List<Guid>>>())
             .HasColumnType("nvarchar(max)");
     }
 }

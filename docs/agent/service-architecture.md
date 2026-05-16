@@ -34,7 +34,7 @@ Four projects with hard layer boundaries. Dependency direction: `Domain ← Appl
   ValueObjects/                  # optional
 
 [Service].Application/
-  [Feature]/                     # FLEXIBLE — CQRS or Service-based (see below)
+  [Feature]/                     # CQRS for all feature work
     Commands/[Action][Entity]/   # CQRS: Command.cs + Handler.cs + Validator.cs
     Queries/[Get][Entity]/       # CQRS: Query.cs + Handler.cs
     Dtos/                        # Response/request types scoped to this feature
@@ -61,7 +61,8 @@ Four projects with hard layer boundaries. Dependency direction: `Domain ← Appl
   Migrations/
 
 [Service].Api/
-  # FLEXIBLE — Controllers or Minimal Endpoints (see below)
+  Endpoints/                     # all non-UserService services
+  # UserService keeps Controllers/Pages as a documented exception
   Consumers/
     Saga/[SagaName]/
     Sync/
@@ -84,15 +85,15 @@ Four projects with hard layer boundaries. Dependency direction: `Domain ← Appl
 - Repository implementations named `[DbType][Root]Repository` (e.g. `SqlOrderRepository`, `MongoOrderRepository`)
 - **Mappers**: Domain → DTO mappers belong in `Application/[Feature]/Mappers/`; mappers that bridge Domain ↔ Infrastructure-specific types (e.g. `ApplicationUser`) belong in `Infrastructure/Mappers/`
 
-**Flexible decision points — agent must ask before implementing:**
+**Decision points — agent must follow the service rule before implementing:**
 
-| Decision | Option A | Option B | Rule |
-|----------|----------|----------|------|
-| Application layer | **CQRS** — `ICommand`/`IQuery` + handlers per operation | **Service-based** — `I[Feature]Service` + `[Feature]Service` | Follow what the service already uses (see table below); ask if new service. UserService: Service-based. All others: CQRS. |
-| API surface | **MVC Controllers** — `[Feature]Controller : ControllerBase` | **Minimal Endpoints** — static `Map[Feature]Endpoints()` | Follow existing service convention; ask if new service |
-| Complex reads | **EF Core only** — via repository | **Dapper hybrid** — `I[Feature]DataQuery` interface + `DataQueries/` impl | Prefer Dapper for complex paginated / reporting reads; EF Core projections are acceptable for simpler cases |
+| Decision | Required rule |
+|----------|---------------|
+| Application layer | **CQRS only** — `ICommand`/`IQuery` + handlers per operation for all feature work |
+| API surface | **Minimal Endpoints by default** — static `Map[Feature]Endpoints()`; only existing `UserService` legacy UI/controller code remains outside this rule |
+| Complex reads | Prefer Dapper for complex paginated / reporting reads; EF Core projections are acceptable for simpler reads |
 
-**CQRS layout (when chosen):**
+**CQRS layout:**
 
 ```text
 Application/[Feature]/
@@ -108,7 +109,7 @@ Application/[Feature]/
   Dtos/
 ```
 
-**Service-based layout (when chosen):**
+**Legacy service-based layout (do not use for new features):**
 
 ```text
 Application/

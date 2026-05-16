@@ -11,6 +11,11 @@ namespace HiveSpace.OrderService.Infrastructure.SeedData;
 internal sealed class ProductRefSeeder(OrderDbContext db, ILogger<ProductRefSeeder> logger) : ISeeder
 {
     public int Order => 2;
+    private const long HomeLivingProductIdStart = 1011;
+    private const long MobileTabletProductIdStart = 1021;
+
+    private const long HomeLivingSkuIdStart = 10011;
+    private const long MobileTabletSkuIdStart = 10021;
 
     private static readonly (long ProductId, Guid StoreId, string Name, string ThumbnailUrl)[] ProductSeeds =
     [
@@ -103,6 +108,8 @@ internal sealed class ProductRefSeeder(OrderDbContext db, ILogger<ProductRefSeed
 
     public async Task SeedAsync(CancellationToken ct = default)
     {
+        ValidateSeedAlignment();
+
         var productIds = ProductSeeds.Select(p => p.ProductId).ToList();
         var existingProducts = await db.ProductRefs
             .Where(p => productIds.Contains(p.Id))
@@ -157,5 +164,34 @@ internal sealed class ProductRefSeeder(OrderDbContext db, ILogger<ProductRefSeed
             await tx.CommitAsync(ct);
             logger.LogInformation("Seeded {ProductCount} ProductRef(s) and {SkuCount} SkuRef(s).", toAddProds.Count, toAddSkus.Count);
         });
+    }
+
+    private static void ValidateSeedAlignment()
+    {
+        EnsureContiguousProductIds(start: 1001, count: 10, ProductSeeds.Take(10).Select(x => x.ProductId), "Bookstore");
+        EnsureContiguousProductIds(HomeLivingProductIdStart, 10, ProductSeeds.Skip(10).Take(10).Select(x => x.ProductId), "HomeLiving");
+        EnsureContiguousProductIds(MobileTabletProductIdStart, 9, ProductSeeds.Skip(20).Take(9).Select(x => x.ProductId), "MobileTablet");
+
+        EnsureContiguousSkuIds(start: 10001, count: 10, SkuSeeds.Take(10).Select(x => x.Id), "Bookstore");
+        EnsureContiguousSkuIds(HomeLivingSkuIdStart, 10, SkuSeeds.Skip(10).Take(10).Select(x => x.Id), "HomeLiving");
+        EnsureContiguousSkuIds(MobileTabletSkuIdStart, 22, SkuSeeds.Skip(20).Take(22).Select(x => x.Id), "MobileTablet");
+    }
+
+    private static void EnsureContiguousProductIds(long start, int count, IEnumerable<long> actualIds, string sectionName)
+    {
+        var expectedIds = Enumerable.Range(0, count).Select(offset => start + offset);
+        if (!actualIds.SequenceEqual(expectedIds))
+        {
+            throw new InvalidOperationException($"ProductRefSeeder {sectionName} product IDs are out of sync with Catalog seed ranges.");
+        }
+    }
+
+    private static void EnsureContiguousSkuIds(long start, int count, IEnumerable<long> actualIds, string sectionName)
+    {
+        var expectedIds = Enumerable.Range(0, count).Select(offset => start + offset);
+        if (!actualIds.SequenceEqual(expectedIds))
+        {
+            throw new InvalidOperationException($"ProductRefSeeder {sectionName} SKU IDs are out of sync with Catalog seed ranges.");
+        }
     }
 }

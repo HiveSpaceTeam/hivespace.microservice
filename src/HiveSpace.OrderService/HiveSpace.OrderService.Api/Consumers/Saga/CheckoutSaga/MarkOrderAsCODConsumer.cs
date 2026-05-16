@@ -17,6 +17,7 @@ public class MarkOrderAsCODConsumer(
     {
         var message = context.Message;
         var ct = context.CancellationToken;
+        var orders = new List<Domain.Aggregates.Orders.Order>();
 
         foreach (var orderId in message.OrderIds)
         {
@@ -33,6 +34,11 @@ public class MarkOrderAsCODConsumer(
                 return;
             }
 
+            orders.Add(order);
+        }
+
+        foreach (var order in orders)
+        {
             try
             {
                 if (order.Status.Name != OrderStatus.COD.Name)
@@ -42,11 +48,11 @@ public class MarkOrderAsCODConsumer(
                 ex.ErrorCode.Code == OrderDomainErrorCode.OrderExceedsCODLimit.Code ||
                 ex.ErrorCode.Code == OrderDomainErrorCode.OrderInvalidStatusForCOD.Code)
             {
-                logger.LogWarning("Order {OrderId} cannot be marked as COD: {ErrorCode}", orderId, ex.ErrorCode.Code);
+                logger.LogWarning("Order {OrderId} cannot be marked as COD: {ErrorCode}", order.Id, ex.ErrorCode.Code);
                 await context.RespondAsync<MarkOrderAsCODFailed>(new
                 {
                     message.CorrelationId,
-                    OrderId = orderId,
+                    OrderId = order.Id,
                     Reason  = ex.Message
                 });
                 return;

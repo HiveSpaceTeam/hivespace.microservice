@@ -5,10 +5,13 @@ using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Commands;
-using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Events;
+using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Dtos;
 using HiveSpace.OrderService.Api.Models;
+using HiveSpace.OrderService.Application.Cart;
 using HiveSpace.OrderService.Application.Cart.Queries.GetCheckoutPreview;
+using HiveSpace.OrderService.Domain.Aggregates.Carts;
 using HiveSpace.OrderService.Domain.Exceptions;
+using HiveSpace.OrderService.Domain.Repositories;
 using MassTransit;
 using MediatR;
 
@@ -21,10 +24,37 @@ public static class CheckoutEndpoints
         app.MapPost("/api/v1/orders/checkout", async (
             CheckoutRequest request,
             IBus bus,
+            ICartRepository cartRepository,
+            ICheckoutQuery checkoutQuery,
+            ICouponRepository couponRepository,
             IUserContext userContext,
             CancellationToken ct) =>
         {
+            var cart = await cartRepository.GetByUserIdAsync(userContext.UserId, ct)
+                ?? throw new NotFoundException(OrderDomainErrorCode.CartNotFound, nameof(Cart));
+            var selectedCart = await checkoutQuery.GetSelectedCartItemsAsync(userContext.UserId, ct);
+            SelectedCartCouponEvaluator.EnsureSelectedCartExists(selectedCart, nameof(CheckoutInitiated));
+            var couponState = await PersistedCartCouponState.ValidateAsync(
+                cart,
+                SelectedCartCouponEvaluator.BuildStoreSnapshots(selectedCart),
+                couponRepository,
+                userContext.UserId,
+                ct,
+                removeInvalidSelections: false);
+            if (couponState.InvalidatedCoupons.Count > 0)
+                throw PersistedCartCouponState.BuildCheckoutCouponException(couponState.InvalidatedCoupons);
+
             var paymentMethod = Enumeration.FromValue<PaymentMethod>(request.PaymentMethod ?? PaymentMethod.COD.Id);
+            var couponSelections = new CheckoutCouponSelectionDto
+            {
+                PlatformCouponCodes = couponState.AppliedPlatformCoupons
+                    .Select(x => x.CouponCode)
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList(),
+                StoreCoupons = couponState.AppliedStoreCoupons.Values
+                    .Select(x => new StoreCouponSelectionDto(x.StoreId, x.CouponCode))
+                    .ToList()
+            };
 
             var checkoutClient = bus.CreateRequestClient<CheckoutInitiated>();
             var correlationId = NewId.NextGuid();
@@ -35,7 +65,7 @@ public static class CheckoutEndpoints
                     CorrelationId = correlationId,
                     userContext.UserId,
                     request.DeliveryAddress,
-                    CouponCodes   = request.CouponCodes ?? [],
+                    CouponSelections = couponSelections,
                     PaymentMethod = paymentMethod
                 }, ct, RequestTimeout.After(m: 2));
 
@@ -63,10 +93,7 @@ public static class CheckoutEndpoints
             ISender sender,
             CancellationToken ct) =>
         {
-            var result = await sender.Send(new GetCheckoutPreviewQuery(
-                request.StoreCoupons,
-                request.PlatformCouponCodes
-            ), ct);
+            var result = await sender.Send(new GetCheckoutPreviewQuery(), ct);
             return Results.Ok(result);
         })
         .RequireAuthorization()

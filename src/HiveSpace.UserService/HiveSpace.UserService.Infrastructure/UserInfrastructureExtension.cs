@@ -73,8 +73,6 @@ public static class UserInfrastructureExtension
 
     public static void AddInfrastructureServices(this IServiceCollection services)
     {
-        // Register Infrastructure services here
-        services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<IAccountService, AccountService>();
     }
 

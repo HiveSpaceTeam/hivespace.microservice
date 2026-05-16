@@ -1,3 +1,4 @@
+using HiveSpace.Domain.Shared.Enumerations;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Scriban;
@@ -14,11 +15,11 @@ public class TemplateRenderer(
 {
     public async Task<RenderedTemplate> RenderAsync(
         string eventType, NotificationChannel channel,
-        string locale, Dictionary<string, object> templateData,
+        Culture locale, Dictionary<string, object> templateData,
         CancellationToken ct = default)
     {
         var template = await templates.GetAsync(eventType, channel, locale, ct)
-                    ?? await templates.GetAsync(eventType, channel, "vi", ct);
+                    ?? await templates.GetAsync(eventType, channel, Culture.Vi, ct);
 
         if (template is null)
         {

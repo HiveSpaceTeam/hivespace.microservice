@@ -4,6 +4,7 @@ using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Services;
 using Duende.IdentityServer.Stores;
 using HiveSpace.UserService.Infrastructure.Identity;
+using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.UserService.Domain.Enums;
 using HiveSpace.UserService.Api.Services.Localization;
 using Microsoft.AspNetCore.Authentication;

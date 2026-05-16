@@ -34,4 +34,20 @@ public class SqlOrderRepository(OrderDbContext db)
             .Include(o => o.Trackings)
             .AsSplitQuery()
             .FirstOrDefaultAsync(o => o.Id == orderId && o.StoreId == storeId, ct);
+
+    public async Task<List<OrderCouponUsageEntry>> GetCouponUsageEntriesByOrderIdsAsync(IEnumerable<Guid> orderIds, CancellationToken ct = default)
+    {
+        var orderIdList = orderIds.Distinct().ToList();
+
+        return await db.Orders
+            .AsNoTracking()
+            .Where(o => orderIdList.Contains(o.Id))
+            .SelectMany(o => o.Discounts.Select(d => new OrderCouponUsageEntry(
+                o.Id,
+                o.UserId,
+                d.CouponCode,
+                d.DiscountAmount.Amount,
+                d.DiscountAmount.Currency)))
+            .ToListAsync(ct);
+    }
 }

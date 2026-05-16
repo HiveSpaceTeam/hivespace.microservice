@@ -1,4 +1,5 @@
 using HiveSpace.Domain.Shared.Entities;
+using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.UserService.Domain.Enums;
 
 namespace HiveSpace.UserService.Domain.Aggregates.User;

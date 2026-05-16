@@ -120,7 +120,7 @@ namespace HiveSpace.UserService.Infrastructure.Migrations
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<Guid?>("UserId")
+                    b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("ZipCode")
@@ -158,8 +158,10 @@ namespace HiveSpace.UserService.Infrastructure.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<int>("Culture")
-                        .HasColumnType("int");
+                    b.Property<string>("Culture")
+                        .IsRequired()
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
 
                     b.Property<DateTime?>("DateOfBirth")
                         .HasColumnType("datetime2");
@@ -228,8 +230,10 @@ namespace HiveSpace.UserService.Infrastructure.Migrations
                     b.Property<Guid?>("StoreId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("Theme")
-                        .HasColumnType("int");
+                    b.Property<string>("Theme")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
 
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("bit");

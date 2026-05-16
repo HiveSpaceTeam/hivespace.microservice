@@ -14,6 +14,7 @@ public record CartItemDto(
     string? ProductThumbnailUrl,
     ProductStatus? ProductStatus,
     // From SkuRef
+    long? OriginalPrice,
     long? Price,
     string? Currency,
     string? SkuNo,
@@ -21,6 +22,7 @@ public record CartItemDto(
     string? SkuImageUrl,
     string? SkuAttributes,
     // From StoreRef
+    Guid StoreId,
     string? StoreName,
     SellerStatus? StoreStatus,
     DateTimeOffset CreatedAt,

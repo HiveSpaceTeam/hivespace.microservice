@@ -1,3 +1,4 @@
+using HiveSpace.Domain.Shared.Enumerations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using HiveSpace.NotificationService.Core.DomainModels.External;
@@ -21,8 +22,14 @@ public class UserRefEntityConfiguration : IEntityTypeConfiguration<UserRef>
         builder.Property(x => x.StoreId).HasColumnName("store_id");
         builder.Property(x => x.StoreName).HasColumnName("store_name").HasMaxLength(200);
         builder.Property(x => x.StoreLogoUrl).HasColumnName("store_logo_url").HasMaxLength(2048);
-        builder.Property(x => x.Locale).HasColumnName("locale").HasMaxLength(10).IsRequired()
-               .HasDefaultValue("vi");
+        builder.Property(x => x.Locale)
+            .HasColumnName("locale")
+            .HasMaxLength(10)
+            .HasConversion(
+                value => value.ToCode(),
+                value => CultureExtensions.FromCode(value))
+            .IsRequired()
+            .HasDefaultValue(Culture.Vi);
         builder.Property(x => x.UpdatedAt).HasColumnName("updated_at").IsRequired();
 
         builder.HasIndex(x => x.Email);

@@ -11,4 +11,7 @@ public static class NotificationEventType
     public const string PaymentFailed     = "payment.failed";
     public const string RefundProcessed   = "payment.refund_processed";
     public const string LowStockAlert     = "inventory.low_stock";
+
+    public const string EmailVerificationRequested = "user.email.verification";
+    public const string EmailVerified              = "user.email.verified";
 }

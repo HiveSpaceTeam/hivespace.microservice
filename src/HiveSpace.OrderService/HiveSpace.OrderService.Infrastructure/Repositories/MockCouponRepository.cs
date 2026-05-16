@@ -92,5 +92,13 @@ public class MockCouponRepository : ICouponRepository
         var result = _coupons.Values.Where(c => codeSet.Contains(c.Code)).ToList();
         return Task.FromResult(result);
     }
+
+    public Task<List<Coupon>> GetListWithUsagesAsync(Specification<Coupon> specification, CancellationToken ct = default)
+    {
+        var filtered = _coupons.Values
+            .Where(specification.ToExpression().Compile())
+            .ToList();
+        return Task.FromResult(filtered);
+    }
 }
 

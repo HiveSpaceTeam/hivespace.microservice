@@ -11,6 +11,11 @@
     "Database:MediaServiceDb": "Server=localhost,1433;Database=MediaDb;User Id=sa;Encrypt=False;TrustServerCertificate=True",
     "MediaCleanup:ExpirationHours": "24",
     "MediaCleanup:BatchSize": "100",
-    "MediaService:PresignUrlExpiryMinutes": "10"
+    "MediaService:PresignUrlExpiryMinutes": "10",
+    "Messaging:EnableRabbitMq": "true",
+    "Messaging:RabbitMq:Host": "localhost",
+    "Messaging:RabbitMq:Port": "5672",
+    "Messaging:RabbitMq:Username": "guest",
+    "Messaging:RabbitMq:Password": "guest"
   }
 }

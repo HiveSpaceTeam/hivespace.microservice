@@ -1,3 +1,4 @@
+using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.NotificationService.Core.DomainModels;
 using HiveSpace.NotificationService.Core.Dispatch.Models;
 
@@ -7,6 +8,6 @@ public interface ITemplateRenderer
 {
     Task<RenderedTemplate> RenderAsync(
         string eventType, NotificationChannel channel,
-        string locale, Dictionary<string, object> templateData,
+        Culture locale, Dictionary<string, object> templateData,
         CancellationToken ct = default);
 }

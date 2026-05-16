@@ -7,6 +7,7 @@ public class StoreRef : IAuditable
 {
     public Guid Id { get; private set; }
     public string Name { get; private set; } = string.Empty;
+    public string? LogoUrl { get; private set; }
     public SellerStatus Status { get; private set; }
 
     /// <summary>UserId of the store owner. Used to resolve seller for notification delivery.</summary>
@@ -17,18 +18,20 @@ public class StoreRef : IAuditable
 
     private StoreRef() { }
 
-    public StoreRef(Guid id, string name, SellerStatus status, Guid ownerId)
+    public StoreRef(Guid id, string name, string? logoUrl, SellerStatus status, Guid ownerId)
     {
         Id = id;
         Name = name;
+        LogoUrl = logoUrl;
         Status = status;
         OwnerId = ownerId;
         CreatedAt = DateTimeOffset.UtcNow;
     }
 
-    public void Update(string name, SellerStatus status)
+    public void Update(string name, string? logoUrl, SellerStatus status)
     {
         Name = name;
+        LogoUrl = logoUrl;
         Status = status;
     }
 }

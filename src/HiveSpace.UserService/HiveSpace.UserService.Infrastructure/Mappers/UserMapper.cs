@@ -1,5 +1,6 @@
 using System;
 using HiveSpace.UserService.Domain.Aggregates.User;
+using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.UserService.Domain.Enums;
 using HiveSpace.UserService.Domain.Services;
 using HiveSpace.UserService.Infrastructure.Identity;

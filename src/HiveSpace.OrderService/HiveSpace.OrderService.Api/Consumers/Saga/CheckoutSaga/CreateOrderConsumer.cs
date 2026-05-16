@@ -1,15 +1,16 @@
-using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.Domain.Shared.ValueObjects;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Commands;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Dtos;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Events;
+using HiveSpace.OrderService.Application.Cart;
+using HiveSpace.OrderService.Application.Cart.Dtos;
+using HiveSpace.OrderService.Domain.Aggregates.Coupons;
 using HiveSpace.OrderService.Domain.Aggregates.Orders;
 using HiveSpace.OrderService.Domain.Enumerations;
+using HiveSpace.OrderService.Domain.Exceptions;
 using HiveSpace.OrderService.Domain.Repositories;
 using HiveSpace.OrderService.Domain.ValueObjects;
-using HiveSpace.OrderService.Domain.Aggregates.Coupons;
 using MassTransit;
-using Microsoft.Extensions.Logging;
 using static HiveSpace.OrderService.Application.Cart.CheckoutCalculator;
 
 namespace HiveSpace.OrderService.Api.Consumers.Saga.CheckoutSaga;
@@ -74,28 +75,38 @@ public class CreateOrderConsumer(
             message.DeliveryAddress.Country,
             message.DeliveryAddress.Notes ?? string.Empty);
 
-        var domainPayment    = message.PaymentMethod;
-        var isCOD            = domainPayment.IsCashOnDelivery();
-        var requestedCouponCodes = message.CouponCodes
+        var domainPayment = message.PaymentMethod;
+        var isCOD = domainPayment.IsCashOnDelivery();
+        var requestedPlatformCouponCodes = message.CouponSelections.PlatformCouponCodes
             .Where(code => !string.IsNullOrWhiteSpace(code))
             .Select(code => code.Trim().ToUpperInvariant())
             .Distinct()
             .ToList();
-        var coupons          = message.CouponCodes.Count > 0
-            ? await couponRepository.GetByCodesAsync(message.CouponCodes, ct)
+        var requestedStoreCoupons = message.CouponSelections.StoreCoupons
+            .Where(selection => !string.IsNullOrWhiteSpace(selection.CouponCode))
+            .GroupBy(selection => selection.StoreId)
+            .Select(group =>
+            {
+                var selection = group.Last();
+                return new StoreCouponSelectionDto(selection.StoreId, selection.CouponCode.Trim().ToUpperInvariant());
+            })
+            .ToList();
+        var requestedCouponCodes = requestedPlatformCouponCodes
+            .Concat(requestedStoreCoupons.Select(x => x.CouponCode))
+            .Distinct()
+            .ToList();
+        var coupons = requestedCouponCodes.Count > 0
+            ? await couponRepository.GetByCodesAsync(requestedCouponCodes, ct)
             : [];
+        var couponsByCode = coupons.ToDictionary(c => c.Code.Trim().ToUpperInvariant());
 
-        var itemsByStore     = selectedItems.GroupBy(i => productRefs[i.ProductId].StoreId).ToList();
+        var itemsByStore = selectedItems.GroupBy(i => productRefs[i.ProductId].StoreId).ToList();
         var checkoutStoreIds = itemsByStore.Select(g => g.Key).ToHashSet();
 
         if (requestedCouponCodes.Count > 0)
         {
-            var returnedCouponCodes = coupons
-                .Select(c => c.Code.Trim().ToUpperInvariant())
-                .ToHashSet();
-
             var missingCouponCodes = requestedCouponCodes
-                .Where(code => !returnedCouponCodes.Contains(code))
+                .Where(code => !couponsByCode.ContainsKey(code))
                 .ToList();
 
             if (missingCouponCodes.Count > 0)
@@ -109,9 +120,9 @@ public class CreateOrderConsumer(
                 return;
             }
 
-            var unmappedCoupons = coupons
-                .Where(c => c.OwnerType == CouponOwnerType.Store && (!c.StoreId.HasValue || !checkoutStoreIds.Contains(c.StoreId.Value)))
-                .Select(c => c.Code)
+            var unmappedCoupons = requestedStoreCoupons
+                .Where(selection => !checkoutStoreIds.Contains(selection.StoreId))
+                .Select(selection => selection.CouponCode)
                 .Distinct()
                 .ToList();
 
@@ -127,13 +138,46 @@ public class CreateOrderConsumer(
             }
         }
 
-        var platformCoupons  = coupons.Where(c => c.OwnerType == CouponOwnerType.Platform).ToList();
+        var platformCoupons = requestedPlatformCouponCodes
+            .Select(code => couponsByCode[code])
+            .Where(c => c.OwnerType == CouponOwnerType.Platform)
+            .ToList();
 
+        var invalidPlatformCoupons = requestedPlatformCouponCodes
+            .Where(code => !couponsByCode.TryGetValue(code, out var coupon) || coupon.OwnerType != CouponOwnerType.Platform)
+            .ToList();
+
+        if (invalidPlatformCoupons.Count > 0)
+        {
+            await context.RespondAsync<OrderCreationFailed>(new
+            {
+                message.CorrelationId,
+                Reason = "Some coupons are not applicable to this checkout",
+                Errors = invalidPlatformCoupons.Select(code => $"Coupon {code} is not a platform coupon").ToList()
+            });
+            return;
+        }
+
+        var grandSubtotal = selectedItems.Sum(item => skuRefs[item.SkuId].Price * item.Quantity);
         var shippingPerStore = DistributeShippingFee(
             CalculateShippingFee(selectedItems.Sum(i => i.Quantity)), itemsByStore.Count);
 
         var createdOrders = new List<Order>();
         var allItemDtos   = new List<OrderItemDto>();
+
+        foreach (var platformCoupon in platformCoupons)
+        {
+            var validation = platformCoupon.Validate(message.UserId, Money.FromVND(grandSubtotal));
+            if (!validation.IsValid)
+            {
+                await RespondCouponValidationFailed(
+                    context,
+                    message.CorrelationId,
+                    platformCoupon.Code,
+                    validation.Errors.Select(error => error.ErrorCode));
+                return;
+            }
+        }
 
         for (int i = 0; i < itemsByStore.Count; i++)
         {
@@ -175,10 +219,41 @@ public class CreateOrderConsumer(
 
             order.SetShippingFee(Money.FromVND(pkgShipping), isShippingPaidBySeller: false);
 
-            foreach (var coupon in coupons.Where(c =>
-                c.OwnerType == CouponOwnerType.Store && c.StoreId == storeId))
+            var storeSnapshot = new SelectedCartStoreSnapshot(
+                storeId,
+                storeGroup.Select(x => productRefs[x.ProductId].Name).FirstOrDefault(),
+                storeGroup.Select(x => skuRefs[x.SkuId].Currency).FirstOrDefault() ?? "VND",
+                storeGroup.Sum(x => skuRefs[x.SkuId].Price * x.Quantity),
+                pkgShipping,
+                storeGroup.Select(x => x.ProductId).Distinct().ToList(),
+                storeGroup.Select(x => new SelectedCartStoreLineSnapshot(
+                    x.ProductId,
+                    skuRefs[x.SkuId].Price * x.Quantity))
+                    .ToList());
+
+            foreach (var selection in requestedStoreCoupons.Where(x => x.StoreId == storeId))
             {
-                order.ApplyDiscount(coupon);
+                if (!couponsByCode.TryGetValue(selection.CouponCode, out var coupon) ||
+                    coupon.OwnerType != CouponOwnerType.Store ||
+                    coupon.StoreId != storeId)
+                {
+                    await RespondStoreCouponNotApplicable(context, message.CorrelationId, selection.CouponCode);
+                    return;
+                }
+
+                var evaluation = SelectedCartCouponEvaluator.EvaluateCoupon(coupon, message.UserId, storeSnapshot);
+                if (!evaluation.IsApplicable)
+                {
+                    await RespondCouponValidationFailed(
+                        context,
+                        message.CorrelationId,
+                        selection.CouponCode,
+                        evaluation.Errors.DefaultIfEmpty(OrderDomainErrorCode.CouponInvalid));
+                    return;
+                }
+
+                if (evaluation.DiscountAmount > 0)
+                    order.ApplyDiscount(coupon, Money.FromVND(evaluation.DiscountAmount));
             }
 
             orderRepository.Add(order);
@@ -213,6 +288,32 @@ public class CreateOrderConsumer(
             CreatedAt     = createdOrders.First().CreatedAt
         });
     }
+
+    private static Task RespondStoreCouponNotApplicable(
+        ConsumeContext<CreateOrder> context,
+        Guid correlationId,
+        string couponCode)
+        => context.RespondAsync<OrderCreationFailed>(new
+        {
+            CorrelationId = correlationId,
+            Reason = "Some coupons are not applicable to this checkout",
+            Errors = new List<string> { $"Coupon {couponCode} is not applicable to selected store items" }
+        });
+
+    private static Task RespondCouponValidationFailed(
+        ConsumeContext<CreateOrder> context,
+        Guid correlationId,
+        string couponCode,
+        IEnumerable<HiveSpace.Domain.Shared.Errors.DomainErrorCode> errorCodes)
+        => context.RespondAsync<OrderCreationFailed>(new
+        {
+            CorrelationId = correlationId,
+            Reason = "Some coupons failed validation for this checkout",
+            Errors = errorCodes
+                .Select(errorCode => $"Coupon {couponCode}: {errorCode.Name}")
+                .Distinct()
+                .ToList()
+        });
 
     private static void ApplyPlatformCouponProration(IReadOnlyList<Order> createdOrders, Coupon platformCoupon)
     {

@@ -25,6 +25,7 @@ public record CheckoutPreviewPackageDto(
     long    OriginalSubtotal,
     long    Subtotal,
     long    PackageTotal,
+    AppliedStoreCouponDto? AppliedStoreCoupon,
     List<CheckoutPreviewItemDto> Items
 );
 
@@ -35,5 +36,7 @@ public record CheckoutPreviewResponse(
     string Currency,
     long   TotalShippingFee,
     long   GrandTotal,
-    int    TotalItems
+    int    TotalItems,
+    List<AppliedPlatformCouponDto> PlatformCoupons,
+    List<InvalidAppliedCouponDto> InvalidatedCoupons
 );

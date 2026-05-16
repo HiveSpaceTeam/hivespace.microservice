@@ -1,3 +1,5 @@
+using HiveSpace.Domain.Shared.Enumerations;
+using HiveSpace.UserService.Domain.Enums;
 using HiveSpace.UserService.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -56,11 +58,17 @@ public class ApplicationUserEntityConfiguration : IEntityTypeConfiguration<Appli
 
         // Configure settings properties
         builder.Property(u => u.Theme)
-            .HasConversion<int>()
+            .HasConversion(
+                v => MapTheme(v),
+                v => ParseTheme(v))
+            .HasMaxLength(10)
             .IsRequired();
 
         builder.Property(u => u.Culture)
-            .HasConversion<int>()
+            .HasConversion(
+                v => MapCulture(v),
+                v => ParseCulture(v))
+            .HasMaxLength(5)
             .IsRequired();
 
         // Configure ISoftDeletable properties
@@ -85,5 +93,35 @@ public class ApplicationUserEntityConfiguration : IEntityTypeConfiguration<Appli
 
         // Table name
         builder.ToTable("users");
+    }
+
+    private static string MapTheme(Theme theme)
+    {
+        return theme switch
+        {
+            Theme.Light => "light",
+            Theme.Dark => "dark",
+            _ => throw new InvalidOperationException($"Unsupported theme value '{theme}'.")
+        };
+    }
+
+    private static Theme ParseTheme(string value)
+    {
+        return value switch
+        {
+            "light" => Theme.Light,
+            "dark" => Theme.Dark,
+            _ => throw new InvalidOperationException($"Unsupported persisted theme value '{value}'.")
+        };
+    }
+
+    private static string MapCulture(Culture culture)
+    {
+        return culture.ToCode();
+    }
+
+    private static Culture ParseCulture(string value)
+    {
+        return CultureExtensions.FromCode(value);
     }
 }
