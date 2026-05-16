@@ -1,46 +1,33 @@
 using HiveSpace.Infrastructure.Messaging.Shared.Events.Users;
+using HiveSpace.NotificationService.Core.Dispatch.Models;
 using HiveSpace.NotificationService.Core.DomainModels;
 using HiveSpace.NotificationService.Core.Interfaces;
 using MassTransit;
-using Microsoft.Extensions.Logging;
-using Resend;
 
 namespace HiveSpace.NotificationService.Api.Consumers;
 
 public class EmailVerifiedConsumer(
-    IResend                          resend,
-    ITemplateRenderer                renderer,
-    ILogger<EmailVerifiedConsumer>   logger) : IConsumer<UserEmailVerifiedIntegrationEvent>
+    IDispatchPipeline pipeline,
+    ILogger<EmailVerifiedConsumer>    logger) : IConsumer<UserEmailVerifiedIntegrationEvent>
 {
     public async Task Consume(ConsumeContext<UserEmailVerifiedIntegrationEvent> context)
     {
         var msg = context.Message;
-        var ct  = context.CancellationToken;
 
-        var templateData = new Dictionary<string, object>
+        await pipeline.DispatchAsync(new NotificationRequest
         {
-            ["userName"] = msg.ToName,
-        };
+            UserId          = msg.UserId,
+            EventType       = NotificationEventType.EmailVerified,
+            IdempotencyKey  = $"user.email.verified:{msg.UserId}",
+            Locale          = msg.Locale,
+            IsTransactional = true,
+            TemplateData    = new Dictionary<string, object>
+            {
+                ["userName"]        = msg.ToName,
+                ["_recipientEmail"] = msg.ToEmail,
+            }
+        }, context.CancellationToken);
 
-        var rendered = await renderer.RenderAsync(
-            NotificationEventType.EmailVerified,
-            NotificationChannel.Email,
-            msg.Locale,
-            templateData,
-            ct);
-
-        var message = new EmailMessage
-        {
-            From     = "HiveSpace <no-reply@hivespace.site>",
-            To       = { msg.ToEmail },
-            Subject  = rendered.Subject,
-            HtmlBody = rendered.Body,
-        };
-
-        await resend.EmailSendAsync(message, ct);
-
-        logger.LogInformation(
-            "Email verified confirmation sent to {Email} for UserId={UserId}",
-            msg.ToEmail, msg.UserId);
+        logger.LogInformation("Email verified confirmation dispatched for UserId={UserId}", msg.UserId);
     }
 }

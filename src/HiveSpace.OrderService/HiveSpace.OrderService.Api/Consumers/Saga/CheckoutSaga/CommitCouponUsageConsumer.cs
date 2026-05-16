@@ -18,19 +18,6 @@ public class CommitCouponUsageConsumer(
         var message = context.Message;
         var ct = context.CancellationToken;
 
-        var missingOrderId = await GetMissingOrderIdAsync(message.OrderIds, orderRepository, ct);
-        if (missingOrderId.HasValue)
-        {
-            logger.LogWarning("Order {OrderId} not found for coupon usage commit", missingOrderId.Value);
-            await context.RespondAsync<CommitCouponUsageFailed>(new
-            {
-                message.CorrelationId,
-                Reason = $"Order {missingOrderId.Value} not found",
-                Errors = Array.Empty<string>()
-            });
-            return;
-        }
-
         var orderCouponUsages = await orderRepository.GetCouponUsageEntriesByOrderIdsAsync(message.OrderIds, ct);
 
         try
@@ -57,19 +44,5 @@ public class CommitCouponUsageConsumer(
             message.OrderIds,
             CommittedAt = DateTimeOffset.UtcNow
         });
-    }
-
-    private static async Task<Guid?> GetMissingOrderIdAsync(
-        IEnumerable<Guid> orderIds,
-        IOrderRepository orderRepository,
-        CancellationToken cancellationToken)
-    {
-        foreach (var orderId in orderIds.Distinct())
-        {
-            if (await orderRepository.GetByIdAsync(orderId, cancellationToken) is null)
-                return orderId;
-        }
-
-        return null;
     }
 }

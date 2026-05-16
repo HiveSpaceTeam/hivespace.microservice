@@ -6,13 +6,14 @@ using HiveSpace.OrderService.Domain.Exceptions;
 using HiveSpace.OrderService.Domain.Repositories;
 using HiveSpace.Core.Exceptions.Models;
 using static HiveSpace.OrderService.Application.Cart.CheckoutCalculator;
+using CartAggregate = HiveSpace.OrderService.Domain.Aggregates.Carts.Cart;
 
 namespace HiveSpace.OrderService.Application.Cart;
 
 public static class PersistedCartCouponState
 {
     public static async Task RemoveInvalidStoreCouponsAsync(
-        HiveSpace.OrderService.Domain.Aggregates.Carts.Cart cart,
+        CartAggregate cart,
         IReadOnlyCollection<SelectedCartStoreSnapshot> snapshots,
         ICouponRepository couponRepository,
         Guid userId,
@@ -43,7 +44,7 @@ public static class PersistedCartCouponState
     }
 
     public static async Task<CartCouponValidationResult> ValidateAsync(
-        HiveSpace.OrderService.Domain.Aggregates.Carts.Cart cart,
+        CartAggregate cart,
         IReadOnlyCollection<SelectedCartStoreSnapshot> snapshots,
         ICouponRepository couponRepository,
         Guid userId,

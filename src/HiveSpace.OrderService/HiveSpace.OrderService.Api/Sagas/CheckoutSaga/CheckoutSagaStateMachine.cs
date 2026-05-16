@@ -513,123 +513,154 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
             When(CouponUsageCommit.Faulted)
                 .Then(ctx =>
                 {
-                    ctx.Saga.FailureReason = "Unexpected error during coupon usage commit";
-                    ctx.Saga.FailedAt = DateTimeOffset.UtcNow;
+                    ctx.Saga.FailureReason            = "Unexpected error during coupon usage commit";
+                    ctx.Saga.FailedAt                 = DateTimeOffset.UtcNow;
+                    ctx.Saga.PendingInventoryReleases = ctx.Saga.OrderIds.Count;
                 })
                 .ThenAsync(ctx => RespondWithFailure(ctx,
                     ctx.Saga.RequestId, ctx.Saga.ResponseAddress,
                     CheckoutErrorType.InternalError, ctx.Saga.FailureReason!))
-                .TransitionTo(Compensating)
-                .ThenAsync(PublishReleaseInventoryForOrders),
+                .Request(CartClearing, ctx => ctx.Init<ClearCart>(new
+                {
+                    ctx.Saga.CorrelationId,
+                    ctx.Saga.UserId,
+                    PurchasedStoreIds = ctx.Saga.OrderStoreMap.Values.Distinct().ToList()
+                }))
+                .TransitionTo(CartClearing.Pending),
 
             When(CouponUsageCommit.TimeoutExpired)
                 .Then(ctx =>
                 {
-                    ctx.Saga.FailureReason = "Coupon usage commit timed out";
-                    ctx.Saga.FailedAt = DateTimeOffset.UtcNow;
+                    ctx.Saga.FailureReason            = "Coupon usage commit timed out";
+                    ctx.Saga.FailedAt                 = DateTimeOffset.UtcNow;
+                    ctx.Saga.PendingInventoryReleases = ctx.Saga.OrderIds.Count;
                 })
                 .ThenAsync(ctx => RespondWithFailure(ctx,
                     ctx.Saga.RequestId, ctx.Saga.ResponseAddress,
                     CheckoutErrorType.Timeout, ctx.Saga.FailureReason!))
-                .TransitionTo(Compensating)
-                .ThenAsync(PublishReleaseInventoryForOrders)
+                .Request(CartClearing, ctx => ctx.Init<ClearCart>(new
+                {
+                    ctx.Saga.CorrelationId,
+                    ctx.Saga.UserId,
+                    PurchasedStoreIds = ctx.Saga.OrderStoreMap.Values.Distinct().ToList()
+                }))
+                .TransitionTo(CartClearing.Pending)
         );
 
         // ── CART CLEARING ─────────────────────────────────────────────────────
         During(CartClearing.Pending,
-            When(CartClearing.Completed)   // CartCleared — respond to API and fan-out to FulfillmentSagas
-                .ThenAsync(async ctx =>
-                {
-                    ctx.Saga.CompletedAt = DateTimeOffset.UtcNow;
-
-                    if (ctx.Saga.ResponseAddress is not null)
-                    {
-                        var ep = await ctx.GetSendEndpoint(ctx.Saga.ResponseAddress);
-                        var status = ctx.Saga.PaymentMethod.IsCashOnDelivery()
-                            ? OrderStatus.COD.Name
-                            : OrderStatus.Paid.Name;
-                        await ep.Send(new CheckoutResponse
+            When(CartClearing.Completed)
+                .IfElse(ctx => ctx.Saga.FailedAt.HasValue,
+                    // Compensation path — cart cleared after coupon commit failure; now release inventory
+                    comp => comp
+                        .TransitionTo(Compensating)
+                        .ThenAsync(PublishReleaseInventoryForOrders),
+                    // Success path — respond to caller and fan-out FulfillmentSagas
+                    success => success
+                        .ThenAsync(async ctx =>
                         {
-                            OrderIds   = ctx.Saga.OrderIds,
-                            Status     = status,
-                            GrandTotal = ctx.Saga.GrandTotal
-                        }, x => x.RequestId = ctx.Saga.RequestId);
-                    }
+                            ctx.Saga.CompletedAt = DateTimeOffset.UtcNow;
 
-                    // Fan-out: one OrderReadyForFulfillment per order
-                    foreach (var orderId in ctx.Saga.OrderIds)
-                    {
-                        ctx.Saga.OrderReservationMap.TryGetValue(orderId, out var reservations);
-                        ctx.Saga.OrderStoreMap.TryGetValue(orderId, out var storeId);
-                        await ctx.Publish<OrderReadyForFulfillment>(new
-                        {
-                            CorrelationId  = orderId,
-                            ctx.Saga.UserId,
-                            StoreId        = storeId,
-                            ReservationIds = reservations ?? new List<Guid>(),
-                            ctx.Saga.GrandTotal,
-                            ctx.Saga.PaymentMethod,
-                            OrderCode      = ctx.Saga.OrderCodeMap.GetValueOrDefault(orderId, orderId.ToString())
-                        });
-                    }
-                })
-                .TransitionTo(Completed)
-                .Finalize(),
+                            if (ctx.Saga.ResponseAddress is not null)
+                            {
+                                var ep = await ctx.GetSendEndpoint(ctx.Saga.ResponseAddress);
+                                var status = ctx.Saga.PaymentMethod.IsCashOnDelivery()
+                                    ? OrderStatus.COD.Name
+                                    : OrderStatus.Paid.Name;
+                                await ep.Send(new CheckoutResponse
+                                {
+                                    OrderIds   = ctx.Saga.OrderIds,
+                                    Status     = status,
+                                    GrandTotal = ctx.Saga.GrandTotal
+                                }, x => x.RequestId = ctx.Saga.RequestId);
+                            }
+
+                            foreach (var orderId in ctx.Saga.OrderIds)
+                            {
+                                ctx.Saga.OrderReservationMap.TryGetValue(orderId, out var reservations);
+                                ctx.Saga.OrderStoreMap.TryGetValue(orderId, out var storeId);
+                                await ctx.Publish<OrderReadyForFulfillment>(new
+                                {
+                                    CorrelationId  = orderId,
+                                    ctx.Saga.UserId,
+                                    StoreId        = storeId,
+                                    ReservationIds = reservations ?? new List<Guid>(),
+                                    ctx.Saga.GrandTotal,
+                                    ctx.Saga.PaymentMethod,
+                                    OrderCode      = ctx.Saga.OrderCodeMap.GetValueOrDefault(orderId, orderId.ToString())
+                                });
+                            }
+                        })
+                        .TransitionTo(Completed)
+                        .Finalize()),
 
             When(CartClearing.Faulted)
-                .Then(ctx =>
-                {
-                    ctx.Saga.FailureReason = "Cart clearing failed unexpectedly";
-                    ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
-                })
-                // Cart clearing failure is non-critical — still respond with success
-                .ThenAsync(async ctx =>
-                {
-                    ctx.Saga.CompletedAt = DateTimeOffset.UtcNow;
-                    if (ctx.Saga.ResponseAddress is not null)
-                    {
-                        var ep = await ctx.GetSendEndpoint(ctx.Saga.ResponseAddress);
-                        var status = ctx.Saga.PaymentMethod.IsCashOnDelivery()
-                            ? OrderStatus.COD.Name
-                            : OrderStatus.Paid.Name;
-                        await ep.Send(new CheckoutResponse
+                .IfElse(ctx => ctx.Saga.FailedAt.HasValue,
+                    // Compensation path — cart clearing also failed; non-critical, still release inventory
+                    comp => comp
+                        .TransitionTo(Compensating)
+                        .ThenAsync(PublishReleaseInventoryForOrders),
+                    // Success path — cart clearing failed non-critically; still respond with success
+                    success => success
+                        .Then(ctx =>
                         {
-                            OrderIds   = ctx.Saga.OrderIds,
-                            Status     = status,
-                            GrandTotal = ctx.Saga.GrandTotal
-                        }, x => x.RequestId = ctx.Saga.RequestId);
-                    }
+                            ctx.Saga.FailureReason = "Cart clearing failed unexpectedly";
+                            ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
+                        })
+                        .ThenAsync(async ctx =>
+                        {
+                            ctx.Saga.CompletedAt = DateTimeOffset.UtcNow;
+                            if (ctx.Saga.ResponseAddress is not null)
+                            {
+                                var ep = await ctx.GetSendEndpoint(ctx.Saga.ResponseAddress);
+                                var status = ctx.Saga.PaymentMethod.IsCashOnDelivery()
+                                    ? OrderStatus.COD.Name
+                                    : OrderStatus.Paid.Name;
+                                await ep.Send(new CheckoutResponse
+                                {
+                                    OrderIds   = ctx.Saga.OrderIds,
+                                    Status     = status,
+                                    GrandTotal = ctx.Saga.GrandTotal
+                                }, x => x.RequestId = ctx.Saga.RequestId);
+                            }
 
-                    foreach (var orderId in ctx.Saga.OrderIds)
-                    {
-                        ctx.Saga.OrderReservationMap.TryGetValue(orderId, out var reservations);
-                        ctx.Saga.OrderStoreMap.TryGetValue(orderId, out var storeId);
-                        await ctx.Publish<OrderReadyForFulfillment>(new
-                        {
-                            CorrelationId  = orderId,
-                            ctx.Saga.UserId,
-                            StoreId        = storeId,
-                            ReservationIds = reservations ?? new List<Guid>(),
-                            ctx.Saga.GrandTotal,
-                            ctx.Saga.PaymentMethod,
-                            OrderCode      = ctx.Saga.OrderCodeMap.GetValueOrDefault(orderId, orderId.ToString())
-                        });
-                    }
-                })
-                .TransitionTo(Completed)
-                .Finalize(),
+                            foreach (var orderId in ctx.Saga.OrderIds)
+                            {
+                                ctx.Saga.OrderReservationMap.TryGetValue(orderId, out var reservations);
+                                ctx.Saga.OrderStoreMap.TryGetValue(orderId, out var storeId);
+                                await ctx.Publish<OrderReadyForFulfillment>(new
+                                {
+                                    CorrelationId  = orderId,
+                                    ctx.Saga.UserId,
+                                    StoreId        = storeId,
+                                    ReservationIds = reservations ?? new List<Guid>(),
+                                    ctx.Saga.GrandTotal,
+                                    ctx.Saga.PaymentMethod,
+                                    OrderCode      = ctx.Saga.OrderCodeMap.GetValueOrDefault(orderId, orderId.ToString())
+                                });
+                            }
+                        })
+                        .TransitionTo(Completed)
+                        .Finalize()),
 
             When(CartClearing.TimeoutExpired)
-                .Then(ctx =>
-                {
-                    ctx.Saga.FailureReason = "Cart clearing timed out";
-                    ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
-                })
-                .ThenAsync(ctx => RespondWithFailure(ctx,
-                    ctx.Saga.RequestId, ctx.Saga.ResponseAddress,
-                    CheckoutErrorType.Timeout, ctx.Saga.FailureReason!))
-                .TransitionTo(Failed)
-                .Finalize()
+                .IfElse(ctx => ctx.Saga.FailedAt.HasValue,
+                    // Compensation path — cart clearing timed out; non-critical, still release inventory
+                    comp => comp
+                        .TransitionTo(Compensating)
+                        .ThenAsync(PublishReleaseInventoryForOrders),
+                    // Success path — cart clearing timed out; treat as failure
+                    fail => fail
+                        .Then(ctx =>
+                        {
+                            ctx.Saga.FailureReason = "Cart clearing timed out";
+                            ctx.Saga.FailedAt      = DateTimeOffset.UtcNow;
+                        })
+                        .ThenAsync(ctx => RespondWithFailure(ctx,
+                            ctx.Saga.RequestId, ctx.Saga.ResponseAddress,
+                            CheckoutErrorType.Timeout, ctx.Saga.FailureReason!))
+                        .TransitionTo(Failed)
+                        .Finalize())
         );
 
         // ── COMPENSATING ──────────────────────────────────────────────────────

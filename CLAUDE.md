@@ -118,14 +118,14 @@ See startup file conventions (`Program.cs`, `HostingExtensions.cs`, `ServiceColl
 
 ## Service Types - Quick Reference
 
-| Service | Type | Application layer | API surface |
-|---------|------|-------------------|-------------|
-| UserService | **Full** | Legacy service-based | Legacy controllers + Razor Pages |
-| CatalogService | **Full** | CQRS | Minimal Endpoints |
-| OrderService | **Full** | CQRS | Minimal Endpoints |
-| PaymentService | **Full** | CQRS | Minimal Endpoints |
-| MediaService | **Lite** | CQRS | Minimal Endpoints |
-| NotificationService | **Lite** | CQRS | Minimal Endpoints |
+| Service             | Type     | Application layer | API surface               |
+| ------------------- | -------- | ----------------- | ------------------------- |
+| UserService         | **Full** | Legacy service-based | Legacy controllers + Razor Pages |
+| CatalogService      | **Full** | CQRS              | Minimal Endpoints         |
+| OrderService        | **Full** | CQRS              | Minimal Endpoints         |
+| PaymentService      | **Full** | CQRS              | Minimal Endpoints         |
+| MediaService        | **Lite** | CQRS              | Minimal Endpoints         |
+| NotificationService | **Lite** | CQRS              | Minimal Endpoints         |
 
 The Application layer pattern in the table above is **fixed per service**. Agents must not introduce new service-based feature implementations. Specifically: all feature work uses CQRS and Minimal API endpoints; `UserService` legacy service/controller code may be maintained only when required by the existing implementation.
 
@@ -172,6 +172,7 @@ When adding or changing shared hook behavior:
 ## PR Process
 
 Never run `gh pr create` directly. A PreToolUse hook wrapper at `.claude/hooks/guard-pr.sh` blocks it. Required flow:
+
 1. Run `bash scripts/sync-config.sh` to sync all `appsettings.json` / `local.settings.json` to `hivespace.config/`
 2. Run `npx gitnexus analyze` to sync the GitNexus index with current changes
 3. Tell the user to **start a new session** in this repository
@@ -184,7 +185,7 @@ Never run `gh pr create` directly. A PreToolUse hook wrapper at `.claude/hooks/g
 - Agents must never stage or commit any `*.json` file.
 - If a task changes one or more `*.json` files, agents must ask the user to add/stage those JSON files manually.
 - Agents can stage and commit only non-JSON files after user confirmation that JSON staging is handled.
-- After finishing a task, agents must delete temporary files and temporary folders they created (for example: ad-hoc error logs, scratch/debug files, temporary build folders like `.codex-build`, language-service cache files like `*.csproj.lscache`, or one-off investigation artifacts) unless the user explicitly asks to keep them.
+- After finishing a task, agents must delete temporary files and temporary folders they created (for example: ad-hoc error logs, scratch/debug files, temporary build folders like `.codex-build`, all _.log files, language-service cache files like `_.csproj.lscache`, or one-off investigation artifacts) unless the user explicitly asks to keep them.
 - Agents must not stage or commit temporary files created only for debugging or task tracking.
 
 <!-- gitnexus:start -->

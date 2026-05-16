@@ -20,6 +20,12 @@ public class SqlOrderRepository(OrderDbContext db)
     public async Task<Order?> GetByIdAsync(Guid orderId, CancellationToken ct = default)
         => await base.GetByIdAsync(orderId, cancellationToken: ct);
 
+    public async Task<List<Order>> GetByIdsAsync(IEnumerable<Guid> orderIds, CancellationToken ct = default)
+    {
+        var ids = orderIds.Distinct().ToList();
+        return await db.Orders.Where(o => ids.Contains(o.Id)).ToListAsync(ct);
+    }
+
     public async Task<Order?> GetDetailByIdAsync(Guid orderId, CancellationToken ct = default)
         => await base.GetByIdAsync(orderId, includeDetail: true, cancellationToken: ct);
 

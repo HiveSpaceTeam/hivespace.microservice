@@ -17,24 +17,19 @@ public class MarkOrderAsPaidConsumer(
     {
         var message = context.Message;
         var ct = context.CancellationToken;
-        var orders = new List<Domain.Aggregates.Orders.Order>();
 
-        foreach (var orderId in message.OrderIds)
+        var orders = await orderRepository.GetByIdsAsync(message.OrderIds, ct);
+        var missingId = message.OrderIds.FirstOrDefault(id => orders.All(o => o.Id != id));
+        if (missingId != default)
         {
-            var order = await orderRepository.GetByIdAsync(orderId, ct);
-            if (order is null)
+            logger.LogWarning("Order {OrderId} not found for paid marking", missingId);
+            await context.RespondAsync<MarkOrderAsPaidFailed>(new
             {
-                logger.LogWarning("Order {OrderId} not found for paid marking", orderId);
-                await context.RespondAsync<MarkOrderAsPaidFailed>(new
-                {
-                    message.CorrelationId,
-                    OrderId = orderId,
-                    Reason  = $"Order {orderId} not found"
-                });
-                return;
-            }
-
-            orders.Add(order);
+                message.CorrelationId,
+                OrderId = missingId,
+                Reason  = $"Order {missingId} not found"
+            });
+            return;
         }
 
         foreach (var order in orders)
