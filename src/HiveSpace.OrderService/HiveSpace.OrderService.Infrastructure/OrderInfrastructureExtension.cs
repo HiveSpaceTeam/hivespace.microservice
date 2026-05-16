@@ -77,6 +77,7 @@ public static class OrderInfrastructureExtension
         services.AddScoped<ICartRepository, SqlCartRepository>();
         services.AddScoped<ISkuRefRepository, SqlSkuRefRepository>();
         services.AddScoped<IProductRefRepository, SqlProductRefRepository>();
+        services.AddScoped<IStoreRefRepository, SqlStoreRefRepository>();
         services.AddScoped<IOrderRepository, SqlOrderRepository>();
 
         services.AddScoped<ISeeder, StoreRefSeeder>();

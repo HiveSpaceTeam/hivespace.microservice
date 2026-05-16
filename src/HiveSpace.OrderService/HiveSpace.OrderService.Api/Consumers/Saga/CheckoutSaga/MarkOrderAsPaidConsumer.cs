@@ -18,21 +18,22 @@ public class MarkOrderAsPaidConsumer(
         var message = context.Message;
         var ct = context.CancellationToken;
 
-        foreach (var orderId in message.OrderIds)
+        var orders = await orderRepository.GetByIdsAsync(message.OrderIds, ct);
+        var missingId = message.OrderIds.FirstOrDefault(id => orders.All(o => o.Id != id));
+        if (missingId != default)
         {
-            var order = await orderRepository.GetByIdAsync(orderId, ct);
-            if (order is null)
+            logger.LogWarning("Order {OrderId} not found for paid marking", missingId);
+            await context.RespondAsync<MarkOrderAsPaidFailed>(new
             {
-                logger.LogWarning("Order {OrderId} not found for paid marking", orderId);
-                await context.RespondAsync<MarkOrderAsPaidFailed>(new
-                {
-                    message.CorrelationId,
-                    OrderId = orderId,
-                    Reason  = $"Order {orderId} not found"
-                });
-                return;
-            }
+                message.CorrelationId,
+                OrderId = missingId,
+                Reason  = $"Order {missingId} not found"
+            });
+            return;
+        }
 
+        foreach (var order in orders)
+        {
             try
             {
                 order.MarkAsPaid(message.PaymentId);
@@ -40,11 +41,11 @@ public class MarkOrderAsPaidConsumer(
             catch (DomainException ex) when (
                 ex.ErrorCode.Code == OrderDomainErrorCode.OrderInvalidStatusForPayment.Code)
             {
-                logger.LogWarning("Order {OrderId} cannot be marked as paid: {ErrorCode}", orderId, ex.ErrorCode.Code);
+                logger.LogWarning("Order {OrderId} cannot be marked as paid: {ErrorCode}", order.Id, ex.ErrorCode.Code);
                 await context.RespondAsync<MarkOrderAsPaidFailed>(new
                 {
                     message.CorrelationId,
-                    OrderId = orderId,
+                    OrderId = order.Id,
                     Reason  = ex.Message
                 });
                 return;

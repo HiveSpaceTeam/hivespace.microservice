@@ -1,3 +1,5 @@
+using HiveSpace.Domain.Shared.Enumerations;
+
 namespace HiveSpace.Infrastructure.Messaging.Shared.Events.Users;
 
 public record UserCreatedIntegrationEvent
@@ -6,7 +8,7 @@ public record UserCreatedIntegrationEvent
     public string  Email       { get; init; } = default!;
     public string  FullName    { get; init; } = default!;
     public string? PhoneNumber { get; init; }
-    public string  Locale      { get; init; } = "vi";
+    public Culture Locale      { get; init; } = Culture.Vi;
     public string? UserName    { get; init; }
     public string? AvatarUrl   { get; init; }
 }

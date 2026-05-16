@@ -1,4 +1,5 @@
 using HiveSpace.Infrastructure.Persistence.Repositories;
+using HiveSpace.Domain.Shared.Specifications;
 using HiveSpace.OrderService.Domain.Aggregates.Coupons;
 using HiveSpace.OrderService.Domain.Repositories;
 using HiveSpace.OrderService.Infrastructure.Data;
@@ -14,6 +15,14 @@ public class SqlCouponRepository(OrderDbContext context) : BaseRepository<Coupon
         return await context.Coupons
             .Include(c => c.Usages)
             .Where(c => upperCodes.Contains(c.Code))
+            .ToListAsync(ct);
+    }
+
+    public async Task<List<Coupon>> GetListWithUsagesAsync(Specification<Coupon> specification, CancellationToken ct = default)
+    {
+        return await context.Coupons
+            .Include(c => c.Usages)
+            .Where(specification.ToExpression())
             .ToListAsync(ct);
     }
 }

@@ -42,7 +42,7 @@ internal static class HostingExtensions
         app.UseAuthentication();
         app.UseAuthorization();
 
-        app.MapControllers();
+        app.MapHealthEndpoints();
         app.MapCouponEndpoints();
         app.MapCartEndpoints();
         app.MapCheckoutEndpoints();

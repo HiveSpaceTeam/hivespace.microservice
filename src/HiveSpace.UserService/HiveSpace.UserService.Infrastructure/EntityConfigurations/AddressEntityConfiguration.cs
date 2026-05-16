@@ -1,5 +1,7 @@
 using HiveSpace.UserService.Domain.Aggregates.User;
+using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.UserService.Domain.Enums;
+using HiveSpace.UserService.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -50,5 +52,11 @@ public class AddressEntityConfiguration : IEntityTypeConfiguration<Address>
             .IsRequired();
 
         builder.Property(a => a.UpdatedAt);
+
+        builder.HasOne<ApplicationUser>()
+            .WithMany(u => u.Addresses)
+            .HasForeignKey("UserId")
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

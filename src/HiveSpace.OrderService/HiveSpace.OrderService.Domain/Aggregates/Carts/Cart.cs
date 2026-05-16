@@ -12,7 +12,11 @@ public class Cart : AggregateRoot<Guid>, IAuditable
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset? UpdatedAt { get; private set; }
     private readonly List<CartItem> _items = [];
+    private readonly List<CartAppliedPlatformCoupon> _appliedPlatformCoupons = [];
+    private readonly List<CartAppliedStoreCoupon> _appliedStoreCoupons = [];
     public IReadOnlyCollection<CartItem> Items => _items.AsReadOnly();
+    public IReadOnlyCollection<CartAppliedPlatformCoupon> AppliedPlatformCoupons => _appliedPlatformCoupons.AsReadOnly();
+    public IReadOnlyCollection<CartAppliedStoreCoupon> AppliedStoreCoupons => _appliedStoreCoupons.AsReadOnly();
 
     // EF Core constructor
     private Cart() { }
@@ -127,6 +131,8 @@ public class Cart : AggregateRoot<Guid>, IAuditable
     public void Clear()
     {
         _items.Clear();
+        _appliedPlatformCoupons.Clear();
+        _appliedStoreCoupons.Clear();
     }
 
     /// <summary>
@@ -135,6 +141,70 @@ public class Cart : AggregateRoot<Guid>, IAuditable
     public void ClearSelectedItems()
     {
         _items.RemoveAll(i => i.IsSelected);
+    }
+
+    public void ClearSelectedItems(IReadOnlyCollection<Guid> purchasedStoreIds)
+    {
+        _items.RemoveAll(i => i.IsSelected);
+        _appliedPlatformCoupons.Clear();
+
+        if (_appliedStoreCoupons.Count == 0 || purchasedStoreIds.Count == 0)
+            return;
+
+        var purchasedStoreIdSet = purchasedStoreIds
+            .Where(x => x != Guid.Empty)
+            .ToHashSet();
+
+        if (purchasedStoreIdSet.Count == 0)
+            return;
+
+        _appliedStoreCoupons.RemoveAll(x => purchasedStoreIdSet.Contains(x.StoreId));
+    }
+
+    public void ApplyPlatformCoupon(string couponCode)
+    {
+        var normalized = couponCode.Trim().ToUpperInvariant();
+        if (_appliedPlatformCoupons.Any(x => x.CouponCode == normalized))
+            return;
+
+        _appliedPlatformCoupons.Add(CartAppliedPlatformCoupon.Create(normalized));
+    }
+
+    public void RemovePlatformCoupon(string couponCode)
+    {
+        var normalized = couponCode.Trim().ToUpperInvariant();
+        _appliedPlatformCoupons.RemoveAll(x => x.CouponCode == normalized);
+    }
+
+    public void ApplyStoreCoupon(Guid storeId, string couponCode)
+    {
+        var existing = _appliedStoreCoupons.FirstOrDefault(x => x.StoreId == storeId);
+        if (existing is null)
+        {
+            _appliedStoreCoupons.Add(CartAppliedStoreCoupon.Create(storeId, couponCode));
+            return;
+        }
+
+        existing.UpdateCouponCode(couponCode);
+    }
+
+    public void RemoveStoreCoupon(Guid storeId)
+    {
+        _appliedStoreCoupons.RemoveAll(x => x.StoreId == storeId);
+    }
+
+    public void RemoveStoreCouponsWithoutSelectedItems(IReadOnlyDictionary<long, Guid> storeIdsByProductId)
+    {
+        if (_appliedStoreCoupons.Count == 0)
+            return;
+
+        var selectedStoreIds = _items
+            .Where(x => x.IsSelected)
+            .Select(x => storeIdsByProductId.GetValueOrDefault(x.ProductId))
+            .Where(x => x != Guid.Empty)
+            .ToHashSet();
+
+        _appliedStoreCoupons.RemoveAll(x => !selectedStoreIds.Contains(x.StoreId));
     }
 
     /// <summary>

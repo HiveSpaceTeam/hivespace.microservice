@@ -1,9 +1,14 @@
 using HiveSpace.OrderService.Application.Cart.Commands.AddCartItem;
+using HiveSpace.OrderService.Application.Cart.Commands.ApplyPlatformCoupon;
+using HiveSpace.OrderService.Application.Cart.Commands.ApplyStoreCoupon;
 using HiveSpace.OrderService.Application.Cart.Commands.RemoveCartItem;
+using HiveSpace.OrderService.Application.Cart.Commands.RemovePlatformCoupon;
+using HiveSpace.OrderService.Application.Cart.Commands.RemoveStoreCoupon;
 using HiveSpace.OrderService.Application.Cart.Commands.UpdateCartItems;
 using FluentValidation;
 using HiveSpace.Core.Helpers;
-using HiveSpace.OrderService.Application.Cart.Queries.GetCartItems;
+using HiveSpace.OrderService.Api.Models;
+using HiveSpace.OrderService.Application.Cart.Queries.GetCartSummary;
 using HiveSpace.OrderService.Application.Cart.Queries.GetSelectedCartItemsCount;
 using HiveSpace.Infrastructure.Authorization;
 using MediatR;
@@ -14,6 +19,87 @@ public static class CartEndpoints
 {
     public static void MapCartEndpoints(this IEndpointRouteBuilder app)
     {
+        app.MapPost("/api/v1/carts/summary", async (
+            GetCartSummaryRequest? request,
+            IValidator<GetCartSummaryQuery> validator,
+            ISender sender,
+            CancellationToken ct) =>
+        {
+            request ??= new GetCartSummaryRequest();
+
+            var query = new GetCartSummaryQuery(
+                request.Page,
+                request.PageSize);
+
+            var result = await sender.Send(query, ct);
+            return Results.Ok(result);
+        })
+        .RequireAuthorization(HiveSpaceAuthorizeAttribute.User.Policy)
+        .WithTags("Cart")
+        .WithOpenApi()
+        .Produces<GetCartSummaryResponse>(StatusCodes.Status200OK)
+        .ProducesProblem(StatusCodes.Status400BadRequest)
+        .WithSummary("Get cart summary with coupon calculations");
+
+        app.MapPost("/api/v1/carts/coupons/platform", async (
+            ApplyCouponRequest request,
+            ISender sender,
+            CancellationToken ct) =>
+        {
+            var result = await sender.Send(new ApplyPlatformCouponCommand(request.CouponCode), ct);
+            return Results.Ok(result);
+        })
+        .RequireAuthorization(HiveSpaceAuthorizeAttribute.User.Policy)
+        .WithTags("Cart")
+        .WithOpenApi()
+        .Produces(StatusCodes.Status200OK)
+        .ProducesProblem(StatusCodes.Status400BadRequest)
+        .WithSummary("Apply a platform coupon to the cart");
+
+        app.MapDelete("/api/v1/carts/coupons/platform/{couponCode}", async (
+            string couponCode,
+            ISender sender,
+            CancellationToken ct) =>
+        {
+            await sender.Send(new RemovePlatformCouponCommand(couponCode), ct);
+            return Results.NoContent();
+        })
+        .RequireAuthorization(HiveSpaceAuthorizeAttribute.User.Policy)
+        .WithTags("Cart")
+        .WithOpenApi()
+        .Produces(StatusCodes.Status204NoContent)
+        .WithSummary("Remove a platform coupon from the cart");
+
+        app.MapPut("/api/v1/carts/coupons/stores/{storeId:guid}", async (
+            Guid storeId,
+            ApplyCouponRequest request,
+            ISender sender,
+            CancellationToken ct) =>
+        {
+            var result = await sender.Send(new ApplyStoreCouponCommand(storeId, request.CouponCode), ct);
+            return Results.Ok(result);
+        })
+        .RequireAuthorization(HiveSpaceAuthorizeAttribute.User.Policy)
+        .WithTags("Cart")
+        .WithOpenApi()
+        .Produces(StatusCodes.Status200OK)
+        .ProducesProblem(StatusCodes.Status400BadRequest)
+        .WithSummary("Apply a store coupon to the cart");
+
+        app.MapDelete("/api/v1/carts/coupons/stores/{storeId:guid}", async (
+            Guid storeId,
+            ISender sender,
+            CancellationToken ct) =>
+        {
+            await sender.Send(new RemoveStoreCouponCommand(storeId), ct);
+            return Results.NoContent();
+        })
+        .RequireAuthorization(HiveSpaceAuthorizeAttribute.User.Policy)
+        .WithTags("Cart")
+        .WithOpenApi()
+        .Produces(StatusCodes.Status204NoContent)
+        .WithSummary("Remove a store coupon from the cart");
+
         var group = app.MapGroup("/api/v1/carts/items")
             .WithTags("Cart")
             .WithOpenApi()
@@ -46,15 +132,6 @@ public static class CartEndpoints
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status404NotFound)
         .WithSummary("Update cart items (quantity, selection, or select all)");
-
-        group.MapGet("/", async ([AsParameters] GetCartItemsQuery query, IValidator<GetCartItemsQuery> validator, ISender sender) =>
-        {
-            ValidationHelper.ValidateResult(validator.Validate(query));
-            var result = await sender.Send(query);
-            return Results.Ok(result);
-        })
-        .Produces<GetCartItemsResponse>(StatusCodes.Status200OK)
-        .WithSummary("Get paginated cart items");
 
         group.MapGet("/selected/count", async (ISender sender, CancellationToken ct) =>
         {

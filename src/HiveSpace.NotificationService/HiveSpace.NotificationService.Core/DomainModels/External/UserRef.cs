@@ -1,3 +1,5 @@
+using HiveSpace.Domain.Shared.Enumerations;
+
 namespace HiveSpace.NotificationService.Core.DomainModels.External;
 
 public class UserRef
@@ -14,8 +16,7 @@ public class UserRef
     public string?        StoreName    { get; private set; }
     public string?        StoreLogoUrl { get; private set; }
 
-    /// <summary>BCP-47 locale, e.g. "vi", "en". Used to select notification template.</summary>
-    public string         Locale      { get; private set; } = "vi";
+    public Culture        Locale      { get; private set; } = Culture.Vi;
 
     public DateTimeOffset UpdatedAt   { get; private set; }
 
@@ -23,7 +24,7 @@ public class UserRef
 
     public static UserRef Create(
         Guid id, string email, string fullName,
-        string? phoneNumber = null, string locale = "vi",
+        string? phoneNumber = null, Culture locale = Culture.Vi,
         string? userName = null, string? avatarUrl = null,
         Guid? storeId = null, string? storeName = null, string? storeLogoUrl = null)
         => new()
@@ -41,7 +42,7 @@ public class UserRef
             UpdatedAt    = DateTimeOffset.UtcNow,
         };
 
-    public void Update(string email, string fullName, string? phoneNumber, string locale,
+    public void Update(string email, string fullName, string? phoneNumber, Culture locale,
         string? userName = null, string? avatarUrl = null)
     {
         Email       = email;

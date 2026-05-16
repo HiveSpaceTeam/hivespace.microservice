@@ -4,15 +4,16 @@ namespace HiveSpace.NotificationService.Core.DomainModels;
 
 public static class NotificationEventGroup
 {
-    public const string OrderUpdates = "order_updates";
-    public const string Payment      = "payment";
-    public const string Promotions   = "promotions";
-    public const string Surveys      = "surveys";
-    public const string SellerOrders = "seller_orders";
-    public const string Inventory    = "inventory";
+    public const string OrderUpdates     = "order_updates";
+    public const string Payment          = "payment";
+    public const string Promotions       = "promotions";
+    public const string Surveys          = "surveys";
+    public const string SellerOrders     = "seller_orders";
+    public const string Inventory        = "inventory";
+    public const string AccountActivity  = "account_activity";
 
     public static readonly IReadOnlyList<string> All =
-        [OrderUpdates, Payment, Promotions, Surveys, SellerOrders, Inventory];
+        [OrderUpdates, Payment, Promotions, Surveys, SellerOrders, Inventory, AccountActivity];
 
     public static readonly IReadOnlyList<string> SellerGroups =
         [SellerOrders, Inventory, OrderUpdates, Payment];
@@ -51,6 +52,10 @@ public static class NotificationEventGroup
 
         NotificationEventType.NewOrderReceived      => SellerOrders,
         NotificationEventType.LowStockAlert         => Inventory,
+
+        NotificationEventType.EmailVerificationRequested
+        or NotificationEventType.EmailVerified          => AccountActivity,
+
         _                                           => Promotions,
     };
 }

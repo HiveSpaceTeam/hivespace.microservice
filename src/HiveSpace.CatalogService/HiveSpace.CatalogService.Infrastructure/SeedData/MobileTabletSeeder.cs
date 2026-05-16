@@ -12,6 +12,8 @@ namespace HiveSpace.CatalogService.Infrastructure.SeedData;
 internal sealed class MobileTabletSeeder(CatalogDbContext db, ILogger<MobileTabletSeeder> logger) : ISeeder
 {
     public int Order => 6;
+    private const int ProductIdStart = 1021;
+    private const int SkuIdStart = 10021;
 
     public async Task SeedAsync(CancellationToken ct = default)
     {
@@ -52,12 +54,44 @@ internal sealed class MobileTabletSeeder(CatalogDbContext db, ILogger<MobileTabl
             BuildSamsungS26(now, attrMap, categoryId),
         };
 
+        var seededSkus = new List<(int ProductId, Sku Sku)>();
+        var nextSkuId = SkuIdStart;
+        for (var i = 0; i < products.Count; i++)
+        {
+            var product = products[i];
+            var productId = ProductIdStart + i;
+
+            db.Entry(product).Property(p => p.Id).CurrentValue = productId;
+
+            foreach (var sku in product.Skus)
+            {
+                db.Entry(sku).Property(s => s.Id).CurrentValue = nextSkuId++;
+                seededSkus.Add((productId, sku));
+            }
+
+            product.UpdateSkus([]);
+        }
+
         var strategy = db.Database.CreateExecutionStrategy();
         await strategy.ExecuteAsync(async () =>
         {
             await using var tx = await db.Database.BeginTransactionAsync(ct);
+
+            await db.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT products ON", ct);
             await db.Products.AddRangeAsync(products, ct);
             await db.SaveChangesAsync(ct);
+            await db.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT products OFF", ct);
+
+            foreach (var (productId, sku) in seededSkus)
+            {
+                db.Skus.Add(sku);
+                db.Entry(sku).Property("ProductId").CurrentValue = productId;
+            }
+
+            await db.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT skus ON", ct);
+            await db.SaveChangesAsync(ct);
+            await db.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT skus OFF", ct);
+
             await tx.CommitAsync(ct);
         });
         logger.LogInformation("Seeded {Count} products for Điện Thoại - Máy Tính Bảng.", products.Count);
@@ -636,4 +670,3 @@ internal sealed class MobileTabletSeeder(CatalogDbContext db, ILogger<MobileTabl
         return product;
     }
 }
-

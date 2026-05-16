@@ -17,7 +17,7 @@ public class CheckoutSagaState : SagaStateMachineInstance
     // User input
     public Guid               UserId          { get; set; }
     public DeliveryAddressDto DeliveryAddress { get; set; } = null!;
-    public List<string>       CouponCodes     { get; set; } = new();
+    public CheckoutCouponSelectionDto CouponSelections { get; set; } = new();
     public PaymentMethod      PaymentMethod   { get; set; } = PaymentMethod.COD;
 
     // Set after CreateOrder — list of created order IDs (one per store)
@@ -48,6 +48,7 @@ public class CheckoutSagaState : SagaStateMachineInstance
     public Guid? OrderCreationPendingTokenId        { get; set; }
     public Guid? InventoryReservationPendingTokenId { get; set; }
     public Guid? CODMarkingPendingTokenId           { get; set; }
+    public Guid? CouponUsageCommitPendingTokenId    { get; set; }
     public Guid? CartClearingPendingTokenId         { get; set; }
     public Guid? PaymentInitiationPendingTokenId    { get; set; }
     public Guid? PaymentMarkingPendingTokenId       { get; set; }

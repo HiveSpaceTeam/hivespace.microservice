@@ -57,6 +57,7 @@ internal static class ServiceCollectionExtensions
             cfg.AddConsumer<CreateOrderConsumer, CreateOrderConsumerDefinition>();
             cfg.AddConsumer<MarkOrderAsCODConsumer, MarkOrderAsCODConsumerDefinition>();
             cfg.AddConsumer<MarkOrderAsPaidConsumer, MarkOrderAsPaidConsumerDefinition>();
+            cfg.AddConsumer<CommitCouponUsageConsumer, CommitCouponUsageConsumerDefinition>();
             cfg.AddConsumer<ClearCartConsumer, ClearCartConsumerDefinition>();
             cfg.AddConsumer<CancelOrderConsumer, CancelOrderConsumerDefinition>();
             cfg.AddConsumer<StoreRefSyncConsumer>();

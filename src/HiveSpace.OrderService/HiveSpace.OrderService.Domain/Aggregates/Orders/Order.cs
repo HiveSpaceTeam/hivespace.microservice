@@ -152,7 +152,20 @@ public class Order : AggregateRoot<Guid>, IAuditable
             throw new InvalidFieldException(OrderDomainErrorCode.CouponStoreNotApplicable, nameof(coupon.StoreId));
 
         var calculatedDiscount = coupon.CalculateDiscount(SubTotal);
-        var discountAmount = Money.Copy(calculatedDiscount);
+        ApplyDiscount(coupon, Money.Copy(calculatedDiscount));
+    }
+
+    public void ApplyDiscount(Coupon coupon, Money discountAmount)
+    {
+        if (Status != OrderStatus.Created)
+            throw new InvalidFieldException(OrderDomainErrorCode.OrderInvalidStatus, nameof(Status));
+
+        if (coupon is null)
+            throw new InvalidFieldException(OrderDomainErrorCode.CouponInvalid, nameof(coupon));
+
+        if (coupon.OwnerType == CouponOwnerType.Store && coupon.StoreId != StoreId)
+            throw new InvalidFieldException(OrderDomainErrorCode.CouponStoreNotApplicable, nameof(coupon.StoreId));
+
         var persistedDiscountAmount = Money.Copy(discountAmount);
 
         var discount = coupon.OwnerType == CouponOwnerType.Store

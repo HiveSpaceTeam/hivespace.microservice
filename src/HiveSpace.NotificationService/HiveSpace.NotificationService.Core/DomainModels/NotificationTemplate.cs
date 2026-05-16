@@ -1,10 +1,12 @@
+using HiveSpace.Domain.Shared.Enumerations;
+
 namespace HiveSpace.NotificationService.Core.DomainModels;
 
 public class NotificationTemplate
 {
     public string              EventType    { get; private set; } = default!;
     public NotificationChannel Channel      { get; private set; }
-    public string              Locale       { get; private set; } = "vi";
+    public Culture             Locale       { get; private set; } = Culture.Vi;
 
     /// <summary>Used as email subject and push notification title.</summary>
     public string              Subject      { get; private set; } = default!;
@@ -17,7 +19,7 @@ public class NotificationTemplate
     protected NotificationTemplate() { }
 
     public static NotificationTemplate Create(
-        string eventType, NotificationChannel channel, string locale,
+        string eventType, NotificationChannel channel, Culture locale,
         string subject, string bodyTemplate)
         => new()
         {

@@ -12,7 +12,6 @@ internal static class HostingExtensions
 {
     public static WebApplication ConfigureServices(this WebApplicationBuilder builder)
     {
-        builder.Services.AddAppApiControllers();
         builder.Services.AddAppOpenApi();
         builder.Services.AddPaymentDbContext(builder.Configuration);
         builder.Services.AddCoreServices();
@@ -40,7 +39,7 @@ internal static class HostingExtensions
         app.UseAuthentication();
         app.UseAuthorization();
 
-        app.MapControllers();
+        app.MapHealthEndpoints();
         app.MapPaymentEndpoints();
         app.MapWalletEndpoints();
 

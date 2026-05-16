@@ -12,7 +12,6 @@ using HiveSpace.UserService.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using HiveSpace.UserService.Application.Services;
 using HiveSpace.UserService.Application.Interfaces.Services;
-using HiveSpace.UserService.Infrastructure.Settings;
 using System.Globalization;
 using Microsoft.AspNetCore.Localization;
 using HiveSpace.UserService.Api.Middleware;
@@ -91,22 +90,6 @@ internal static class ServiceCollectionExtensions
             options.SupportedCultures = supportedCultures.Select(c => new CultureInfo(c)).ToList();
             options.SupportedUICultures = supportedCultures.Select(c => new CultureInfo(c)).ToList();
         });
-    }
-
-    public static void AddEmailConfig(this IServiceCollection services, IConfiguration configuration)
-    {
-        // Configure EmailSettings
-        services.Configure<EmailSettings>(configuration.GetSection(EmailSettings.SectionName));
-
-        // Configure FluentEmail with SMTP
-        services.AddFluentEmail(configuration["EmailSettings:FromEmail"], configuration["EmailSettings:FromName"])
-            .AddRazorRenderer()
-            .AddSmtpSender(
-                configuration["EmailSettings:SmtpServer"],
-                int.Parse(configuration["EmailSettings:SmtpPort"] ?? "587"),
-                configuration["EmailSettings:SmtpUser"],
-                configuration["EmailSettings:SmtpPassword"]
-            );
     }
 
     public static void AddAppIdentityServer(this IServiceCollection services, IConfiguration configuration)

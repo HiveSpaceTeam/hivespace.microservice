@@ -27,8 +27,8 @@ public class UserService : IUserService
             ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
 
         return new GetUserSettingsResponseDto(
-            user.Settings.Theme,
-            user.Settings.Culture
+            UserSettingValues.ToApiValue(user.Settings.Theme),
+            UserSettingValues.ToApiValue(user.Settings.Culture)
         );
     }
 
@@ -36,14 +36,14 @@ public class UserService : IUserService
         UpdateUserSettingRequestDto request,
         CancellationToken cancellationToken = default)
     {
-        var user = await _userRepository.GetByIdAsync(_userContext.UserId, cancellationToken: cancellationToken)
+        var user = await _userRepository.GetByIdAsync(_userContext.UserId, includeDetail: true, cancellationToken)
             ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
 
-        if (request.Theme.HasValue)
-            user.UpdateTheme(request.Theme.Value);
+        if (request.Theme is not null)
+            user.UpdateTheme(UserSettingValues.ToTheme(request.Theme));
 
-        if (request.Culture.HasValue)
-            user.UpdateCulture(request.Culture.Value);
+        if (request.Culture is not null)
+            user.UpdateCulture(UserSettingValues.ToCulture(request.Culture));
 
         await _userRepository.UpdateUserAsync(user, cancellationToken);
     }
@@ -66,7 +66,7 @@ public class UserService : IUserService
 
     public async Task UpdateUserProfileAsync(UpdateUserProfileRequestDto request, CancellationToken cancellationToken = default)
     {
-        var user = await _userRepository.GetByIdAsync(_userContext.UserId, cancellationToken: cancellationToken)
+        var user = await _userRepository.GetByIdAsync(_userContext.UserId, includeDetail: true, cancellationToken)
             ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
 
         if (request.UserName != null)

@@ -9,5 +9,5 @@ public record CreateOrder
     public Guid               UserId          { get; init; }
     public DeliveryAddressDto DeliveryAddress { get; init; } = null!;
     public PaymentMethod      PaymentMethod   { get; init; } = PaymentMethod.COD;
-    public List<string>       CouponCodes     { get; init; } = new();
+    public CheckoutCouponSelectionDto CouponSelections { get; init; } = new();
 }

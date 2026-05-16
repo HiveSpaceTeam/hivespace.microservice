@@ -21,13 +21,21 @@ public class NotificationDispatchPipeline(
             return;
         }
 
-        var eventGroup      = NotificationEventGroup.FromEventType(request.EventType);
-        var enabledChannels = await prefs.GetEnabledChannelsAsync(request.UserId, eventGroup, ct);
-        if (enabledChannels.Count == 0)
+        IReadOnlyList<NotificationChannel> enabledChannels;
+        if (request.IsTransactional)
         {
-            logger.LogDebug("No enabled channels. UserId={UserId} EventType={EventType}",
-                request.UserId, request.EventType);
-            return;
+            enabledChannels = [NotificationChannel.Email];
+        }
+        else
+        {
+            var eventGroup = NotificationEventGroup.FromEventType(request.EventType);
+            enabledChannels = await prefs.GetEnabledChannelsAsync(request.UserId, eventGroup, ct);
+            if (enabledChannels.Count == 0)
+            {
+                logger.LogDebug("No enabled channels. UserId={UserId} EventType={EventType}",
+                    request.UserId, request.EventType);
+                return;
+            }
         }
 
         var payload = JsonSerializer.Serialize(request.TemplateData);

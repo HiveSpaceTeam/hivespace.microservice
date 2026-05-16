@@ -1,3 +1,4 @@
+using HiveSpace.Domain.Shared.Enumerations;
 using Resend;
 using Microsoft.Extensions.Logging;
 using HiveSpace.NotificationService.Core.DomainModels;
@@ -20,7 +21,23 @@ public class EmailChannelProvider(
         CancellationToken ct = default)
     {
         var user = await userRefs.GetByIdAsync(notification.UserId, ct);
-        if (user is null)
+
+        string toEmail;
+        Culture locale;
+        if (user is not null)
+        {
+            toEmail = user.Email;
+            locale  = user.Locale;
+        }
+        else if (templateData.TryGetValue("_recipientEmail", out var emailOverride))
+        {
+            toEmail = emailOverride.ToString()!;
+            locale  = templateData.TryGetValue("_locale", out var localeOverride)
+                      ? ParseLocaleOverride(localeOverride)
+                      : Culture.Vi;
+            logger.LogDebug("UserRef not found for UserId={UserId} — using override recipient email", notification.UserId);
+        }
+        else
         {
             logger.LogWarning("UserRef not found for UserId={UserId}", notification.UserId);
             return DeliveryResult.Fail("UserRef not found — cannot resolve email address");
@@ -28,14 +45,14 @@ public class EmailChannelProvider(
 
         var rendered = await renderer.RenderAsync(
             notification.EventType, NotificationChannel.Email,
-            user.Locale, templateData, ct);
+            locale, templateData, ct);
 
         try
         {
             var message = new EmailMessage
             {
                 From     = "HiveSpace <no-reply@hivespace.site>",
-                To       = { user.Email },
+                To       = { toEmail },
                 Subject  = rendered.Subject,
                 HtmlBody = rendered.Body,
             };
@@ -48,5 +65,15 @@ public class EmailChannelProvider(
             logger.LogError(ex, "Resend failed for UserId={UserId}", notification.UserId);
             return DeliveryResult.Fail(ex.Message);
         }
+    }
+
+    private static Culture ParseLocaleOverride(object localeOverride)
+    {
+        return localeOverride switch
+        {
+            Culture culture => culture,
+            string code => CultureExtensions.FromCode(code),
+            _ => CultureExtensions.FromCode(localeOverride.ToString()!)
+        };
     }
 }

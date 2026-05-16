@@ -29,6 +29,8 @@ templates/**/bin/
 /preview
 .idx
 docker
+.codex-build/
+*.csproj.lscache
 
 # Security - JWT Signing Keys and Certificates
 **/keys/

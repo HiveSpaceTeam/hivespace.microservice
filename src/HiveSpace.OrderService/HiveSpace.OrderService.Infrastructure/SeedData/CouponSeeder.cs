@@ -17,18 +17,30 @@ internal sealed class CouponSeeder(OrderDbContext db, ILogger<CouponSeeder> logg
 
     public int Order => 3;
 
-    private static readonly (Guid StoreId, Guid OwnerId, string Prefix)[] Stores = 
+    private static readonly StoreCouponSeed[] Stores =
     [
-        (new Guid("b2c3d4e5-f6a7-8901-bcde-f12345678901"), new Guid("a1b2c3d4-e5f6-7890-abcd-ef1234567890"), "TK"),
-        (new Guid("e5f6a7b8-c9d0-1234-ef01-234567890123"), new Guid("c3d4e5f6-a7b8-9012-cdef-012345678901"), "GV"),
-        (new Guid("f6a7b8c9-d0e1-2345-f012-345678901234"), new Guid("d4e5f6a7-b8c9-0123-def0-123456789012"), "PD"),
+        new(
+            new Guid("b2c3d4e5-f6a7-8901-bcde-f12345678901"),
+            new Guid("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
+            "TK",
+            new ProductSelection(1011L, [1012L, 1013L], [1011L, 1012L])),
+        new(
+            new Guid("e5f6a7b8-c9d0-1234-ef01-234567890123"),
+            new Guid("c3d4e5f6-a7b8-9012-cdef-012345678901"),
+            "GV",
+            new ProductSelection(1001L, [1002L, 1005L], [1001L, 1002L])),
+        new(
+            new Guid("f6a7b8c9-d0e1-2345-f012-345678901234"),
+            new Guid("d4e5f6a7-b8c9-0123-def0-123456789012"),
+            "PD",
+            new ProductSelection(1003L, [1004L, 1007L], [1003L, 1004L])),
     ];
 
     public async Task SeedAsync(CancellationToken ct = default)
     {
         var now = DateTimeOffset.UtcNow;
 
-        var templates = Stores.SelectMany((store, idx) => BuildTemplates(now, store.StoreId, store.OwnerId, store.Prefix, idx)).ToList();
+        var templates = Stores.SelectMany((store, idx) => BuildTemplates(now, store, idx)).ToList();
 
         var strategy = db.Database.CreateExecutionStrategy();
         try
@@ -110,41 +122,82 @@ internal sealed class CouponSeeder(OrderDbContext db, ILogger<CouponSeeder> logg
         return false;
     }
 
-    private static IEnumerable<CouponTemplate> BuildTemplates(DateTimeOffset now, Guid storeId, Guid ownerId, string prefix, int idx) =>
+    private static IEnumerable<CouponTemplate> BuildTemplates(DateTimeOffset now, StoreCouponSeed store, int idx) =>
     [
         // Entire shop
-        new(Guid.Parse($"5C86B36B-6B10-4E9F-BF0E-9D66D7069{idx:D2}1"), $"{prefix}ESONG01",  $"[{prefix}] Entire Shop 10% Off - Ongoing",
-            DiscountType.Percentage,  10m,   null,  CouponScope.ItemPrice,
-            now.AddDays(-10).AddHours(idx), now.AddDays(20).AddHours(idx),  false, 5000L,  2000L, 1000, 3, [], storeId, ownerId),
-        new(Guid.Parse($"5C86B36B-6B10-4E9F-BF0E-9D66D7069{idx:D2}2"), $"{prefix}ESUP01",   $"[{prefix}] Entire Shop $20 Off - Upcoming",
-            DiscountType.FixedAmount, null,  2000L, CouponScope.ItemPrice,
-            now.AddDays(10).AddHours(idx),  now.AddDays(40).AddHours(idx),  false, null,   10000L, 500,  2, [], storeId, ownerId),
-        new(Guid.Parse($"5C86B36B-6B10-4E9F-BF0E-9D66D7069{idx:D2}3"), $"{prefix}ESEXP01",  $"[{prefix}] Entire Shop $5 Shipping - Expired",
-            DiscountType.FixedAmount, null,  500L,  CouponScope.ShippingFee,
-            now.AddDays(-40).AddHours(idx), now.AddDays(-10).AddHours(idx), false, null,   5000L,  100,  1, [], storeId, ownerId),
+        new(CreateTemplateId(idx, 1),  $"{store.Prefix}ESOGP01", $"[{store.Prefix}] Entire Shop 12% Off - Ongoing",
+            DiscountType.Percentage, 12m, null, CouponScope.ItemPrice,
+            now.AddDays(-14).AddHours(2 + idx), now.AddDays(18).AddHours(6 + idx), false, 9000L, 45000L, 1000, 3, [], store.StoreId, store.OwnerId),
+        new(CreateTemplateId(idx, 2),  $"{store.Prefix}ESOGF01", $"[{store.Prefix}] Entire Shop 3,500 VND Off - Ongoing",
+            DiscountType.FixedAmount, null, 3500L, CouponScope.ItemPrice,
+            now.AddDays(-14).AddHours(4 + idx), now.AddDays(18).AddHours(8 + idx), false, null, 18000L, 500, 2, [], store.StoreId, store.OwnerId),
+        new(CreateTemplateId(idx, 3),  $"{store.Prefix}ESUPP01", $"[{store.Prefix}] Entire Shop 10% Off - Upcoming",
+            DiscountType.Percentage, 10m, null, CouponScope.ItemPrice,
+            now.AddDays(6).AddHours(2 + idx), now.AddDays(34).AddHours(6 + idx), false, 7000L, 32000L, 750, 2, [], store.StoreId, store.OwnerId),
+        new(CreateTemplateId(idx, 4),  $"{store.Prefix}ESUPF01", $"[{store.Prefix}] Entire Shop 4,200 VND Off - Upcoming",
+            DiscountType.FixedAmount, null, 4200L, CouponScope.ItemPrice,
+            now.AddDays(6).AddHours(4 + idx), now.AddDays(34).AddHours(8 + idx), false, null, 22000L, 500, 2, [], store.StoreId, store.OwnerId),
+        new(CreateTemplateId(idx, 5),  $"{store.Prefix}ESEXPP01", $"[{store.Prefix}] Entire Shop 9% Shipping Off - Expired",
+            DiscountType.Percentage, 9m, null, CouponScope.ShippingFee,
+            now.AddDays(-36).AddHours(1 + idx), now.AddDays(-4).AddHours(5 + idx), false, 1800L, 18000L, 100, 1, [], store.StoreId, store.OwnerId),
+        new(CreateTemplateId(idx, 6),  $"{store.Prefix}ESEXPF01", $"[{store.Prefix}] Entire Shop 1,200 VND Shipping Off - Expired",
+            DiscountType.FixedAmount, null, 1200L, CouponScope.ShippingFee,
+            now.AddDays(-36).AddHours(3 + idx), now.AddDays(-4).AddHours(7 + idx), false, null, 6500L, 100, 1, [], store.StoreId, store.OwnerId),
 
         // Specific products
-        new(Guid.Parse($"5C86B36B-6B10-4E9F-BF0E-9D66D7069{idx:D2}4"), $"{prefix}SPONG01",  $"[{prefix}] Products 15% Off - Ongoing",
-            DiscountType.Percentage,  15m,   null,  CouponScope.ItemPrice,
-            now.AddDays(-10).AddHours(idx), now.AddDays(20).AddHours(idx),  false, 2500L,  2000L,  200,  2, [1001L], storeId, ownerId),
-        new(Guid.Parse($"5C86B36B-6B10-4E9F-BF0E-9D66D7069{idx:D2}5"), $"{prefix}SPUP01",   $"[{prefix}] Products $30 Off - Upcoming",
-            DiscountType.FixedAmount, null,  3000L, CouponScope.ItemPrice,
-            now.AddDays(10).AddHours(idx),  now.AddDays(40).AddHours(idx),  false, null,   15000L, 150,  1, [1002L, 1003L], storeId, ownerId),
-        new(Guid.Parse($"5C86B36B-6B10-4E9F-BF0E-9D66D7069{idx:D2}6"), $"{prefix}SPEXP01",  $"[{prefix}] Products 5% Shipping - Expired",
-            DiscountType.Percentage,  5m,    null,  CouponScope.ShippingFee,
-            now.AddDays(-40).AddHours(idx), now.AddDays(-10).AddHours(idx), false, 300L,   3000L,  50,   1, [1001L, 1002L], storeId, ownerId),
+        new(CreateTemplateId(idx, 7),  $"{store.Prefix}SPOGP01", $"[{store.Prefix}] Products 18% Off - Ongoing",
+            DiscountType.Percentage, 18m, null, CouponScope.ItemPrice,
+            now.AddDays(-9).AddHours(3 + idx), now.AddDays(24).AddHours(7 + idx), false, 7200L, 28000L, 200, 2, [store.Products.OngoingProductId], store.StoreId, store.OwnerId),
+        new(CreateTemplateId(idx, 8),  $"{store.Prefix}SPOGF01", $"[{store.Prefix}] Products 3,800 VND Off - Ongoing",
+            DiscountType.FixedAmount, null, 3800L, CouponScope.ItemPrice,
+            now.AddDays(-9).AddHours(5 + idx), now.AddDays(24).AddHours(9 + idx), false, null, 19000L, 160, 2, [store.Products.OngoingProductId], store.StoreId, store.OwnerId),
+        new(CreateTemplateId(idx, 9),  $"{store.Prefix}SPUPP01", $"[{store.Prefix}] Products 14% Off - Upcoming",
+            DiscountType.Percentage, 14m, null, CouponScope.ItemPrice,
+            now.AddDays(9).AddHours(2 + idx), now.AddDays(38).AddHours(8 + idx), false, 6800L, 24000L, 150, 1, store.Products.UpcomingProductIds, store.StoreId, store.OwnerId),
+        new(CreateTemplateId(idx, 10), $"{store.Prefix}SPUPF01", $"[{store.Prefix}] Products 4,200 VND Off - Upcoming",
+            DiscountType.FixedAmount, null, 4200L, CouponScope.ItemPrice,
+            now.AddDays(9).AddHours(4 + idx), now.AddDays(38).AddHours(10 + idx), false, null, 22000L, 150, 1, store.Products.UpcomingProductIds, store.StoreId, store.OwnerId),
+        new(CreateTemplateId(idx, 11), $"{store.Prefix}SPEXPP01", $"[{store.Prefix}] Products 12% Shipping Off - Expired",
+            DiscountType.Percentage, 12m, null, CouponScope.ShippingFee,
+            now.AddDays(-48).AddHours(6 + idx), now.AddDays(-12).AddHours(2 + idx), false, 1500L, 9000L, 50, 1, store.Products.ExpiredProductIds, store.StoreId, store.OwnerId),
+        new(CreateTemplateId(idx, 12), $"{store.Prefix}SPEXPF01", $"[{store.Prefix}] Products 1,000 VND Shipping Off - Expired",
+            DiscountType.FixedAmount, null, 1000L, CouponScope.ShippingFee,
+            now.AddDays(-48).AddHours(8 + idx), now.AddDays(-12).AddHours(4 + idx), false, null, 5000L, 50, 1, store.Products.ExpiredProductIds, store.StoreId, store.OwnerId),
 
         // Private
-        new(Guid.Parse($"5C86B36B-6B10-4E9F-BF0E-9D66D7069{idx:D2}7"), $"{prefix}PVONG01",  $"[{prefix}] Private 5% Off - Ongoing",
-            DiscountType.Percentage,  5m,    null,  CouponScope.ItemPrice,
-            now.AddDays(-10).AddHours(idx), now.AddDays(20).AddHours(idx),  true,  4000L,  1000L, 2000, 10, [], storeId, ownerId),
-        new(Guid.Parse($"5C86B36B-6B10-4E9F-BF0E-9D66D7069{idx:D2}8"), $"{prefix}PVUP01",   $"[{prefix}] Private $25 Off - Upcoming",
-            DiscountType.FixedAmount, null,  2500L, CouponScope.ItemPrice,
-            now.AddDays(10).AddHours(idx),  now.AddDays(40).AddHours(idx),  true,  null,   20000L, 300,  5, [], storeId, ownerId),
-        new(Guid.Parse($"5C86B36B-6B10-4E9F-BF0E-9D66D7069{idx:D2}9"), $"{prefix}PVEXP01",  $"[{prefix}] Private 8% Off - Expired",
-            DiscountType.Percentage,  8m,    null,  CouponScope.ItemPrice,
-            now.AddDays(-40).AddHours(idx), now.AddDays(-10).AddHours(idx), true,  2000L,  5000L,  100,  1, [], storeId, ownerId),
+        new(CreateTemplateId(idx, 13), $"{store.Prefix}PVOGP01", $"[{store.Prefix}] Private 7% Off - Ongoing",
+            DiscountType.Percentage, 7m, null, CouponScope.ItemPrice,
+            now.AddDays(-7).AddHours(5 + idx), now.AddDays(16).AddHours(9 + idx), true, 5000L, 30000L, 2000, 10, [], store.StoreId, store.OwnerId),
+        new(CreateTemplateId(idx, 14), $"{store.Prefix}PVOGF01", $"[{store.Prefix}] Private 4,800 VND Off - Ongoing",
+            DiscountType.FixedAmount, null, 4800L, CouponScope.ItemPrice,
+            now.AddDays(-7).AddHours(7 + idx), now.AddDays(16).AddHours(11 + idx), true, null, 21000L, 1200, 6, [], store.StoreId, store.OwnerId),
+        new(CreateTemplateId(idx, 15), $"{store.Prefix}PVUPP01", $"[{store.Prefix}] Private 8% Off - Upcoming",
+            DiscountType.Percentage, 8m, null, CouponScope.ItemPrice,
+            now.AddDays(12).AddHours(1 + idx), now.AddDays(46).AddHours(4 + idx), true, 4200L, 26000L, 300, 5, [], store.StoreId, store.OwnerId),
+        new(CreateTemplateId(idx, 16), $"{store.Prefix}PVUPF01", $"[{store.Prefix}] Private 5,600 VND Off - Upcoming",
+            DiscountType.FixedAmount, null, 5600L, CouponScope.ItemPrice,
+            now.AddDays(12).AddHours(3 + idx), now.AddDays(46).AddHours(6 + idx), true, null, 26000L, 300, 5, [], store.StoreId, store.OwnerId),
+        new(CreateTemplateId(idx, 17), $"{store.Prefix}PVEXPP01", $"[{store.Prefix}] Private 11% Off - Expired",
+            DiscountType.Percentage, 11m, null, CouponScope.ItemPrice,
+            now.AddDays(-30).AddHours(8 + idx), now.AddDays(-3).AddHours(3 + idx), true, 4000L, 24000L, 100, 1, [], store.StoreId, store.OwnerId),
+        new(CreateTemplateId(idx, 18), $"{store.Prefix}PVEXPF01", $"[{store.Prefix}] Private 4,400 VND Off - Expired",
+            DiscountType.FixedAmount, null, 4400L, CouponScope.ItemPrice,
+            now.AddDays(-30).AddHours(10 + idx), now.AddDays(-3).AddHours(5 + idx), true, null, 20000L, 100, 1, [], store.StoreId, store.OwnerId),
     ];
+
+    private static Guid CreateTemplateId(int storeIndex, int templateIndex) =>
+        Guid.Parse($"5C86B36B-6B10-4E9F-BF0E-9D66D7{storeIndex:X2}{templateIndex:X4}");
+
+    private sealed record StoreCouponSeed(
+        Guid StoreId,
+        Guid OwnerId,
+        string Prefix,
+        ProductSelection Products);
+
+    private sealed record ProductSelection(
+        long OngoingProductId,
+        long[] UpcomingProductIds,
+        long[] ExpiredProductIds);
 
     private sealed record CouponTemplate(
         Guid         Id,

@@ -1,3 +1,4 @@
+using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.UserService.Domain.Enums;
 
 namespace HiveSpace.UserService.Application.DTOs.UserAddress;

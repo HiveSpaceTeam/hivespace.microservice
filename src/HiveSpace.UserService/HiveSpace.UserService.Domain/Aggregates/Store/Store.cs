@@ -1,5 +1,6 @@
 using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.Domain.Shared.Exceptions;
+using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.UserService.Domain.Enums;
 using HiveSpace.UserService.Domain.Exceptions;
 

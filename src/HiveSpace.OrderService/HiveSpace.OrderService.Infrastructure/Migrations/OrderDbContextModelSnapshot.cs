@@ -206,10 +206,9 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
             modelBuilder.Entity("HiveSpace.OrderService.Domain.Aggregates.Coupons.CouponUsage", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("CouponId")
+                    b.Property<Guid>("CouponId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("OrderId")
@@ -440,6 +439,11 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<string>("LogoUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("store_logo_url");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(255)
@@ -476,9 +480,13 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
                     b.Property<DateTimeOffset?>("CompletedAt")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<string>("CouponCodes")
+                    b.Property<string>("CouponSelections")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("CouponCodes");
+
+                    b.Property<Guid?>("CouponUsageCommitPendingTokenId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
@@ -799,6 +807,70 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
                     b.ToTable("outbox_state", (string)null);
                 });
 
+            modelBuilder.Entity("HiveSpace.OrderService.Domain.Aggregates.Carts.Cart", b =>
+                {
+                    b.OwnsMany("HiveSpace.OrderService.Domain.Aggregates.Carts.CartAppliedPlatformCoupon", "AppliedPlatformCoupons", b1 =>
+                        {
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int");
+
+                            SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("Id"));
+
+                            b1.Property<Guid>("CartId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("CouponCode")
+                                .IsRequired()
+                                .HasMaxLength(50)
+                                .HasColumnType("nvarchar(50)");
+
+                            b1.HasKey("Id");
+
+                            b1.HasIndex("CartId", "CouponCode")
+                                .IsUnique();
+
+                            b1.ToTable("cart_platform_coupons", (string)null);
+
+                            b1.WithOwner()
+                                .HasForeignKey("CartId");
+                        });
+
+                    b.OwnsMany("HiveSpace.OrderService.Domain.Aggregates.Carts.CartAppliedStoreCoupon", "AppliedStoreCoupons", b1 =>
+                        {
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int");
+
+                            SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("Id"));
+
+                            b1.Property<Guid>("CartId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("CouponCode")
+                                .IsRequired()
+                                .HasMaxLength(50)
+                                .HasColumnType("nvarchar(50)");
+
+                            b1.Property<Guid>("StoreId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.HasKey("Id");
+
+                            b1.HasIndex("CartId", "StoreId")
+                                .IsUnique();
+
+                            b1.ToTable("cart_store_coupons", (string)null);
+
+                            b1.WithOwner()
+                                .HasForeignKey("CartId");
+                        });
+
+                    b.Navigation("AppliedPlatformCoupons");
+
+                    b.Navigation("AppliedStoreCoupons");
+                });
+
             modelBuilder.Entity("HiveSpace.OrderService.Domain.Aggregates.Carts.CartItem", b =>
                 {
                     b.HasOne("HiveSpace.OrderService.Domain.Aggregates.Carts.Cart", null)
@@ -900,7 +972,8 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
                     b.HasOne("HiveSpace.OrderService.Domain.Aggregates.Coupons.Coupon", null)
                         .WithMany("Usages")
                         .HasForeignKey("CouponId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.OwnsOne("HiveSpace.Domain.Shared.ValueObjects.Money", "DiscountAmount", b1 =>
                         {

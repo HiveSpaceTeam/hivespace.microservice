@@ -36,7 +36,6 @@ internal static class HostingExtensions
         builder.Services.AddLocalizationServices(); // Add localization support
         builder.Services.AddAppIdentity();
         builder.Services.AddAppApplicationServices();
-        builder.Services.AddEmailConfig(configuration);
         builder.Services.AddAppIdentityServer(configuration);
         builder.Services.AddAppAuthentication(configuration);
         builder.Services.AddAppAuthorization();

@@ -3,6 +3,7 @@ using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.UserService.Application.DTOs.UserAddress;
 using HiveSpace.UserService.Application.Interfaces.Services;
 using HiveSpace.UserService.Domain.Aggregates.User;
+using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.UserService.Domain.Enums;
 using HiveSpace.UserService.Domain.Exceptions;
 using HiveSpace.UserService.Domain.Repositories;

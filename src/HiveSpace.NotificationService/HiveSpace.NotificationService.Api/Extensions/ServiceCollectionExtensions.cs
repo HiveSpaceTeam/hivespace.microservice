@@ -127,6 +127,8 @@ internal static class ServiceCollectionExtensions
             cfg.AddConsumer<NotifyBuyerOrderCancelledConsumer>();
             cfg.AddConsumer<UserSyncConsumer>();
             cfg.AddConsumer<StoreSyncConsumer>();
+            cfg.AddConsumer<EmailVerificationRequestedConsumer>();
+            cfg.AddConsumer<EmailVerifiedConsumer>();
         });
     }
 

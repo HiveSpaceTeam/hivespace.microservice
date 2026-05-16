@@ -1,15 +1,16 @@
-using MassTransit;
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+using HiveSpace.Infrastructure.Messaging.Configurations;
+using HiveSpace.MediaService.Core.Infrastructure.Configuration;
 using HiveSpace.MediaService.Core.Infrastructure.Data;
 using HiveSpace.MediaService.Core.Infrastructure.Storage;
 using HiveSpace.MediaService.Core.Interfaces;
-using HiveSpace.MediaService.Core.Services;
-using HiveSpace.MediaService.Core.Infrastructure.Configuration;
 using HiveSpace.MediaService.Core.Persistence.Repositories;
+using HiveSpace.MediaService.Core.Services;
+using MassTransit;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()
@@ -58,19 +59,26 @@ var host = new HostBuilder()
                     errorNumbersToAdd: null)
                 .CommandTimeout(120));
         });
+        var messagingOptions = configuration
+                .GetSection(MessagingOptions.SectionName)
+                .Get<MessagingOptions>();
 
-        // Register MassTransit for publishing integration events (publish-only, no consumers)
-        services.AddMassTransit(x =>
+        if (messagingOptions?.EnableRabbitMq == true)
         {
-            x.UsingRabbitMq((_, cfg) =>
+            services.AddMassTransit(x =>
             {
-                cfg.Host(configuration["RabbitMq:Host"], h =>
+                x.UsingRabbitMq((_, cfg) =>
                 {
-                    h.Username(configuration["RabbitMq:Username"] ?? "guest");
-                    h.Password(configuration["RabbitMq:Password"] ?? "guest");
+                    cfg.Host(messagingOptions.RabbitMq.Host, h =>
+                    {
+                        h.Username(messagingOptions.RabbitMq.Username ?? "guest");
+                        h.Password(messagingOptions.RabbitMq.Password ?? "guest");
+                    });
                 });
             });
-        });
+        }
+        // Register MassTransit for publishing integration events (publish-only, no consumers)
+        
     })
     .Build();
 

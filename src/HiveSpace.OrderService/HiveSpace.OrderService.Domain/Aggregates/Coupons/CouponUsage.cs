@@ -9,6 +9,7 @@ namespace HiveSpace.OrderService.Domain.Aggregates.Coupons;
 /// </summary>
 public class CouponUsage : Entity<Guid>
 {
+    public Guid CouponId { get; private set; }
     public Guid UserId { get; private set; }
     public Guid OrderId { get; private set; }
     public Money DiscountAmount { get; private set; } = null!;
@@ -16,17 +17,18 @@ public class CouponUsage : Entity<Guid>
 
     private CouponUsage() { }
 
-    private CouponUsage(Guid id, Guid userId, Guid orderId, Money discountAmount)
+    private CouponUsage(Guid id, Guid couponId, Guid userId, Guid orderId, Money discountAmount)
     {
         Id = id;
+        CouponId = couponId;
         UserId = userId;
         OrderId = orderId;
         DiscountAmount = discountAmount;
         UsedAt = DateTimeOffset.UtcNow;
     }
 
-    public static CouponUsage Create(Guid userId, Guid orderId, Money discountAmount)
+    public static CouponUsage Create(Guid couponId, Guid userId, Guid orderId, Money discountAmount)
     {
-        return new CouponUsage(IdGenerator.NewId<Guid>(), userId, orderId, discountAmount);
+        return new CouponUsage(IdGenerator.NewId<Guid>(), couponId, userId, orderId, discountAmount);
     }
 }

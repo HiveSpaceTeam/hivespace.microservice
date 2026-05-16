@@ -9,12 +9,15 @@ public class CouponUsageEntityConfiguration : IEntityTypeConfiguration<CouponUsa
     public void Configure(EntityTypeBuilder<CouponUsage> builder)
     {
         builder.ToTable("coupon_usages");
-        
+
         builder.HasKey(u => u.Id);
 
-        // Foreign Key
+        builder.Property(u => u.CouponId).IsRequired();
+        builder.Property(t => t.Id).ValueGeneratedNever();
+
         builder.HasOne<Coupon>()
             .WithMany(c => c.Usages)
+            .HasForeignKey(u => u.CouponId)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.Property(u => u.UserId).IsRequired();

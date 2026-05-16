@@ -9,7 +9,7 @@ Used for all write operations and reads that require business rule validation.
 1. **Domain**: Define or update aggregate + business methods + repository interface
 2. **Application**: `record MyCommand(...) : ICommand<MyResult>` + handler + FluentValidation validator (use `ICommand`/`ICommandHandler` from `HiveSpace.Application.Shared`)
 3. **Infrastructure**: Repository implementation + `IEntityTypeConfiguration<T>` in `EntityConfigurations/`
-4. **Api**: Map endpoint or add controller action
+4. **Api**: Map a Minimal API endpoint; legacy `UserService` controller code should be maintained only when required by existing behavior
 
 ## Pattern 2 — Complex query operations (bypass domain)
 
@@ -17,7 +17,7 @@ Used for paginated lists and reporting reads that don't need domain logic. Prefe
 
 1. **Application**: Define `IXxxDataQuery` interface + request/response types
 2. **Infrastructure**: Implement in `DataQueries/` — use Dapper for complex paginated / reporting queries; EF Core for simpler projections
-3. **Api**: Call via application service or directly via `ISender`
+3. **Api**: Expose via Minimal API and call through `ISender` or the application query abstraction
 
 ---
 

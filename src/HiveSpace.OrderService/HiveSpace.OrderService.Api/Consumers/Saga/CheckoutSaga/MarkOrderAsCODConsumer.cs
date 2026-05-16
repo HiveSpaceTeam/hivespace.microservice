@@ -18,21 +18,22 @@ public class MarkOrderAsCODConsumer(
         var message = context.Message;
         var ct = context.CancellationToken;
 
-        foreach (var orderId in message.OrderIds)
+        var orders = await orderRepository.GetByIdsAsync(message.OrderIds, ct);
+        var missingId = message.OrderIds.FirstOrDefault(id => orders.All(o => o.Id != id));
+        if (missingId != default)
         {
-            var order = await orderRepository.GetByIdAsync(orderId, ct);
-            if (order is null)
+            logger.LogWarning("Order {OrderId} not found for COD marking", missingId);
+            await context.RespondAsync<MarkOrderAsCODFailed>(new
             {
-                logger.LogWarning("Order {OrderId} not found for COD marking", orderId);
-                await context.RespondAsync<MarkOrderAsCODFailed>(new
-                {
-                    message.CorrelationId,
-                    OrderId = orderId,
-                    Reason  = $"Order {orderId} not found"
-                });
-                return;
-            }
+                message.CorrelationId,
+                OrderId = missingId,
+                Reason  = $"Order {missingId} not found"
+            });
+            return;
+        }
 
+        foreach (var order in orders)
+        {
             try
             {
                 if (order.Status.Name != OrderStatus.COD.Name)
@@ -42,11 +43,11 @@ public class MarkOrderAsCODConsumer(
                 ex.ErrorCode.Code == OrderDomainErrorCode.OrderExceedsCODLimit.Code ||
                 ex.ErrorCode.Code == OrderDomainErrorCode.OrderInvalidStatusForCOD.Code)
             {
-                logger.LogWarning("Order {OrderId} cannot be marked as COD: {ErrorCode}", orderId, ex.ErrorCode.Code);
+                logger.LogWarning("Order {OrderId} cannot be marked as COD: {ErrorCode}", order.Id, ex.ErrorCode.Code);
                 await context.RespondAsync<MarkOrderAsCODFailed>(new
                 {
                     message.CorrelationId,
-                    OrderId = orderId,
+                    OrderId = order.Id,
                     Reason  = ex.Message
                 });
                 return;
