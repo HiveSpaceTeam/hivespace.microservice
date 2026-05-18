@@ -33,22 +33,4 @@ if echo "$COMMAND" | grep -Eq '(^|[[:space:]])git commit([[:space:]]|$)|(^|[[:sp
     fi
 fi
 
-if echo "$COMMAND" | grep -q "gh pr create"; then
-    cat <<'EOF'
-PR CREATION BLOCKED - follow the required PR process first:
-
-1. Run: bash scripts/sync-config.sh
-   (syncs appsettings.json / local.settings.json to hivespace.config)
-2. Run: npx gitnexus analyze
-   (syncs the GitNexus index with all current changes)
-3. Tell the user: "Please start a new session in this repository."
-4. In the new session, run /review to review all current changes.
-5. Apply any fixes or improvements from the review.
-6. Only after the review is complete, run: gh pr create
-
-Do not attempt to bypass this process.
-EOF
-    exit 2
-fi
-
 exit 0

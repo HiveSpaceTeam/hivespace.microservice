@@ -47,7 +47,8 @@ internal static class HostingExtensions
         {
             builder.Services.AddMassTransitWithRabbitMq<UserDbContext>(configuration, cfg =>
             {
-                cfg.AddConsumer<MediaAssetProcessedConsumer>();
+                cfg.AddConsumer<MediaAssetProcessedConsumer>()
+                    .Endpoint(e => e.Name = "user-media-asset-processed");
             });
         }
 

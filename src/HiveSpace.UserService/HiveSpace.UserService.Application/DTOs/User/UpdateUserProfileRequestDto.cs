@@ -8,5 +8,6 @@ public record UpdateUserProfileRequestDto(
     string? UserName = null,
     string? PhoneNumber = null,
     Gender? Gender = null,
-    DateTimeOffset? DateOfBirth = null
+    DateTimeOffset? DateOfBirth = null,
+    string? AvatarFileId = null
 );

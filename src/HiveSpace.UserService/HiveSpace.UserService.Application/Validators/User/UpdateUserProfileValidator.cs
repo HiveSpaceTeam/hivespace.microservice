@@ -58,5 +58,16 @@ public class UpdateUserProfileValidator : AbstractValidator<UpdateUserProfileReq
                 .GreaterThan(DateTimeOffset.UtcNow.AddYears(-120))
                 .WithState(_ => new Error(UserDomainErrorCode.InvalidDateOfBirth, nameof(UpdateUserProfileRequestDto.DateOfBirth)));
         });
+
+        When(x => x.AvatarFileId != null, () =>
+        {
+            RuleFor(x => x.AvatarFileId!)
+                .NotEmpty()
+                .WithState(_ => new Error(CommonErrorCode.Required, nameof(UpdateUserProfileRequestDto.AvatarFileId)))
+                .MaximumLength(100)
+                .WithState(_ => new Error(UserDomainErrorCode.InvalidField, nameof(UpdateUserProfileRequestDto.AvatarFileId)))
+                .Must(value => Guid.TryParse(value, out _))
+                .WithState(_ => new Error(UserDomainErrorCode.InvalidField, nameof(UpdateUserProfileRequestDto.AvatarFileId)));
+        });
     }
 }

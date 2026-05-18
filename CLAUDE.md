@@ -10,6 +10,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - FluentValidation for request validation
 - Scalar for API documentation (OpenAPI)
 
+## Custom Story Commands
+
+| Command | Codex location | Claude Code location | Purpose |
+| --- | --- | --- | --- |
+| `/start-story` | `.agents/skills/start-story/SKILL.md` | `.claude/commands/start-story.md` | Start a backend story from `../hivespace.spec/specs/[feature-name]` |
+| `/done-story` | `.agents/skills/done-story/SKILL.md` | `.claude/commands/done-story.md` | Verify a completed backend story |
+
+Keep paired Codex and Claude command content semantically equivalent.
+
 ## Plan First
 
 - Treat any non-trivial task as architectural work.
@@ -191,7 +200,7 @@ Never run `gh pr create` directly. A PreToolUse hook wrapper at `.claude/hooks/g
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **hivespace.microservice** (7137 symbols, 17927 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **hivespace.microservice** (7136 symbols, 17927 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 

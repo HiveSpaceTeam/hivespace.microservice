@@ -82,6 +82,8 @@ public class UserService : IUserService
         var dateOfBirth = request.DateOfBirth.HasValue ? DateOfBirth.Create(request.DateOfBirth.Value) : null;
 
         user.UpdateProfile(request.FullName, phoneNumber, dateOfBirth, request.Gender, request.UserName);
+        if (request.AvatarFileId != null)
+            user.SetAvatar(request.AvatarFileId);
 
         await _userRepository.UpdateUserAsync(user, cancellationToken);
     }
