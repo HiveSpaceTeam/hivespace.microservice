@@ -82,7 +82,7 @@ npx gitnexus analyze
 
 ## Step 5 — Stage non-JSON files
 
-**This project prohibits staging `*.json` files.** Agents must never add any `*.json` file to the index. This is because `appsettings.json`, `local.settings.json`, and other config files contain environment-specific values that must not be committed.
+**This project prohibits agents from staging `*.json` files.** Agents must never add any `*.json` file to the index. This is because `appsettings.json`, `local.settings.json`, and other config files contain environment-specific values that need explicit user handling.
 
 Stage all non-JSON changed files:
 
@@ -93,9 +93,9 @@ git diff --cached --name-only  # confirm what's staged
 
 If any `*.json` files are modified, tell the user:
 
-> "These JSON files were changed but not staged — you need to handle them manually if you want them committed: [list files]"
+> "These JSON files were changed but not staged by me — you need to stage them manually if you want them committed: [list files]"
 
-Do not proceed to commit until the user confirms they are happy with the staged set.
+Do not proceed to commit until the user confirms they are happy with the staged set. If the user has already staged `*.json` files themselves, leave those staged entries untouched and include them in the commit. Do not unstage, restage, or modify user-staged JSON files.
 
 ---
 
@@ -159,8 +159,6 @@ bash scripts/sync-config.sh
 
 ## Step 10 — Create the PR
 
-The `gh pr create` command is blocked by a PreToolUse hook when run through Claude. Draft the full command and tell the user to run it directly in the terminal using the `!` prefix.
-
 Draft the PR body based on the commits and diff (`git log origin/master..HEAD` and `git diff origin/master...HEAD --stat`). Structure it as:
 
 ```
@@ -172,21 +170,19 @@ Draft the PR body based on the commits and diff (`git log origin/master..HEAD` a
 - [ ] one checkbox per changed service or flow
 ```
 
-Then tell the user:
-
-> "The branch is pushed. Run the command below directly in your terminal (the `!` prefix bypasses the hook):"
+Then create the PR directly:
 
 ```
-! gh pr create --title "<title>" --body "..." --base master --head <branch>
+gh pr create --title "<title>" --body "..." --base master --head <branch>
 ```
 
 ---
 
 ## Step 11 — Hand off to a new session for review
 
-After the PR is created, tell the user:
+After the PR is created, ask the user:
 
-> "PR is open. To run a post-merge review:
+> "PR is open. To run a post-PR review:
 > 1. **Start a new Claude Code session** in this repository
 > 2. Run `/review` — this will review all changes on the branch
 > 3. Apply any fixes the review surfaces and push them to the same branch"
@@ -200,7 +196,7 @@ After the PR is created, tell the user:
 | `dotnet build` | Catches compile errors before anything is staged |
 | `gitnexus_detect_changes` | Confirms the diff scope matches intent |
 | `npx gitnexus analyze` (before stage) | Index reflects current working state before commit |
-| No `*.json` staging | Prevents environment secrets / local config from leaking |
+| No agent `*.json` staging | Keeps environment config changes under explicit user control |
 | `scripts/sync-config.sh` | Keeps the config repo in sync with service appsettings |
-| `! gh pr create` | Bypasses the guard-pr.sh hook; PR is created immediately |
+| `gh pr create` | Opens the PR after build, index, commit, push, and config sync |
 | New session + `/review` | Post-PR review in clean context; fixes pushed to same branch |

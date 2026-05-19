@@ -171,8 +171,10 @@ public class User : AggregateRoot<Guid>, IAuditable, ISoftDeletable
     
     public void SetAvatar(string fileId)
     {
-        AvatarFileId = fileId;
-        AvatarUrl = null;
+        if (string.IsNullOrWhiteSpace(fileId))
+            throw new InvalidFieldException(UserDomainErrorCode.InvalidField, nameof(AvatarFileId));
+
+        AvatarFileId = fileId.Trim();
     }
 
     public void SetAvatarUrl(string url)

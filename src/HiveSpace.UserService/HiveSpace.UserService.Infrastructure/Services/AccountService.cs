@@ -8,6 +8,7 @@ using HiveSpace.UserService.Application.Interfaces.Services;
 using HiveSpace.UserService.Application.DTOs.Account;
 using HiveSpace.UserService.Domain.Aggregates.User;
 using HiveSpace.UserService.Domain.Exceptions;
+using HiveSpace.UserService.Infrastructure.Data;
 using HiveSpace.UserService.Infrastructure.Identity;
 using MassTransit;
 using Microsoft.AspNetCore.Identity;
@@ -22,17 +23,20 @@ public class AccountService : IAccountService
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IUserContext _userContext;
     private readonly IPublishEndpoint _publishEndpoint;
+    private readonly UserDbContext _dbContext;
     private readonly ILogger<AccountService> _logger;
 
     public AccountService(
         UserManager<ApplicationUser> userManager,
         IUserContext userContext,
         IPublishEndpoint publishEndpoint,
+        UserDbContext dbContext,
         ILogger<AccountService> logger)
     {
         _userManager     = userManager;
         _userContext     = userContext;
         _publishEndpoint = publishEndpoint;
+        _dbContext       = dbContext;
         _logger          = logger;
     }
 
@@ -76,6 +80,8 @@ public class AccountService : IAccountService
             ExpiresAt        = DateTime.UtcNow.AddHours(24),
             Locale           = user.Culture,
         }, cancellationToken);
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Email verification event published for user {UserId} at {Email}", userId, user.Email);
     }
@@ -124,6 +130,8 @@ public class AccountService : IAccountService
                 ToName  = user.FullName,
                 Locale  = user.Culture,
             }, cancellationToken);
+
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
         catch (Exception ex)
         {

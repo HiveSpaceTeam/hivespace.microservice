@@ -10,6 +10,15 @@ This file provides guidance to agents working with code in this repository.
 - FluentValidation for request validation
 - Scalar for API documentation (OpenAPI)
 
+## Custom Story Commands
+
+| Command | Codex location | Claude Code location | Purpose |
+| --- | --- | --- | --- |
+| `/start-story` | `.agents/skills/start-story/SKILL.md` | `.claude/commands/start-story.md` | Start a backend story from `../hivespace.spec/specs/[feature-name]` |
+| `/done-story` | `.agents/skills/done-story/SKILL.md` | `.claude/commands/done-story.md` | Verify a completed backend story |
+
+Keep paired Codex and Claude command content semantically equivalent.
+
 ## Plan First
 
 - Treat any non-trivial task as architectural work.
@@ -171,27 +180,28 @@ When adding or changing shared hook behavior:
 
 ## PR Process
 
-Never run `gh pr create` directly. A PreToolUse hook wrapper at `.claude/hooks/guard-pr.sh` blocks it. Required flow:
+Required flow:
 
 1. Run `bash scripts/sync-config.sh` to sync all `appsettings.json` / `local.settings.json` to `hivespace.config/`
 2. Run `npx gitnexus analyze` to sync the GitNexus index with current changes
-3. Tell the user to **start a new session** in this repository
-4. In the new session, run `/review` to review all current changes
-5. Apply any fixes from the review
-6. Only then: `gh pr create`
+3. Run `gh pr create` to open the PR
+4. After the PR is open, ask the user to **start a new session** in this repository
+5. In the new session, ask the user to run `/review` to review all current changes
+6. Apply any fixes from the review and push them to the same branch
 
 ## Git Commit Guardrails
 
-- Agents must never stage or commit any `*.json` file.
+- Agents must never stage any `*.json` file.
 - If a task changes one or more `*.json` files, agents must ask the user to add/stage those JSON files manually.
-- Agents can stage and commit only non-JSON files after user confirmation that JSON staging is handled.
+- Agents may commit `*.json` files only when they were already staged by the user; do not unstage or restage those files.
+- Agents can stage non-JSON files and commit the resulting staged set after confirming any JSON staging was handled by the user.
 - After finishing a task, agents must delete temporary files and temporary folders they created (for example: ad-hoc error logs, scratch/debug files, temporary build folders like `.codex-build`, all _.log files, language-service cache files like `_.csproj.lscache`, or one-off investigation artifacts) unless the user explicitly asks to keep them.
 - Agents must not stage or commit temporary files created only for debugging or task tracking.
 
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **hivespace.microservice** (7137 symbols, 17927 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **hivespace.microservice** (7136 symbols, 17927 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 

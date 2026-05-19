@@ -37,7 +37,8 @@ namespace HiveSpace.CatalogService.Api.Extensions
                     cfg.AddConsumer<ReserveInventoryConsumer>();
                     cfg.AddConsumer<ConfirmInventoryConsumer>();
                     cfg.AddConsumer<ReleaseInventoryConsumer>();
-                    cfg.AddConsumer<MediaAssetProcessedConsumer>();
+                    cfg.AddConsumer<MediaAssetProcessedConsumer>()
+                        .Endpoint(e => e.Name = "catalog-media-asset-processed");
                 });
             }
             // if (messagingOptions?.EnableKafka == true)
