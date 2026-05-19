@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Shared PreToolUse hook logic: block premature PR creation and require strict sync checks before commit/PR.
+# Shared PreToolUse hook logic: require strict sync checks before commit/PR.
 
 set -euo pipefail
 

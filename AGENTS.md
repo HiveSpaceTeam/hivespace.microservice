@@ -180,14 +180,14 @@ When adding or changing shared hook behavior:
 
 ## PR Process
 
-Never run `gh pr create` directly. A PreToolUse hook wrapper at `.claude/hooks/guard-pr.sh` blocks it. Required flow:
+Required flow:
 
 1. Run `bash scripts/sync-config.sh` to sync all `appsettings.json` / `local.settings.json` to `hivespace.config/`
 2. Run `npx gitnexus analyze` to sync the GitNexus index with current changes
-3. Tell the user to **start a new session** in this repository
-4. In the new session, run `/review` to review all current changes
-5. Apply any fixes from the review
-6. Only then: `gh pr create`
+3. Run `gh pr create` to open the PR
+4. After the PR is open, ask the user to **start a new session** in this repository
+5. In the new session, ask the user to run `/review` to review all current changes
+6. Apply any fixes from the review and push them to the same branch
 
 ## Git Commit Guardrails
 
