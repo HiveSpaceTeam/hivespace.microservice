@@ -82,7 +82,7 @@ npx gitnexus analyze
 
 ## Step 5 — Stage non-JSON files
 
-**This project prohibits staging `*.json` files.** Agents must never add any `*.json` file to the index. This is because `appsettings.json`, `local.settings.json`, and other config files contain environment-specific values that must not be committed.
+**This project prohibits agents from staging `*.json` files.** Agents must never add any `*.json` file to the index. This is because `appsettings.json`, `local.settings.json`, and other config files contain environment-specific values that need explicit user handling.
 
 Stage all non-JSON changed files:
 
@@ -93,9 +93,9 @@ git diff --cached --name-only  # confirm what's staged
 
 If any `*.json` files are modified, tell the user:
 
-> "These JSON files were changed but not staged — you need to handle them manually if you want them committed: [list files]"
+> "These JSON files were changed but not staged by me — you need to stage them manually if you want them committed: [list files]"
 
-Do not proceed to commit until the user confirms they are happy with the staged set.
+Do not proceed to commit until the user confirms they are happy with the staged set. If the user has already staged `*.json` files themselves, leave those staged entries untouched and include them in the commit. Do not unstage, restage, or modify user-staged JSON files.
 
 ---
 
@@ -200,7 +200,7 @@ After the PR is created, tell the user:
 | `dotnet build` | Catches compile errors before anything is staged |
 | `gitnexus_detect_changes` | Confirms the diff scope matches intent |
 | `npx gitnexus analyze` (before stage) | Index reflects current working state before commit |
-| No `*.json` staging | Prevents environment secrets / local config from leaking |
+| No agent `*.json` staging | Keeps environment config changes under explicit user control |
 | `scripts/sync-config.sh` | Keeps the config repo in sync with service appsettings |
 | `! gh pr create` | Bypasses the guard-pr.sh hook; PR is created immediately |
 | New session + `/review` | Post-PR review in clean context; fixes pushed to same branch |

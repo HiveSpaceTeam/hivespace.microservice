@@ -191,9 +191,10 @@ Never run `gh pr create` directly. A PreToolUse hook wrapper at `.claude/hooks/g
 
 ## Git Commit Guardrails
 
-- Agents must never stage or commit any `*.json` file.
+- Agents must never stage any `*.json` file.
 - If a task changes one or more `*.json` files, agents must ask the user to add/stage those JSON files manually.
-- Agents can stage and commit only non-JSON files after user confirmation that JSON staging is handled.
+- Agents may commit `*.json` files only when they were already staged by the user; do not unstage or restage those files.
+- Agents can stage non-JSON files and commit the resulting staged set after confirming any JSON staging was handled by the user.
 - After finishing a task, agents must delete temporary files and temporary folders they created (for example: ad-hoc error logs, scratch/debug files, temporary build folders like `.codex-build`, all _.log files, language-service cache files like `_.csproj.lscache`, or one-off investigation artifacts) unless the user explicitly asks to keep them.
 - Agents must not stage or commit temporary files created only for debugging or task tracking.
 
