@@ -1,3 +1,4 @@
+using HiveSpace.CatalogService.Api.Consumers;
 using HiveSpace.CatalogService.Api.Consumers.Saga.Checkout;
 using HiveSpace.CatalogService.Api.Consumers.Sync;
 using HiveSpace.CatalogService.Api.Endpoints;

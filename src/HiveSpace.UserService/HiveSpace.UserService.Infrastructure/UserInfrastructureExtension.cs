@@ -1,9 +1,7 @@
 using HiveSpace.UserService.Domain.Repositories;
 using HiveSpace.UserService.Infrastructure.Data;
 using HiveSpace.UserService.Infrastructure.Repositories;
-using HiveSpace.UserService.Infrastructure.DataQueries;
 using HiveSpace.UserService.Application.Interfaces;
-using HiveSpace.UserService.Application.Interfaces.DataQueries;
 using HiveSpace.Infrastructure.Persistence;
 using HiveSpace.Infrastructure.Persistence.Interceptors;
 using Microsoft.EntityFrameworkCore;
@@ -12,8 +10,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using HiveSpace.Core.Exceptions;
 using HiveSpace.Core.Exceptions.Models;
-using HiveSpace.UserService.Application.Interfaces.Services;
-using HiveSpace.UserService.Infrastructure.Services;
 using HiveSpace.UserService.Application.Interfaces.Messaging;
 using HiveSpace.UserService.Infrastructure.Messaging.Publishers;
 
@@ -45,9 +41,6 @@ public static class UserInfrastructureExtension
         // Register Event Publisher services
         services.AddEventPublisherServices();
 
-        // Register UserService queries with connection string
-        services.AddUserServiceQueries(connectionString);
-
         services.AddDbContext<UserDbContext>((serviceProvider, options) =>
         {
             var interceptors = serviceProvider.GetServices<ISaveChangesInterceptor>();
@@ -73,7 +66,6 @@ public static class UserInfrastructureExtension
 
     public static void AddInfrastructureServices(this IServiceCollection services)
     {
-        services.AddScoped<IAccountService, AccountService>();
     }
 
     public static void AddEventPublisherServices(this IServiceCollection services)
@@ -81,9 +73,4 @@ public static class UserInfrastructureExtension
         services.AddScoped<IStoreEventPublisher, StoreEventPublisher>();
     }
 
-    public static void AddUserServiceQueries(this IServiceCollection services, string connectionString)
-    {
-        // Register Dapper Query services with connection string
-        services.AddScoped<IUnifiedUserDataQuery>(provider => new UnifiedUserDataQuery(connectionString));
-    }
 }

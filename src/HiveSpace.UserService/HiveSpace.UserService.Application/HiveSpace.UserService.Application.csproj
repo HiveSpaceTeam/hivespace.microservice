@@ -13,12 +13,4 @@
     <ProjectReference Include="..\..\..\libs\HiveSpace.Application.Shared\HiveSpace.Application.Shared.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="MassTransit" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="IntegrationEvents\" />
-  </ItemGroup>
-
 </Project>

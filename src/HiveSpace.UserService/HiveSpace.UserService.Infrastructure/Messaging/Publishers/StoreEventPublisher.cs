@@ -22,4 +22,5 @@ public class StoreEventPublisher(IEventPublisher eventPublisher) : IStoreEventPu
             store.LogoFileId, store.LogoUrl, store.Address);
         return eventPublisher.PublishAsync(evt, cancellationToken);
     }
+
 }

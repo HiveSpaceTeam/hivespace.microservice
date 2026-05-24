@@ -7,4 +7,3 @@ public interface IStoreEventPublisher
     Task PublishStoreCreatedAsync(Store store, CancellationToken cancellationToken = default);
     Task PublishStoreUpdatedAsync(Store store, CancellationToken cancellationToken = default);
 }
-

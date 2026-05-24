@@ -3,8 +3,6 @@ using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Domain.Shared.Errors;
 using HiveSpace.UserService.Domain.Aggregates.Store;
 using HiveSpace.UserService.Domain.Aggregates.User;
-using HiveSpace.Domain.Shared.Enumerations;
-using HiveSpace.UserService.Domain.Enums;
 using HiveSpace.UserService.Domain.Exceptions;
 using HiveSpace.UserService.Domain.Repositories;
 
@@ -36,9 +34,6 @@ public class StoreManager : IDomainService
     {
         var owner = await _userRepository.GetByIdAsync(ownerId) ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
         
-        if (owner.Status != UserStatus.Active)
-            throw new UserInactiveException();
-            
         return owner;
     }
 
@@ -55,7 +50,7 @@ public class StoreManager : IDomainService
         if (!string.IsNullOrWhiteSpace(name) && ContainsInvalidCharacters(name.Trim()))
             throw new InvalidStoreInformationException();
 
-        // Validate owner exists and is active
+        // Validate owner profile exists. Account availability belongs to IdentityService.
         var owner = await ValidateStoreOwnerAsync(ownerId, cancellationToken);
 
         // Check if user can own more stores (max 1 store per user)
@@ -68,8 +63,6 @@ public class StoreManager : IDomainService
 
         // Create new store using internal factory method (includes validation)
         var store = Store.Create(name, description, logoFileId, storeAddress, ownerId, storeId);
-
-        owner.AssignStore(store.Id);
 
         return new StoreRegistrationResult(store, owner);
     }

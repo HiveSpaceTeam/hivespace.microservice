@@ -1,17 +1,11 @@
-using Duende.IdentityModel;
-using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.UserService.Domain.Aggregates.Store;
 using HiveSpace.UserService.Domain.Aggregates.User;
 using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.UserService.Domain.Enums;
-using HiveSpace.UserService.Domain.Exceptions;
 using HiveSpace.UserService.Domain.Services;
 using HiveSpace.UserService.Infrastructure.Data;
-using HiveSpace.UserService.Infrastructure.Identity;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Security.Claims;
 
 namespace HiveSpace.UserService.Infrastructure;
 
@@ -22,7 +16,7 @@ public static partial class DataSeeder
     private const string PhuongDongAvatarUrl = "https://images.unsplash.com/photo-1621694691319-0d74e2d9a79c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.0.3&q=80&w=1080";
 
     private static async Task SeedSellersAsync(
-        UserManager<ApplicationUser> userMgr, StoreManager storeManager,
+        StoreManager storeManager,
         UserDbContext context, ILogger logger, CancellationToken ct)
     {
         var sellerSeeds = new[]
@@ -36,15 +30,12 @@ public static partial class DataSeeder
                 FullName         = "Tiki Trading",
                 Phone            = "+84901000001",
                 DateOfBirth      = new DateTime(1988, 12, 5),
-                Gender           = (int)Gender.Male,
-                Password         = "TikiTrading123$",
+                Gender           = Gender.Male,
                 AvatarUrl        = TikiAvatarUrl,
                 StoreName        = "Tiki Trading",
                 StoreDescription = "OFFICIAL_STORE • 4.7 ★ (5.5tr+ đánh giá) • 513.1k+ người theo dõi",
                 LogoUrl          = "https://vcdn.tikicdn.com/ts/seller/d1/3f/ae/13ce3d83ab6b6c5e77e6377ad61dc4a5.jpg",
                 StoreAddress     = "https://tiki.vn/cua-hang/tiki-trading",
-                GivenName        = "Tiki",
-                FamilyName       = "Trading"
             },
             new
             {
@@ -55,15 +46,12 @@ public static partial class DataSeeder
                 FullName         = "GIVER BOOKS & MEDIA",
                 Phone            = "+84901000002",
                 DateOfBirth      = new DateTime(1989, 1, 5),
-                Gender           = (int)Gender.Male,
-                Password         = "GiverBooks123$",
+                Gender           = Gender.Male,
                 AvatarUrl        = GiverAvatarUrl,
                 StoreName        = "GIVER BOOKS & MEDIA",
                 StoreDescription = "OFFICIAL_STORE • 4.8 ★ (8.2k+ đánh giá) • 6.0k+ người theo dõi",
                 LogoUrl          = "https://vcdn.tikicdn.com/ts/seller/89/9e/7d/d19991a65a04abc9b0a410058307d255.jpg",
                 StoreAddress     = "https://tiki.vn/cua-hang/giver-books",
-                GivenName        = "Giver",
-                FamilyName       = "Books",
             },
             new
             {
@@ -74,22 +62,19 @@ public static partial class DataSeeder
                 FullName         = "Phương Đông Books",
                 Phone            = "+84901000003",
                 DateOfBirth      = new DateTime(1990, 2, 10),
-                Gender           = (int)Gender.Male,
-                Password         = "PhuongDongBooks123$",
+                Gender           = Gender.Male,
                 AvatarUrl        = PhuongDongAvatarUrl,
                 StoreName        = "Phương Đông Books",
                 StoreDescription = "4.8 ★ (38k+ đánh giá) • 14.5k+ người theo dõi",
                 LogoUrl          = "https://vcdn.tikicdn.com/ts/seller/2e/85/b7/e76104ae5f1beaf244f319e2f0d2d413.jpg",
                 StoreAddress     = "https://tiki.vn/cua-hang/phuong-dong-books",
-                GivenName        = "Phuong",
-                FamilyName       = "Dong"
             },
         };
 
         foreach (var seed in sellerSeeds)
         {
-            var seller = await userMgr.Users.FirstOrDefaultAsync(u => u.Id == seed.SellerId, ct)
-                      ?? await userMgr.Users.FirstOrDefaultAsync(u => u.UserName == seed.Username, ct);
+            var seller = await context.Users.Include(u => u.Addresses).FirstOrDefaultAsync(u => u.Id == seed.SellerId, ct)
+                      ?? await context.Users.Include(u => u.Addresses).FirstOrDefaultAsync(u => u.UserName == seed.Username, ct);
 
             if (seller is not null && seller.Id != seed.SellerId)
             {
@@ -101,36 +86,35 @@ public static partial class DataSeeder
 
             if (seller is null)
             {
-                seller = new ApplicationUser
-                {
-                    Id             = seed.SellerId,
-                    UserName       = seed.Username,
-                    Email          = seed.Email,
-                    EmailConfirmed = true,
-                    FullName       = seed.FullName,
-                    AvatarFileId   = Guid.NewGuid().ToString(),
-                    AvatarUrl      = seed.AvatarUrl,
-                    PhoneNumber    = seed.Phone,
-                    DateOfBirth    = seed.DateOfBirth,
-                    Gender         = seed.Gender,
-                    Status         = (int)UserStatus.Active,
-                    RoleName       = "Seller",
-                    CreatedAt      = DateTimeOffset.UtcNow,
-                    Theme          = Theme.Light,
-                    Culture        = Culture.Vi
-                };
+                seller = User.CreateProfile(
+                    id: seed.SellerId,
+                    email: Email.Create(seed.Email),
+                    userName: seed.Username,
+                    fullName: seed.FullName,
+                    avatarUrl: seed.AvatarUrl,
+                    phoneNumber: PhoneNumber.CreateOrDefault(seed.Phone),
+                    dateOfBirth: DateOfBirth.CreateOrDefault(seed.DateOfBirth),
+                    gender: seed.Gender,
+                    createdAt: DateTimeOffset.UtcNow
+                );
+                
+                seller.AddAddress(
+                    fullName: seed.FullName, phoneNumber: seed.Phone,
+                    street: seed.StoreName, commune: "District 1",
+                    province: "Ho Chi Minh City", country: "Vietnam",
+                    zipCode: "70000", addressType: AddressType.Work,
+                    setAsDefault: true);
 
-                var createResult = await userMgr.CreateAsync(seller, seed.Password);
-                if (!createResult.Succeeded)
-                {
-                    logger.LogError("Failed to create seller {Username}: {Error}",
-                        seed.Username, createResult.Errors.First().Description);
-                    throw new InvalidFieldException(UserDomainErrorCode.UserCreationFailed, nameof(ApplicationUser));
-                }
+                context.Users.Add(seller);
+                await context.SaveChangesAsync(ct);
             }
             else
             {
-                await EnsureAvatarUrlAsync(userMgr, seller, seed.AvatarUrl, logger);
+                if (seller.AvatarUrl != seed.AvatarUrl)
+                {
+                    seller.SetAvatarUrl(seed.AvatarUrl);
+                    await context.SaveChangesAsync(ct);
+                }
             }
 
             var store = await context.Stores.FirstOrDefaultAsync(s => s.Id == seed.StoreId, ct)
@@ -146,7 +130,6 @@ public static partial class DataSeeder
                     ownerId:      seed.SellerId,
                     storeId:      seed.StoreId);
 
-                // Seed data uses CDN URLs directly — resolve logo URL immediately without media processing
                 registration.Store.SetLogoUrl(seed.LogoUrl);
                 context.Stores.Add(registration.Store);
                 await context.SaveChangesAsync(ct);
@@ -157,61 +140,6 @@ public static partial class DataSeeder
                 logger.LogWarning(
                     "Store mismatch for {Username}. Existing store ID/OwnerId is {StoreId}/{OwnerId}, expected {ExpectedStoreId}/{ExpectedOwnerId}.",
                     seed.Username, store.Id, store.OwnerId, seed.StoreId, seed.SellerId);
-            }
-
-            if (seller.StoreId != seed.StoreId)
-            {
-                seller.StoreId  = seed.StoreId;
-                seller.RoleName = Role.RoleNames.Seller;
-                var updateResult = await userMgr.UpdateAsync(seller);
-                if (!updateResult.Succeeded)
-                {
-                    logger.LogError("Failed to update seller {Username} with StoreId: {Error}",
-                        seed.Username, updateResult.Errors.First().Description);
-                    throw new Exception(updateResult.Errors.First().Description);
-                }
-            }
-
-            var hasAddress = await context.Addresses.AnyAsync(a => EF.Property<Guid>(a, "UserId") == seed.SellerId, ct);
-            if (!hasAddress)
-            {
-                var sellerAddress = new Address(
-                    fullName: seed.FullName, phoneNumber: seed.Phone,
-                    street: seed.StoreName, commune: "District 1",
-                    province: "Ho Chi Minh City", country: "Vietnam",
-                    zipCode: "70000", addressType: AddressType.Work);
-
-                sellerAddress.SetAsDefault();
-                context.Entry(sellerAddress).Property("UserId").CurrentValue = seed.SellerId;
-                context.Addresses.Add(sellerAddress);
-                await context.SaveChangesAsync(ct);
-            }
-
-            var existingClaims = await userMgr.GetClaimsAsync(seller);
-            var requiredClaims = new[]
-            {
-                new Claim(JwtClaimTypes.Name,       seed.FullName),
-                new Claim(JwtClaimTypes.GivenName,  seed.GivenName),
-                new Claim(JwtClaimTypes.FamilyName, seed.FamilyName),
-                new Claim(JwtClaimTypes.Role,       "Seller"),
-                new Claim("permissions",            "store.manage"),
-                new Claim("permissions",            "product.manage"),
-                new Claim("permissions",            "order.view"),
-            };
-
-            var claimsToAdd = requiredClaims
-                .Where(c => !existingClaims.Any(ec => ec.Type == c.Type && ec.Value == c.Value))
-                .ToArray();
-
-            if (claimsToAdd.Length > 0)
-            {
-                var claimResult = await userMgr.AddClaimsAsync(seller, claimsToAdd);
-                if (!claimResult.Succeeded)
-                {
-                    logger.LogError("Failed to add claims for seller {Username}: {Error}",
-                        seed.Username, claimResult.Errors.First().Description);
-                    throw new InvalidFieldException(UserDomainErrorCode.UserCreationFailed, nameof(ApplicationUser));
-                }
             }
 
             logger.LogDebug("Seller seed ensured for {Username} (SellerId={SellerId}, StoreId={StoreId}).",

@@ -8,7 +8,8 @@ Run this verification checklist after completing a backend story. Check every ap
 
 Context:
 - Read local `AGENTS.md` and `CLAUDE.md` if present.
-- Read the feature `spec.md`, `plan.md`, and `tasks.md` under `../hivespace.spec/specs/[feature-name]/`.
+- Read the feature `spec.md`, `plan.md`, `tasks.md`, and `tasks/backend.md` under `../hivespace.spec/specs/[feature-name]/`.
+- Read relevant `tasks/config.md`, `tasks/docs-catalog.md`, and `tasks/verification.md` entries when they apply to the completed backend story.
 
 Backend checks:
 - New feature work follows CQRS plus Minimal API, except required UserService legacy maintenance.
@@ -31,5 +32,5 @@ Verification:
 Report:
 - List files created and modified.
 - List verification commands and results.
-- If more stories remain, show the next story scope from `tasks.md`.
+- If more stories remain, show the next backend story/task group from `tasks/backend.md`, using `tasks.md` for dependency order.
 - Remind the user to run `/wrap-up` in `hivespace.spec` when the full feature is shipped.

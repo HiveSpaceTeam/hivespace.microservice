@@ -1,7 +1,7 @@
 using HiveSpace.Domain.Shared.Entities;
+using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Domain.Shared.Interfaces;
-using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.UserService.Domain.Enums;
 using HiveSpace.UserService.Domain.Exceptions;
 
@@ -9,99 +9,70 @@ namespace HiveSpace.UserService.Domain.Aggregates.User;
 
 public class User : AggregateRoot<Guid>, IAuditable, ISoftDeletable
 {
-    // Identity
     public Email Email { get; private set; }
     public string UserName { get; private set; }
-    public string PasswordHash { get; private set; }
-    public UserStatus Status { get; private set; }
-    public Role? Role { get; private set; }
-    public bool EmailConfirmed { get; private set; }
-    
-    // Store relationship
-    public Guid? StoreId { get; private set; }
-    
-    // Profile
-    public string FullName { get; private set; }  // Primitive value
+    public string FullName { get; private set; }
     public string? AvatarFileId { get; private set; }
     public string? AvatarUrl { get; private set; }
     public PhoneNumber? PhoneNumber { get; private set; }
     public DateOfBirth? DateOfBirth { get; private set; }
     public Gender? Gender { get; private set; }
-    
-    // Relationships
+
     private readonly List<Address> _addresses;
     public IReadOnlyCollection<Address> Addresses => _addresses.AsReadOnly();
-    
-    // Settings
+
     public UserSettings Settings { get; private set; }
-    
-    // Audit
+
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset? UpdatedAt { get; private set; }
-    public DateTimeOffset? LastLoginAt { get; private set; }
 
-    // ISoftDeletable
     public bool IsDeleted { get; set; }
     public DateTimeOffset? DeletedAt { get; set; }
 
     private User()
     {
-        _addresses = new List<Address>();
+        _addresses = [];
         Email = null!;
         UserName = string.Empty;
-        PasswordHash = null!;
         FullName = string.Empty;
-        AvatarUrl = null;
-        Role = null!;
-        EmailConfirmed = false;
-    }
-
-    internal User(Email email, string userName, string passwordHash, string fullName, Role? role = null, 
-        string? avatarUrl = null, PhoneNumber? phoneNumber = null, DateOfBirth? dateOfBirth = null, Gender? gender = null, 
-        Guid? storeId = null, UserStatus status = UserStatus.Active, bool emailConfirmed = false,
-        DateTimeOffset? createdAt = null, DateTimeOffset? updatedAt = null, DateTimeOffset? lastLoginAt = null)
-    {
-        _addresses = new List<Address>();
-        Email = email;
-        UserName = userName.Trim();
-        PasswordHash = passwordHash;
-        FullName = fullName.Trim();
-        AvatarUrl = avatarUrl?.Trim();
-        Status = status;
-        StoreId = storeId;
-        Role = role;
-        PhoneNumber = phoneNumber;
-        DateOfBirth = dateOfBirth;
-        Gender = gender;
-        EmailConfirmed = emailConfirmed;
-        CreatedAt = createdAt ?? DateTimeOffset.UtcNow;
-        UpdatedAt = updatedAt;
-        LastLoginAt = lastLoginAt;
-
-        // Initialize settings with defaults
         Settings = new UserSettings(Theme.Light, Culture.En);
     }
 
-    /// <summary>
-    /// Rehydrates a User aggregate from persisted/raw values. Intended for Infrastructure only.
-    /// </summary>
+    private User(
+        Email email,
+        string userName,
+        string fullName,
+        string? avatarUrl = null,
+        PhoneNumber? phoneNumber = null,
+        DateOfBirth? dateOfBirth = null,
+        Gender? gender = null,
+        DateTimeOffset? createdAt = null,
+        DateTimeOffset? updatedAt = null)
+    {
+        _addresses = [];
+        Email = email;
+        UserName = userName.Trim();
+        FullName = fullName.Trim();
+        AvatarUrl = avatarUrl?.Trim();
+        PhoneNumber = phoneNumber;
+        DateOfBirth = dateOfBirth;
+        Gender = gender;
+        CreatedAt = createdAt ?? DateTimeOffset.UtcNow;
+        UpdatedAt = updatedAt;
+        Settings = new UserSettings(Theme.Light, Culture.En);
+    }
+
     internal static User Rehydrate(
         Guid id,
         Email email,
         string userName,
-        string passwordHash,
         string fullName,
-        Role? role,
         string? avatarUrl,
         PhoneNumber? phoneNumber,
         DateOfBirth? dateOfBirth,
         Gender? gender,
-        Guid? storeId,
-        UserStatus status,
-        bool emailConfirmed,
         DateTimeOffset createdAt,
         DateTimeOffset? updatedAt,
-        DateTimeOffset? lastLoginAt,
         bool isDeleted = false,
         DateTimeOffset? deletedAt = null,
         IEnumerable<Address>? addresses = null,
@@ -109,52 +80,57 @@ public class User : AggregateRoot<Guid>, IAuditable, ISoftDeletable
         Culture culture = Culture.Vi,
         string? avatarFileId = null)
     {
-        var user = new User(email, userName, passwordHash, fullName, role, avatarUrl, phoneNumber, dateOfBirth, gender, storeId, status, emailConfirmed, createdAt, updatedAt, lastLoginAt);
-        user.Id = id; // protected setter available within the assembly
-        user.AvatarFileId = avatarFileId;
-
-        // Initialize settings
-        user.Settings = new UserSettings(theme, culture);
+        var user = new User(email, userName, fullName, avatarUrl, phoneNumber, dateOfBirth, gender, createdAt, updatedAt)
+        {
+            Id = id,
+            AvatarFileId = avatarFileId,
+            IsDeleted = isDeleted,
+            DeletedAt = deletedAt,
+            Settings = new UserSettings(theme, culture)
+        };
 
         if (addresses != null)
         {
-            foreach (var addr in addresses)
+            foreach (var address in addresses)
             {
-                user._addresses.Add(addr);
+                user._addresses.Add(address);
             }
         }
 
         return user;
     }
-    
-    internal static User Create(Email email, string userName, string passwordHash, string fullName, Role? role = null,
-        string? avatarUrl = null, PhoneNumber? phoneNumber = null, DateOfBirth? dateOfBirth = null, Gender? gender = null, 
-        Guid? storeId = null, UserStatus status = UserStatus.Active, 
-        DateTimeOffset? createdAt = null, DateTimeOffset? updatedAt = null, DateTimeOffset? lastLoginAt = null)
+
+    public static User CreateProfile(
+        Guid id,
+        Email email,
+        string userName,
+        string fullName,
+        string? avatarUrl = null,
+        PhoneNumber? phoneNumber = null,
+        DateOfBirth? dateOfBirth = null,
+        Gender? gender = null,
+        DateTimeOffset? createdAt = null)
     {
-        ValidateAndThrow(email, userName, passwordHash, fullName);
-        
-        // Business rule: Admin and SystemAdmin users should have EmailConfirmed = true, others = false
-        var emailConfirmed = role?.Name == Role.RoleNames.Admin || role?.Name == Role.RoleNames.SystemAdmin;
-        
-        return new User(email, userName, passwordHash, fullName, role, avatarUrl, phoneNumber, dateOfBirth, gender,
-            storeId, status, emailConfirmed, createdAt, updatedAt, lastLoginAt);
+        ValidateProfileAndThrow(email, userName, fullName);
+
+        var user = new User(email, userName, fullName, avatarUrl, phoneNumber, dateOfBirth, gender, createdAt);
+        user.Id = id;
+
+        return user;
     }
-    
-    private static void ValidateAndThrow(Email? email, string? userName, string? passwordHash, string? fullName)
+
+    private static void ValidateProfileAndThrow(Email? email, string? userName, string? fullName)
     {
         if (email == null)
             throw new InvalidUserInformationException();
         if (string.IsNullOrWhiteSpace(userName))
             throw new InvalidUserInformationException();
-        if (string.IsNullOrWhiteSpace(passwordHash))
-            throw new InvalidPasswordException();
         if (string.IsNullOrWhiteSpace(fullName))
             throw new InvalidUserInformationException();
-            
+
         var trimmedUserName = userName.Trim();
         var trimmedFullName = fullName.Trim();
-        
+
         if (trimmedUserName.Length < 3 || trimmedUserName.Length > 50)
             throw new InvalidUserInformationException();
         if (trimmedFullName.Length < 2 || trimmedFullName.Length > 100)
@@ -162,135 +138,125 @@ public class User : AggregateRoot<Guid>, IAuditable, ISoftDeletable
         if (ContainsInvalidUsernameCharacters(trimmedUserName))
             throw new InvalidUserInformationException();
     }
-    
+
     private static bool ContainsInvalidUsernameCharacters(string userName)
-    {
-        // Allow only alphanumeric characters, underscore, hyphen, @, and dot
-        return !userName.All(c => char.IsLetterOrDigit(c) || c == '_' || c == '-' || c == '@' || c == '.');
-    }
-    
+        => !userName.All(c => char.IsLetterOrDigit(c) || c == '_' || c == '-' || c == '@' || c == '.');
+
     public void SetAvatar(string fileId)
     {
         if (string.IsNullOrWhiteSpace(fileId))
             throw new InvalidFieldException(UserDomainErrorCode.InvalidField, nameof(AvatarFileId));
 
         AvatarFileId = fileId.Trim();
+        UpdatedAt = DateTimeOffset.UtcNow;
     }
 
     public void SetAvatarUrl(string url)
     {
         AvatarUrl = url;
+        UpdatedAt = DateTimeOffset.UtcNow;
     }
 
     public void UpdateProfile(string? fullName, PhoneNumber? phoneNumber, DateOfBirth? dateOfBirth, Gender? gender, string? userName = null)
     {
-        if (!string.IsNullOrWhiteSpace(fullName)) FullName = fullName.Trim();
-        if (phoneNumber != null) PhoneNumber = phoneNumber;
-        if (dateOfBirth != null) DateOfBirth = dateOfBirth;
-        if (gender != null) Gender = gender;
+        if (!string.IsNullOrWhiteSpace(fullName))
+            FullName = fullName.Trim();
+
+        if (phoneNumber != null)
+            PhoneNumber = phoneNumber;
+
+        if (dateOfBirth != null)
+            DateOfBirth = dateOfBirth;
+
+        if (gender != null)
+            Gender = gender;
+
         if (!string.IsNullOrWhiteSpace(userName))
         {
             var trimmed = userName.Trim();
             if (trimmed.Length < 3 || trimmed.Length > 50 || ContainsInvalidUsernameCharacters(trimmed))
                 throw new InvalidFieldException(UserDomainErrorCode.InvalidUserInformation, nameof(UserName));
+
             UserName = trimmed;
         }
+
+        UpdatedAt = DateTimeOffset.UtcNow;
     }
-    
-    public void ChangePassword(string newPasswordHash)
-    {
-        if (string.IsNullOrWhiteSpace(newPasswordHash))
-            throw new InvalidPasswordException();
-            
-        PasswordHash = newPasswordHash;
-    }
-    
-    public void AssignStore(Guid storeId)
-    {
-        if (Role == Role.FromName(Role.RoleNames.Seller) && StoreId != null)
-            throw new UserStoreExistsException();
-        StoreId = storeId;
-        Role = Role.FromName(Role.RoleNames.Seller);
-    }
-    
-    public void RemoveStore()
-    {
-        StoreId = null;
-    }
-    
-    public Address AddAddress(string fullName, string phoneNumber, string street, string commune, 
-        string province, string country, string? zipCode, AddressType addressType, bool setAsDefault = false)
+
+    public Address AddAddress(
+        string fullName,
+        string phoneNumber,
+        string street,
+        string commune,
+        string province,
+        string country,
+        string? zipCode,
+        AddressType addressType,
+        bool setAsDefault = false)
     {
         var address = new Address(fullName, phoneNumber, street, commune, province, country, zipCode, addressType);
-        
+
         if (setAsDefault)
         {
             foreach (var existingAddress in _addresses)
             {
                 existingAddress.RemoveDefaultStatus();
             }
+
             address.SetAsDefault();
         }
-        
+
         _addresses.Add(address);
+        UpdatedAt = DateTimeOffset.UtcNow;
+
         return address;
     }
-    
-    public void UpdateAddress(Guid addressId, string? fullName, string? phoneNumber, string? street, 
-        string? commune, string? province, string? country, string? zipCode, AddressType? addressType)
+
+    public void UpdateAddress(
+        Guid addressId,
+        string? fullName,
+        string? phoneNumber,
+        string? street,
+        string? commune,
+        string? province,
+        string? country,
+        string? zipCode,
+        AddressType? addressType)
     {
-        var address = _addresses.FirstOrDefault(a => a.Id == addressId) ?? throw new NotFoundException(UserDomainErrorCode.AddressNotFound, nameof(Address));
+        var address = _addresses.FirstOrDefault(a => a.Id == addressId)
+            ?? throw new NotFoundException(UserDomainErrorCode.AddressNotFound, nameof(Address));
+
         address.UpdateDetails(fullName, phoneNumber, street, commune, province, country, zipCode, addressType);
+        UpdatedAt = DateTimeOffset.UtcNow;
     }
-    
+
     public void RemoveAddress(Guid addressId)
     {
-        var address = _addresses.FirstOrDefault(a => a.Id == addressId) ?? throw new NotFoundException(UserDomainErrorCode.AddressNotFound, nameof(Address));
-            
+        var address = _addresses.FirstOrDefault(a => a.Id == addressId)
+            ?? throw new NotFoundException(UserDomainErrorCode.AddressNotFound, nameof(Address));
+
         if (_addresses.Count == 1)
             throw new CannotRemoveOnlyAddressException();
-            
+
         if (address.IsDefault)
             throw new CannotRemoveDefaultAddressException();
 
         _addresses.Remove(address);
+        UpdatedAt = DateTimeOffset.UtcNow;
     }
-    
+
     public void MarkAddressAsDefault(Guid addressId)
     {
-        var targetAddress = _addresses.FirstOrDefault(a => a.Id == addressId) ?? throw new NotFoundException(UserDomainErrorCode.AddressNotFound, nameof(Address));
-        
+        var targetAddress = _addresses.FirstOrDefault(a => a.Id == addressId)
+            ?? throw new NotFoundException(UserDomainErrorCode.AddressNotFound, nameof(Address));
+
         foreach (var address in _addresses)
         {
             address.RemoveDefaultStatus();
         }
-        
-        targetAddress.SetAsDefault();
-    }
-    
-    public void Activate()
-    {
-        Status = UserStatus.Active;
-    }
-    
-    public void Deactivate()
-    {
-        Status = UserStatus.Inactive;
-    }
-    
-    public void UpdateLastLogin()
-    {
-        LastLoginAt = DateTimeOffset.UtcNow;
-    }
-    
-    public void ConfirmEmail()
-    {
-        EmailConfirmed = true;
-    }
 
-    internal void SetRole(Role role)
-    {
-        Role = role;
+        targetAddress.SetAsDefault();
+        UpdatedAt = DateTimeOffset.UtcNow;
     }
 
     public void UpdateTheme(Theme theme)
@@ -304,9 +270,4 @@ public class User : AggregateRoot<Guid>, IAuditable, ISoftDeletable
         Settings = Settings.WithCulture(culture);
         UpdatedAt = DateTimeOffset.UtcNow;
     }
-    
-    public bool IsSeller => Role?.Name == Role.RoleNames.Seller;
-    public bool IsAdmin => Role?.Name == Role.RoleNames.Admin;
-    public bool IsSystemAdmin => Role?.Name == Role.RoleNames.SystemAdmin;
-
 }

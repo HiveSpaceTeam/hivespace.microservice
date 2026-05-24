@@ -97,7 +97,7 @@ public class CultureMiddleware
 
     /// <summary>
     /// Extract culture from ReturnUrl parameter (handles URL-encoded values)
-    /// Example: ReturnUrl=/connect/authorize/callback?...&amp;culture=en
+    /// Example: ReturnUrl=/api/v1/users/me?culture=en
     /// </summary>
     /// <param name="returnUrl">The ReturnUrl query parameter value</param>
     /// <returns>Culture code if found, null otherwise</returns>

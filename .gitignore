@@ -31,6 +31,8 @@ templates/**/bin/
 docker
 .codex-build/
 *.csproj.lscache
+.claude/settings.json
+.claude/settings.local.json
 
 # Security - JWT Signing Keys and Certificates
 **/keys/
