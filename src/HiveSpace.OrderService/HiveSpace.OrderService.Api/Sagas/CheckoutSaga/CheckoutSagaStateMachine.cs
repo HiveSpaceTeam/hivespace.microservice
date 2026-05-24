@@ -1,5 +1,6 @@
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Commands;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Events;
+using HiveSpace.Infrastructure.Messaging.Shared.WorkflowHandoff;
 using Microsoft.Extensions.Configuration;
 using HiveSpace.Infrastructure.Messaging.Shared.IntegrationEvents;
 using HiveSpace.OrderService.Api.Models;
@@ -13,21 +14,21 @@ namespace HiveSpace.OrderService.Api.Sagas.CheckoutSaga;
 public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaState>
 {
     // ── Requests (sync steps) ────────────────────────────────────────────────
-    public Request<CheckoutSagaState, CreateOrder, OrderCreated, OrderCreationFailed>                    OrderCreation        { get; private set; } = null!;
-    public Request<CheckoutSagaState, ReserveInventory, InventoryReserved, InventoryReservationFailed>   InventoryReservation { get; private set; } = null!;
-    public Request<CheckoutSagaState, MarkOrderAsCOD, OrderMarkedAsCOD, MarkOrderAsCODFailed>            CODMarking           { get; private set; } = null!;
-    public Request<CheckoutSagaState, CommitCouponUsage, CouponUsageCommitted, CommitCouponUsageFailed>  CouponUsageCommit    { get; private set; } = null!;
+    public Request<CheckoutSagaState, CreateOrder, OrderCreatedIntegrationEvent, OrderCreationFailedIntegrationEvent>                    OrderCreation        { get; private set; } = null!;
+    public Request<CheckoutSagaState, ReserveInventory, InventoryReservedIntegrationEvent, InventoryReservationFailedIntegrationEvent>   InventoryReservation { get; private set; } = null!;
+    public Request<CheckoutSagaState, MarkOrderAsCOD, OrderMarkedAsCODIntegrationEvent, MarkOrderAsCODFailedIntegrationEvent>            CODMarking           { get; private set; } = null!;
+    public Request<CheckoutSagaState, CommitCouponUsage, CouponUsageCommittedIntegrationEvent, CommitCouponUsageFailedIntegrationEvent>  CouponUsageCommit    { get; private set; } = null!;
     public Request<CheckoutSagaState, ClearCart, CartCleared>                                            CartClearing         { get; private set; } = null!;
-    public Request<CheckoutSagaState, InitiatePayment, PaymentInitiated, PaymentInitiationFailed>        PaymentInitiation    { get; private set; } = null!;
-    public Request<CheckoutSagaState, MarkOrderAsPaid, OrderMarkedAsPaid, MarkOrderAsPaidFailed>        PaymentMarking       { get; private set; } = null!;
+    public Request<CheckoutSagaState, InitiatePayment, PaymentInitiatedIntegrationEvent, PaymentInitiationFailedIntegrationEvent>        PaymentInitiation    { get; private set; } = null!;
+    public Request<CheckoutSagaState, MarkOrderAsPaid, OrderMarkedAsPaidIntegrationEvent, MarkOrderAsPaidFailedIntegrationEvent>        PaymentMarking       { get; private set; } = null!;
 
     // ── Schedules ─────────────────────────────────────────────────────────────
-    public Schedule<CheckoutSagaState, PaymentTimeout> PaymentTimeoutSchedule { get; private set; } = null!;
+    public Schedule<CheckoutSagaState, PaymentTimeoutIntegrationEvent> PaymentTimeoutSchedule { get; private set; } = null!;
 
     // ── Events (compensation) ────────────────────────────────────────────────
     public Event<CheckoutInitiated>              CheckoutInitiated  { get; private set; } = null!;
-    public Event<InventoryReleased>              InventoryReleased  { get; private set; } = null!;
-    public Event<OrderCancelled>                 OrderCancelled     { get; private set; } = null!;
+    public Event<InventoryReleasedIntegrationEvent>              InventoryReleasedIntegrationEvent  { get; private set; } = null!;
+    public Event<OrderCancelledIntegrationEvent>                 OrderCancelledIntegrationEvent     { get; private set; } = null!;
     public Event<PaymentSucceededIntegrationEvent> PaymentSucceeded { get; private set; } = null!;
     public Event<PaymentFailedIntegrationEvent>    PaymentFailed    { get; private set; } = null!;
 
@@ -64,8 +65,8 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
         });
 
         Event(() => CheckoutInitiated,  x => x.CorrelateById(m => m.Message.CorrelationId));
-        Event(() => InventoryReleased,  x => x.CorrelateById(m => m.Message.CorrelationId));
-        Event(() => OrderCancelled,     x => x.CorrelateById(m => m.Message.CorrelationId));
+        Event(() => InventoryReleasedIntegrationEvent,  x => x.CorrelateById(m => m.Message.CorrelationId));
+        Event(() => OrderCancelledIntegrationEvent,     x => x.CorrelateById(m => m.Message.CorrelationId));
         Event(() => PaymentSucceeded,   x => x.CorrelateById(m => m.Message.SagaCorrelationId));
         Event(() => PaymentFailed,      x => x.CorrelateById(m => m.Message.SagaCorrelationId));
 
@@ -91,7 +92,7 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
             When(CartClearing.Completed).Finalize(),
             When(CartClearing.Faulted).Finalize(),
             When(CartClearing.TimeoutExpired).Finalize(),
-            When(OrderCancelled).Finalize(),
+            When(OrderCancelledIntegrationEvent).Finalize(),
             When(PaymentInitiation.Completed).Finalize(),
             When(PaymentInitiation.Completed2).Finalize(),
             When(PaymentInitiation.Faulted).Finalize(),
@@ -144,7 +145,7 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
                 }))
                 .TransitionTo(InventoryReservation.Pending),
 
-            When(OrderCreation.Completed2)   // OrderCreationFailed
+            When(OrderCreation.Completed2)   // OrderCreationFailedIntegrationEvent
                 .Then(ctx =>
                 {
                     ctx.Saga.FailureReason = ctx.Message.Reason;
@@ -216,7 +217,7 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
                         .TransitionTo(PaymentInitiation.Pending)
                 ),
 
-            When(InventoryReservation.Completed2)   // InventoryReservationFailed
+            When(InventoryReservation.Completed2)   // InventoryReservationFailedIntegrationEvent
                 .Then(ctx =>
                 {
                     ctx.Saga.FailureReason = ctx.Message.Reason;
@@ -282,7 +283,7 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
 
         // ── PAYMENT INITIATION ────────────────────────────────────────────────
         During(PaymentInitiation.Pending,
-            When(PaymentInitiation.Completed)   // PaymentInitiated
+            When(PaymentInitiation.Completed)   // PaymentInitiatedIntegrationEvent
                 .Then(ctx =>
                 {
                     ctx.Saga.PaymentId        = ctx.Message.PaymentId;
@@ -304,13 +305,13 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
                         }, x => x.RequestId = ctx.Saga.RequestId);
                     }
                 })
-                .Schedule(PaymentTimeoutSchedule, ctx => ctx.Init<PaymentTimeout>(new
+                .Schedule(PaymentTimeoutSchedule, ctx => ctx.Init<PaymentTimeoutIntegrationEvent>(new
                 {
                     ctx.Saga.CorrelationId
                 }))
                 .TransitionTo(AwaitingPayment),
 
-            When(PaymentInitiation.Completed2)   // PaymentInitiationFailed
+            When(PaymentInitiation.Completed2)   // PaymentInitiationFailedIntegrationEvent
                 .Then(ctx =>
                 {
                     ctx.Saga.FailureReason             = ctx.Message.Reason;
@@ -387,7 +388,7 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
 
         // ── PAYMENT MARKING ───────────────────────────────────────────────────
         During(PaymentMarking.Pending,
-            When(PaymentMarking.Completed)   // OrderMarkedAsPaid
+            When(PaymentMarking.Completed)   // OrderMarkedAsPaidIntegrationEvent
                 .Request(CouponUsageCommit, ctx => ctx.Init<CommitCouponUsage>(new
                 {
                     ctx.Saga.CorrelationId,
@@ -395,7 +396,7 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
                 }))
                 .TransitionTo(CouponUsageCommit.Pending),
 
-            When(PaymentMarking.Completed2)   // MarkOrderAsPaidFailed
+            When(PaymentMarking.Completed2)   // MarkOrderAsPaidFailedIntegrationEvent
                 .Then(ctx =>
                 {
                     ctx.Saga.FailureReason            = ctx.Message.Reason;
@@ -445,7 +446,7 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
                 }))
                 .TransitionTo(CouponUsageCommit.Pending),
 
-            When(CODMarking.Completed2)   // MarkOrderAsCODFailed
+            When(CODMarking.Completed2)   // MarkOrderAsCODFailedIntegrationEvent
                 .Then(ctx =>
                 {
                     ctx.Saga.FailureReason            = ctx.Message.Reason;
@@ -579,7 +580,7 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
                             {
                                 ctx.Saga.OrderReservationMap.TryGetValue(orderId, out var reservations);
                                 ctx.Saga.OrderStoreMap.TryGetValue(orderId, out var storeId);
-                                await ctx.Publish<OrderReadyForFulfillment>(new
+                                await ctx.Publish<OrderReadyForFulfillmentIntegrationEvent>(new
                                 {
                                     CorrelationId  = orderId,
                                     ctx.Saga.UserId,
@@ -628,7 +629,7 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
                             {
                                 ctx.Saga.OrderReservationMap.TryGetValue(orderId, out var reservations);
                                 ctx.Saga.OrderStoreMap.TryGetValue(orderId, out var storeId);
-                                await ctx.Publish<OrderReadyForFulfillment>(new
+                                await ctx.Publish<OrderReadyForFulfillmentIntegrationEvent>(new
                                 {
                                     CorrelationId  = orderId,
                                     ctx.Saga.UserId,
@@ -696,7 +697,7 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
             When(PaymentFailed).Then(_ => {}),
             When(PaymentTimeoutSchedule.Received).Then(_ => {}),
 
-            When(InventoryReleased)
+            When(InventoryReleasedIntegrationEvent)
                 .Then(ctx => ctx.Saga.PendingInventoryReleases--)
                 .If(ctx => ctx.Saga.PendingInventoryReleases == 0,
                     allReleased => allReleased
@@ -712,7 +713,7 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
                         })
                 ),
 
-            When(OrderCancelled)
+            When(OrderCancelledIntegrationEvent)
                 .TransitionTo(Failed)
                 .Finalize()
         );

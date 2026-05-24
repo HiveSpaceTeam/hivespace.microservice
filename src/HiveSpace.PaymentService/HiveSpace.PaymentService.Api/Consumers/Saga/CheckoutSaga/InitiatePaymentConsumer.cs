@@ -24,7 +24,7 @@ public class InitiatePaymentConsumer(
             var existing = await paymentRepository.GetByIdempotencyKeyAsync(msg.IdempotencyKey, context.CancellationToken);
             if (existing is not null)
             {
-                await context.RespondAsync(new PaymentInitiated
+                await context.RespondAsync(new PaymentInitiatedIntegrationEvent
                 {
                     CorrelationId = msg.CorrelationId,
                     PaymentId = existing.Id,
@@ -59,7 +59,7 @@ public class InitiatePaymentConsumer(
             payment.MarkAsProcessing(result.PaymentUrl);
             await paymentRepository.SaveChangesAsync(context.CancellationToken);
 
-            await context.RespondAsync(new PaymentInitiated
+            await context.RespondAsync(new PaymentInitiatedIntegrationEvent
             {
                 CorrelationId = msg.CorrelationId,
                 PaymentId = payment.Id,
@@ -69,7 +69,7 @@ public class InitiatePaymentConsumer(
         }
         catch (Exception ex)
         {
-            await context.RespondAsync(new PaymentInitiationFailed
+            await context.RespondAsync(new PaymentInitiationFailedIntegrationEvent
             {
                 CorrelationId = msg.CorrelationId,
                 Reason = ex.Message

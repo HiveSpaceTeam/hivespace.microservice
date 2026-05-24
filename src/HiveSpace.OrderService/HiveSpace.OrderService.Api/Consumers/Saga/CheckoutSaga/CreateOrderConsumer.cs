@@ -34,7 +34,7 @@ public class CreateOrderConsumer(
 
         if (selectedItems.Count == 0)
         {
-            await context.RespondAsync<OrderCreationFailed>(new
+            await context.RespondAsync<OrderCreationFailedIntegrationEvent>(new
             {
                 message.CorrelationId,
                 Reason = "No selected items in cart",
@@ -54,7 +54,7 @@ public class CreateOrderConsumer(
 
         if (missingProducts.Count > 0 || missingSkus.Count > 0)
         {
-            await context.RespondAsync<OrderCreationFailed>(new
+            await context.RespondAsync<OrderCreationFailedIntegrationEvent>(new
             {
                 message.CorrelationId,
                 Reason = "Some products or SKUs not found",
@@ -103,7 +103,7 @@ public class CreateOrderConsumer(
 
             if (missingCouponCodes.Count > 0)
             {
-                await context.RespondAsync<OrderCreationFailed>(new
+                await context.RespondAsync<OrderCreationFailedIntegrationEvent>(new
                 {
                     message.CorrelationId,
                     Reason = "Some coupons not found",
@@ -120,7 +120,7 @@ public class CreateOrderConsumer(
 
             if (unmappedCoupons.Count > 0)
             {
-                await context.RespondAsync<OrderCreationFailed>(new
+                await context.RespondAsync<OrderCreationFailedIntegrationEvent>(new
                 {
                     message.CorrelationId,
                     Reason = "Some coupons are not applicable to this checkout",
@@ -141,7 +141,7 @@ public class CreateOrderConsumer(
 
         if (invalidPlatformCoupons.Count > 0)
         {
-            await context.RespondAsync<OrderCreationFailed>(new
+            await context.RespondAsync<OrderCreationFailedIntegrationEvent>(new
             {
                 message.CorrelationId,
                 Reason = "Some coupons are not applicable to this checkout",
@@ -278,7 +278,7 @@ public class CreateOrderConsumer(
         logger.LogInformation("Created {OrderCount} orders for checkout {CorrelationId} (user {UserId})",
             createdOrders.Count, message.CorrelationId, message.UserId);
 
-        await context.RespondAsync<OrderCreated>(new
+        await context.RespondAsync<OrderCreatedIntegrationEvent>(new
         {
             message.CorrelationId,
             OrderIds      = createdOrders.Select(o => o.Id).ToList(),
@@ -294,7 +294,7 @@ public class CreateOrderConsumer(
         ConsumeContext<CreateOrder> context,
         Guid correlationId,
         string couponCode)
-        => context.RespondAsync<OrderCreationFailed>(new
+        => context.RespondAsync<OrderCreationFailedIntegrationEvent>(new
         {
             CorrelationId = correlationId,
             Reason = "Some coupons are not applicable to this checkout",
@@ -306,7 +306,7 @@ public class CreateOrderConsumer(
         Guid correlationId,
         string couponCode,
         IEnumerable<HiveSpace.Domain.Shared.Errors.DomainErrorCode> errorCodes)
-        => context.RespondAsync<OrderCreationFailed>(new
+        => context.RespondAsync<OrderCreationFailedIntegrationEvent>(new
         {
             CorrelationId = correlationId,
             Reason = "Some coupons failed validation for this checkout",

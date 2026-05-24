@@ -1,8 +1,10 @@
 using HiveSpace.Infrastructure.Messaging.Configurations;
+using HiveSpace.MediaService.Core.Infrastructure.Messaging.Publishers;
 using HiveSpace.MediaService.Core.Infrastructure.Configuration;
 using HiveSpace.MediaService.Core.Infrastructure.Data;
 using HiveSpace.MediaService.Core.Infrastructure.Storage;
 using HiveSpace.MediaService.Core.Interfaces;
+using HiveSpace.MediaService.Core.Interfaces.Messaging;
 using HiveSpace.MediaService.Core.Persistence.Repositories;
 using HiveSpace.MediaService.Core.Services;
 using MassTransit;
@@ -48,6 +50,7 @@ var host = new HostBuilder()
         services.AddScoped<IQueueService, AzureQueueService>();
         services.AddScoped<IMediaAssetRepository, MediaAssetRepository>();
         services.AddScoped<IMediaCleanupService, MediaCleanupService>();
+        services.AddScoped<IMediaEventPublisher, MediaEventPublisher>();
 
         // Register Database with enhanced retry logic for Azure SQL
         services.AddDbContext<MediaDbContext>((sp, options) =>

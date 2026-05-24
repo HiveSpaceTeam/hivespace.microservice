@@ -4,16 +4,15 @@ using HiveSpace.Core.Exceptions.Models;
 using HiveSpace.IdentityService.Core.Exceptions;
 using HiveSpace.IdentityService.Core.Features.AdminIdentity.Dtos;
 using HiveSpace.IdentityService.Core.Identity;
+using HiveSpace.IdentityService.Core.Interfaces.Messaging;
 using HiveSpace.IdentityService.Core.Persistence;
-using HiveSpace.Infrastructure.Messaging.Shared.Events.Users;
-using MassTransit;
 using Microsoft.AspNetCore.Identity;
 
 namespace HiveSpace.IdentityService.Core.Features.AdminIdentity.Commands.CreateAdmin;
 
 public class CreateAdminCommandHandler(
     UserManager<ApplicationUser> userManager,
-    IPublishEndpoint publishEndpoint,
+    IIdentityEventPublisher identityEventPublisher,
     IdentityDbContext dbContext)
     : ICommandHandler<CreateAdminCommand, CreateAdminResult>
 {
@@ -40,15 +39,11 @@ public class CreateAdminCommandHandler(
         if (!result.Succeeded)
             throw new BadRequestException(result.Errors.Select(e => new Error(IdentityDomainErrorCode.IdentityUserCreationFailed, e.Code)).ToArray());
 
-        await publishEndpoint.Publish(new IdentityUserCreatedIntegrationEvent
-        {
-            UserId        = user.Id,
-            Email         = user.Email!,
-            UserName      = user.UserName,
-            FullName      = command.FullName.Trim(),
-            OccurredAt    = DateTime.UtcNow,
-            CorrelationId = Guid.NewGuid()
-        }, cancellationToken);
+        var roleResult = await userManager.AddToRoleAsync(user, role);
+        if (!roleResult.Succeeded)
+            throw new BadRequestException(roleResult.Errors.Select(e => new Error(IdentityDomainErrorCode.IdentityUserCreationFailed, e.Code)).ToArray());
+
+        await identityEventPublisher.PublishIdentityUserCreatedAsync(user, command.FullName.Trim(), cancellationToken);
 
         await dbContext.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);

@@ -23,7 +23,7 @@ public class MarkOrderAsCODConsumer(
         if (missingId != default)
         {
             logger.LogWarning("Order {OrderId} not found for COD marking", missingId);
-            await context.RespondAsync<MarkOrderAsCODFailed>(new
+            await context.RespondAsync<MarkOrderAsCODFailedIntegrationEvent>(new
             {
                 message.CorrelationId,
                 OrderId = missingId,
@@ -44,7 +44,7 @@ public class MarkOrderAsCODConsumer(
                 ex.ErrorCode.Code == OrderDomainErrorCode.OrderInvalidStatusForCOD.Code)
             {
                 logger.LogWarning("Order {OrderId} cannot be marked as COD: {ErrorCode}", order.Id, ex.ErrorCode.Code);
-                await context.RespondAsync<MarkOrderAsCODFailed>(new
+                await context.RespondAsync<MarkOrderAsCODFailedIntegrationEvent>(new
                 {
                     message.CorrelationId,
                     OrderId = order.Id,
@@ -56,7 +56,7 @@ public class MarkOrderAsCODConsumer(
 
         await orderRepository.SaveChangesAsync(ct);
 
-        await context.RespondAsync<OrderMarkedAsCOD>(new
+        await context.RespondAsync<OrderMarkedAsCODIntegrationEvent>(new
         {
             message.CorrelationId,
             OrderIds = message.OrderIds,

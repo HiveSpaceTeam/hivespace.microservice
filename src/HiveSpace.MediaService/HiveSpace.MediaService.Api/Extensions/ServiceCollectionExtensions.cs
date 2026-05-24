@@ -2,8 +2,10 @@ using HiveSpace.Core.OpenApi;
 using HiveSpace.Infrastructure.Authorization.Extensions;
 using HiveSpace.MediaService.Core.Infrastructure.Configuration;
 using HiveSpace.MediaService.Core.Infrastructure.Data;
+using HiveSpace.MediaService.Core.Infrastructure.Messaging.Publishers;
 using HiveSpace.MediaService.Core.Infrastructure.Storage;
 using HiveSpace.MediaService.Core.Interfaces;
+using HiveSpace.MediaService.Core.Interfaces.Messaging;
 using HiveSpace.MediaService.Core.Persistence.Repositories;
 using HiveSpace.MediaService.Core.Services;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +21,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IQueueService, AzureQueueService>();
         services.AddScoped<IMediaAssetRepository, MediaAssetRepository>();
         services.AddScoped<IMediaCleanupService, MediaCleanupService>();
+        services.AddScoped<IMediaEventPublisher, MediaEventPublisher>();
 
         return services;
     }

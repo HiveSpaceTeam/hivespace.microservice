@@ -1,6 +1,7 @@
 using HiveSpace.CatalogService.Domain.Exceptions;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Commands;
+using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Dtos;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Events;
 using MassTransit;
 using Microsoft.Extensions.Logging;
@@ -40,7 +41,7 @@ public class ReserveInventoryConsumer : IConsumer<ReserveInventory>
                 "Inventory reserved for order {OrderId} — {Count} reservation(s)",
                 String.Join(",", message.OrderIds), reservationIds.Count);
 
-            await context.RespondAsync<InventoryReserved>(new
+            await context.RespondAsync<InventoryReservedIntegrationEvent>(new
             {
                 message.CorrelationId,
                 message.OrderIds,
@@ -55,7 +56,7 @@ public class ReserveInventoryConsumer : IConsumer<ReserveInventory>
                 "Inventory reservation failed for order {OrderId} — {FailureCount} failure(s)",
                 String.Join(",", message.OrderIds), failures.Count);
 
-            await context.RespondAsync<InventoryReservationFailed>(new
+            await context.RespondAsync<InventoryReservationFailedIntegrationEvent>(new
             {
                 message.CorrelationId,
                 OrderIds = message.OrderIds,

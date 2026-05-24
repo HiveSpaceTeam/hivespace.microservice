@@ -168,8 +168,8 @@ public class Index : PageModel
                         // Admin portal: only SystemAdmin or Admin
                         if (string.Equals(clientId, "adminportal", StringComparison.OrdinalIgnoreCase))
                         {
-                            var isSystemAdmin = await _userManager.IsInRoleAsync(user, "SystemAdmin");
-                            var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+                            var isSystemAdmin = await UserHasRoleAsync(user, "SystemAdmin");
+                            var isAdmin = await UserHasRoleAsync(user, "Admin");
                             if (!isSystemAdmin && !isAdmin)
                             {
                                 const string error = "not authorized for admin portal";
@@ -184,8 +184,8 @@ public class Index : PageModel
                         // Seller center: deny access to Admin and SystemAdmin roles
                         if (string.Equals(clientId, "sellercenter", StringComparison.OrdinalIgnoreCase))
                         {
-                            var isSystemAdmin = await _userManager.IsInRoleAsync(user, "SystemAdmin");
-                            var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+                            var isSystemAdmin = await UserHasRoleAsync(user, "SystemAdmin");
+                            var isAdmin = await UserHasRoleAsync(user, "Admin");
                             if (isSystemAdmin || isAdmin)
                             {
                                 const string error = "admin not allowed in seller center";
@@ -337,6 +337,16 @@ public class Index : PageModel
         // something went wrong, show form with error
         await BuildModelAsync(Input.ReturnUrl);
         return Page();
+    }
+
+    private async Task<bool> UserHasRoleAsync(ApplicationUser user, string role)
+    {
+        if (string.Equals(user.RoleName, role, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return await _userManager.IsInRoleAsync(user, role);
     }
 
     /// <summary>

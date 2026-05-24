@@ -1,5 +1,7 @@
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Commands;
+using HiveSpace.Infrastructure.Messaging.Shared.FulfillmentSaga.Commands;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Events;
+using HiveSpace.Infrastructure.Messaging.Shared.FulfillmentSaga.Events;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 
@@ -34,7 +36,7 @@ public class ConfirmInventoryConsumer : IConsumer<ConfirmInventory>
                 "Inventory confirmed for order {OrderId}",
                 message.OrderId);
 
-            await context.RespondAsync<InventoryConfirmed>(new
+            await context.RespondAsync<InventoryConfirmedIntegrationEvent>(new
             {
                 message.CorrelationId,
                 message.OrderId,
@@ -47,7 +49,7 @@ public class ConfirmInventoryConsumer : IConsumer<ConfirmInventory>
                 "Inventory confirmation failed for order {OrderId} — {Count} reservation(s) expired",
                 message.OrderId, expiredIds.Count);
 
-            await context.RespondAsync<InventoryConfirmationFailed>(new
+            await context.RespondAsync<InventoryConfirmationFailedIntegrationEvent>(new
             {
                 message.CorrelationId,
                 message.OrderId,
