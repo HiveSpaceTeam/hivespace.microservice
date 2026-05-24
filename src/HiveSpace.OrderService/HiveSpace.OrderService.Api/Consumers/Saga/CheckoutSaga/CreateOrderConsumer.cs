@@ -65,15 +65,7 @@ public class CreateOrderConsumer(
             return;
         }
 
-        var phone   = new PhoneNumber(message.DeliveryAddress.Phone);
-        var address = new DeliveryAddress(
-            message.DeliveryAddress.RecipientName,
-            phone,
-            message.DeliveryAddress.StreetAddress,
-            message.DeliveryAddress.Commune,
-            message.DeliveryAddress.Province,
-            message.DeliveryAddress.Country,
-            message.DeliveryAddress.Notes ?? string.Empty);
+        var phone = new PhoneNumber(message.DeliveryAddress.Phone);
 
         var domainPayment = message.PaymentMethod;
         var isCOD = domainPayment.IsCashOnDelivery();
@@ -184,6 +176,15 @@ public class CreateOrderConsumer(
             var storeGroup  = itemsByStore[i];
             var storeId     = storeGroup.Key;
             var pkgShipping = shippingPerStore[i];
+
+            var address = new DeliveryAddress(
+                message.DeliveryAddress.RecipientName,
+                PhoneNumber.Copy(phone),
+                message.DeliveryAddress.StreetAddress,
+                message.DeliveryAddress.Commune,
+                message.DeliveryAddress.Province,
+                message.DeliveryAddress.Country,
+                message.DeliveryAddress.Notes ?? string.Empty);
 
             var order = Order.Create(message.UserId, address, storeId);
 

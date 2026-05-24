@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <PreserveCompilationContext>true</PreserveCompilationContext>
+    <StaticWebAssetsEnabled>false</StaticWebAssetsEnabled>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     
     <!-- Suppress XML documentation warnings while keeping Swagger documentation -->
@@ -15,8 +16,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Duende.IdentityServer.AspNetIdentity" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" />
     <PackageReference Include="Asp.Versioning.Mvc" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
@@ -32,5 +31,4 @@
     <ProjectReference Include="..\..\..\libs\HiveSpace.Core\HiveSpace.Core.csproj" />
     <ProjectReference Include="..\..\..\libs\HiveSpace.Infrastructure.Authorization\HiveSpace.Infrastructure.Authorization.csproj" />
   </ItemGroup>
-
 </Project>

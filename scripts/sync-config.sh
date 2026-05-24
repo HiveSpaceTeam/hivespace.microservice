@@ -16,7 +16,7 @@ sync_file() {
     if [[ -f "$SRC" ]]; then
         mkdir -p "$(dirname "$DST")"
         cp "$SRC" "$DST"
-        echo "  synced: $(basename "$SRC")  →  ${DST#$CONFIG_ROOT/}"
+        echo "  synced: $(basename "$SRC")  â†’  ${DST#$CONFIG_ROOT/}"
     else
         echo "  skip (not found): $SRC"
     fi
@@ -27,6 +27,9 @@ echo ""
 
 sync_file "$REPO_ROOT/src/HiveSpace.ApiGateway/HiveSpace.YarpApiGateway/appsettings.json" \
           "$CONFIG_ROOT/apigateway/appsettings.json"
+
+sync_file "$REPO_ROOT/src/HiveSpace.IdentityService/HiveSpace.IdentityService.Api/appsettings.json" \
+          "$CONFIG_ROOT/services/identity/appsettings.json"
 
 sync_file "$REPO_ROOT/src/HiveSpace.CatalogService/HiveSpace.CatalogService.Api/appsettings.json" \
           "$CONFIG_ROOT/services/catalog/appsettings.json"

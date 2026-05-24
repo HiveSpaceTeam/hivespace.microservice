@@ -1,0 +1,64 @@
+{
+  "pages": {
+    "login": {
+      "title": "Sign In",
+      "subtitle": "Enter your email and password to sign in!",
+      "emailLabel": "Email",
+      "emailPlaceholder": "Enter your email",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "rememberMeLabel": "Keep me logged in",
+      "forgotPasswordLink": "Forgot password?",
+      "signInButton": "Sign In",
+      "signUpText": "Don't have an account?",
+      "signUpLink": "Sign Up",
+      "invalidLoginMessage": "Invalid login request",
+      "noLoginSchemesMessage": "There are no login schemes configured for this request."
+    },
+    "register": {
+      "title": "Create Account",
+      "subtitle": "Enter your details to create your account!",
+      "emailLabel": "Email",
+      "emailPlaceholder": "Enter your email",
+      "fullNameLabel": "Full Name",
+      "fullNamePlaceholder": "Enter your full name",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "confirmPasswordLabel": "Confirm Password",
+      "confirmPasswordPlaceholder": "Confirm your password",
+      "createAccountButton": "Create Account",
+      "signInText": "Already have an account?",
+      "signInLink": "Sign In",
+      "invalidRegistrationMessage": "Invalid registration request",
+      "noRegistrationMethodsMessage": "There are no registration methods configured for this request."
+    },
+    "shared": {
+      "or": "Or"
+    }
+  },
+  "validation": {
+    "emailRequired": "Email is required",
+    "email": "Please enter a valid email address",
+    "passwordRequired": "Password is required",
+    "passwordMinLength": "Password must be at least {0} characters",
+    "passwordComplexity": "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character",
+    "fullNameRequired": "Full name is required",
+    "fullNameMinLength": "Full name must be at least {0} characters",
+    "fullNameMaxLength": "Full name cannot exceed {0} characters",
+    "confirmPasswordRequired": "Please confirm your password",
+    "passwordsDoNotMatch": "Password and confirmation password do not match"
+  },
+  "errors": {
+    "invalidCredentials": "Invalid username or password, please try again",
+    "accountInactive": "This account is inactive. Please contact admin to activate it.",
+    "notAuthorizedAdminPortal": "You are not authorized to sign in to the Admin Portal.",
+    "adminNotAllowedSellerCenter": "Administrators are not allowed to sign in to the Seller Center.",
+    "accountLockedOut": "This account has been locked out, please try again later.",
+    "accountNotAllowed": "This account is not allowed to log in.",
+    "invalidReturnUrl": "Invalid return URL provided.",
+    "loginError": "An error occurred during login. Please try again."
+  },
+  "social": {
+    "continueWith": "Continue with"
+  }
+}

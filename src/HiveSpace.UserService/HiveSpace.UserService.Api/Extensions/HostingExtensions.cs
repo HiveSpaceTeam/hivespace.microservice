@@ -1,6 +1,7 @@
 using HiveSpace.Core;
 using HiveSpace.Infrastructure.Messaging.Extensions;
-using HiveSpace.UserService.Api.Consumers.Sync;
+using HiveSpace.UserService.Api.Consumers;
+using HiveSpace.UserService.Api.Middleware;
 using HiveSpace.UserService.Infrastructure;
 using HiveSpace.UserService.Infrastructure.Data;
 using HiveSpace.Infrastructure.Messaging.Configurations;
@@ -16,30 +17,17 @@ internal static class HostingExtensions
     {
         // builder.Services.AddMediatRRegistration(configuration);
         builder.Services.AddAppApiControllers();
-        builder.Services.AddRazorPages();
         builder.Services.AddAppOpenApi();
-        
-        // Add Session support
-        builder.Services.AddDistributedMemoryCache();
-        builder.Services.AddSession(options =>
-        {
-            options.IdleTimeout = TimeSpan.FromMinutes(30);
-            options.Cookie.HttpOnly = true;
-            options.Cookie.IsEssential = true;
-            options.Cookie.SameSite = SameSiteMode.Lax;
-            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-        });
-        
+
         builder.Services.AddUserDbContext(configuration);
         builder.Services.AddCoreServices();
         builder.Services.AddAppDomainServices();
         builder.Services.AddLocalizationServices(); // Add localization support
-        builder.Services.AddAppIdentity();
         builder.Services.AddAppApplicationServices();
-        builder.Services.AddAppIdentityServer(configuration);
         builder.Services.AddAppAuthentication(configuration);
         builder.Services.AddAppAuthorization();
         builder.Services.AddAppApiVersioning();
+        builder.Services.AddHealthChecks();
 
         var messagingOptions = configuration.GetSection(MessagingOptions.SectionName).Get<MessagingOptions>();
 
@@ -49,6 +37,9 @@ internal static class HostingExtensions
             {
                 cfg.AddConsumer<MediaAssetProcessedConsumer>()
                     .Endpoint(e => e.Name = "user-media-asset-processed");
+
+                cfg.AddConsumer<IdentityUserCreatedConsumer>()
+                    .Endpoint(e => e.Name = "user-identity-user-created");
             });
         }
 
@@ -70,36 +61,26 @@ internal static class HostingExtensions
                 .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient));
         }
 
-        app.UseStaticFiles();
         app.UseRouting();
 
-        // Add session middleware before culture middleware
-        app.UseSession();
-
         // Add culture middleware before authentication to ensure language is set correctly
-        app.UseMiddleware<HiveSpace.UserService.Api.Middleware.CultureMiddleware>();
+        app.UseMiddleware<CultureMiddleware>();
 
-        app.UseIdentityServer();
         app.UseAuthentication();
         app.UseAuthorization();
 
         // Map all controllers under /user prefix using built-in .NET support
         app.MapControllers();
+        app.MapHealthChecks("/health");
         
-        app.MapRazorPages().RequireAuthorization();
-
         if (app.Environment.IsDevelopment())
         {
             app.MapGet("/", () => Results.Redirect("/scalar/v1")).ExcludeFromDescription();
-        }
 
-        // Uncomment to enable health checks
-        // app.UseHealthChecks("/health",
-        //     new HealthCheckOptions
-        //     {
-        //         ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
-        //     }
-        // );
+            DataSeeder.EnsureSeedDataAsync(app)
+                .GetAwaiter()
+                .GetResult();
+        }
 
         return app;
     }

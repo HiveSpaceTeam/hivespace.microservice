@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Duende.IdentityServer.EntityFramework" />
+    <PackageReference Include="MediatR" />
+    <PackageReference Include="MassTransit.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\libs\HiveSpace.Domain.Shared\HiveSpace.Domain.Shared.csproj" />
+    <ProjectReference Include="..\..\..\libs\HiveSpace.Application.Shared\HiveSpace.Application.Shared.csproj" />
+    <ProjectReference Include="..\..\..\libs\HiveSpace.Infrastructure.Messaging.Shared\HiveSpace.Infrastructure.Messaging.Shared.csproj" />
+    <ProjectReference Include="..\..\..\libs\HiveSpace.Infrastructure.Persistence\HiveSpace.Infrastructure.Persistence.csproj" />
+    <ProjectReference Include="..\..\..\libs\HiveSpace.Core\HiveSpace.Core.csproj" />
+  </ItemGroup>
+
+</Project>

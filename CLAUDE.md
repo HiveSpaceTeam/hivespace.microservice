@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Tech Stack
 
-- .NET 8, ASP.NET Core Minimal APIs for service APIs; UserService remains the temporary controller/Razor Pages exception
+- .NET 8, ASP.NET Core Minimal APIs for service APIs; IdentityService hosts the auth Razor Pages exception, and UserService remains a temporary controller-based profile/store exception
 - Entity Framework Core 8
 - Mediator for CQRS pattern (source-generated) for all service feature work; UserService legacy code may still contain service-based implementation
 - FluentValidation for request validation
@@ -83,7 +83,7 @@ dotnet build   # Expect 6 nullability warnings in HiveSpace.Domain.Shared; non-b
 
 # Run individual services
 cd src/HiveSpace.ApiGateway/HiveSpace.YarpApiGateway && dotnet run      # http://localhost:5000, no DB
-cd src/HiveSpace.UserService/HiveSpace.UserService.Api && dotnet run    # https://localhost:5001, requires SQL Server
+cd src/HiveSpace.UserService/HiveSpace.UserService.Api && dotnet run    # http://localhost:5007, requires SQL Server
 cd src/HiveSpace.CatalogService/HiveSpace.CatalogService.Api && dotnet run  # requires SQL Server + RabbitMQ + Kafka
 cd src/HiveSpace.OrderService/HiveSpace.OrderService.Api && dotnet run  # https://localhost:5002, requires SQL Server + RabbitMQ + Kafka
 
@@ -105,7 +105,8 @@ Clean Architecture / DDD. Each service has four layers: `Domain -> Application -
 ```text
 src/
 |-- HiveSpace.ApiGateway/HiveSpace.YarpApiGateway/     # YARP reverse proxy, no DB
-|-- HiveSpace.UserService/                              # Identity & auth (Duende IdentityServer)
+|-- HiveSpace.IdentityService/                          # Identity & auth (Duende IdentityServer)
+|-- HiveSpace.UserService/                              # User profiles, settings, addresses, stores
 |-- HiveSpace.CatalogService/                           # Product catalog
 |-- HiveSpace.OrderService/                             # Orders, cart, coupons, checkout saga
 |-- HiveSpace.PaymentService/                           # Payment processing
@@ -129,14 +130,15 @@ See startup file conventions (`Program.cs`, `HostingExtensions.cs`, `ServiceColl
 
 | Service             | Type     | Application layer | API surface               |
 | ------------------- | -------- | ----------------- | ------------------------- |
-| UserService         | **Full** | Legacy service-based | Legacy controllers + Razor Pages |
+| IdentityService     | **Lite** | CQRS + ASP.NET Identity | Minimal Endpoints + Razor Pages |
+| UserService         | **Full** | Legacy service-based | Legacy controllers |
 | CatalogService      | **Full** | CQRS              | Minimal Endpoints         |
 | OrderService        | **Full** | CQRS              | Minimal Endpoints         |
 | PaymentService      | **Full** | CQRS              | Minimal Endpoints         |
 | MediaService        | **Lite** | CQRS              | Minimal Endpoints         |
 | NotificationService | **Lite** | CQRS              | Minimal Endpoints         |
 
-The Application layer pattern in the table above is **fixed per service**. Agents must not introduce new service-based feature implementations. Specifically: all feature work uses CQRS and Minimal API endpoints; `UserService` legacy service/controller code may be maintained only when required by the existing implementation.
+The Application layer pattern in the table above is **fixed per service**. Agents must not introduce new service-based feature implementations. Specifically: all new feature work uses CQRS and Minimal API endpoints; `IdentityService` Razor Pages may be maintained for auth UI, and `UserService` legacy service/controller code may be maintained only when required by the existing implementation.
 
 Full detail on layouts, mandatory rules, and new service checklists: `docs/agent/service-architecture.md`
 
@@ -146,7 +148,7 @@ Full detail on layouts, mandatory rules, and new service checklists: `docs/agent
 
 See error handling, DI lifetime, validation pipeline, `IUserContext`, DTOs, integration events, async, monetary values, one-type-per-file, and image/media field pattern: `docs/agent/coding-rules.md`
 
-**Value object copying**: Never reconstruct a value object from its own properties (`new Money(x.Amount, x.Currency)`). Use the typed static method instead — e.g. `Money.Copy(amount)`. Both `Copy<T>(T source)` (static) and `Copy<T>()` (instance) are defined on `ValueObject` and produce a shallow clone. Required wherever EF Core OwnsOne tracking demands distinct CLR instances, or to make defensive-copy intent explicit.
+**Value object copying**: Never reconstruct a value object from its own properties (`new Money(x.Amount, x.Currency)`). Use the concrete value object's typed static copy method instead — e.g. `Money.Copy(amount)` or `PhoneNumber.Copy(phone)`. Do not call the base type directly (`ValueObject.Copy(phone)`) in feature code. Both `Copy<T>(T source)` (static) and `Copy<T>()` (instance) are defined on `ValueObject` and produce a shallow clone, but call them through the concrete value object type for readability and intent. Required wherever EF Core OwnsOne tracking demands distinct CLR instances, or to make defensive-copy intent explicit.
 
 **MassTransit consumers — never return silently**: When an entity is not found by its key, `throw new NotFoundException(...)` — never `return` silently. MassTransit retries the message and routes to the dead-letter queue on exhaustion; a silent `return` permanently swallows the failure with no observability. Always use domain exceptions (`NotFoundException`, `InvalidFieldException`) in consumers, never `System.InvalidOperationException`. Publish integration events **before** `SaveChangesAsync()` in consumers — same outbox rule as in handlers. Full rules with examples: `docs/agent/coding-rules.md` § "MassTransit consumers".
 
@@ -201,7 +203,7 @@ Required flow:
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **hivespace.microservice** (7136 symbols, 17927 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **hivespace.microservice** (7101 symbols, 17631 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 

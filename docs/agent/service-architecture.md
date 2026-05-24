@@ -4,16 +4,30 @@ Services follow one of two archetypes. **Identify the archetype before any new s
 
 ## Which archetype?
 
-| Signal | Full Service | Lite Service |
-|--------|-------------|-------------|
-| Owns business aggregates with lifecycle rules | ✅ | — |
-| Participates in a distributed saga or workflow | ✅ | — |
-| Primarily orchestrates infrastructure (storage, email, notifications) | — | ✅ |
-| Narrow feature scope, small operational footprint | — | ✅ |
+Service type describes the service's internal architecture shape, not whether the service uses infrastructure. Both archetypes may use EF Core, migrations, external providers, consumers, background jobs, and infrastructure integrations.
 
-**Assignments:**
+Choose **Full Service** when the service owns business-domain-heavy capabilities that benefit from strict Clean Architecture and DDD boundaries. Full Services split Domain, Application, Infrastructure, and Api into separate projects.
+
+Choose **Lite Service** when the service is narrow, operational, framework-heavy, integration-heavy, or domain-light enough that separate Domain/Application/Infrastructure projects would add more mapping and ceremony than value. Lite Services collapse domain models, CQRS features, persistence, migrations, and infrastructure integrations into `Core`.
+
+| Question | Choose Full | Choose Lite |
+|----------|-------------|-------------|
+| Does it own rich business aggregates with lifecycle rules? | Yes | No / minimal |
+| Does it need strict DDD isolation? | Yes | No |
+| Would a separate Domain model avoid real complexity? | Yes | No |
+| Would mapping mostly duplicate framework or persistence models? | No | Yes |
+| Is it mostly operational, integration, or framework hosting? | No | Yes |
+| Does it need persistence, migrations, or infrastructure integrations? | Either | Either |
+
+**Current assignments:**
 - **Full Service**: UserService, CatalogService, OrderService, PaymentService
-- **Lite Service**: MediaService, NotificationService
+- **Lite Service**: IdentityService, MediaService, NotificationService
+
+**Identity/auth guidance:**
+- `HiveSpace.IdentityService` may be implemented as a **Lite Service** when it primarily hosts ASP.NET Core Identity and Duende IdentityServer and uses `ApplicationIdentityUser : IdentityUser<Guid>` as the natural credential persistence model.
+- Do not create a duplicate DDD account aggregate only to mirror ASP.NET Identity fields. If account lifecycle rules become business-heavy later, promote the service to Full Service or introduce a thin domain model around only the business-owned decisions.
+- IdentityService owns credentials, login, tokens, grants, external login links, roles/claims, and auth status.
+- UserService owns profile, addresses, settings, store relationship, and user business data.
 
 ---
 

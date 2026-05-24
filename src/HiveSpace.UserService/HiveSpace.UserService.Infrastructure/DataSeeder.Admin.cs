@@ -1,14 +1,9 @@
-using Duende.IdentityModel;
-using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.UserService.Domain.Aggregates.User;
 using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.UserService.Domain.Enums;
-using HiveSpace.UserService.Domain.Exceptions;
 using HiveSpace.UserService.Infrastructure.Data;
-using HiveSpace.UserService.Infrastructure.Identity;
-using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Security.Claims;
 
 namespace HiveSpace.UserService.Infrastructure;
 
@@ -18,123 +13,70 @@ public static partial class DataSeeder
     private const string AdminAvatarUrl       = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.0.3&q=80&w=1080";
 
     private static async Task SeedSystemAdminAsync(
-        UserManager<ApplicationUser> userMgr, UserDbContext context,
+        UserDbContext context,
         ILogger logger, CancellationToken ct)
     {
-        var systemAdmin = await userMgr.FindByNameAsync("sysadmin");
-        if (systemAdmin != null)
+        var exists = await context.Users.AnyAsync(u => u.Id == SysAdminId, ct);
+        if (exists)
         {
-            if (await EnsureAvatarUrlAsync(userMgr, systemAdmin, SystemAdminAvatarUrl, logger))
-                await context.SaveChangesAsync(ct);
-
-            logger.LogDebug("sysadmin already exists");
+            logger.LogDebug("sysadmin profile already exists");
             return;
         }
 
-        systemAdmin = new ApplicationUser
-        {
-            UserName       = "sysadmin",
-            Email          = "sysadmin@hivespace.com",
-            EmailConfirmed = true,
-            FullName       = "System Administrator",
-            AvatarFileId   = Guid.NewGuid().ToString(),
-            AvatarUrl      = SystemAdminAvatarUrl,
-            PhoneNumber    = "+84911111111",
-            DateOfBirth    = new DateTime(1980, 3, 10),
-            Gender         = (int)Gender.Male,
-            Status         = (int)UserStatus.Active,
-            RoleName       = "SystemAdmin",
-            CreatedAt      = DateTimeOffset.UtcNow,
-            Theme          = Theme.Light,
-            Culture        = Culture.Vi
-        };
+        var systemAdmin = User.CreateProfile(
+            id: SysAdminId,
+            email: Email.Create("sysadmin@hivespace.com"),
+            userName: "sysadmin",
+            fullName: "System Administrator",
+            avatarUrl: SystemAdminAvatarUrl,
+            phoneNumber: PhoneNumber.CreateOrDefault("+84911111111"),
+            dateOfBirth: DateOfBirth.CreateOrDefault(new DateTime(1980, 3, 10)),
+            gender: Gender.Male,
+            createdAt: DateTimeOffset.UtcNow
+        );
+        systemAdmin.UpdateTheme(Theme.Light);
+        systemAdmin.UpdateCulture(Culture.Vi);
 
-        var result = await userMgr.CreateAsync(systemAdmin, "SysAdmin123$");
-        if (!result.Succeeded)
-        {
-            logger.LogError("Failed to create sysadmin: {Error}", result.Errors.First().Description);
-            throw new InvalidFieldException(UserDomainErrorCode.UserCreationFailed, nameof(ApplicationUser));
-        }
-
-        var claimResult = await userMgr.AddClaimsAsync(systemAdmin,
-        [
-            new Claim(JwtClaimTypes.Name,       "System Administrator"),
-            new Claim(JwtClaimTypes.GivenName,  "System"),
-            new Claim(JwtClaimTypes.FamilyName, "Administrator"),
-            new Claim(JwtClaimTypes.Role,       "SystemAdmin"),
-            new Claim("permissions",            "system.manage"),
-            new Claim("permissions",            "user.manage"),
-            new Claim("permissions",            "store.manage"),
-        ]);
-        if (!claimResult.Succeeded)
-        {
-            logger.LogError("Failed to add claims to sysadmin: {Error}", claimResult.Errors.First().Description);
-            throw new InvalidFieldException(UserDomainErrorCode.UserCreationFailed, nameof(ApplicationUser));
-        }
-
-        logger.LogDebug("sysadmin created");
+        context.Users.Add(systemAdmin);
+        await context.SaveChangesAsync(ct);
+        
+        logger.LogDebug("sysadmin profile created");
     }
 
     private static async Task SeedAdminAsync(
-        UserManager<ApplicationUser> userMgr, UserDbContext context,
+        UserDbContext context,
         ILogger logger, CancellationToken ct)
     {
-        var admin = await userMgr.FindByNameAsync("admin");
-        if (admin != null)
+        var exists = await context.Users.AnyAsync(u => u.Id == AdminId, ct);
+        if (exists)
         {
-            if (await EnsureAvatarUrlAsync(userMgr, admin, AdminAvatarUrl, logger))
-                await context.SaveChangesAsync(ct);
-
-            logger.LogDebug("admin already exists");
+            logger.LogDebug("admin profile already exists");
             return;
         }
 
-        admin = new ApplicationUser
-        {
-            UserName       = "admin",
-            Email          = "admin@hivespace.com",
-            EmailConfirmed = true,
-            FullName       = "Admin User",
-            AvatarFileId   = Guid.NewGuid().ToString(),
-            AvatarUrl      = AdminAvatarUrl,
-            PhoneNumber    = "+84922222222",
-            DateOfBirth    = new DateTime(1985, 8, 22),
-            Gender         = (int)Gender.Female,
-            Status         = (int)UserStatus.Active,
-            RoleName       = "Admin",
-            CreatedAt      = DateTimeOffset.UtcNow,
-            Theme          = Theme.Light,
-            Culture        = Culture.Vi
-        };
+        var admin = User.CreateProfile(
+            id: AdminId,
+            email: Email.Create("admin@hivespace.com"),
+            userName: "admin",
+            fullName: "Admin User",
+            avatarUrl: AdminAvatarUrl,
+            phoneNumber: PhoneNumber.CreateOrDefault("+84922222222"),
+            dateOfBirth: DateOfBirth.CreateOrDefault(new DateTime(1985, 8, 22)),
+            gender: Gender.Female,
+            createdAt: DateTimeOffset.UtcNow
+        );
+        admin.UpdateTheme(Theme.Light);
+        admin.UpdateCulture(Culture.Vi);
 
-        var result = await userMgr.CreateAsync(admin, "Admin123$");
-        if (!result.Succeeded)
-        {
-            logger.LogError("Failed to create admin: {Error}", result.Errors.First().Description);
-            throw new InvalidFieldException(UserDomainErrorCode.UserCreationFailed, nameof(ApplicationUser));
-        }
-
-        var adminAddress = new Address(
+        admin.AddAddress(
             fullName: "Admin User", phoneNumber: "+84922222222",
             street: "100 Admin Plaza", commune: "Central",
             province: "New York", country: "USA",
-            zipCode: "10001", addressType: AddressType.Work);
+            zipCode: "10001", addressType: AddressType.Work,
+            setAsDefault: true);
 
-        adminAddress.SetAsDefault();
-        context.Entry(adminAddress).Property("UserId").CurrentValue = admin.Id;
-        context.Addresses.Add(adminAddress);
-
-        await userMgr.AddClaimsAsync(admin,
-        [
-            new Claim(JwtClaimTypes.Name,       "Admin User"),
-            new Claim(JwtClaimTypes.GivenName,  "Admin"),
-            new Claim(JwtClaimTypes.FamilyName, "User"),
-            new Claim(JwtClaimTypes.Role,       "Admin"),
-            new Claim("permissions",            "user.manage"),
-            new Claim("permissions",            "store.view"),
-        ]);
-
+        context.Users.Add(admin);
         await context.SaveChangesAsync(ct);
-        logger.LogDebug("admin created with sample address");
+        logger.LogDebug("admin profile created with sample address");
     }
 }

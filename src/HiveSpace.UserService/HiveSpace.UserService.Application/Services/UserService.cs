@@ -36,7 +36,11 @@ public class UserService : IUserService
         UpdateUserSettingRequestDto request,
         CancellationToken cancellationToken = default)
     {
-        var user = await _userRepository.GetByIdAsync(_userContext.UserId, includeDetail: true, cancellationToken)
+        var user = await _userRepository.GetByIdAsync(
+                _userContext.UserId,
+                includeDetail: true,
+                cancellationToken: cancellationToken,
+                asTracking: true)
             ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
 
         if (request.Theme is not null)
@@ -45,7 +49,7 @@ public class UserService : IUserService
         if (request.Culture is not null)
             user.UpdateCulture(UserSettingValues.ToCulture(request.Culture));
 
-        await _userRepository.UpdateUserAsync(user, cancellationToken);
+        await _userRepository.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<GetUserProfileResponseDto> GetUserProfileAsync(CancellationToken cancellationToken = default)
@@ -66,7 +70,11 @@ public class UserService : IUserService
 
     public async Task UpdateUserProfileAsync(UpdateUserProfileRequestDto request, CancellationToken cancellationToken = default)
     {
-        var user = await _userRepository.GetByIdAsync(_userContext.UserId, includeDetail: true, cancellationToken)
+        var user = await _userRepository.GetByIdAsync(
+                _userContext.UserId,
+                includeDetail: true,
+                cancellationToken: cancellationToken,
+                asTracking: true)
             ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
 
         if (request.UserName != null)
@@ -85,6 +93,6 @@ public class UserService : IUserService
         if (request.AvatarFileId != null)
             user.SetAvatar(request.AvatarFileId);
 
-        await _userRepository.UpdateUserAsync(user, cancellationToken);
+        await _userRepository.SaveChangesAsync(cancellationToken);
     }
 }

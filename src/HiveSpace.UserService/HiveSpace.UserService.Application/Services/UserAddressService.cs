@@ -42,7 +42,11 @@ public class UserAddressService(IUserContext userContext, IUserRepository userRe
     public async Task<UserAddressDto> CreateUserAddressAsync(UserAddressRequestDto param, CancellationToken cancellationToken = default)
     {
         var userId = userContext.UserId;
-        var user = await userRepository.GetByIdAsync(userId, includeDetail: true, cancellationToken) 
+        var user = await userRepository.GetByIdAsync(
+                userId,
+                includeDetail: true,
+                cancellationToken: cancellationToken,
+                asTracking: true)
             ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
 
         var createdAddress = user.AddAddress(
@@ -57,7 +61,7 @@ public class UserAddressService(IUserContext userContext, IUserRepository userRe
             param.IsDefault
         );
 
-        await userRepository.UpdateUserAddressesAsync(user, cancellationToken);
+        await userRepository.SaveChangesAsync(cancellationToken);
 
         return MapToDto(createdAddress);
     }
@@ -65,7 +69,11 @@ public class UserAddressService(IUserContext userContext, IUserRepository userRe
     public async Task UpdateUserAddressAsync(UserAddressRequestDto param, Guid userAddressId, CancellationToken cancellationToken = default)
     {
         var userId = userContext.UserId;
-        var user = await userRepository.GetByIdAsync(userId, includeDetail: true, cancellationToken)
+        var user = await userRepository.GetByIdAsync(
+                userId,
+                includeDetail: true,
+                cancellationToken: cancellationToken,
+                asTracking: true)
             ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
 
         user.UpdateAddress(
@@ -85,27 +93,35 @@ public class UserAddressService(IUserContext userContext, IUserRepository userRe
             user.MarkAddressAsDefault(userAddressId);
         }
 
-        await userRepository.UpdateUserAddressesAsync(user, cancellationToken);
+        await userRepository.SaveChangesAsync(cancellationToken);
     }
 
     public async Task SetDefaultUserAddressAsync(Guid userAddressId, CancellationToken cancellationToken = default)
     {
         var userId = userContext.UserId;
-        var user = await userRepository.GetByIdAsync(userId, includeDetail: true, cancellationToken)
+        var user = await userRepository.GetByIdAsync(
+                userId,
+                includeDetail: true,
+                cancellationToken: cancellationToken,
+                asTracking: true)
             ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
 
         user.MarkAddressAsDefault(userAddressId);
-        await userRepository.UpdateUserAddressesAsync(user, cancellationToken);
+        await userRepository.SaveChangesAsync(cancellationToken);
     }
 
     public async Task DeleteUserAddressAsync(Guid userAddressId, CancellationToken cancellationToken = default)
     {
         var userId = userContext.UserId;
-        var user = await userRepository.GetByIdAsync(userId, includeDetail: true, cancellationToken)
+        var user = await userRepository.GetByIdAsync(
+                userId,
+                includeDetail: true,
+                cancellationToken: cancellationToken,
+                asTracking: true)
             ?? throw new NotFoundException(UserDomainErrorCode.UserNotFound, nameof(User));
 
         user.RemoveAddress(userAddressId);
-        await userRepository.UpdateUserAddressesAsync(user, cancellationToken);
+        await userRepository.SaveChangesAsync(cancellationToken);
     }
 
     private static UserAddressDto MapToDto(Address address)
