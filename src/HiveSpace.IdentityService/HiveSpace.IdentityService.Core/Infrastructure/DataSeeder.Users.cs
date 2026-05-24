@@ -38,7 +38,11 @@ public static partial class DataSeeder
     private static async Task SeedSystemAdminAsync(UserManager<ApplicationUser> userMgr, ILogger logger)
     {
         var sysadmin = await userMgr.FindByNameAsync("sysadmin");
-        if (sysadmin != null) return;
+        if (sysadmin != null)
+        {
+            await EnsureUserRoleAsync(userMgr, sysadmin, "SystemAdmin", logger);
+            return;
+        }
 
         sysadmin = new ApplicationUser
         {
@@ -55,6 +59,7 @@ public static partial class DataSeeder
         var result = await userMgr.CreateAsync(sysadmin, "SysAdmin123$");
         if (result.Succeeded)
         {
+            await EnsureUserRoleAsync(userMgr, sysadmin, "SystemAdmin", logger);
             await userMgr.AddClaimsAsync(sysadmin, new[]
             {
                 new Claim(JwtClaimTypes.Name,       "System Administrator"),
@@ -72,7 +77,11 @@ public static partial class DataSeeder
     private static async Task SeedAdminAsync(UserManager<ApplicationUser> userMgr, ILogger logger)
     {
         var admin = await userMgr.FindByNameAsync("admin");
-        if (admin != null) return;
+        if (admin != null)
+        {
+            await EnsureUserRoleAsync(userMgr, admin, "Admin", logger);
+            return;
+        }
 
         admin = new ApplicationUser
         {
@@ -89,6 +98,7 @@ public static partial class DataSeeder
         var result = await userMgr.CreateAsync(admin, "Admin123$");
         if (result.Succeeded)
         {
+            await EnsureUserRoleAsync(userMgr, admin, "Admin", logger);
             await userMgr.AddClaimsAsync(admin, new[]
             {
                 new Claim(JwtClaimTypes.Name,       "Admin User"),
@@ -208,7 +218,11 @@ public static partial class DataSeeder
         foreach (var seed in sellerSeeds)
         {
             var seller = await userMgr.FindByNameAsync(seed.Username);
-            if (seller != null) continue;
+            if (seller != null)
+            {
+                await EnsureUserRoleAsync(userMgr, seller, "Seller", logger);
+                continue;
+            }
 
             seller = new ApplicationUser
             {
@@ -226,6 +240,7 @@ public static partial class DataSeeder
             var result = await userMgr.CreateAsync(seller, seed.Password);
             if (result.Succeeded)
             {
+                await EnsureUserRoleAsync(userMgr, seller, "Seller", logger);
                 await userMgr.AddClaimsAsync(seller, new[]
                 {
                     new Claim(JwtClaimTypes.Name,       seed.FullName),
@@ -236,6 +251,23 @@ public static partial class DataSeeder
                     new Claim("permissions",            "product.manage"),
                     new Claim("permissions",            "order.view"),
                 });
+            }
+        }
+    }
+
+    private static async Task EnsureUserRoleAsync(
+        UserManager<ApplicationUser> userMgr,
+        ApplicationUser user,
+        string role,
+        ILogger logger)
+    {
+        if (!await userMgr.IsInRoleAsync(user, role))
+        {
+            var result = await userMgr.AddToRoleAsync(user, role);
+            if (!result.Succeeded)
+            {
+                var errors = string.Join("; ", result.Errors.Select(error => error.Description));
+                logger.LogWarning("Failed to add seeded user {UserName} to role {Role}: {Errors}", user.UserName, role, errors);
             }
         }
     }

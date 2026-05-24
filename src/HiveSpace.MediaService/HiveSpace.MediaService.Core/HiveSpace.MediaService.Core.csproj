@@ -15,10 +15,12 @@
     </PackageReference>
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
     <PackageReference Include="MediatR" />
+    <PackageReference Include="MassTransit.RabbitMQ" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\libs\HiveSpace.Core\HiveSpace.Core.csproj" />
     <ProjectReference Include="..\..\..\libs\HiveSpace.Application.Shared\HiveSpace.Application.Shared.csproj" />
+    <ProjectReference Include="..\..\..\libs\HiveSpace.Infrastructure.Messaging.Shared\HiveSpace.Infrastructure.Messaging.Shared.csproj" />
     <ProjectReference Include="..\..\..\libs\HiveSpace.Infrastructure.Persistence\HiveSpace.Infrastructure.Persistence.csproj" />
   </ItemGroup>
 </Project>

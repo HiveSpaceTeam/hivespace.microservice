@@ -29,7 +29,7 @@ public class ReleaseInventoryConsumer : IConsumer<ReleaseInventory>
             "Inventory released for order {OrderId}",
             message.OrderId);
 
-        await context.Publish<InventoryReleased>(new
+        await context.Publish<InventoryReleasedIntegrationEvent>(new
         {
             message.CorrelationId,
             message.OrderId,

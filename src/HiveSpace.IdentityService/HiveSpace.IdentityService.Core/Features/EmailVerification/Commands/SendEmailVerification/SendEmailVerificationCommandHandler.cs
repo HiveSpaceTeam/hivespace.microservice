@@ -6,9 +6,8 @@ using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.IdentityService.Core.Exceptions;
 using HiveSpace.IdentityService.Core.Identity;
+using HiveSpace.IdentityService.Core.Interfaces.Messaging;
 using HiveSpace.IdentityService.Core.Persistence;
-using HiveSpace.Infrastructure.Messaging.Shared.Events.Users;
-using MassTransit;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 
@@ -16,7 +15,7 @@ namespace HiveSpace.IdentityService.Core.Features.EmailVerification.Commands.Sen
 
 public class SendEmailVerificationCommandHandler(
     UserManager<ApplicationUser> userManager,
-    IPublishEndpoint publishEndpoint,
+    IIdentityEventPublisher identityEventPublisher,
     IdentityDbContext dbContext)
     : ICommandHandler<SendEmailVerificationCommand>
 {
@@ -38,15 +37,12 @@ public class SendEmailVerificationCommandHandler(
         if (!string.IsNullOrWhiteSpace(command.ReturnUrl))
             verificationLink += $"&returnUrl={Uri.EscapeDataString(command.ReturnUrl)}";
 
-        await publishEndpoint.Publish(new UserEmailVerificationRequestedIntegrationEvent
-        {
-            UserId = command.UserId,
-            ToEmail = user.Email!,
-            ToName = user.UserName ?? user.Email!,
-            VerificationLink = verificationLink,
-            ExpiresAt = DateTime.UtcNow.AddHours(24),
-            Locale = Culture.Vi
-        }, cancellationToken);
+        await identityEventPublisher.PublishEmailVerificationRequestedAsync(
+            user,
+            verificationLink,
+            DateTime.UtcNow.AddHours(24),
+            Culture.Vi,
+            cancellationToken);
 
         await dbContext.SaveChangesAsync(cancellationToken);
     }

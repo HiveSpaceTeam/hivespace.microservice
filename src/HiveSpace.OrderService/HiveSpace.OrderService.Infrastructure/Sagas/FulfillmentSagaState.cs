@@ -8,7 +8,7 @@ public class FulfillmentSagaState : SagaStateMachineInstance
     public Guid   CorrelationId { get; set; }   // = OrderId
     public string CurrentState  { get; set; } = null!;
 
-    // Carried from OrderReadyForFulfillment
+    // Carried from OrderReadyForFulfillmentIntegrationEvent
     public Guid          UserId         { get; set; }
     public Guid          StoreId        { get; set; }
     public string        OrderCode      { get; set; } = string.Empty;

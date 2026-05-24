@@ -27,7 +27,7 @@ public class CommitCouponUsageConsumer(
         catch (DomainException ex)
         {
             logger.LogWarning("Coupon usage commit failed for checkout {CorrelationId}: {ErrorCode}", message.CorrelationId, ex.ErrorCode.Code);
-            await context.RespondAsync<CommitCouponUsageFailed>(new
+            await context.RespondAsync<CommitCouponUsageFailedIntegrationEvent>(new
             {
                 message.CorrelationId,
                 Reason = ex.Message,
@@ -38,7 +38,7 @@ public class CommitCouponUsageConsumer(
 
         await couponRepository.SaveChangesAsync(ct);
 
-        await context.RespondAsync<CouponUsageCommitted>(new
+        await context.RespondAsync<CouponUsageCommittedIntegrationEvent>(new
         {
             message.CorrelationId,
             message.OrderIds,

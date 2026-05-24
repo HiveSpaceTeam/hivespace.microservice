@@ -1,6 +1,8 @@
 using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Commands;
+using HiveSpace.Infrastructure.Messaging.Shared.FulfillmentSaga.Commands;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Events;
+using HiveSpace.Infrastructure.Messaging.Shared.FulfillmentSaga.Events;
 using HiveSpace.NotificationService.Core.DomainModels;
 using HiveSpace.NotificationService.Core.Interfaces;
 using HiveSpace.NotificationService.Core.Dispatch.Models;
@@ -22,7 +24,7 @@ public class NotifySellerNewOrderConsumer(
         if (msg.SellerId == Guid.Empty)
         {
             logger.LogWarning("SellerId is empty for OrderId={OrderId} — skipping seller notification", msg.OrderId);
-            await context.Publish<SellerNewOrderNotified>(new { msg.CorrelationId, msg.OrderId });
+            await context.Publish<SellerNewOrderNotifiedIntegrationEvent>(new { msg.CorrelationId, msg.OrderId });
             return;
         }
 
@@ -45,6 +47,6 @@ public class NotifySellerNewOrderConsumer(
             }
         }, ct);
 
-        await context.Publish<SellerNewOrderNotified>(new { msg.CorrelationId, msg.OrderId });
+        await context.Publish<SellerNewOrderNotifiedIntegrationEvent>(new { msg.CorrelationId, msg.OrderId });
     }
 }

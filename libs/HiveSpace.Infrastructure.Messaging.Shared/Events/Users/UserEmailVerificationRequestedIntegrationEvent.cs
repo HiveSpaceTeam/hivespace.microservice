@@ -1,8 +1,9 @@
+using HiveSpace.Infrastructure.Messaging.Events;
 using HiveSpace.Domain.Shared.Enumerations;
 
 namespace HiveSpace.Infrastructure.Messaging.Shared.Events.Users;
 
-public record UserEmailVerificationRequestedIntegrationEvent
+public record UserEmailVerificationRequestedIntegrationEvent : IntegrationEvent
 {
     public Guid   UserId           { get; init; }
     public string ToEmail          { get; init; } = default!;

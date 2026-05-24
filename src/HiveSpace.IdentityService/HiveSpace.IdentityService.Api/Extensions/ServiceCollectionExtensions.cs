@@ -6,6 +6,8 @@ using HiveSpace.IdentityService.Api.Services;
 using HiveSpace.IdentityService.Api.Services.Localization;
 using HiveSpace.IdentityService.Core.Extensions;
 using HiveSpace.IdentityService.Core.Identity;
+using HiveSpace.IdentityService.Core.Interfaces.Messaging;
+using HiveSpace.IdentityService.Core.Messaging;
 using HiveSpace.IdentityService.Core.Persistence;
 using HiveSpace.Infrastructure.Authorization.Extensions;
 using HiveSpace.Infrastructure.Messaging.Configurations;
@@ -111,7 +113,12 @@ internal static class ServiceCollectionExtensions
     }
 
     public static IServiceCollection AddAppServices(this IServiceCollection services)
-        => services.AddCoreServices();
+    {
+        services.AddCoreServices();
+        services.AddScoped<IIdentityEventPublisher, IdentityEventPublisher>();
+
+        return services;
+    }
 
     public static IServiceCollection AddAppMessaging(this IServiceCollection services, IConfiguration configuration)
     {

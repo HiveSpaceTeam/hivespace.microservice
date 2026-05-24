@@ -23,7 +23,7 @@ public class MarkOrderAsPaidConsumer(
         if (missingId != default)
         {
             logger.LogWarning("Order {OrderId} not found for paid marking", missingId);
-            await context.RespondAsync<MarkOrderAsPaidFailed>(new
+            await context.RespondAsync<MarkOrderAsPaidFailedIntegrationEvent>(new
             {
                 message.CorrelationId,
                 OrderId = missingId,
@@ -42,7 +42,7 @@ public class MarkOrderAsPaidConsumer(
                 ex.ErrorCode.Code == OrderDomainErrorCode.OrderInvalidStatusForPayment.Code)
             {
                 logger.LogWarning("Order {OrderId} cannot be marked as paid: {ErrorCode}", order.Id, ex.ErrorCode.Code);
-                await context.RespondAsync<MarkOrderAsPaidFailed>(new
+                await context.RespondAsync<MarkOrderAsPaidFailedIntegrationEvent>(new
                 {
                     message.CorrelationId,
                     OrderId = order.Id,
@@ -54,7 +54,7 @@ public class MarkOrderAsPaidConsumer(
 
         await orderRepository.SaveChangesAsync(ct);
 
-        await context.RespondAsync<OrderMarkedAsPaid>(new
+        await context.RespondAsync<OrderMarkedAsPaidIntegrationEvent>(new
         {
             message.CorrelationId,
             OrderIds = message.OrderIds,

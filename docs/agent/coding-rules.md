@@ -138,9 +138,25 @@ builder.Services.AddApplication();
 
 ## Integration event publishing
 
-Publish integration events directly from command/service handlers via `I[Service]EventPublisher`. Always call the publisher **before** `SaveChangesAsync()` so MassTransit's bus outbox writes the message to the DB in the same transaction as your domain data.
+Integration events are cross-service facts and must be easy to identify in code, broker topology, catalogs, and service docs.
+
+Contract rules:
+- All shared event contracts must inherit `IntegrationEvent`.
+- Event contract names must end with `IntegrationEvent`.
+- Command contracts must not use the `IntegrationEvent` suffix; keep command names imperative, such as `ReserveInventory` or `NotifySellerNewOrder`.
+- Saga contracts may be grouped by workflow ownership, but event contracts still follow the same inheritance and suffix rules.
+
+Publish integration events from command/service handlers and background event producers via `I[Service]EventPublisher`. Do not inject `IPublishEndpoint` directly into application handlers or background publishers for integration events. Always call the publisher **before** `SaveChangesAsync()` so MassTransit's bus outbox writes the message to the DB in the same transaction as your domain data.
+
+MassTransit saga orchestration is the exception: state-machine request/response, schedule, timeout, `RespondAsync`, and continuation publishes may keep MassTransit context-based APIs when required for saga behavior.
 
 ```csharp
+// ✅ Correct contract naming
+public record ProductUpdatedIntegrationEvent(...) : IntegrationEvent;
+
+// ❌ Wrong — event lacks suffix and base integration metadata
+public record ProductUpdated(...);
+
 // ✅ Correct — publisher before save; MassTransit bus outbox commits both atomically
 await eventPublisher.PublishSomethingAsync(aggregate, ct);
 await repository.SaveChangesAsync(ct);
@@ -148,6 +164,9 @@ await repository.SaveChangesAsync(ct);
 // ❌ Wrong — event lost if service crashes, or published before DB commit
 await repository.SaveChangesAsync(ct);
 await eventPublisher.PublishSomethingAsync(aggregate, ct);
+
+// ❌ Wrong — application/background event producer bypasses service publisher
+await publishEndpoint.Publish(new ProductUpdatedIntegrationEvent(...), ct);
 ```
 
 ## Monetary values

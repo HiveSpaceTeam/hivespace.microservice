@@ -6,9 +6,8 @@ using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.IdentityService.Core.Exceptions;
 using HiveSpace.IdentityService.Core.Identity;
+using HiveSpace.IdentityService.Core.Interfaces.Messaging;
 using HiveSpace.IdentityService.Core.Persistence;
-using HiveSpace.Infrastructure.Messaging.Shared.Events.Users;
-using MassTransit;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 
@@ -16,7 +15,7 @@ namespace HiveSpace.IdentityService.Core.Features.EmailVerification.Commands.Con
 
 public class ConfirmEmailVerificationCommandHandler(
     UserManager<ApplicationUser> userManager,
-    IPublishEndpoint publishEndpoint,
+    IIdentityEventPublisher identityEventPublisher,
     IdentityDbContext dbContext)
     : ICommandHandler<ConfirmEmailVerificationCommand>
 {
@@ -42,13 +41,7 @@ public class ConfirmEmailVerificationCommandHandler(
         if (!result.Succeeded)
             throw new BadRequestException([new Error(IdentityDomainErrorCode.EmailVerificationFailed, nameof(command.Token))]);
 
-        await publishEndpoint.Publish(new UserEmailVerifiedIntegrationEvent
-        {
-            UserId = user.Id,
-            ToEmail = user.Email!,
-            ToName = user.UserName ?? user.Email!,
-            Locale = Culture.Vi
-        }, cancellationToken);
+        await identityEventPublisher.PublishEmailVerifiedAsync(user, Culture.Vi, cancellationToken);
 
         await dbContext.SaveChangesAsync(cancellationToken);
     }

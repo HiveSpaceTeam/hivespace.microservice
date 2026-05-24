@@ -16,7 +16,7 @@ public class CancelOrderConsumer(ISender mediator) : IConsumer<CancelOrder>
             new CancelOrderCommand(message.OrderId, message.Reason, CancelledBy: Guid.Empty),
             context.CancellationToken);
 
-        await context.Publish<OrderCancelled>(new
+        await context.Publish<OrderCancelledIntegrationEvent>(new
         {
             message.CorrelationId,
             message.OrderId,

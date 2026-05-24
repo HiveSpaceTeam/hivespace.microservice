@@ -1,5 +1,6 @@
 using HiveSpace.Infrastructure.Messaging.Abstractions;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Events;
+using HiveSpace.Infrastructure.Messaging.Shared.FulfillmentSaga.Events;
 using HiveSpace.OrderService.Application.Interfaces.Messaging;
 using HiveSpace.OrderService.Application.Orders.Commands.ConfirmOrder;
 using HiveSpace.OrderService.Application.Orders.Commands.RejectOrder;
@@ -9,7 +10,7 @@ namespace HiveSpace.OrderService.Infrastructure.Messaging.Publishers;
 public class OrderEventPublisher(IMessageBus messageBus) : IOrderEventPublisher
 {
     public Task PublishOrderConfirmedBySellerAsync(ConfirmOrderResult result, CancellationToken cancellationToken = default)
-        => messageBus.PublishAsync(new OrderConfirmedBySeller
+        => messageBus.PublishAsync(new OrderConfirmedBySellerIntegrationEvent
         {
             CorrelationId = result.OrderId,
             OrderId       = result.OrderId,
@@ -18,7 +19,7 @@ public class OrderEventPublisher(IMessageBus messageBus) : IOrderEventPublisher
         }, cancellationToken);
 
     public Task PublishOrderRejectedBySellerAsync(RejectOrderResult result, CancellationToken cancellationToken = default)
-        => messageBus.PublishAsync(new OrderRejectedBySeller
+        => messageBus.PublishAsync(new OrderRejectedBySellerIntegrationEvent
         {
             CorrelationId = result.OrderId,
             OrderId       = result.OrderId,

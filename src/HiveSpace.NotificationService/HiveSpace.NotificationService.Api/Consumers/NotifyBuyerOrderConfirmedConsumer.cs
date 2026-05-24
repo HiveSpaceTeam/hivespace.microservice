@@ -1,5 +1,7 @@
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Commands;
+using HiveSpace.Infrastructure.Messaging.Shared.FulfillmentSaga.Commands;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Events;
+using HiveSpace.Infrastructure.Messaging.Shared.FulfillmentSaga.Events;
 using HiveSpace.NotificationService.Core.DomainModels;
 using HiveSpace.NotificationService.Core.Interfaces;
 using HiveSpace.NotificationService.Core.Dispatch.Models;
@@ -22,7 +24,7 @@ public class NotifyBuyerOrderConfirmedConsumer(
         if (user is null)
         {
             logger.LogWarning("UserRef not found for BuyerId={BuyerId} — skipping order confirmed notification", msg.BuyerId);
-            await context.Publish<BuyerNotified>(new
+            await context.Publish<BuyerNotifiedIntegrationEvent>(new
             {
                 msg.CorrelationId,
                 msg.OrderId,
@@ -51,7 +53,7 @@ public class NotifyBuyerOrderConfirmedConsumer(
             }
         }, ct);
 
-        await context.Publish<BuyerNotified>(new
+        await context.Publish<BuyerNotifiedIntegrationEvent>(new
         {
             msg.CorrelationId,
             msg.OrderId,

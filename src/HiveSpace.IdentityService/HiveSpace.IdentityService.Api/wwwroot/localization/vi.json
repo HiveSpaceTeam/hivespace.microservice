@@ -1,64 +1,64 @@
 {
   "pages": {
     "login": {
-      "title": "ÄÄƒng nháº­p",
-      "subtitle": "Nháº­p email vÃ  máº­t kháº©u Ä‘á»ƒ Ä‘Äƒng nháº­p!",
+      "title": "Đăng nhập",
+      "subtitle": "Nhập email và mật khẩu để đăng nhập!",
       "emailLabel": "Email",
-      "emailPlaceholder": "Nháº­p email cá»§a báº¡n",
-      "passwordLabel": "Máº­t kháº©u",
-      "passwordPlaceholder": "Nháº­p máº­t kháº©u",
-      "rememberMeLabel": "Giá»¯ tÃ´i Ä‘Äƒng nháº­p",
-      "forgotPasswordLink": "QuÃªn máº­t kháº©u?",
-      "signInButton": "ÄÄƒng nháº­p",
-      "signUpText": "ChÆ°a cÃ³ tÃ i khoáº£n?",
-      "signUpLink": "ÄÄƒng kÃ½",
-      "invalidLoginMessage": "YÃªu cáº§u Ä‘Äƒng nháº­p khÃ´ng há»£p lá»‡",
-      "noLoginSchemesMessage": "KhÃ´ng cÃ³ phÆ°Æ¡ng thá»©c Ä‘Äƒng nháº­p nÃ o Ä‘Æ°á»£c cáº¥u hÃ¬nh cho yÃªu cáº§u nÃ y."
+      "emailPlaceholder": "Nhập email của bạn",
+      "passwordLabel": "Mật khẩu",
+      "passwordPlaceholder": "Nhập mật khẩu",
+      "rememberMeLabel": "Duy trì đăng nhập",
+      "forgotPasswordLink": "Quên mật khẩu?",
+      "signInButton": "Đăng nhập",
+      "signUpText": "Chưa có tài khoản?",
+      "signUpLink": "Đăng ký",
+      "invalidLoginMessage": "Yêu cầu đăng nhập không hợp lệ",
+      "noLoginSchemesMessage": "Không có phương thức đăng nhập nào được cấu hình cho yêu cầu này."
     },
     "register": {
-      "title": "Táº¡o tÃ i khoáº£n",
-      "subtitle": "Nháº­p thÃ´ng tin cá»§a báº¡n Ä‘á»ƒ táº¡o tÃ i khoáº£n!",
+      "title": "Tạo tài khoản",
+      "subtitle": "Nhập thông tin của bạn để tạo tài khoản!",
       "emailLabel": "Email",
-      "emailPlaceholder": "Nháº­p email cá»§a báº¡n",
-      "fullNameLabel": "Há» vÃ  tÃªn",
-      "fullNamePlaceholder": "Nháº­p há» vÃ  tÃªn",
-      "passwordLabel": "Máº­t kháº©u",
-      "passwordPlaceholder": "Nháº­p máº­t kháº©u",
-      "confirmPasswordLabel": "XÃ¡c nháº­n máº­t kháº©u",
-      "confirmPasswordPlaceholder": "XÃ¡c nháº­n máº­t kháº©u",
-      "createAccountButton": "Táº¡o tÃ i khoáº£n",
-      "signInText": "ÄÃ£ cÃ³ tÃ i khoáº£n?",
-      "signInLink": "ÄÄƒng nháº­p",
-      "invalidRegistrationMessage": "YÃªu cáº§u Ä‘Äƒng kÃ½ khÃ´ng há»£p lá»‡",
-      "noRegistrationMethodsMessage": "KhÃ´ng cÃ³ phÆ°Æ¡ng thá»©c Ä‘Äƒng kÃ½ nÃ o Ä‘Æ°á»£c cáº¥u hÃ¬nh cho yÃªu cáº§u nÃ y."
+      "emailPlaceholder": "Nhập email của bạn",
+      "fullNameLabel": "Họ và tên",
+      "fullNamePlaceholder": "Nhập họ và tên",
+      "passwordLabel": "Mật khẩu",
+      "passwordPlaceholder": "Nhập mật khẩu",
+      "confirmPasswordLabel": "Xác nhận mật khẩu",
+      "confirmPasswordPlaceholder": "Xác nhận mật khẩu",
+      "createAccountButton": "Tạo tài khoản",
+      "signInText": "Đã có tài khoản?",
+      "signInLink": "Đăng nhập",
+      "invalidRegistrationMessage": "Yêu cầu đăng ký không hợp lệ",
+      "noRegistrationMethodsMessage": "Không có phương thức đăng ký nào được cấu hình cho yêu cầu này."
     },
     "shared": {
-      "or": "Hoáº·c"
+      "or": "Hoặc"
     }
   },
   "validation": {
-    "emailRequired": "Email lÃ  báº¯t buá»™c",
-    "email": "Vui lÃ²ng nháº­p Ä‘á»‹a chá»‰ email há»£p lá»‡",
-    "passwordRequired": "Máº­t kháº©u lÃ  báº¯t buá»™c",
-    "passwordMinLength": "Máº­t kháº©u pháº£i cÃ³ Ã­t nháº¥t {0} kÃ½ tá»±",
-    "passwordComplexity": "Máº­t kháº©u pháº£i chá»©a Ã­t nháº¥t má»™t chá»¯ hoa, má»™t chá»¯ thÆ°á»ng, má»™t sá»‘ vÃ  má»™t kÃ½ tá»± Ä‘áº·c biá»‡t",
-    "fullNameRequired": "Há» vÃ  tÃªn lÃ  báº¯t buá»™c",
-    "fullNameMinLength": "Há» vÃ  tÃªn pháº£i cÃ³ Ã­t nháº¥t {0} kÃ½ tá»±",
-    "fullNameMaxLength": "Há» vÃ  tÃªn khÃ´ng Ä‘Æ°á»£c vÆ°á»£t quÃ¡ {0} kÃ½ tá»±",
-    "confirmPasswordRequired": "Vui lÃ²ng xÃ¡c nháº­n máº­t kháº©u",
-    "passwordsDoNotMatch": "Máº­t kháº©u vÃ  xÃ¡c nháº­n máº­t kháº©u khÃ´ng khá»›p"
+    "emailRequired": "Email là bắt buộc",
+    "email": "Vui lòng nhập địa chỉ email hợp lệ",
+    "passwordRequired": "Mật khẩu là bắt buộc",
+    "passwordMinLength": "Mật khẩu phải có ít nhất {0} ký tự",
+    "passwordComplexity": "Mật khẩu phải chứa ít nhất một chữ hoa, một chữ thường, một số và một ký tự đặc biệt",
+    "fullNameRequired": "Họ và tên là bắt buộc",
+    "fullNameMinLength": "Họ và tên phải có ít nhất {0} ký tự",
+    "fullNameMaxLength": "Họ và tên không được vượt quá {0} ký tự",
+    "confirmPasswordRequired": "Vui lòng xác nhận mật khẩu",
+    "passwordsDoNotMatch": "Mật khẩu và xác nhận mật khẩu không khớp"
   },
   "errors": {
-    "invalidCredentials": "Email hoáº·c máº­t kháº©u khÃ´ng Ä‘Ãºng, vui lÃ²ng thá»­ láº¡i",
-    "accountInactive": "TÃ i khoáº£n nÃ y Ä‘Ã£ bá»‹ vÃ´ hiá»‡u hÃ³a. Vui lÃ²ng liÃªn há»‡ quáº£n trá»‹ viÃªn Ä‘á»ƒ kÃ­ch hoáº¡t.",
-    "notAuthorizedAdminPortal": "Báº¡n khÃ´ng Ä‘Æ°á»£c phÃ©p Ä‘Äƒng nháº­p vÃ o Cá»•ng quáº£n trá»‹.",
-    "adminNotAllowedSellerCenter": "Quáº£n trá»‹ viÃªn khÃ´ng Ä‘Æ°á»£c phÃ©p Ä‘Äƒng nháº­p vÃ o Trung tÃ¢m ngÆ°á»i bÃ¡n.",
-    "accountLockedOut": "TÃ i khoáº£n nÃ y Ä‘Ã£ bá»‹ khÃ³a, vui lÃ²ng thá»­ láº¡i sau.",
-    "accountNotAllowed": "TÃ i khoáº£n nÃ y khÃ´ng Ä‘Æ°á»£c phÃ©p Ä‘Äƒng nháº­p.",
-    "invalidReturnUrl": "URL tráº£ vá» khÃ´ng há»£p lá»‡.",
-    "loginError": "ÄÃ£ xáº£y ra lá»—i trong quÃ¡ trÃ¬nh Ä‘Äƒng nháº­p. Vui lÃ²ng thá»­ láº¡i."
+    "invalidCredentials": "Email hoặc mật khẩu không đúng, vui lòng thử lại",
+    "accountInactive": "Tài khoản này đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên để kích hoạt.",
+    "notAuthorizedAdminPortal": "Bạn không được phép đăng nhập vào Cổng quản trị.",
+    "adminNotAllowedSellerCenter": "Quản trị viên không được phép đăng nhập vào Trung tâm người bán.",
+    "accountLockedOut": "Tài khoản này đã bị khóa, vui lòng thử lại sau.",
+    "accountNotAllowed": "Tài khoản này không được phép đăng nhập.",
+    "invalidReturnUrl": "URL trả về không hợp lệ.",
+    "loginError": "Đã xảy ra lỗi trong quá trình đăng nhập. Vui lòng thử lại."
   },
   "social": {
-    "continueWith": "Tiáº¿p tá»¥c vá»›i"
+    "continueWith": "Tiếp tục với"
   }
 }

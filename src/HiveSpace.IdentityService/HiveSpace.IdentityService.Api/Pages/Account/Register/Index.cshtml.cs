@@ -4,9 +4,8 @@ using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Services;
 using Duende.IdentityServer.Stores;
 using HiveSpace.IdentityService.Core.Identity;
+using HiveSpace.IdentityService.Core.Interfaces.Messaging;
 using HiveSpace.IdentityService.Core.Persistence;
-using HiveSpace.Infrastructure.Messaging.Shared.Events.Users;
-using MassTransit;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -26,7 +25,7 @@ public class Index : PageModel
     private readonly IAuthenticationSchemeProvider _schemeProvider;
     private readonly IIdentityProviderStore _identityProviderStore;
     private readonly IConfiguration _configuration;
-    private readonly IPublishEndpoint _publishEndpoint;
+    private readonly IIdentityEventPublisher _identityEventPublisher;
     private readonly IdentityDbContext _dbContext;
     private readonly ILogger<Index> _logger;
 
@@ -43,7 +42,7 @@ public class Index : PageModel
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
         IConfiguration configuration,
-        IPublishEndpoint publishEndpoint,
+        IIdentityEventPublisher identityEventPublisher,
         IdentityDbContext dbContext,
         ILogger<Index> logger)
     {
@@ -54,7 +53,7 @@ public class Index : PageModel
         _identityProviderStore = identityProviderStore;
         _events = events;
         _configuration = configuration;
-        _publishEndpoint = publishEndpoint;
+        _identityEventPublisher = identityEventPublisher;
         _dbContext = dbContext;
         _logger = logger;
     }
@@ -203,15 +202,7 @@ public class Index : PageModel
 
     private async Task PublishIdentityUserCreatedAsync(ApplicationUser user, string? fullName)
     {
-        await _publishEndpoint.Publish(new IdentityUserCreatedIntegrationEvent
-        {
-            UserId        = user.Id,
-            Email         = user.Email!,
-            UserName      = user.UserName,
-            FullName      = fullName,
-            OccurredAt    = DateTime.UtcNow,
-            CorrelationId = Guid.NewGuid()
-        });
+        await _identityEventPublisher.PublishIdentityUserCreatedAsync(user, fullName);
 
         await _dbContext.SaveChangesAsync();
     }
