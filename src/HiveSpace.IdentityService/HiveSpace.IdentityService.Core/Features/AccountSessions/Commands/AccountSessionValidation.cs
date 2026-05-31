@@ -18,7 +18,7 @@ internal static class AccountSessionValidation
             return true;
 
         if (Uri.TryCreate(returnUrl, UriKind.Relative, out _))
-            return returnUrl.StartsWith('/');
+            return IsLocalPath(returnUrl);
 
         if (!Uri.TryCreate(returnUrl, UriKind.Absolute, out var uri))
             return false;
@@ -26,4 +26,8 @@ internal static class AccountSessionValidation
         return uri.Scheme is "http" or "https"
             && (uri.IsLoopback || uri.Host.EndsWith(".hivespace.local", StringComparison.OrdinalIgnoreCase));
     }
+
+    private static bool IsLocalPath(string returnUrl)
+        => returnUrl.StartsWith('/')
+            && (returnUrl.Length == 1 || returnUrl[1] is not '/' and not '\\');
 }

@@ -63,10 +63,14 @@ internal static class AccountCompatibilityEndpoints
     private static bool IsSafeReturnUrl(string returnUrl)
     {
         if (Uri.TryCreate(returnUrl, UriKind.Relative, out _))
-            return returnUrl.StartsWith('/');
+            return IsLocalPath(returnUrl);
 
         return Uri.TryCreate(returnUrl, UriKind.Absolute, out var uri)
             && uri.Scheme is "http" or "https"
             && uri.IsLoopback;
     }
+
+    private static bool IsLocalPath(string returnUrl)
+        => returnUrl.StartsWith('/')
+            && (returnUrl.Length == 1 || returnUrl[1] is not '/' and not '\\');
 }
