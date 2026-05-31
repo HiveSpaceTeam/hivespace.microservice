@@ -1,4 +1,9 @@
 using HiveSpace.Core.Contexts;
+using HiveSpace.IdentityService.Core.Features.AccountSessions.Commands.RefreshSession;
+using HiveSpace.IdentityService.Core.Features.AccountSessions.Commands.RegisterAccount;
+using HiveSpace.IdentityService.Core.Features.AccountSessions.Commands.SignIn;
+using HiveSpace.IdentityService.Core.Features.AccountSessions.Commands.SignOut;
+using HiveSpace.IdentityService.Core.Features.AccountSessions.Dtos;
 using HiveSpace.IdentityService.Core.Features.EmailVerification.Commands.ConfirmEmailVerification;
 using HiveSpace.IdentityService.Core.Features.EmailVerification.Commands.SendEmailVerification;
 using MediatR;
@@ -10,6 +15,74 @@ internal static class IdentityEndpoints
 {
     public static IEndpointRouteBuilder MapIdentityEndpoints(this IEndpointRouteBuilder app)
     {
+        app.MapPost("/api/v1/accounts/login", async (
+            SignInRequest request,
+            ISender sender,
+            CancellationToken ct) =>
+        {
+            var response = await sender.Send(new SignInCommand(
+                request.Email,
+                request.Password,
+                request.App,
+                request.ReturnUrl,
+                request.Culture), ct);
+
+            return Results.Ok(response);
+        })
+        .AllowAnonymous()
+        .WithName("SignIn")
+        .WithTags("Accounts")
+        .WithSummary("Sign in with email and password")
+        .WithDescription("Validates credentials and establishes a secure HttpOnly browser session.");
+
+        app.MapPost("/api/v1/accounts/register", async (
+            RegisterAccountRequest request,
+            ISender sender,
+            CancellationToken ct) =>
+        {
+            var response = await sender.Send(new RegisterAccountCommand(
+                request.Email,
+                request.Password,
+                request.ConfirmPassword,
+                request.FullName,
+                request.App,
+                request.ReturnUrl,
+                request.Culture), ct);
+
+            return Results.Json(response, statusCode: StatusCodes.Status201Created);
+        })
+        .AllowAnonymous()
+        .WithName("RegisterAccount")
+        .WithTags("Accounts")
+        .WithSummary("Register a browser account")
+        .WithDescription("Creates an identity account, preserves profile creation events, and establishes a browser session.");
+
+        app.MapPost("/api/v1/accounts/session/refresh", async (
+            RefreshSessionRequest request,
+            ISender sender,
+            CancellationToken ct) =>
+        {
+            var response = await sender.Send(new RefreshSessionCommand(request.App), ct);
+            return Results.Ok(response);
+        })
+        .AddEndpointFilter<RequireBrowserSessionFilter>()
+        .WithName("RefreshAccountSession")
+        .WithTags("Accounts")
+        .WithSummary("Refresh browser session")
+        .WithDescription("Refreshes the protected browser session and rotates the CSRF token.");
+
+        app.MapPost("/api/v1/accounts/logout", async (
+            ISender sender,
+            CancellationToken ct) =>
+        {
+            await sender.Send(new SignOutCommand(), ct);
+            return Results.NoContent();
+        })
+        .WithName("SignOut")
+        .WithTags("Accounts")
+        .WithSummary("Sign out")
+        .WithDescription("Clears the browser session and CSRF cookies.");
+
         app.MapPost("/api/v1/accounts/email-verification", async (
             SendEmailVerificationRequest request,
             [FromServices] IUserContext userContext,

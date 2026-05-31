@@ -1,4 +1,4 @@
-using HiveSpace.IdentityService.Core.Identity;
+using HiveSpace.IdentityService.Core.DomainModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

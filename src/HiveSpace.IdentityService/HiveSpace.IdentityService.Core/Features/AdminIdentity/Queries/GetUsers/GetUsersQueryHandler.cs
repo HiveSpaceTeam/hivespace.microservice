@@ -1,7 +1,7 @@
 using HiveSpace.Application.Shared.Handlers;
 using HiveSpace.Core.Models.Pagination;
 using HiveSpace.IdentityService.Core.Features.AdminIdentity.Dtos;
-using HiveSpace.IdentityService.Core.Identity;
+using HiveSpace.IdentityService.Core.DomainModels;
 using HiveSpace.IdentityService.Core.Persistence;
 using Microsoft.EntityFrameworkCore;
 

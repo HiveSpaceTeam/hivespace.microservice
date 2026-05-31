@@ -5,7 +5,8 @@ using HiveSpace.IdentityService.Api.Middleware;
 using HiveSpace.IdentityService.Api.Services;
 using HiveSpace.IdentityService.Api.Services.Localization;
 using HiveSpace.IdentityService.Core.Extensions;
-using HiveSpace.IdentityService.Core.Identity;
+using HiveSpace.IdentityService.Core.Features.AccountSessions.Services;
+using HiveSpace.IdentityService.Core.DomainModels;
 using HiveSpace.IdentityService.Core.Interfaces.Messaging;
 using HiveSpace.IdentityService.Core.Messaging;
 using HiveSpace.IdentityService.Core.Persistence;
@@ -115,7 +116,10 @@ internal static class ServiceCollectionExtensions
     public static IServiceCollection AddAppServices(this IServiceCollection services)
     {
         services.AddCoreServices();
+        services.AddHttpContextAccessor();
         services.AddScoped<IIdentityEventPublisher, IdentityEventPublisher>();
+        services.AddScoped<ITokenCookieService, TokenCookieService>();
+        services.AddScoped<ICsrfTokenService, CsrfTokenService>();
 
         return services;
     }

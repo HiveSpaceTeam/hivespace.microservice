@@ -51,6 +51,7 @@ internal static class HostingExtensions
         app.UseAuthentication();
         app.UseAuthorization();
 
+        app.MapAccountCompatibilityEndpoints();
         app.MapIdentityEndpoints();
         app.MapAdminIdentityEndpoints();
         app.MapHealthChecks("/health");

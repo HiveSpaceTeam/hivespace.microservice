@@ -1,5 +1,5 @@
 using HiveSpace.Domain.Shared.Enumerations;
-using HiveSpace.IdentityService.Core.Identity;
+using HiveSpace.IdentityService.Core.DomainModels;
 using HiveSpace.IdentityService.Core.Interfaces.Messaging;
 using HiveSpace.Infrastructure.Messaging.Shared.Events.Users;
 using MassTransit;

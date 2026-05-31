@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Services;
-using HiveSpace.IdentityService.Core.Identity;
+using HiveSpace.IdentityService.Core.DomainModels;
 using Microsoft.AspNetCore.Identity;
 
 namespace HiveSpace.IdentityService.Api.Services;
@@ -25,7 +25,7 @@ public class CustomProfileService(UserManager<ApplicationUser> userManager) : IP
             new("username", user.UserName ?? string.Empty),
             new("email_verified", user.EmailConfirmed.ToString().ToLowerInvariant(), ClaimValueTypes.Boolean),
             new("role", role),
-            new("userStatus", user.Status.ToString())
+            new("userStatus", ((int)user.Status).ToString())
         };
 
         if (user.StoreId.HasValue)
@@ -40,6 +40,6 @@ public class CustomProfileService(UserManager<ApplicationUser> userManager) : IP
     public async Task IsActiveAsync(IsActiveContext context)
     {
         var user = await userManager.GetUserAsync(context.Subject);
-        context.IsActive = user is not null && user.Status == 1;
+        context.IsActive = user is not null && user.Status == UserStatus.Active;
     }
 }
