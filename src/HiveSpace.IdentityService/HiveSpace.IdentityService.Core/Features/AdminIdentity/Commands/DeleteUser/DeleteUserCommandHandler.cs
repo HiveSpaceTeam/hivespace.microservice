@@ -1,5 +1,6 @@
 using HiveSpace.Application.Shared.Handlers;
 using HiveSpace.Domain.Shared.Exceptions;
+using HiveSpace.IdentityService.Core.DomainModels;
 using HiveSpace.IdentityService.Core.Exceptions;
 using HiveSpace.IdentityService.Core.Features.AdminIdentity.Dtos;
 using HiveSpace.IdentityService.Core.Persistence;
@@ -15,7 +16,7 @@ public class DeleteUserCommandHandler(IdentityDbContext dbContext)
         var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == command.UserId, cancellationToken)
             ?? throw new NotFoundException(IdentityDomainErrorCode.IdentityUserNotFound, nameof(command.UserId));
 
-        user.Status = 0;
+        user.Status = UserStatus.Inactive;
         user.UpdatedAt = DateTimeOffset.UtcNow;
 
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -25,7 +26,7 @@ public class DeleteUserCommandHandler(IdentityDbContext dbContext)
             user.UserName ?? string.Empty,
             AdminIdentityMapper.GetDisplayName(user),
             user.Email ?? string.Empty,
-            user.Status,
+            (int)user.Status,
             user.CreatedAt,
             user.UpdatedAt,
             user.LastLoginAt,

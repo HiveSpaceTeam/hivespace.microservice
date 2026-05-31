@@ -1,0 +1,14 @@
+using Microsoft.AspNetCore.Identity;
+
+namespace HiveSpace.IdentityService.Core.DomainModels;
+
+public class ApplicationUser : IdentityUser<Guid>
+{
+    public UserStatus Status { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset? UpdatedAt { get; set; }
+    public DateTimeOffset? LastLoginAt { get; set; }
+
+    public string? RoleName { get; set; }
+    public Guid? StoreId { get; set; }
+}

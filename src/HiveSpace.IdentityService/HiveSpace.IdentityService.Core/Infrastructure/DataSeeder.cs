@@ -1,4 +1,4 @@
-using HiveSpace.IdentityService.Core.Identity;
+using HiveSpace.IdentityService.Core.DomainModels;
 using HiveSpace.IdentityService.Core.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;

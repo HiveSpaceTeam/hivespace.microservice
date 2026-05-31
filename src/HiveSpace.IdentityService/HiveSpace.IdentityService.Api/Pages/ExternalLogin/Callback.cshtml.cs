@@ -2,8 +2,7 @@ using Duende.IdentityModel;
 using Duende.IdentityServer;
 using Duende.IdentityServer.Events;
 using Duende.IdentityServer.Services;
-using HiveSpace.IdentityService.Core.Identity;
-using HiveSpace.IdentityService.Core.Enums;
+using HiveSpace.IdentityService.Core.DomainModels;
 using HiveSpace.IdentityService.Core.Interfaces.Messaging;
 using HiveSpace.IdentityService.Core.Persistence;
 using Microsoft.AspNetCore.Authentication;
@@ -97,7 +96,7 @@ public class Callback : PageModel
             }
 
             // Check if user is active before allowing login
-            if (user.Status != (int)UserStatus.Active)
+            if (user.Status != UserStatus.Active)
             {
                 const string error = "user inactive";
                 await _events.RaiseAsync(new UserLoginFailureEvent(provider, error, clientId: null));

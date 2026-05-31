@@ -3,7 +3,7 @@ using HiveSpace.Core.Exceptions;
 using HiveSpace.Core.Exceptions.Models;
 using HiveSpace.IdentityService.Core.Exceptions;
 using HiveSpace.IdentityService.Core.Features.AdminIdentity.Dtos;
-using HiveSpace.IdentityService.Core.Identity;
+using HiveSpace.IdentityService.Core.DomainModels;
 using HiveSpace.IdentityService.Core.Interfaces.Messaging;
 using HiveSpace.IdentityService.Core.Persistence;
 using Microsoft.AspNetCore.Identity;
@@ -27,7 +27,7 @@ public class CreateAdminCommandHandler(
             UserName       = command.Email.Trim(),
             Email          = command.Email.Trim(),
             RoleName       = role,
-            Status         = 1,
+            Status         = UserStatus.Active,
             EmailConfirmed = true,
             CreatedAt      = DateTimeOffset.UtcNow,
             UpdatedAt      = DateTimeOffset.UtcNow

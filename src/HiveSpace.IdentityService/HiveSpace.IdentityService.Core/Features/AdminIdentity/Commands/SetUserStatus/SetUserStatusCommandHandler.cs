@@ -1,5 +1,6 @@
 using HiveSpace.Application.Shared.Handlers;
 using HiveSpace.Domain.Shared.Exceptions;
+using HiveSpace.IdentityService.Core.DomainModels;
 using HiveSpace.IdentityService.Core.Exceptions;
 using HiveSpace.IdentityService.Core.Features.AdminIdentity.Dtos;
 using HiveSpace.IdentityService.Core.Persistence;
@@ -15,7 +16,7 @@ public class SetUserStatusCommandHandler(IdentityDbContext dbContext)
         var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == command.UserId, cancellationToken)
             ?? throw new NotFoundException(IdentityDomainErrorCode.IdentityUserNotFound, nameof(command.UserId));
 
-        user.Status = command.IsActive ? 1 : 0;
+        user.Status = command.IsActive ? UserStatus.Active : UserStatus.Inactive;
         user.UpdatedAt = DateTimeOffset.UtcNow;
 
         await dbContext.SaveChangesAsync(cancellationToken);

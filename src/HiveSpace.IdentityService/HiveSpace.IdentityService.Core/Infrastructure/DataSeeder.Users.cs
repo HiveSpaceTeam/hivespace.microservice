@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using Duende.IdentityModel;
-using HiveSpace.IdentityService.Core.Identity;
+using HiveSpace.IdentityService.Core.DomainModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 
@@ -52,7 +52,7 @@ public static partial class DataSeeder
             EmailConfirmed = true,
             PhoneNumber = "+84911111111",
             RoleName = "SystemAdmin",
-            Status = 1, // Active
+            Status = UserStatus.Active,
             CreatedAt = DateTimeOffset.UtcNow
         };
 
@@ -91,7 +91,7 @@ public static partial class DataSeeder
             EmailConfirmed = true,
             PhoneNumber = "+84922222222",
             RoleName = "Admin",
-            Status = 1, // Active
+            Status = UserStatus.Active,
             CreatedAt = DateTimeOffset.UtcNow
         };
 
@@ -124,7 +124,7 @@ public static partial class DataSeeder
             Email = "aliceSmith@gmail.com",
             EmailConfirmed = true,
             PhoneNumber = "+84901234567",
-            Status = 1, // Active
+            Status = UserStatus.Active,
             CreatedAt = DateTimeOffset.UtcNow
         };
 
@@ -154,7 +154,7 @@ public static partial class DataSeeder
             Email = "bobSmith@gmail.com",
             EmailConfirmed = false,
             PhoneNumber = "+84987654321",
-            Status = 1, // Active
+            Status = UserStatus.Active,
             CreatedAt = DateTimeOffset.UtcNow
         };
 
@@ -231,7 +231,7 @@ public static partial class DataSeeder
                 Email          = seed.Email,
                 EmailConfirmed = true,
                 PhoneNumber    = seed.Phone,
-                Status         = 1, // Active
+                Status         = UserStatus.Active,
                 RoleName       = "Seller",
                 StoreId        = seed.StoreId,
                 CreatedAt      = DateTimeOffset.UtcNow

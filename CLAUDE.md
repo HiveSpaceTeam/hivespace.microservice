@@ -15,6 +15,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | Command | Codex location | Claude Code location | Purpose |
 | --- | --- | --- | --- |
 | `/start-story` | `.agents/skills/start-story/SKILL.md` | `.claude/commands/start-story.md` | Start a backend story from `../hivespace.spec/specs/[feature-name]` |
+| `/verify-story` | `.agents/skills/verify-story/SKILL.md` | `.claude/commands/verify-story.md` | Audit current backend changes against the feature task definitions |
 | `/done-story` | `.agents/skills/done-story/SKILL.md` | `.claude/commands/done-story.md` | Verify a completed backend story |
 
 Keep paired Codex and Claude command content semantically equivalent.
@@ -203,7 +204,7 @@ Required flow:
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **hivespace.microservice** (7050 symbols, 17547 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **hivespace.microservice** (7093 symbols, 17550 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 

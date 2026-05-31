@@ -23,4 +23,5 @@ public class CommonErrorCode(int id, string name, string code) : Enumeration(id,
     public static readonly CommonErrorCode InvalidSortFormat = new(17, "InvalidSortFormat", "APP0015");
     public static readonly CommonErrorCode SubClaimMissing = new(18, "SubClaimMissing", "APP0016");
     public static readonly CommonErrorCode SubClaimInvalid = new(19, "SubClaimInvalid", "APP0017");
+    public static readonly CommonErrorCode CsrfValidationFailed = new(20, "CsrfValidationFailed", "APP0018");
 }

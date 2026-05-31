@@ -34,7 +34,7 @@ public static class AuthorizationServiceCollectionExtensions
             AuthorizationPolicyBuilder ScopedPolicy() =>
                 new AuthorizationPolicyBuilder(authSchemes.ToArray())
                     .RequireAuthenticatedUser()
-                    .RequireClaim("scope", serviceScope);
+                    .RequireAssertion(ctx => HasScope(ctx.User, serviceScope));
 
             // Default policy — used by bare [Authorize] attributes.
             options.DefaultPolicy = ScopedPolicy().Build();
@@ -108,5 +108,13 @@ public static class AuthorizationServiceCollectionExtensions
             });
         services.AddHiveSpaceAuthorization(scope);
         return services;
+    }
+
+    private static bool HasScope(System.Security.Claims.ClaimsPrincipal user, string requiredScope)
+    {
+        return user.FindAll("scope").Any(claim =>
+            string.Equals(claim.Value, requiredScope, StringComparison.Ordinal)
+            || claim.Value.Split(' ', StringSplitOptions.RemoveEmptyEntries).Contains(requiredScope, StringComparer.Ordinal)
+            || claim.Value.Contains($"\"{requiredScope}\"", StringComparison.Ordinal));
     }
 }

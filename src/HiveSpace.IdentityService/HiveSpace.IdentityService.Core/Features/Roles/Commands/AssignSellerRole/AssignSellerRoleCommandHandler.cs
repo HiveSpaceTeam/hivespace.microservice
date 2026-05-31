@@ -1,7 +1,7 @@
 using HiveSpace.Application.Shared.Handlers;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.IdentityService.Core.Exceptions;
-using HiveSpace.IdentityService.Core.Identity;
+using HiveSpace.IdentityService.Core.DomainModels;
 using HiveSpace.IdentityService.Core.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
