@@ -12,11 +12,11 @@ internal static class HostingExtensions
     {
         var configuration = builder.Configuration;
 
-        builder.Services.AddAppRazorUi();
+        builder.Services.AddAppForwardedHeaders();
+        builder.Services.AddAppSessionState();
         builder.Services.AddAppOpenApi();
         builder.Services.AddAppDatabase(configuration);
         builder.Services.AddAppServices();
-        builder.Services.AddLocalizationServices();
         builder.Services.AddAppIdentity();
         builder.Services.AddAppIdentityServer(configuration);
         builder.Services.AddAppAuthentication(configuration);
@@ -38,9 +38,9 @@ internal static class HostingExtensions
             await DataSeeder.EnsureSeedDataAsync(app);
         }
 
+        app.UseForwardedHeaders();
         app.UseHttpsRedirection();
 
-        app.UseStaticFiles();
         app.UseRouting();
         app.UseSession();
         app.UseMiddleware<CultureMiddleware>();
@@ -51,11 +51,10 @@ internal static class HostingExtensions
         app.UseAuthentication();
         app.UseAuthorization();
 
-        app.MapAccountCompatibilityEndpoints();
         app.MapIdentityEndpoints();
+        app.MapGoogleExternalAuthEndpoints();
         app.MapAdminIdentityEndpoints();
         app.MapHealthChecks("/health");
-        app.MapRazorPages().RequireAuthorization();
 
         return app;
     }

@@ -1,4 +1,4 @@
-using HiveSpace.IdentityService.Core.Features.AccountSessions.Services;
+using HiveSpace.IdentityService.Core.Interfaces.Services;
 
 namespace HiveSpace.IdentityService.Api.Endpoints;
 

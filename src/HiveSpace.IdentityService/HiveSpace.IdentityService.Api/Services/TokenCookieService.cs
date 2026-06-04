@@ -7,8 +7,8 @@ using HiveSpace.Core.Exceptions;
 using HiveSpace.Core.Exceptions.Models;
 using HiveSpace.Core.Helpers;
 using HiveSpace.IdentityService.Core.Exceptions;
-using HiveSpace.IdentityService.Core.Features.AccountSessions.Services;
 using HiveSpace.IdentityService.Core.DomainModels;
+using HiveSpace.IdentityService.Core.Interfaces.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 
