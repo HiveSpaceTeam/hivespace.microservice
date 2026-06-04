@@ -3,7 +3,7 @@ using HiveSpace.Core.Exceptions;
 using HiveSpace.Core.Exceptions.Models;
 using HiveSpace.Core.Helpers;
 using HiveSpace.IdentityService.Core.Exceptions;
-using HiveSpace.IdentityService.Core.Features.AccountSessions.Services;
+using HiveSpace.IdentityService.Core.Interfaces.Services;
 
 namespace HiveSpace.IdentityService.Api.Services;
 

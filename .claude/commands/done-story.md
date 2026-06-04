@@ -22,9 +22,11 @@ Verification:
 - Run the smallest meaningful build/test command for the changed service.
 - Confirm any generated migration compiles if a migration was added.
 - Confirm no unrelated files were changed.
+- Treat modified `*.json`, `.env`, user-secrets, or other local runtime config as user-owned unless the story explicitly requires validating committed config shape. Do not replace secrets with placeholders, revert local values, or fail the done check solely because user-managed config contains local secret values; instead list those files separately and remind the user that agents must not stage JSON/env secret files.
 
 Report:
 - List files created and modified.
 - List verification commands and results.
+- List modified JSON/env secret-bearing files separately as "user-staged/user-owned config" when present, without treating them as an agent-staged blocker.
 - If more stories remain, show the next backend story/task group from `tasks/backend.md`, using `tasks.md` for dependency order.
 - Remind the user to run `/wrap-up` in `hivespace.spec` when the full feature is shipped.

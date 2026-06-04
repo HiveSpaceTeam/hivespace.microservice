@@ -5,7 +5,7 @@ using HiveSpace.IdentityService.Core.DomainModels;
 using HiveSpace.IdentityService.Core.Exceptions;
 using HiveSpace.IdentityService.Core.Features.AccountSessions.Commands;
 using HiveSpace.IdentityService.Core.Features.AccountSessions.Dtos;
-using HiveSpace.IdentityService.Core.Features.AccountSessions.Services;
+using HiveSpace.IdentityService.Core.Interfaces.Services;
 using Microsoft.AspNetCore.Identity;
 
 namespace HiveSpace.IdentityService.Core.Features.AccountSessions.Commands.RefreshSession;

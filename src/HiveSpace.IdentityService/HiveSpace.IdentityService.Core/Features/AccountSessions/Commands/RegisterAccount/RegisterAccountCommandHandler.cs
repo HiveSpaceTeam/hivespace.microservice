@@ -5,8 +5,8 @@ using HiveSpace.IdentityService.Core.DomainModels;
 using HiveSpace.IdentityService.Core.Exceptions;
 using HiveSpace.IdentityService.Core.Features.AccountSessions.Commands;
 using HiveSpace.IdentityService.Core.Features.AccountSessions.Dtos;
-using HiveSpace.IdentityService.Core.Features.AccountSessions.Services;
 using HiveSpace.IdentityService.Core.Interfaces.Messaging;
+using HiveSpace.IdentityService.Core.Interfaces.Services;
 using HiveSpace.IdentityService.Core.Persistence;
 using Microsoft.AspNetCore.Identity;
 using ConflictException = HiveSpace.Domain.Shared.Exceptions.ConflictException;
@@ -17,8 +17,7 @@ public class RegisterAccountCommandHandler(
     UserManager<ApplicationUser> userManager,
     IIdentityEventPublisher identityEventPublisher,
     IdentityDbContext dbContext,
-    ITokenCookieService tokenCookieService,
-    ICsrfTokenService csrfTokenService)
+    IAccountSessionIssuer accountSessionIssuer)
     : ICommandHandler<RegisterAccountCommand, SessionResponse>
 {
     public async Task<SessionResponse> Handle(RegisterAccountCommand command, CancellationToken cancellationToken)
@@ -48,16 +47,11 @@ public class RegisterAccountCommandHandler(
         await identityEventPublisher.PublishIdentityUserCreatedAsync(user, command.FullName, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        var issuedSession = await tokenCookieService.IssueAsync(user, command.App, cancellationToken);
-        var csrfToken = csrfTokenService.Issue(issuedSession.SessionId, issuedSession.RefreshExpiresAt);
-        var roles = await AccountSessionHandlerBase.GetRolesAsync(userManager, user);
-        var sessionUser = AccountSessionHandlerBase.ToSessionUser(user, roles);
-
-        return new SessionResponse(
-            sessionUser,
-            issuedSession.AccessExpiresAt,
-            issuedSession.RefreshExpiresAt,
-            csrfToken,
-            command.ReturnUrl);
+        return await accountSessionIssuer.IssueAsync(
+            user,
+            command.App,
+            command.ReturnUrl,
+            updateLastLogin: false,
+            cancellationToken);
     }
 }

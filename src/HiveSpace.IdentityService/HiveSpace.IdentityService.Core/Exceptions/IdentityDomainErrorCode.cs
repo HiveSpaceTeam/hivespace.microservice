@@ -19,4 +19,8 @@ public class IdentityDomainErrorCode : DomainErrorCode
     public static readonly IdentityDomainErrorCode InvalidSession = new(6011, "InvalidSession", "IDN6011");
     public static readonly IdentityDomainErrorCode SessionExpired = new(6012, "SessionExpired", "IDN6012");
     public static readonly IdentityDomainErrorCode InvalidReturnUrl = new(6013, "InvalidReturnUrl", "IDN6013");
+    public static readonly IdentityDomainErrorCode ExternalLoginFailed = new(6014, "ExternalLoginFailed", "IDN6014");
+    public static readonly IdentityDomainErrorCode ExternalLoginAlreadyLinked = new(6015, "ExternalLoginAlreadyLinked", "IDN6015");
+    public static readonly IdentityDomainErrorCode PendingGoogleLinkNotFound = new(6016, "PendingGoogleLinkNotFound", "IDN6016");
+    public static readonly IdentityDomainErrorCode PendingGoogleLinkExpired = new(6017, "PendingGoogleLinkExpired", "IDN6017");
 }
