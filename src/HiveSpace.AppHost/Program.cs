@@ -133,6 +133,7 @@ var notification = builder.AddProject<Projects.HiveSpace_NotificationService_Api
 
 builder.AddProject<Projects.HiveSpace_YarpApiGateway>("api-gateway", httpLaunchProfile)
     .WithReference(identity)
+    .WaitFor(identity)
     .WithEnvironment("Authentication__Authority", identityEndpoint)
     .WithEnvironment("ReverseProxy__Clusters__identity-cluster__Destinations__destination1__Address", identityEndpoint)
     .WithEnvironment("ReverseProxy__Clusters__user-cluster__Destinations__destination1__Address", user.GetEndpoint(httpLaunchProfile))
