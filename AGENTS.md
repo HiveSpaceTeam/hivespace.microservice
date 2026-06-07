@@ -82,11 +82,14 @@ See feature implementation patterns, DDD building blocks, and sagas: `docs/agent
 dotnet restore
 dotnet build   # Expect 6 nullability warnings in HiveSpace.Domain.Shared; non-blocking
 
-# Run individual services
+# Preferred backend local runtime (replaces Docker Compose for backend local development)
+dotnet run --project .\src\HiveSpace.AppHost\HiveSpace.AppHost.csproj
+
+# Run individual services only for focused debugging
 cd src/HiveSpace.ApiGateway/HiveSpace.YarpApiGateway && dotnet run      # http://localhost:5000, no DB
 cd src/HiveSpace.UserService/HiveSpace.UserService.Api && dotnet run    # http://localhost:5007, requires SQL Server
 cd src/HiveSpace.CatalogService/HiveSpace.CatalogService.Api && dotnet run  # requires SQL Server + RabbitMQ + Kafka
-cd src/HiveSpace.OrderService/HiveSpace.OrderService.Api && dotnet run  # https://localhost:5002, requires SQL Server + RabbitMQ + Kafka
+cd src/HiveSpace.OrderService/HiveSpace.OrderService.Api && dotnet run  # http://localhost:5004, requires SQL Server + RabbitMQ + Kafka
 
 # EF Core migrations (run from project root, targeting the Infrastructure project)
 dotnet ef migrations add <Name> --project src/HiveSpace.OrderService/HiveSpace.OrderService.Infrastructure --startup-project src/HiveSpace.OrderService/HiveSpace.OrderService.Api
@@ -95,7 +98,9 @@ dotnet ef database update --project src/HiveSpace.OrderService/HiveSpace.OrderSe
 
 No test projects exist - `dotnet test` returns immediately.
 
-**Infrastructure requirements**: SQL Server on `localhost:1433` (sa/Passw0rd123!), RabbitMQ on `localhost:5672` (guest/guest), Kafka on `localhost:9092`.
+**Infrastructure requirements**: AppHost starts SQL Server on `localhost:1433` (sa/Passw0rd123!), RabbitMQ on `localhost:5672` (guest/guest), Kafka on `localhost:9092`, Redis on `localhost:6379`, and Azurite on `localhost:10000` / `10001` / `10002`. Frontend dev servers remain outside AppHost v1 and continue using `http://localhost:5000`.
+
+Dependency endpoints and secrets belong under compact lowercase `ConnectionStrings` keys such as `rabbitmq`, `kafka`, `redis`, `azureservicebus`, and service database keys like `orderdb`; keep only broker enablement flags (`Messaging:EnableRabbitMq`, `Messaging:EnableKafka`, `Messaging:EnableAzureServiceBus`) and non-secret tuning under `Messaging`.
 
 Expected startup warnings: Duende IdentityServer license and MediatR license reminders - development use is permitted.
 
@@ -125,7 +130,7 @@ libs/
 
 All packages are centrally versioned in `Directory.Packages.props` - never specify versions in `.csproj` files.
 
-See startup file conventions (`Program.cs`, `HostingExtensions.cs`, `ServiceCollectionExtensions.cs`): `docs/agent/startup-conventions.md`
+See startup file conventions (`Program.cs`, `HostingExtensions.cs`, `ServiceCollectionExtensions.cs`): `docs/agent/startup-conventions.md`. API services use shared Serilog setup from ServiceDefaults; do not configure Serilog directly in `Program.cs`.
 
 ## Service Types - Quick Reference
 
@@ -204,7 +209,7 @@ Required flow:
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **hivespace.microservice** (6903 symbols, 17776 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **hivespace.microservice** (6939 symbols, 17799 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 

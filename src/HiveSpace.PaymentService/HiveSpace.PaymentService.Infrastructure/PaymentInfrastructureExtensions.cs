@@ -21,10 +21,10 @@ public static class PaymentInfrastructureExtensions
 {
     public static void AddPaymentDbContext(this IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("PaymentServiceDb");
+        var connectionString = configuration.GetConnectionString("PaymentDb");
         if (string.IsNullOrWhiteSpace(connectionString))
         {
-            var error = new Error(CommonErrorCode.ConfigurationMissing, "PaymentServiceDb");
+            var error = new Error(CommonErrorCode.ConfigurationMissing, "PaymentDb");
             throw new HiveSpace.Core.Exceptions.ApplicationException([error], 500, false);
         }
 

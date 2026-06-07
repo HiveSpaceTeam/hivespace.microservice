@@ -8,81 +8,77 @@ using HiveSpace.MediaService.Core.Interfaces.Messaging;
 using HiveSpace.MediaService.Core.Persistence.Repositories;
 using HiveSpace.MediaService.Core.Services;
 using MassTransit;
-using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
-var host = new HostBuilder()
-    .ConfigureFunctionsWorkerDefaults()
-    .ConfigureAppConfiguration((context, config) =>
+var builder = FunctionsApplication.CreateBuilder(args);
+
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Configuration.AddJsonFile("local.settings.json", optional: true, reloadOnChange: true);
+
+builder.Services.Configure<System.Text.Json.JsonSerializerOptions>(options =>
+{
+    options.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+});
+
+var configuration = builder.Configuration;
+var baseConnectionString = configuration.GetConnectionString("MediaDb");
+
+// Add connection timeout to handle Azure SQL cold starts
+var connectionStringBuilder = new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(baseConnectionString)
+{
+    ConnectTimeout = 60,
+    ConnectRetryCount = 3,
+    ConnectRetryInterval = 10,
+    Pooling = true,
+    MinPoolSize = 0,
+    MaxPoolSize = 100
+};
+var connectionString = connectionStringBuilder.ConnectionString;
+
+// Register Configuration
+builder.Services.AddSingleton<StorageConfiguration>();
+
+// Register Core Services
+builder.Services.AddScoped<IStorageService, AzureBlobStorageService>();
+builder.Services.AddScoped<IQueueService, AzureQueueService>();
+builder.Services.AddScoped<IMediaAssetRepository, MediaAssetRepository>();
+builder.Services.AddScoped<IMediaCleanupService, MediaCleanupService>();
+builder.Services.AddScoped<IMediaEventPublisher, MediaEventPublisher>();
+
+// Register Database with enhanced retry logic for Azure SQL
+builder.Services.AddDbContext<MediaDbContext>((_, options) =>
+{
+    options.UseSqlServer(connectionString, sqlOptions => sqlOptions
+        .EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(30),
+            errorNumbersToAdd: null)
+        .CommandTimeout(120));
+});
+
+var messagingOptions = configuration
+    .GetSection(MessagingOptions.SectionName)
+    .Get<MessagingOptions>();
+
+if (messagingOptions?.EnableRabbitMq == true)
+{
+    var rabbitMqConnectionString = MessagingConnectionStrings.GetRequired(
+        configuration,
+        MessagingConnectionStrings.RabbitMq);
+
+    builder.Services.AddMassTransit(x =>
     {
-        config.AddJsonFile("local.settings.json", optional: true, reloadOnChange: true);
-    })
-    .ConfigureServices((context, services) =>
-    {
-        services.Configure<System.Text.Json.JsonSerializerOptions>(options =>
+        x.UsingRabbitMq((_, cfg) =>
         {
-            options.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+            cfg.Host(new Uri(rabbitMqConnectionString));
         });
+    });
+}
 
-        var configuration = context.Configuration;
-        var baseConnectionString = configuration["Database:MediaServiceDb"];
-
-        // Add connection timeout to handle Azure SQL cold starts
-        var connectionStringBuilder = new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(baseConnectionString)
-        {
-            ConnectTimeout = 60,
-            ConnectRetryCount = 3,
-            ConnectRetryInterval = 10,
-            Pooling = true,
-            MinPoolSize = 0,
-            MaxPoolSize = 100
-        };
-        var connectionString = connectionStringBuilder.ConnectionString;
-
-        // Register Configuration
-        services.AddSingleton<StorageConfiguration>();
-
-        // Register Core Services
-        services.AddScoped<IStorageService, AzureBlobStorageService>();
-        services.AddScoped<IQueueService, AzureQueueService>();
-        services.AddScoped<IMediaAssetRepository, MediaAssetRepository>();
-        services.AddScoped<IMediaCleanupService, MediaCleanupService>();
-        services.AddScoped<IMediaEventPublisher, MediaEventPublisher>();
-
-        // Register Database with enhanced retry logic for Azure SQL
-        services.AddDbContext<MediaDbContext>((sp, options) =>
-        {
-            options.UseSqlServer(connectionString, sqlOptions => sqlOptions
-                .EnableRetryOnFailure(
-                    maxRetryCount: 5,
-                    maxRetryDelay: TimeSpan.FromSeconds(30),
-                    errorNumbersToAdd: null)
-                .CommandTimeout(120));
-        });
-        var messagingOptions = configuration
-                .GetSection(MessagingOptions.SectionName)
-                .Get<MessagingOptions>();
-
-        if (messagingOptions?.EnableRabbitMq == true)
-        {
-            services.AddMassTransit(x =>
-            {
-                x.UsingRabbitMq((_, cfg) =>
-                {
-                    cfg.Host(messagingOptions.RabbitMq.Host, h =>
-                    {
-                        h.Username(messagingOptions.RabbitMq.Username ?? "guest");
-                        h.Password(messagingOptions.RabbitMq.Password ?? "guest");
-                    });
-                });
-            });
-        }
-        // Register MassTransit for publishing integration events (publish-only, no consumers)
-        
-    })
-    .Build();
-
-host.Run();
+builder.Build().Run();

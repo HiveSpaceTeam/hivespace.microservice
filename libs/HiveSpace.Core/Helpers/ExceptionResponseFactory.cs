@@ -2,6 +2,7 @@ using HiveSpace.Core.Exceptions;
 using HiveSpace.Core.Exceptions.Models;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Domain.Shared.Errors;
+using System.Diagnostics;
 
 namespace HiveSpace.Core.Helpers;
 
@@ -14,7 +15,7 @@ public static class ExceptionResponseFactory
             Errors = [],
             Status = "500",
             Timestamp = DateTimeOffset.Now,
-            TraceId = Guid.NewGuid().ToString(),
+            TraceId = Activity.Current?.TraceId.ToString() ?? Guid.NewGuid().ToString(),
             Version = "1.0"
         };
 

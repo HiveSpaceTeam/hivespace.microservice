@@ -17,10 +17,10 @@ public class UserDbContextFactory : IDesignTimeDbContextFactory<UserDbContext>
             .AddJsonFile("appsettings.json", optional: false)
             .Build();
 
-        var connectionString = configuration.GetConnectionString("UserServiceDb");
+        var connectionString = configuration.GetConnectionString("UserDb");
         if (string.IsNullOrWhiteSpace(connectionString))
         {
-            var error = new Error(CommonErrorCode.ConfigurationMissing, "UserServiceDb");
+            var error = new Error(CommonErrorCode.ConfigurationMissing, "UserDb");
             throw new ConfigurationException([error]);
         }
 

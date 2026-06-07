@@ -12,7 +12,10 @@ public class AzureQueueService : IQueueService
 
     public AzureQueueService(IConfiguration configuration)
     {
-        var connectionString = configuration["AzureStorage:ConnectionString"]
+        var connectionString = configuration.GetConnectionString("AzureQueueStorage")
+            ?? configuration.GetConnectionString("AzureStorageQueues")
+            ?? configuration.GetConnectionString("AzureStorage")
+            ?? configuration["AzureStorage:ConnectionString"]
             ?? throw new DomainException(500, MediaDomainErrorCode.StorageConfigurationMissing, nameof(AzureQueueService));
 
         var queueName = configuration["AzureStorage:QueueName"]

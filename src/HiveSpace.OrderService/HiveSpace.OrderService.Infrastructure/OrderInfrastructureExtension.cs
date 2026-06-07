@@ -22,10 +22,10 @@ public static class OrderInfrastructureExtension
 {
     public static void AddOrderDbContext(this IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("OrderServiceDb");
+        var connectionString = configuration.GetConnectionString("OrderDb");
         if (string.IsNullOrWhiteSpace(connectionString))
         {
-            var error = new Error(CommonErrorCode.ConfigurationMissing, "OrderServiceDb");
+            var error = new Error(CommonErrorCode.ConfigurationMissing, "OrderDb");
             throw new HiveSpace.Core.Exceptions.ApplicationException([error], 500, false);
         }
 

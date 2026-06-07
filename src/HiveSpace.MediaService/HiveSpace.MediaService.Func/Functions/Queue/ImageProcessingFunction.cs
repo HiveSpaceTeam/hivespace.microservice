@@ -25,7 +25,7 @@ public class ImageProcessingFunction(
     private const string QueueName = "image-processing-queue";
 
     [Function(nameof(ImageProcessingFunction))]
-    public async Task Run([QueueTrigger(QueueName, Connection = "AzureStorage:ConnectionString")] string message)
+    public async Task Run([QueueTrigger(QueueName, Connection = "ConnectionStrings:AzureQueueStorage")] string message)
     {
         logger.LogInformation("Processing queue message: {Message}", message);
 

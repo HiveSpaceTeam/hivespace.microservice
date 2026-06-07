@@ -14,7 +14,7 @@ public class IdentityDbContextFactory : IDesignTimeDbContextFactory<IdentityDbCo
             .AddEnvironmentVariables()
             .Build();
 
-        var connectionString = configuration.GetConnectionString("DefaultConnection");
+        var connectionString = configuration.GetConnectionString("IdentityDb");
 
         var optionsBuilder = new DbContextOptionsBuilder<IdentityDbContext>();
         optionsBuilder.UseSqlServer(connectionString);

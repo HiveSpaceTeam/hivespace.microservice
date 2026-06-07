@@ -4,7 +4,9 @@ using HiveSpace.Core.Middlewares;
 using HiveSpace.PaymentService.Api.Endpoints;
 using HiveSpace.PaymentService.Application;
 using HiveSpace.PaymentService.Infrastructure;
+using Microsoft.Extensions.Hosting;
 using Scalar.AspNetCore;
+using Serilog;
 
 namespace HiveSpace.PaymentService.Api.Extensions;
 
@@ -12,6 +14,8 @@ internal static class HostingExtensions
 {
     public static WebApplication ConfigureServices(this WebApplicationBuilder builder)
     {
+        builder.AddDefaultSerilog();
+        builder.AddServiceDefaults();
         builder.Services.AddAppOpenApi();
         builder.Services.AddPaymentDbContext(builder.Configuration);
         builder.Services.AddCoreServices();
@@ -24,11 +28,14 @@ internal static class HostingExtensions
 
     public static WebApplication ConfigurePipeline(this WebApplication app)
     {
+        app.UseSerilogRequestLogging();
+
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();
             app.MapScalarApiReference(options => options
                 .WithTitle("HiveSpace PaymentService API")
+                .WithOpenApiRoutePattern("/swagger/{documentName}/swagger.json")
                 .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient));
         }
 
@@ -39,6 +46,7 @@ internal static class HostingExtensions
         app.UseAuthentication();
         app.UseAuthorization();
 
+        app.MapDefaultEndpoints();
         app.MapHealthEndpoints();
         app.MapPaymentEndpoints();
         app.MapWalletEndpoints();

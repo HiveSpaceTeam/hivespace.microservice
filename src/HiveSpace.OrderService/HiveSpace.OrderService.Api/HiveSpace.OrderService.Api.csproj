@@ -16,6 +16,7 @@
     <PackageReference Include="Scalar.AspNetCore" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\src\HiveSpace.ServiceDefaults\HiveSpace.ServiceDefaults.csproj" />
     <ProjectReference Include="..\HiveSpace.OrderService.Infrastructure\HiveSpace.OrderService.Infrastructure.csproj" />
     <ProjectReference Include="..\HiveSpace.OrderService.Application\HiveSpace.OrderService.Application.csproj" />
     <ProjectReference Include="..\HiveSpace.OrderService.Domain\HiveSpace.OrderService.Domain.csproj" />

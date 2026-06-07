@@ -20,10 +20,10 @@ public static class UserInfrastructureExtension
 
     public static void AddUserDbContext(this IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("UserServiceDb");
+        var connectionString = configuration.GetConnectionString("UserDb");
         if (string.IsNullOrWhiteSpace(connectionString))
         {
-            var error = new Error(CommonErrorCode.ConfigurationMissing, "UserServiceDb");
+            var error = new Error(CommonErrorCode.ConfigurationMissing, "UserDb");
             throw new HiveSpace.Core.Exceptions.ApplicationException([error], 500, false);
         }
 

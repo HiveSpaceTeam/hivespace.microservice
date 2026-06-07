@@ -24,6 +24,10 @@ test/**/obj/
 test/**/bin/
 templates/**/obj/
 templates/**/bin/
+HiveSpace.AppHost/obj/
+HiveSpace.AppHost/bin/
+HiveSpace.ServiceDefaults/obj/
+HiveSpace.ServiceDefaults/bin/
 
 # Other
 /preview

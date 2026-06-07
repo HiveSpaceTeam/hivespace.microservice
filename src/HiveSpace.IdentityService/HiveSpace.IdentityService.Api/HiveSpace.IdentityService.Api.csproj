@@ -20,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\src\HiveSpace.ServiceDefaults\HiveSpace.ServiceDefaults.csproj" />
     <ProjectReference Include="..\HiveSpace.IdentityService.Core\HiveSpace.IdentityService.Core.csproj" />
     <ProjectReference Include="..\..\..\libs\HiveSpace.Core\HiveSpace.Core.csproj" />
     <ProjectReference Include="..\..\..\libs\HiveSpace.Infrastructure.Authorization\HiveSpace.Infrastructure.Authorization.csproj" />

@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\src\HiveSpace.ServiceDefaults\HiveSpace.ServiceDefaults.csproj" />
     <ProjectReference Include="..\HiveSpace.PaymentService.Infrastructure\HiveSpace.PaymentService.Infrastructure.csproj" />
     <ProjectReference Include="..\HiveSpace.PaymentService.Application\HiveSpace.PaymentService.Application.csproj" />
     <ProjectReference Include="..\HiveSpace.PaymentService.Domain\HiveSpace.PaymentService.Domain.csproj" />

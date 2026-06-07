@@ -1,7 +1,5 @@
 using HiveSpace.Core;
-using HiveSpace.Core.OpenApi;
 using HiveSpace.Domain.Shared.Converters;
-using HiveSpace.Infrastructure.Authorization.Extensions;
 using HiveSpace.Infrastructure.Messaging.Configurations;
 using HiveSpace.Infrastructure.Messaging.Extensions;
 using HiveSpace.OrderService.Api.Consumers.Saga.CheckoutSaga;
@@ -11,6 +9,7 @@ using HiveSpace.OrderService.Api.Sagas.FulfillmentSaga;
 using HiveSpace.OrderService.Infrastructure.Sagas;
 using HiveSpace.OrderService.Infrastructure.Data;
 using MassTransit;
+using Microsoft.Extensions.Hosting;
 
 namespace HiveSpace.OrderService.Api.Extensions;
 
@@ -31,7 +30,7 @@ internal static class ServiceCollectionExtensions
     }
 
     public static void AddAppOpenApi(this IServiceCollection services)
-        => services.AddHiveSpaceSwaggerGen("HiveSpace.OrderService API", "HiveSpace.OrderService microservice");
+        => services.AddDefaultOpenApi("HiveSpace.OrderService API", "HiveSpace.OrderService microservice");
 
     public static void AddAppMessaging(this IServiceCollection services, IConfiguration configuration)
     {
@@ -66,6 +65,6 @@ internal static class ServiceCollectionExtensions
     }
 
     public static void AddAppAuthentication(this IServiceCollection services, IConfiguration configuration)
-        => services.AddHiveSpaceJwtBearerAuthentication(configuration, "order.fullaccess");
+        => services.AddDefaultAuthentication(configuration, "order.fullaccess");
 
 }

@@ -10,7 +10,9 @@ using HiveSpace.Core.Middlewares;
 using HiveSpace.Infrastructure.Messaging.Configurations;
 using HiveSpace.Infrastructure.Messaging.Extensions;
 using HiveSpace.Infrastructure.Persistence;
+using Microsoft.Extensions.Hosting;
 using Scalar.AspNetCore;
+using Serilog;
 
 namespace HiveSpace.CatalogService.Api.Extensions
 {
@@ -18,6 +20,8 @@ namespace HiveSpace.CatalogService.Api.Extensions
     {
         public static WebApplication ConfigureServices(this WebApplicationBuilder builder)
         {
+            builder.AddDefaultSerilog();
+            builder.AddServiceDefaults();
             builder.Services.AddAppOpenApi();
             builder.Services.AddAppApiVersioning();
             builder.Services.AddAppApplicationServices();
@@ -71,11 +75,14 @@ namespace HiveSpace.CatalogService.Api.Extensions
 
         public static WebApplication ConfigurePipeline(this WebApplication app)
         {
+            app.UseSerilogRequestLogging();
+
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
                 app.MapScalarApiReference(options => options
                     .WithTitle("HiveSpace CatalogService API")
+                    .WithOpenApiRoutePattern("/swagger/{documentName}/swagger.json")
                     .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient));
             }
 
@@ -86,6 +93,7 @@ namespace HiveSpace.CatalogService.Api.Extensions
 
             app.UseAuthentication();
             app.UseAuthorization();
+            app.MapDefaultEndpoints();
             app.MapProductEndpoints();
             app.MapCategoryEndpoints();
 

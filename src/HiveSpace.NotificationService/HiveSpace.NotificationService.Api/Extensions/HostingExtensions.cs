@@ -3,6 +3,7 @@ using HiveSpace.Core.Extensions;
 using HiveSpace.NotificationService.Api.Endpoints;
 using HiveSpace.NotificationService.Api.Hubs;
 using HiveSpace.NotificationService.Core;
+using Microsoft.Extensions.Hosting;
 using Scalar.AspNetCore;
 using Serilog;
 
@@ -14,6 +15,8 @@ internal static class HostingExtensions
     {
         var configuration = builder.Configuration;
 
+        builder.AddDefaultSerilog();
+        builder.AddServiceDefaults();
         builder.Services.AddAppOpenApi();
         builder.Services.AddNotificationDbContext(configuration);
         builder.Services.AddCoreServices();
@@ -28,7 +31,7 @@ internal static class HostingExtensions
         return builder.Build();
     }
 
-    public static async Task<WebApplication> ConfigurePipelineAsync(this WebApplication app)
+    public static WebApplication ConfigurePipeline(this WebApplication app)
     {
         app.UseSerilogRequestLogging();
 
@@ -37,11 +40,8 @@ internal static class HostingExtensions
             app.UseSwagger();
             app.MapScalarApiReference(options => options
                 .WithTitle("HiveSpace NotificationService API")
+                .WithOpenApiRoutePattern("/swagger/{documentName}/swagger.json")
                 .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient));
-
-            Console.WriteLine("Attempting to run database migrations...");
-            await DataSeeder.EnsureSeedDataAsync(app);
-            Console.WriteLine("Database migrations completed.");
         }
 
         app.UseHiveSpaceExceptionHandler();
@@ -52,6 +52,7 @@ internal static class HostingExtensions
 
         app.MapNotificationEndpoints();
         app.MapPreferenceEndpoints();
+        app.MapDefaultEndpoints();
 
         if (app.Environment.IsDevelopment())
             app.MapDevEndpoints();

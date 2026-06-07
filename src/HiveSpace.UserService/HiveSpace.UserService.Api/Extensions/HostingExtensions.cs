@@ -5,6 +5,8 @@ using HiveSpace.UserService.Api.Middleware;
 using HiveSpace.UserService.Infrastructure;
 using HiveSpace.UserService.Infrastructure.Data;
 using HiveSpace.Infrastructure.Messaging.Configurations;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.Extensions.Hosting;
 using Scalar.AspNetCore;
 using Serilog;
 
@@ -15,6 +17,16 @@ internal static class HostingExtensions
 
     public static WebApplication ConfigureServices(this WebApplicationBuilder builder, IConfiguration configuration)
     {
+        builder.AddDefaultSerilog();
+        builder.AddServiceDefaults();
+        builder.Services.Configure<ForwardedHeadersOptions>(options =>
+        {
+            options.ForwardedHeaders =
+                ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+
+            options.KnownNetworks.Clear();
+            options.KnownProxies.Clear();
+        });
         // builder.Services.AddMediatRRegistration(configuration);
         builder.Services.AddAppApiControllers();
         builder.Services.AddAppOpenApi();
@@ -27,7 +39,6 @@ internal static class HostingExtensions
         builder.Services.AddAppAuthentication(configuration);
         builder.Services.AddAppAuthorization();
         builder.Services.AddAppApiVersioning();
-        builder.Services.AddHealthChecks();
 
         var messagingOptions = configuration.GetSection(MessagingOptions.SectionName).Get<MessagingOptions>();
 
@@ -58,6 +69,7 @@ internal static class HostingExtensions
             app.UseSwagger();
             app.MapScalarApiReference(options => options
                 .WithTitle("HiveSpace UserService API")
+                .WithOpenApiRoutePattern("/swagger/{documentName}/swagger.json")
                 .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient));
         }
 
@@ -71,15 +83,11 @@ internal static class HostingExtensions
 
         // Map all controllers under /user prefix using built-in .NET support
         app.MapControllers();
-        app.MapHealthChecks("/health");
+        app.MapDefaultEndpoints();
         
         if (app.Environment.IsDevelopment())
         {
             app.MapGet("/", () => Results.Redirect("/scalar/v1")).ExcludeFromDescription();
-
-            DataSeeder.EnsureSeedDataAsync(app)
-                .GetAwaiter()
-                .GetResult();
         }
 
         return app;

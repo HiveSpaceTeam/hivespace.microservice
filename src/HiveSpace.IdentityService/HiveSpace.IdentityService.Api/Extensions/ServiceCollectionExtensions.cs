@@ -1,4 +1,3 @@
-using HiveSpace.Core.OpenApi;
 using HiveSpace.IdentityService.Api.Consumers;
 using HiveSpace.IdentityService.Api.Configs;
 using HiveSpace.IdentityService.Api.Middleware;
@@ -11,7 +10,6 @@ using HiveSpace.IdentityService.Core.Interfaces.Messaging;
 using HiveSpace.IdentityService.Core.Interfaces.Services;
 using HiveSpace.IdentityService.Core.Messaging;
 using HiveSpace.IdentityService.Core.Persistence;
-using HiveSpace.Infrastructure.Authorization.Extensions;
 using HiveSpace.Infrastructure.Messaging.Configurations;
 using HiveSpace.Infrastructure.Messaging.Extensions;
 using HiveSpace.Core.Exceptions;
@@ -23,6 +21,7 @@ using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using System.Security.Claims;
 
 namespace HiveSpace.IdentityService.Api.Extensions;
@@ -30,7 +29,7 @@ namespace HiveSpace.IdentityService.Api.Extensions;
 internal static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddAppOpenApi(this IServiceCollection services)
-        => services.AddHiveSpaceSwaggerGen("HiveSpace IdentityService API", "HiveSpace IdentityService microservice");
+        => services.AddDefaultOpenApi("HiveSpace IdentityService API", "HiveSpace IdentityService microservice");
 
     public static IServiceCollection AddAppForwardedHeaders(this IServiceCollection services)
     {
@@ -114,7 +113,7 @@ internal static class ServiceCollectionExtensions
 
     public static IServiceCollection AddAppAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddHiveSpaceJwtBearerAuthentication(configuration, "identity.fullaccess");
+        services.AddDefaultAuthentication(configuration, "identity.fullaccess");
         services.Configure<GoogleExternalAuthOptions>(configuration.GetSection(GoogleExternalAuthOptions.SectionName));
         services.PostConfigure<GoogleExternalAuthOptions>(options =>
         {
@@ -184,7 +183,7 @@ internal static class ServiceCollectionExtensions
     public static IServiceCollection AddAppDatabase(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<IdentityDbContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+            options.UseSqlServer(configuration.GetConnectionString("IdentityDb")));
 
         return services;
     }

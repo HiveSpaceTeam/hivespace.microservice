@@ -1,29 +1,16 @@
 using HiveSpace.NotificationService.Api.Extensions;
-using Serilog;
+using HiveSpace.NotificationService.Core;
 
-Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
-    .CreateBootstrapLogger();
+var builder = WebApplication.CreateBuilder(args);
+var app = builder.ConfigureServices();
+app.ConfigurePipeline();
 
-try
+if (app.Environment.IsDevelopment())
 {
-    var builder = WebApplication.CreateBuilder(args);
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    logger.LogInformation("Applying NotificationService migrations and seed data");
+    await DataSeeder.EnsureSeedDataAsync(app);
+    logger.LogInformation("NotificationService migrations and seed data are ready");
+}
 
-    builder.Host.UseSerilog((context, services, config) =>
-        config.ReadFrom.Configuration(context.Configuration)
-              .ReadFrom.Services(services)
-              .Enrich.FromLogContext()
-              .WriteTo.Console());
-
-    var app = builder.ConfigureServices();
-    await app.ConfigurePipelineAsync();
-    app.Run();
-}
-catch (Exception ex)
-{
-    Log.Fatal(ex, "NotificationService terminated unexpectedly");
-}
-finally
-{
-    Log.CloseAndFlush();
-}
+app.Run();
