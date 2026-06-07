@@ -1,7 +1,5 @@
 using Asp.Versioning;
 using HiveSpace.Core;
-using HiveSpace.Core.OpenApi;
-using HiveSpace.Infrastructure.Authorization.Extensions;
 using HiveSpace.UserService.Api.Services.Localization;
 using HiveSpace.UserService.Application;
 using HiveSpace.UserService.Application.Services;
@@ -10,6 +8,7 @@ using HiveSpace.UserService.Domain.Services;
 using System.Globalization;
 using Microsoft.AspNetCore.Localization;
 using HiveSpace.UserService.Api.Middleware;
+using Microsoft.Extensions.Hosting;
 
 
 namespace HiveSpace.UserService.Api.Extensions;
@@ -65,7 +64,7 @@ internal static class ServiceCollectionExtensions
 
     public static void AddAppAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddHiveSpaceJwtBearerAuthentication(configuration, "user.fullaccess");
+        services.AddDefaultAuthentication(configuration, "user.fullaccess");
     }
 
     public static void AddAppAuthorization(this IServiceCollection services)
@@ -85,7 +84,7 @@ internal static class ServiceCollectionExtensions
 
     public static void AddAppOpenApi(this IServiceCollection services)
     {
-        services.AddHiveSpaceSwaggerGen(
+        services.AddDefaultOpenApi(
             "HiveSpace User Service API",
             "API for managing user profiles, addresses, settings, and stores in the HiveSpace platform");
 

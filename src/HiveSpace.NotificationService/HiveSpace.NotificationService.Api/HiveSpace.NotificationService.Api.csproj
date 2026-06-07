@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\src\HiveSpace.ServiceDefaults\HiveSpace.ServiceDefaults.csproj" />
     <ProjectReference Include="..\HiveSpace.NotificationService.Core\HiveSpace.NotificationService.Core.csproj" />
     <ProjectReference Include="..\..\..\libs\HiveSpace.Core\HiveSpace.Core.csproj" />
     <ProjectReference Include="..\..\..\libs\HiveSpace.Infrastructure.Authorization\HiveSpace.Infrastructure.Authorization.csproj" />

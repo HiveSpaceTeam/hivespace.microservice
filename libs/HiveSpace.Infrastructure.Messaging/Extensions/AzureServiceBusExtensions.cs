@@ -1,4 +1,5 @@
 using HiveSpace.Infrastructure.Messaging.Configurations;
+using HiveSpace.Infrastructure.Messaging.Diagnostics;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -34,9 +35,14 @@ public static class AzureServiceBusExtensions
 
             bus.UsingAzureServiceBus((context, cfg) =>
             {
-                var options = context.GetRequiredService<IOptions<AzureServiceBusOptions>>().Value;
+                var connectionString = MessagingConnectionStrings.GetRequired(
+                    configuration,
+                    MessagingConnectionStrings.AzureServiceBus);
 
-                cfg.Host(options.ConnectionString);
+                cfg.Host(connectionString);
+                cfg.UseSendFilter(typeof(MassTransitTraceSendFilter<>), context);
+                cfg.UsePublishFilter(typeof(MassTransitTracePublishFilter<>), context);
+                cfg.UseConsumeFilter(typeof(MassTransitTraceConsumeFilter<>), context);
 
                 if (configureBus != null)
                 {

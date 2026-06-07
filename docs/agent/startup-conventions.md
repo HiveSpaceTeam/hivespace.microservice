@@ -14,6 +14,11 @@ These helpers live in shared libs and must be used instead of re-implementing th
 
 | Method | Namespace | What it does |
 |--------|-----------|--------------|
+| `builder.AddDefaultSerilog()` | `Microsoft.Extensions.Hosting` | Registers the shared Serilog host configuration. Call from `ConfigureServices()` before `AddServiceDefaults()` in every included API project. |
+| `builder.AddServiceDefaults()` | `Microsoft.Extensions.Hosting` | Registers Aspire/OpenTelemetry defaults, service discovery-compatible HTTP defaults, and shared health checks. Call from `ConfigureServices()` before service-specific registrations where compatible. |
+| `app.MapDefaultEndpoints()` | `Microsoft.Extensions.Hosting` | Maps shared health endpoints (`/health`, and `/alive` in development). Call from `ConfigurePipeline()` without removing service-specific health endpoints that use different paths. |
+| `services.AddDefaultOpenApi(title, description)` | `Microsoft.Extensions.Hosting` | Thin wrapper around `AddHiveSpaceSwaggerGen`; service wrappers keep explicit titles/descriptions. |
+| `services.AddDefaultAuthentication(configuration, scope, configure?)` | `Microsoft.Extensions.Hosting` | Thin wrapper around `AddHiveSpaceJwtBearerAuthentication`; service wrappers keep explicit scopes and callbacks. Do not use for ApiGateway gateway-specific auth. |
 | `services.AddHiveSpaceSwaggerGen(title, description)` | `HiveSpace.Core.OpenApi` | `AddEndpointsApiExplorer` + `AddSwaggerGen` with Bearer security definition |
 | `services.AddHiveSpaceJwtBearerAuthentication(config, scope, configure?)` | `HiveSpace.Infrastructure.Authorization.Extensions` | `AddJwtBearer` + `AddHiveSpaceAuthorization(scope)` in one call. Pass the optional `configure` callback for service-specific options (e.g. SignalR token handling in NotificationService). |
 | `services.AddHiveSpaceControllers()` | `HiveSpace.Core` | `AddControllers` + `CustomExceptionFilter`. Use only for `UserService` or an explicitly approved controller exception. Returns `IMvcBuilder` for chaining `.AddJsonOptions()`. |
@@ -57,8 +62,20 @@ public static void AddAppAuthentication(this IServiceCollection services, IConfi
 ## `HostingExtensions.cs` — Canonical Pipeline
 
 ```csharp
+public static WebApplication ConfigureServices(this WebApplicationBuilder builder)
+{
+    builder.AddDefaultSerilog();
+    builder.AddServiceDefaults();
+    builder.Services.AddAppOpenApi();
+    builder.Services.AddAppAuthentication(builder.Configuration);
+    // service-specific AddApp* calls
+    return builder.Build();
+}
+
 public static WebApplication ConfigurePipeline(this WebApplication app)
 {
+    app.UseSerilogRequestLogging();
+
     if (app.Environment.IsDevelopment())
     {
         app.UseSwagger();
@@ -73,13 +90,16 @@ public static WebApplication ConfigurePipeline(this WebApplication app)
 
     app.UseAuthentication();
     app.UseAuthorization();
+    app.MapDefaultEndpoints();
     app.MapXxxEndpoints();                     // default for all non-UserService services
 
     return app;
 }
 ```
 
-**UserService exception**: Keeps its own pipeline (IdentityServer, Razor Pages, Serilog, session, culture middleware). It is also the only current service allowed to keep controller-based APIs. It does not call `UseHiveSpaceExceptionHandler`.
+**Serilog rule**: API projects use the shared Serilog host setup through `builder.AddDefaultSerilog()` and request logging through `app.UseSerilogRequestLogging()`. Do not configure Serilog directly in `Program.cs`.
+
+**UserService exception**: Keeps controller-based APIs, localization/culture middleware, and its documented legacy pipeline shape. It still uses the shared Serilog setup and shared health endpoint mapping.
 
 ## Database Migration & Seeding
 
@@ -140,3 +160,15 @@ For services that have a database but no reference data to seed (e.g. MediaServi
 | PaymentService | `HiveSpace.PaymentService.Infrastructure/DataSeeder.cs` | Yes |
 | NotificationService | `HiveSpace.NotificationService.Core/Persistence/DataSeeder.cs` | Yes |
 | MediaService | `HiveSpace.MediaService.Core/Infrastructure/DataSeeder.cs` | No — migration-only |
+
+## Local Runtime Configuration
+
+The Aspire AppHost is the preferred backend local startup flow:
+
+```powershell
+dotnet run --project .\src\HiveSpace.AppHost\HiveSpace.AppHost.csproj
+```
+
+Docker Compose is replaced for backend local development. Frontend dev servers remain outside AppHost v1 and continue using `http://localhost:5000`.
+
+Dependency endpoints and secrets belong under compact lowercase `ConnectionStrings` keys, including service database keys, `rabbitmq`, `kafka`, `redis`, `azureservicebus`, and `azurestorage`. Broker enablement stays under `Messaging:EnableRabbitMq`, `Messaging:EnableKafka`, and `Messaging:EnableAzureServiceBus`; nested `Messaging` provider sections may contain only non-secret tuning such as outbox limits, prefetch count, client ID, consumer group, or security protocol.

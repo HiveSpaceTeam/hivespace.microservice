@@ -10,7 +10,7 @@ public class NotificationDbContextFactory : IDesignTimeDbContextFactory<Notifica
     {
         var optionsBuilder = new DbContextOptionsBuilder<NotificationDbContext>();
         var connectionString =
-            Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+            Environment.GetEnvironmentVariable("ConnectionStrings__NotificationDb")
             ?? "Server=localhost,1433;Database=NotificationDb;User Id=sa;Password=;Encrypt=False;TrustServerCertificate=True";
         optionsBuilder.UseSqlServer(connectionString);
 

@@ -1,8 +1,9 @@
 {
   "profiles": {
-    "https": {
+    "http": {
       "commandName": "Project",
       "launchBrowser": false,
+      "launchUrl": "scalar/v1",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },

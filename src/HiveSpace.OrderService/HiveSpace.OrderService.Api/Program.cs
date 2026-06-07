@@ -4,12 +4,14 @@ using HiveSpace.OrderService.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.ConfigureServices();
+app.ConfigurePipeline();
 
 if (app.Environment.IsDevelopment())
 {
-    Console.WriteLine("Attempting to run database migrations...");
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    logger.LogInformation("Applying OrderService migrations and seed data");
     await DataSeeder.EnsureSeedDataAsync(app);
-    Console.WriteLine("Database migrations completed.");
+    logger.LogInformation("OrderService migrations and seed data are ready");
 }
 
-await app.ConfigurePipeline().RunAsync();
+await app.RunAsync();

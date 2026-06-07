@@ -1,8 +1,9 @@
 using HiveSpace.Core.Extensions;
 using HiveSpace.IdentityService.Api.Endpoints;
 using HiveSpace.IdentityService.Api.Middleware;
-using HiveSpace.IdentityService.Core.Infrastructure;
+using Microsoft.Extensions.Hosting;
 using Scalar.AspNetCore;
+using Serilog;
 
 namespace HiveSpace.IdentityService.Api.Extensions;
 
@@ -12,6 +13,8 @@ internal static class HostingExtensions
     {
         var configuration = builder.Configuration;
 
+        builder.AddDefaultSerilog();
+        builder.AddServiceDefaults();
         builder.Services.AddAppForwardedHeaders();
         builder.Services.AddAppSessionState();
         builder.Services.AddAppOpenApi();
@@ -26,16 +29,17 @@ internal static class HostingExtensions
         return builder.Build();
     }
 
-    public static async Task<WebApplication> ConfigurePipelineAsync(this WebApplication app)
+    public static WebApplication ConfigurePipeline(this WebApplication app)
     {
+        app.UseSerilogRequestLogging();
+
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();
             app.MapScalarApiReference(options => options
                 .WithTitle("HiveSpace IdentityService API")
+                .WithOpenApiRoutePattern("/swagger/{documentName}/swagger.json")
                 .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient));
-
-            await DataSeeder.EnsureSeedDataAsync(app);
         }
 
         app.UseForwardedHeaders();
@@ -54,7 +58,7 @@ internal static class HostingExtensions
         app.MapIdentityEndpoints();
         app.MapGoogleExternalAuthEndpoints();
         app.MapAdminIdentityEndpoints();
-        app.MapHealthChecks("/health");
+        app.MapDefaultEndpoints();
 
         return app;
     }

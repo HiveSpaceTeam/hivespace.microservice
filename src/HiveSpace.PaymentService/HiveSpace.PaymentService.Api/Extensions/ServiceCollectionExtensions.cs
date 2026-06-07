@@ -1,12 +1,11 @@
 using HiveSpace.Core;
-using HiveSpace.Core.OpenApi;
-using HiveSpace.Infrastructure.Authorization.Extensions;
 using HiveSpace.Infrastructure.Messaging.Configurations;
 using HiveSpace.Infrastructure.Messaging.Extensions;
 using HiveSpace.PaymentService.Api.Consumers.Saga.CheckoutSaga;
 using HiveSpace.PaymentService.Infrastructure;
 using HiveSpace.PaymentService.Infrastructure.Data;
 using MassTransit;
+using Microsoft.Extensions.Hosting;
 
 namespace HiveSpace.PaymentService.Api.Extensions;
 
@@ -16,7 +15,7 @@ internal static class ServiceCollectionExtensions
         => services.AddHiveSpaceControllers();
 
     public static void AddAppOpenApi(this IServiceCollection services)
-        => services.AddHiveSpaceSwaggerGen("HiveSpace.PaymentService API", "HiveSpace.PaymentService microservice");
+        => services.AddDefaultOpenApi("HiveSpace.PaymentService API", "HiveSpace.PaymentService microservice");
 
     public static void AddAppMessaging(this IServiceCollection services, IConfiguration configuration)
     {
@@ -30,5 +29,5 @@ internal static class ServiceCollectionExtensions
     }
 
     public static void AddAppAuthentication(this IServiceCollection services, IConfiguration configuration)
-        => services.AddHiveSpaceJwtBearerAuthentication(configuration, "payment.fullaccess");
+        => services.AddDefaultAuthentication(configuration, "payment.fullaccess");
 }

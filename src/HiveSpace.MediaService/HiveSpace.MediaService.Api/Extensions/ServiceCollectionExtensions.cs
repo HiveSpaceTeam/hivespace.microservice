@@ -1,5 +1,3 @@
-using HiveSpace.Core.OpenApi;
-using HiveSpace.Infrastructure.Authorization.Extensions;
 using HiveSpace.MediaService.Core.Infrastructure.Configuration;
 using HiveSpace.MediaService.Core.Infrastructure.Data;
 using HiveSpace.MediaService.Core.Infrastructure.Messaging.Publishers;
@@ -9,6 +7,7 @@ using HiveSpace.MediaService.Core.Interfaces.Messaging;
 using HiveSpace.MediaService.Core.Persistence.Repositories;
 using HiveSpace.MediaService.Core.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 
 namespace HiveSpace.MediaService.Api.Extensions;
 
@@ -28,7 +27,7 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddAppDatabase(this IServiceCollection services, IConfiguration configuration)
     {
-        var baseConnectionString = configuration["Database:MediaServiceDb"];
+        var baseConnectionString = configuration.GetConnectionString("MediaDb");
 
         services.AddDbContext<MediaDbContext>((_, options) =>
         {
@@ -44,8 +43,8 @@ public static class ServiceCollectionExtensions
     }
 
     public static IServiceCollection AddAppOpenApi(this IServiceCollection services)
-        => services.AddHiveSpaceSwaggerGen("HiveSpace.MediaService API", "HiveSpace.MediaService microservice");
+        => services.AddDefaultOpenApi("HiveSpace.MediaService API", "HiveSpace.MediaService microservice");
 
     public static IServiceCollection AddAppAuthentication(this IServiceCollection services, IConfiguration configuration)
-        => services.AddHiveSpaceJwtBearerAuthentication(configuration, "media.fullaccess");
+        => services.AddDefaultAuthentication(configuration, "media.fullaccess");
 }

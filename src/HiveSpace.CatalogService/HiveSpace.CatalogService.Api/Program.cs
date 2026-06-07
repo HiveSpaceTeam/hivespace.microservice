@@ -3,11 +3,14 @@ using HiveSpace.CatalogService.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.ConfigureServices();
+app.ConfigurePipeline();
 
 if (app.Environment.IsDevelopment())
 {
-    Console.WriteLine("Attempting to seed data...");
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    logger.LogInformation("Applying CatalogService migrations and seed data");
     await DataSeeder.EnsureSeedDataAsync(app);
+    logger.LogInformation("CatalogService migrations and seed data are ready");
 }
 
-await app.ConfigurePipeline().RunAsync();
+await app.RunAsync();

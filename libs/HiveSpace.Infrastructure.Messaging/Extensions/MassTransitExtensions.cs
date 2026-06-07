@@ -16,6 +16,8 @@ public static class MassTransitExtensions
 {
     public static IServiceCollection AddMessagingCore(this IServiceCollection services, IConfiguration configuration)
     {
+        ValidateMessagingConnectionStrings(configuration);
+
         services.Configure<MessagingOptions>(configuration.GetSection(MessagingOptions.SectionName));
         services.Configure<RabbitMqOptions>(configuration.GetSection(RabbitMqOptions.SectionName));
         services.Configure<KafkaOptions>(configuration.GetSection(KafkaOptions.SectionName));
@@ -25,6 +27,20 @@ public static class MassTransitExtensions
         services.TryAddScoped<IEventPublisher>(sp => (IEventPublisher)sp.GetRequiredService<IMessageBus>());
 
         return services;
+    }
+
+    private static void ValidateMessagingConnectionStrings(IConfiguration configuration)
+    {
+        var messagingOptions = configuration.GetSection(MessagingOptions.SectionName).Get<MessagingOptions>() ?? new MessagingOptions();
+
+        if (messagingOptions.EnableRabbitMq)
+            MessagingConnectionStrings.GetRequired(configuration, MessagingConnectionStrings.RabbitMq);
+
+        if (messagingOptions.EnableKafka)
+            MessagingConnectionStrings.GetRequired(configuration, MessagingConnectionStrings.Kafka);
+
+        if (messagingOptions.EnableAzureServiceBus)
+            MessagingConnectionStrings.GetRequired(configuration, MessagingConnectionStrings.AzureServiceBus);
     }
 
     /// <summary>
@@ -49,4 +65,3 @@ public static class MassTransitExtensions
         });
     }
 }
-

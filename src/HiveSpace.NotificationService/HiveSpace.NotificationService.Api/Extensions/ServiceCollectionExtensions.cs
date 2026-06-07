@@ -1,12 +1,11 @@
-using HiveSpace.Core.OpenApi;
 using HiveSpace.Domain.Shared.Exceptions;
-using HiveSpace.Infrastructure.Authorization.Extensions;
 using HiveSpace.Infrastructure.Messaging.Configurations;
 using HiveSpace.Infrastructure.Messaging.Extensions;
 using HiveSpace.NotificationService.Api.Consumers;
 using HiveSpace.NotificationService.Api.Consumers.Sync;
 using HiveSpace.NotificationService.Api.Hubs;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Hosting;
 using HiveSpace.NotificationService.Core.BackgroundJobs;
 using HiveSpace.NotificationService.Core.Infrastructure.Channels.Email;
 using HiveSpace.NotificationService.Core.Infrastructure.Channels.InApp;
@@ -29,12 +28,12 @@ namespace HiveSpace.NotificationService.Api.Extensions;
 internal static class ServiceCollectionExtensions
 {
     public static void AddAppOpenApi(this IServiceCollection services)
-        => services.AddHiveSpaceSwaggerGen("HiveSpace.NotificationService API", "HiveSpace.NotificationService microservice");
+        => services.AddDefaultOpenApi("HiveSpace.NotificationService API", "HiveSpace.NotificationService microservice");
 
     public static void AddNotificationDbContext(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<NotificationDbContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+            options.UseSqlServer(configuration.GetConnectionString("NotificationDb")));
     }
 
     public static void AddAppSignalR(this IServiceCollection services)
@@ -47,7 +46,7 @@ internal static class ServiceCollectionExtensions
     public static void AddAppRedis(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("Redis")
-            ?? throw new InvalidFieldException(NotificationDomainErrorCode.InvalidConfiguration, "Redis:ConnectionString");
+            ?? throw new InvalidFieldException(NotificationDomainErrorCode.InvalidConfiguration, "ConnectionStrings:Redis");
 
         services.AddSingleton<IConnectionMultiplexer>(
             ConnectionMultiplexer.Connect(connectionString));
@@ -62,7 +61,7 @@ internal static class ServiceCollectionExtensions
     {
         services.AddHangfire(config =>
             config.UseSqlServerStorage(
-                configuration.GetConnectionString("DefaultConnection"),
+                configuration.GetConnectionString("NotificationDb"),
                 new SqlServerStorageOptions
                 {
                     CommandBatchMaxTimeout       = TimeSpan.FromMinutes(5),
@@ -134,7 +133,7 @@ internal static class ServiceCollectionExtensions
 
     public static void AddAppAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddHiveSpaceJwtBearerAuthentication(configuration, "notification.fullaccess", options =>
+        services.AddDefaultAuthentication(configuration, "notification.fullaccess", options =>
         {
             // SignalR WebSocket connections forward the token as ?access_token= since they cannot set HTTP headers.
             options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents

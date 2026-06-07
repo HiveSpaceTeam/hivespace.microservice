@@ -1,4 +1,5 @@
 using HiveSpace.Infrastructure.Messaging.Configurations;
+using HiveSpace.Infrastructure.Messaging.Diagnostics;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -41,8 +42,6 @@ public static class RabbitMqExtensions
             //        rider.UsingKafka((context, kafka) =>
             //        {
             //            var kafkaOptions = context.GetRequiredService<IOptions<KafkaOptions>>().Value;
-            //            kafka.Host(kafkaOptions.BootstrapServers);
-
             //            registration.ConfigureEndpoints?.Invoke(kafka, context);
             //        });
             //    });
@@ -75,13 +74,24 @@ public static class RabbitMqExtensions
             bus.UsingRabbitMq((context, cfg) =>
             {
                 var options = context.GetRequiredService<IOptions<RabbitMqOptions>>().Value;
+                var connectionString = MessagingConnectionStrings.GetRequired(configuration, MessagingConnectionStrings.RabbitMq);
+                var connectionUri = new Uri(connectionString);
+                var credentials = ParseCredentials(connectionUri);
+                var virtualHost = string.IsNullOrWhiteSpace(connectionUri.AbsolutePath.Trim('/'))
+                    ? "/"
+                    : Uri.UnescapeDataString(connectionUri.AbsolutePath.Trim('/'));
+                var port = connectionUri.Port > 0 ? (ushort)connectionUri.Port : (ushort)5672;
 
-                cfg.Host(options.Host, options.Port, options.VirtualHost, host =>
+                cfg.Host(connectionUri.Host, port, virtualHost, host =>
                 {
-                    host.Username(options.Username);
-                    host.Password(options.Password);
+                    if (credentials is not null)
+                    {
+                        host.Username(credentials.Value.UserName);
+                        host.Password(credentials.Value.Password);
+                    }
+
                     host.Heartbeat(options.HeartBeat);
-                    if (options.UseSsl)
+                    if (string.Equals(connectionUri.Scheme, "amqps", StringComparison.OrdinalIgnoreCase))
                     {
                         host.UseSsl(ssl =>
                         {
@@ -91,6 +101,9 @@ public static class RabbitMqExtensions
                 });
 
                 cfg.UsePublishMessageScheduler();
+                cfg.UseSendFilter(typeof(MassTransitTraceSendFilter<>), context);
+                cfg.UsePublishFilter(typeof(MassTransitTracePublishFilter<>), context);
+                cfg.UseConsumeFilter(typeof(MassTransitTraceConsumeFilter<>), context);
                 cfg.PrefetchCount = options.PrefetchCount;
                 cfg.ConfigureEndpoints(context);
             });
@@ -101,4 +114,16 @@ public static class RabbitMqExtensions
 
     private static int GetPositiveOrDefault(int value, int defaultValue)
         => value > 0 ? value : defaultValue;
+
+    private static (string UserName, string Password)? ParseCredentials(Uri uri)
+    {
+        if (string.IsNullOrWhiteSpace(uri.UserInfo))
+            return null;
+
+        var parts = uri.UserInfo.Split(':', 2);
+        var userName = Uri.UnescapeDataString(parts[0]);
+        var password = parts.Length > 1 ? Uri.UnescapeDataString(parts[1]) : string.Empty;
+
+        return (userName, password);
+    }
 }

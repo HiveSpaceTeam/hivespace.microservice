@@ -15,7 +15,7 @@ public class MediaDbContextFactory : IDesignTimeDbContextFactory<MediaDbContext>
             .AddEnvironmentVariables()
             .Build();
 
-        var connectionString = configuration["Database:MediaServiceDb"];
+        var connectionString = configuration.GetConnectionString("MediaDb");
 
         var optionsBuilder = new DbContextOptionsBuilder<MediaDbContext>();
         optionsBuilder.UseSqlServer(connectionString);

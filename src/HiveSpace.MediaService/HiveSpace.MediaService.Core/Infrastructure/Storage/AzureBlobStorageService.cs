@@ -16,12 +16,17 @@ public class AzureBlobStorageService(IConfiguration configuration, ILogger<Azure
 
     private static BlobServiceClient CreateBlobServiceClient(IConfiguration configuration, ILogger logger)
     {
-        var connectionString = configuration["AzureStorage:ConnectionString"];
+        var connectionString = configuration.GetConnectionString("AzureBlobStorage")
+            ?? configuration.GetConnectionString("AzureStorageBlobs")
+            ?? configuration.GetConnectionString("AzureStorage");
         if (string.IsNullOrEmpty(connectionString))
         {
-            logger.LogWarning("AzureStorage:ConnectionString not found, trying fallback configuration");
-            connectionString = configuration["Values:AzureStorage:ConnectionString"];
+            logger.LogWarning("ConnectionStrings:AzureStorage not found, trying fallback configuration");
+            connectionString = configuration["AzureStorage:ConnectionString"];
         }
+
+        if (string.IsNullOrEmpty(connectionString))
+            connectionString = configuration["Values:AzureStorage:ConnectionString"];
 
         if (string.IsNullOrEmpty(connectionString))
             throw new DomainException(500, MediaDomainErrorCode.StorageConfigurationMissing, "Storage connection string is not configured");

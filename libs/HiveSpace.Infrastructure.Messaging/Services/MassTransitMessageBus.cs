@@ -35,4 +35,3 @@ public class MassTransitMessageBus : IMessageBus, IEventPublisher
     Task IEventPublisher.PublishAsync<TIntegrationEvent>(TIntegrationEvent @event, CancellationToken cancellationToken)
         => _publishEndpoint.Publish(@event, cancellationToken);
 }
-

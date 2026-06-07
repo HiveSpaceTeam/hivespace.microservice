@@ -3,19 +3,18 @@
   "Values": {
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
-    "AzureStorage:ConnectionString": "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=",
+    "ConnectionStrings:AzureStorage": "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=",
+    "ConnectionStrings:AzureQueueStorage": "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=",
+    "ConnectionStrings:AzureStorageQueues": "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=",
     "AzureStorage:TempContainer": "temp-media-upload",
     "AzureStorage:PublicContainer": "public-assets",
     "AzureStorage:QueueName": "image-processing-queue",
     "AzureStorage:CdnHost": "",
-    "Database:MediaServiceDb": "Server=localhost,1433;Database=MediaDb;User Id=sa;Encrypt=False;TrustServerCertificate=True",
+    "ConnectionStrings:MediaDb": "Server=localhost,1433;Database=MediaDb;User Id=sa;Password=;Encrypt=False;TrustServerCertificate=True",
+    "ConnectionStrings:RabbitMq": "amqp://guest@localhost:5672/",
     "MediaCleanup:ExpirationHours": "24",
     "MediaCleanup:BatchSize": "100",
     "MediaService:PresignUrlExpiryMinutes": "10",
-    "Messaging:EnableRabbitMq": "true",
-    "Messaging:RabbitMq:Host": "localhost",
-    "Messaging:RabbitMq:Port": "5672",
-    "Messaging:RabbitMq:Username": "guest",
-    "Messaging:RabbitMq:Password": "guest"
+    "Messaging:EnableRabbitMq": "true"
   }
 }

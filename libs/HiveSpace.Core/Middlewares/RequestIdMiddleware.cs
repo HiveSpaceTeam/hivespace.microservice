@@ -1,5 +1,6 @@
 using HiveSpace.Core.Contexts;
 using Microsoft.AspNetCore.Http;
+using System.Diagnostics;
 
 namespace HiveSpace.Core.Middlewares;
 
@@ -19,6 +20,8 @@ public class RequestIdMiddleware
                         ?? Guid.NewGuid().ToString();
 
         requestContext.RequestId = requestId;
+        Activity.Current?.SetTag("request.id", requestId);
+        Activity.Current?.AddBaggage("request.id", requestId);
 
         await _next(context);
     }

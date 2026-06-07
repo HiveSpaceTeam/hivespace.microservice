@@ -1,53 +1,17 @@
 using HiveSpace.UserService.Api.Extensions;
-using Microsoft.AspNetCore.HttpOverrides;
-using Serilog;
-using System.Globalization;
+using HiveSpace.UserService.Infrastructure;
 
-Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console(formatProvider: CultureInfo.InvariantCulture)
-    .CreateBootstrapLogger();
+var builder = WebApplication.CreateBuilder(args);
+var app = builder
+    .ConfigureServices(builder.Configuration)
+    .ConfigurePipeline();
 
-Log.Information("Starting up");
-
-
-try
+if (app.Environment.IsDevelopment())
 {
-    var builder = WebApplication.CreateBuilder(args);
-    var configuration = builder.Configuration;
-
-    // Configure Forwarded Headers for Azure Container Apps
-    builder.Services.Configure<ForwardedHeadersOptions>(options =>
-    {
-        // This tells the app to trust the X-Forwarded-Proto (http/https) header.
-        options.ForwardedHeaders =
-            ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-
-        // This is CRITICAL for Azure Container Apps.
-        // It tells the app to trust the proxy even though it's not on a "known network."
-        options.KnownNetworks.Clear();
-        options.KnownProxies.Clear();
-    });
-
-    builder.Host.UseSerilog((ctx, lc) => lc
-        .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}", formatProvider: CultureInfo.InvariantCulture)
-        .Enrich.FromLogContext()
-        .ReadFrom.Configuration(ctx.Configuration));
-
-    var app = builder
-        .ConfigureServices(configuration) 
-        .ConfigurePipeline();
-
-    Log.Information("Environment: {EnvironmentName}", app.Environment.EnvironmentName);
-
-    app.Run();
-}
-catch (Exception ex)
-{
-    Log.Fatal(ex, "Unhandled exception");
-}
-finally
-{
-    Log.Information("Shut down complete");
-    Log.CloseAndFlush();
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    logger.LogInformation("Ensuring UserService seed data");
+    await DataSeeder.EnsureSeedDataAsync(app);
+    logger.LogInformation("UserService seed data is ready");
 }
 
+app.Run();
