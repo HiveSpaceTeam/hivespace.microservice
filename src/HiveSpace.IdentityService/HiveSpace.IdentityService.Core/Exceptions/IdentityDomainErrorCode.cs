@@ -23,4 +23,5 @@ public class IdentityDomainErrorCode : DomainErrorCode
     public static readonly IdentityDomainErrorCode ExternalLoginAlreadyLinked = new(6015, "ExternalLoginAlreadyLinked", "IDN6015");
     public static readonly IdentityDomainErrorCode PendingGoogleLinkNotFound = new(6016, "PendingGoogleLinkNotFound", "IDN6016");
     public static readonly IdentityDomainErrorCode PendingGoogleLinkExpired = new(6017, "PendingGoogleLinkExpired", "IDN6017");
+    public static readonly IdentityDomainErrorCode EmailVerificationRequired = new(6018, "EmailVerificationRequired", "IDN6018");
 }

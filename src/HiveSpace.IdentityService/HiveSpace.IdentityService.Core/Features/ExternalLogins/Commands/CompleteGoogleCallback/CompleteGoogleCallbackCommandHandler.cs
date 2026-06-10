@@ -80,9 +80,11 @@ public class CompleteGoogleCallbackCommandHandler(
         {
             UserName = email.Trim(),
             Email = email.Trim(),
+            FullName = FindClaim(loginInfo.Principal, ClaimTypes.Name, "name"),
             EmailConfirmed = true,
             RoleName = "Buyer",
             Status = UserStatus.Active,
+            ActivatedAt = DateTimeOffset.UtcNow,
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow,
             LastLoginAt = DateTimeOffset.UtcNow
@@ -96,9 +98,9 @@ public class CompleteGoogleCallbackCommandHandler(
         if (!loginResult.Succeeded)
             throw new BadRequestException(loginResult.Errors.Select(e => new Error(IdentityDomainErrorCode.ExternalLoginFailed, e.Code)));
 
-        await identityEventPublisher.PublishIdentityUserCreatedAsync(
+        await identityEventPublisher.PublishIdentityUserReadyAsync(
             user,
-            FindClaim(loginInfo.Principal, ClaimTypes.Name, "name"),
+            user.FullName,
             cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
 

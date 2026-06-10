@@ -10,4 +10,4 @@ public record RegisterAccountCommand(
     string? FullName,
     string App,
     string? ReturnUrl,
-    string? Culture) : ICommand<SessionResponse>;
+    string? Culture) : ICommand<RegisterAccountPendingResponse>;

@@ -5,6 +5,7 @@ using HiveSpace.IdentityService.Core.Features.AccountSessions.Commands.SignIn;
 using HiveSpace.IdentityService.Core.Features.AccountSessions.Commands.SignOut;
 using HiveSpace.IdentityService.Core.Features.AccountSessions.Dtos;
 using HiveSpace.IdentityService.Core.Features.EmailVerification.Commands.ConfirmEmailVerification;
+using HiveSpace.IdentityService.Core.Features.EmailVerification.Commands.ResendEmailVerification;
 using HiveSpace.IdentityService.Core.Features.EmailVerification.Commands.SendEmailVerification;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -55,7 +56,7 @@ internal static class IdentityEndpoints
         .WithName("RegisterAccount")
         .WithTags("Accounts")
         .WithSummary("Register a browser account")
-        .WithDescription("Creates an identity account, preserves profile creation events, and establishes a browser session.");
+        .WithDescription("Creates a pending identity account, sends email verification, and does not establish a browser session.");
 
         app.MapPost("/api/v1/accounts/session/refresh", async (
             RefreshSessionRequest request,
@@ -112,6 +113,24 @@ internal static class IdentityEndpoints
         .WithSummary("Confirm email verification")
         .WithDescription("Confirms an identity-owned email verification token.");
 
+        app.MapPost("/api/v1/accounts/email-verification/resend", async (
+            ResendEmailVerificationRequest request,
+            ISender sender,
+            CancellationToken ct) =>
+        {
+            await sender.Send(new ResendEmailVerificationCommand(
+                request.Email,
+                request.App,
+                request.ReturnUrl,
+                request.Culture), ct);
+            return Results.NoContent();
+        })
+        .AllowAnonymous()
+        .WithName("ResendEmailVerification")
+        .WithTags("Accounts")
+        .WithSummary("Resend email verification")
+        .WithDescription("Requests another verification email for a pending account without revealing account existence.");
+
         return app;
     }
 }
@@ -119,3 +138,5 @@ internal static class IdentityEndpoints
 internal record SendEmailVerificationRequest(string CallbackUrl, string? ReturnUrl);
 
 internal record ConfirmEmailVerificationRequest(string UserId, string Token);
+
+internal record ResendEmailVerificationRequest(string Email, string App, string? ReturnUrl, string? Culture);

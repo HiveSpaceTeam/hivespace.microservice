@@ -8,9 +8,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HiveSpace.UserService.Api.Consumers;
 
-public class IdentityUserCreatedConsumer(UserDbContext dbContext) : IConsumer<IdentityUserCreatedIntegrationEvent>
+public class IdentityUserReadyConsumer(UserDbContext dbContext) : IConsumer<IdentityUserReadyIntegrationEvent>
 {
-    public async Task Consume(ConsumeContext<IdentityUserCreatedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<IdentityUserReadyIntegrationEvent> context)
     {
         var message = context.Message;
         var cancellationToken = context.CancellationToken;
@@ -26,17 +26,21 @@ public class IdentityUserCreatedConsumer(UserDbContext dbContext) : IConsumer<Id
             return;
 
         var userName = string.IsNullOrWhiteSpace(message.UserName)
-            ? message.Email
+            ? message.Email.Trim()
             : message.UserName.Trim();
-
+        var fullName = string.IsNullOrWhiteSpace(message.FullName)
+            ? userName
+            : message.FullName.Trim();
         var email = message.Email.Trim();
 
         var profile = User.CreateProfile(
             message.UserId,
             Email.Create(email),
             userName,
-            string.IsNullOrWhiteSpace(message.FullName) ? userName : message.FullName.Trim(),
-            createdAt: DateTimeOffset.UtcNow);
+            fullName,
+            createdAt: message.ReadyAt == default
+                ? DateTimeOffset.UtcNow
+                : new DateTimeOffset(DateTime.SpecifyKind(message.ReadyAt, DateTimeKind.Utc)));
 
         dbContext.Users.Add(profile);
         await dbContext.SaveChangesAsync(cancellationToken);

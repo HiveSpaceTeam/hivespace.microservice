@@ -193,6 +193,7 @@ internal static class ServiceCollectionExtensions
         services.AddCoreServices();
         services.AddHttpContextAccessor();
         services.AddScoped<IIdentityEventPublisher, IdentityEventPublisher>();
+        services.AddScoped<IEmailVerificationResendCooldownStore, DistributedEmailVerificationResendCooldownStore>();
         services.AddScoped<ITokenCookieService, TokenCookieService>();
         services.AddScoped<ICsrfTokenService, CsrfTokenService>();
         services.AddScoped<IPendingGoogleLinkStore, PendingGoogleLinkCookieStore>();

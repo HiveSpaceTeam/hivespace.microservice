@@ -25,7 +25,17 @@ public class ConfirmEmailVerificationCommandHandler(
             ?? throw new NotFoundException(IdentityDomainErrorCode.IdentityUserNotFound, nameof(command.UserId));
 
         if (await userManager.IsEmailConfirmedAsync(user))
-            throw new ConflictException(IdentityDomainErrorCode.EmailAlreadyVerified, nameof(user.Email));
+        {
+            if (user.Status != UserStatus.Active)
+            {
+                user.Status = UserStatus.Active;
+                user.ActivatedAt ??= DateTimeOffset.UtcNow;
+                user.UpdatedAt = DateTimeOffset.UtcNow;
+                await dbContext.SaveChangesAsync(cancellationToken);
+            }
+
+            return;
+        }
 
         string decodedToken;
         try
@@ -41,6 +51,14 @@ public class ConfirmEmailVerificationCommandHandler(
         if (!result.Succeeded)
             throw new BadRequestException([new Error(IdentityDomainErrorCode.EmailVerificationFailed, nameof(command.Token))]);
 
+        user.Status = UserStatus.Active;
+        user.ActivatedAt ??= DateTimeOffset.UtcNow;
+        user.UpdatedAt = DateTimeOffset.UtcNow;
+
+        await identityEventPublisher.PublishIdentityUserReadyAsync(
+            user,
+            user.FullName,
+            cancellationToken);
         await identityEventPublisher.PublishEmailVerifiedAsync(user, Culture.Vi, cancellationToken);
 
         await dbContext.SaveChangesAsync(cancellationToken);

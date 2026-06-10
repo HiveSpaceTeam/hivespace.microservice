@@ -23,6 +23,9 @@ public class SignInCommandHandler(
             throw new UnauthorizedException([new Error(IdentityDomainErrorCode.InvalidCredentials, nameof(command.Email))]);
         }
 
+        if (!user.EmailConfirmed)
+            throw new ForbiddenException([new Error(IdentityDomainErrorCode.EmailVerificationRequired, nameof(command.Email))]);
+
         var roles = await accountSessionIssuer.ValidateCanIssueAsync(user, command.App, cancellationToken);
 
         var result = await signInManager.CheckPasswordSignInAsync(user, command.Password, lockoutOnFailure: true);

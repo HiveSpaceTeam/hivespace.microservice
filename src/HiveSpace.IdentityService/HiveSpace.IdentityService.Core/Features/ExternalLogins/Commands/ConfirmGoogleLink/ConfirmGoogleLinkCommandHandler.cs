@@ -34,8 +34,6 @@ public class ConfirmGoogleLinkCommandHandler(
         var user = await userManager.FindByIdAsync(pending.TargetAccountId.ToString())
             ?? throw new NotFoundException(IdentityDomainErrorCode.IdentityUserNotFound, nameof(pending.TargetAccountId));
 
-        var roles = await accountSessionIssuer.ValidateCanIssueAsync(user, app, cancellationToken);
-
         if (await userManager.FindByLoginAsync(pending.Provider, pending.ProviderKey) is not null)
             throw new ConflictException(IdentityDomainErrorCode.ExternalLoginAlreadyLinked, nameof(pending.Provider));
 
@@ -58,10 +56,22 @@ public class ConfirmGoogleLinkCommandHandler(
             user.EmailConfirmed = true;
 
         if (emailWasUnconfirmed && user.EmailConfirmed)
+        {
+            user.Status = UserStatus.Active;
+            user.ActivatedAt ??= DateTimeOffset.UtcNow;
+            user.UpdatedAt = DateTimeOffset.UtcNow;
+
+            await identityEventPublisher.PublishIdentityUserReadyAsync(
+                user,
+                user.FullName,
+                cancellationToken);
             await identityEventPublisher.PublishEmailVerifiedAsync(user, Culture.Vi, cancellationToken);
+        }
 
         await dbContext.SaveChangesAsync(cancellationToken);
         await pendingGoogleLinkStore.ClearAsync(cancellationToken);
+
+        var roles = await accountSessionIssuer.ValidateCanIssueAsync(user, app, cancellationToken);
 
         return await accountSessionIssuer.IssueAsync(
             user,
