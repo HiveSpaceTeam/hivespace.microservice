@@ -49,8 +49,8 @@ internal static class HostingExtensions
                 cfg.AddConsumer<MediaAssetProcessedConsumer>()
                     .Endpoint(e => e.Name = "user-media-asset-processed");
 
-                cfg.AddConsumer<IdentityUserCreatedConsumer>()
-                    .Endpoint(e => e.Name = "user-identity-user-created");
+                cfg.AddConsumer<IdentityUserReadyConsumer>()
+                    .Endpoint(e => e.Name = "user-identity-user-ready");
             });
         }
 

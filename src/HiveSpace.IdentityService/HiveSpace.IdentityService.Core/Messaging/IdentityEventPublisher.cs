@@ -8,18 +8,17 @@ namespace HiveSpace.IdentityService.Core.Messaging;
 
 public class IdentityEventPublisher(IPublishEndpoint publishEndpoint) : IIdentityEventPublisher
 {
-    public Task PublishIdentityUserCreatedAsync(
+    public Task PublishIdentityUserReadyAsync(
         ApplicationUser user,
         string? fullName,
         CancellationToken cancellationToken = default)
-        => publishEndpoint.Publish(new IdentityUserCreatedIntegrationEvent
+        => publishEndpoint.Publish(new IdentityUserReadyIntegrationEvent
         {
-            UserId        = user.Id,
-            Email         = user.Email!,
-            UserName      = user.UserName,
-            FullName      = fullName,
-            OccurredAt    = DateTime.UtcNow,
-            CorrelationId = Guid.NewGuid()
+            UserId   = user.Id,
+            Email    = user.Email!,
+            UserName = user.UserName,
+            FullName = fullName ?? user.FullName,
+            ReadyAt  = DateTime.UtcNow
         }, cancellationToken);
 
     public Task PublishEmailVerificationRequestedAsync(
@@ -32,7 +31,7 @@ public class IdentityEventPublisher(IPublishEndpoint publishEndpoint) : IIdentit
         {
             UserId           = user.Id,
             ToEmail          = user.Email!,
-            ToName           = user.UserName ?? user.Email!,
+            ToName           = user.FullName ?? user.UserName ?? user.Email!,
             VerificationLink = verificationLink,
             ExpiresAt        = expiresAt,
             Locale           = locale
@@ -46,7 +45,7 @@ public class IdentityEventPublisher(IPublishEndpoint publishEndpoint) : IIdentit
         {
             UserId  = user.Id,
             ToEmail = user.Email!,
-            ToName  = user.UserName ?? user.Email!,
+            ToName  = user.FullName ?? user.UserName ?? user.Email!,
             Locale  = locale
         }, cancellationToken);
 }

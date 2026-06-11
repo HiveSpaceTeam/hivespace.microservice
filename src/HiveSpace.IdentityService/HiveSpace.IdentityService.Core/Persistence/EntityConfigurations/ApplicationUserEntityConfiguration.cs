@@ -10,6 +10,9 @@ public class ApplicationUserEntityConfiguration : IEntityTypeConfiguration<Appli
     {
         builder.ToTable("identity_users");
 
+        builder.Property(u => u.FullName)
+            .HasMaxLength(100);
+
         builder.Property(u => u.RoleName)
             .HasMaxLength(50);
 
@@ -23,6 +26,7 @@ public class ApplicationUserEntityConfiguration : IEntityTypeConfiguration<Appli
         builder.Property(u => u.CreatedAt)
             .IsRequired();
 
+        builder.Property(u => u.ActivatedAt);
         builder.Property(u => u.UpdatedAt);
         builder.Property(u => u.LastLoginAt);
     }

@@ -5,7 +5,7 @@ namespace HiveSpace.IdentityService.Core.Interfaces.Messaging;
 
 public interface IIdentityEventPublisher
 {
-    Task PublishIdentityUserCreatedAsync(
+    Task PublishIdentityUserReadyAsync(
         ApplicationUser user,
         string? fullName,
         CancellationToken cancellationToken = default);

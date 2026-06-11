@@ -24,23 +24,39 @@ public class ConfirmEmailVerificationCommandHandler(
         var user = await userManager.FindByIdAsync(command.UserId)
             ?? throw new NotFoundException(IdentityDomainErrorCode.IdentityUserNotFound, nameof(command.UserId));
 
-        if (await userManager.IsEmailConfirmedAsync(user))
-            throw new ConflictException(IdentityDomainErrorCode.EmailAlreadyVerified, nameof(user.Email));
+        var emailAlreadyConfirmed = await userManager.IsEmailConfirmedAsync(user);
+        var readinessSideEffectsOwed = user.Status != UserStatus.Active || user.ActivatedAt is null;
 
-        string decodedToken;
-        try
+        if (!emailAlreadyConfirmed)
         {
-            decodedToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(command.Token));
-        }
-        catch
-        {
-            throw new BadRequestException([new Error(IdentityDomainErrorCode.EmailVerificationFailed, nameof(command.Token))]);
+            string decodedToken;
+            try
+            {
+                decodedToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(command.Token));
+            }
+            catch
+            {
+                throw new BadRequestException([new Error(IdentityDomainErrorCode.EmailVerificationFailed, nameof(command.Token))]);
+            }
+
+            var result = await userManager.ConfirmEmailAsync(user, decodedToken);
+            if (!result.Succeeded)
+                throw new BadRequestException([new Error(IdentityDomainErrorCode.EmailVerificationFailed, nameof(command.Token))]);
+
+            readinessSideEffectsOwed = true;
         }
 
-        var result = await userManager.ConfirmEmailAsync(user, decodedToken);
-        if (!result.Succeeded)
-            throw new BadRequestException([new Error(IdentityDomainErrorCode.EmailVerificationFailed, nameof(command.Token))]);
+        if (!readinessSideEffectsOwed)
+            return;
 
+        user.Status = UserStatus.Active;
+        user.ActivatedAt ??= DateTimeOffset.UtcNow;
+        user.UpdatedAt = DateTimeOffset.UtcNow;
+
+        await identityEventPublisher.PublishIdentityUserReadyAsync(
+            user,
+            user.FullName,
+            cancellationToken);
         await identityEventPublisher.PublishEmailVerifiedAsync(user, Culture.Vi, cancellationToken);
 
         await dbContext.SaveChangesAsync(cancellationToken);
