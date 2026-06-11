@@ -37,10 +37,7 @@ public class RegisterAccountCommandHandler(
         if (existingUser is not null)
         {
             if (existingUser.Status == UserStatus.Pending && !existingUser.EmailConfirmed)
-                return CreatePendingResponse(
-                    existingUser.Email!,
-                    app,
-                    await ResolveCanResendAtAsync(email, cancellationToken));
+                throw new ConflictException(IdentityDomainErrorCode.PendingEmailVerification, nameof(command.Email));
 
             throw new ConflictException(IdentityDomainErrorCode.DuplicateEmail, nameof(command.Email));
         }
@@ -100,14 +97,6 @@ public class RegisterAccountCommandHandler(
             ?? throw new ConfigurationException([new Error(IdentityDomainErrorCode.InvalidConfiguration, $"FrontendRedirects:{app}:Origin")]);
 
         return new Uri(new Uri(origin.TrimEnd('/') + "/"), VerificationCallbackPath.TrimStart('/')).ToString();
-    }
-
-    private async Task<DateTimeOffset> ResolveCanResendAtAsync(string email, CancellationToken cancellationToken)
-    {
-        var cooldownEndsAt = await resendCooldownStore.GetCooldownEndsAtAsync(email.ToUpperInvariant(), cancellationToken);
-        return cooldownEndsAt.HasValue && cooldownEndsAt.Value > DateTimeOffset.UtcNow
-            ? cooldownEndsAt.Value
-            : DateTimeOffset.UtcNow;
     }
 
     private static string MaskEmail(string email)

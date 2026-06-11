@@ -24,32 +24,30 @@ public class ConfirmEmailVerificationCommandHandler(
         var user = await userManager.FindByIdAsync(command.UserId)
             ?? throw new NotFoundException(IdentityDomainErrorCode.IdentityUserNotFound, nameof(command.UserId));
 
-        if (await userManager.IsEmailConfirmedAsync(user))
+        var emailAlreadyConfirmed = await userManager.IsEmailConfirmedAsync(user);
+        var readinessSideEffectsOwed = user.Status != UserStatus.Active || user.ActivatedAt is null;
+
+        if (!emailAlreadyConfirmed)
         {
-            if (user.Status != UserStatus.Active)
+            string decodedToken;
+            try
             {
-                user.Status = UserStatus.Active;
-                user.ActivatedAt ??= DateTimeOffset.UtcNow;
-                user.UpdatedAt = DateTimeOffset.UtcNow;
-                await dbContext.SaveChangesAsync(cancellationToken);
+                decodedToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(command.Token));
+            }
+            catch
+            {
+                throw new BadRequestException([new Error(IdentityDomainErrorCode.EmailVerificationFailed, nameof(command.Token))]);
             }
 
+            var result = await userManager.ConfirmEmailAsync(user, decodedToken);
+            if (!result.Succeeded)
+                throw new BadRequestException([new Error(IdentityDomainErrorCode.EmailVerificationFailed, nameof(command.Token))]);
+
+            readinessSideEffectsOwed = true;
+        }
+
+        if (!readinessSideEffectsOwed)
             return;
-        }
-
-        string decodedToken;
-        try
-        {
-            decodedToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(command.Token));
-        }
-        catch
-        {
-            throw new BadRequestException([new Error(IdentityDomainErrorCode.EmailVerificationFailed, nameof(command.Token))]);
-        }
-
-        var result = await userManager.ConfirmEmailAsync(user, decodedToken);
-        if (!result.Succeeded)
-            throw new BadRequestException([new Error(IdentityDomainErrorCode.EmailVerificationFailed, nameof(command.Token))]);
 
         user.Status = UserStatus.Active;
         user.ActivatedAt ??= DateTimeOffset.UtcNow;
