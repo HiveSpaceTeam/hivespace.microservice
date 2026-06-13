@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HiveSpace.Testing.Shared\HiveSpace.Testing.Shared.csproj" />
+    <ProjectReference Include="..\..\src\HiveSpace.OrderService\HiveSpace.OrderService.Application\HiveSpace.OrderService.Application.csproj" />
+    <ProjectReference Include="..\..\src\HiveSpace.OrderService\HiveSpace.OrderService.Domain\HiveSpace.OrderService.Domain.csproj" />
+    <ProjectReference Include="..\..\src\HiveSpace.OrderService\HiveSpace.OrderService.Infrastructure\HiveSpace.OrderService.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\libs\HiveSpace.Infrastructure.Messaging.Shared\HiveSpace.Infrastructure.Messaging.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="MassTransit.Testing" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
+    <PackageReference Include="coverlet.collector">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+</Project>

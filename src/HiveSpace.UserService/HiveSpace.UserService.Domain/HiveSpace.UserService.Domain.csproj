@@ -9,4 +9,9 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\libs\HiveSpace.Domain.Shared\HiveSpace.Domain.Shared.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HiveSpace.UserService.Tests" />
+  </ItemGroup>
+
 </Project>

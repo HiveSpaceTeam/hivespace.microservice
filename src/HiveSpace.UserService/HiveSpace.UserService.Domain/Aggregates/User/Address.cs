@@ -23,11 +23,12 @@ public class Address : Entity<Guid>, IAuditable
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset? UpdatedAt { get; private set; }
     
-    public Address(string fullName, string phoneNumber, string street, string commune, 
+    public Address(string fullName, string phoneNumber, string street, string commune,
         string province, string country, string? zipCode, AddressType addressType)
     {
         ValidateAndThrow(fullName, phoneNumber, street, commune, province, country);
-        
+
+        Id = Guid.NewGuid();
         FullName = fullName;
         PhoneNumber = phoneNumber;
         Street = street;
