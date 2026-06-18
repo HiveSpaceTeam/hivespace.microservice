@@ -5,6 +5,7 @@ using HiveSpace.Domain.Shared.Errors;
 using HiveSpace.CatalogService.Domain.Exceptions;
 using HiveSpace.CatalogService.Domain.ValueObjects;
 using HiveSpace.CatalogService.Domain.Enums;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 using HiveSpace.Domain.Shared.Enumerations;
 
@@ -56,7 +57,7 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
 
         #region Constructors
 
-        // Parameterless constructor for Entity Framework
+        [ExcludeFromCodeCoverage]
         private Product()
         {
             Name = string.Empty;
@@ -113,9 +114,6 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
             if (variants   is not null) product._variants.AddRange(variants);
             return product;
         }
-
-        private static string GenerateSlug(string name)
-            => $"{name}-{Guid.NewGuid().ToString("N")[..6]}";
 
         #endregion
 

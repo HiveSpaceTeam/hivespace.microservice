@@ -1,4 +1,4 @@
-using HiveSpace.MediaService.Core.Infrastructure.Data;
+using HiveSpace.MediaService.Core.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 

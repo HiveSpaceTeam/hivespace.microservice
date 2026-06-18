@@ -75,8 +75,7 @@ Four projects with hard layer boundaries. Dependency direction: `Domain ← Appl
   Migrations/
 
 [Service].Api/
-  Endpoints/                     # all non-UserService services
-  # UserService keeps Controllers/Pages as a documented exception
+  Endpoints/
   Consumers/
     Saga/[SagaName]/
     Sync/
@@ -104,7 +103,7 @@ Four projects with hard layer boundaries. Dependency direction: `Domain ← Appl
 | Decision | Required rule |
 |----------|---------------|
 | Application layer | **CQRS only** — `ICommand`/`IQuery` + handlers per operation for all feature work |
-| API surface | **Minimal Endpoints by default** — static `Map[Feature]Endpoints()`; only existing `UserService` legacy UI/controller code remains outside this rule |
+| API surface | **Minimal Endpoints** — static `Map[Feature]Endpoints()` |
 | Complex reads | Prefer Dapper for complex paginated / reporting reads; EF Core projections are acceptable for simpler reads |
 
 **CQRS layout:**
@@ -122,24 +121,6 @@ Application/[Feature]/
       [Get][Entity]QueryHandler.cs
   Dtos/
 ```
-
-**Legacy service-based layout (do not use for new features):**
-
-```text
-Application/
-  Interfaces/
-    I[Feature]Service.cs
-  Services/
-    [Feature]Service.cs
-  Validators/
-    [Request]Validator.cs
-  DTOs/
-    [Module]/                    # flat per-module folder (e.g. Admin/, User/, Store/, Account/)
-  Constant/
-    Enum/                        # query-shaping enums (filter values, sort options) — not domain enums
-```
-
-> Note: service-based Application layers use a flat `DTOs/[Module]/` structure — requests and responses together per module, distinguished by naming suffix (`RequestDto`/`ResponseDto`). Validators are called manually in controllers (no MediatR pipeline needed).
 
 **New service checklist — Full:**
 1. Run from repo root: `.\scripts\new-service.ps1 -ServiceName HiveSpace.[Name]Service -TemplateName ms-full -AddToSolution`

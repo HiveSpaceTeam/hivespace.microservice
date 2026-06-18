@@ -53,6 +53,60 @@ public class StoreManagerTests
         await act.Should().ThrowAsync<InvalidStoreInformationException>();
     }
 
+    [Fact]
+    public async Task RegisterStore_WhenUserNotFound_ThrowsNotFoundException()
+    {
+        var storeRepo = new StubStoreRepository(ownerHasStore: false, nameExists: false);
+        var userRepo = new StubUserRepository(null);
+        var manager = new StoreManager(storeRepo, userRepo);
+
+        var act = () => manager.RegisterStoreAsync("Valid Store Name", null, "logo", "addr", Guid.NewGuid());
+
+        await act.Should().ThrowAsync<NotFoundException>();
+    }
+
+    [Fact]
+    public async Task RegisterStore_WithWhitespaceName_ThrowsInvalidStoreInformationException()
+    {
+        var storeRepo = new StubStoreRepository();
+        var userRepo = new StubUserRepository(null);
+        var manager = new StoreManager(storeRepo, userRepo);
+
+        var act = () => manager.RegisterStoreAsync("   ", null, "logo", "addr", Guid.NewGuid());
+
+        await act.Should().ThrowAsync<InvalidStoreInformationException>();
+    }
+
+    [Fact]
+    public async Task RegisterStore_WithValidInput_ReturnsStoreRegistrationResult()
+    {
+        var userId = Guid.NewGuid();
+        var user = User.CreateProfile(userId, Email.Create("success@example.com"), "successuser", "Success User");
+        var storeRepo = new StubStoreRepository(ownerHasStore: false, nameExists: false);
+        var userRepo = new StubUserRepository(user);
+        var manager = new StoreManager(storeRepo, userRepo);
+
+        var result = await manager.RegisterStoreAsync("My Valid Store", null, "logo.png", "123 Main St", userId);
+
+        result.Should().NotBeNull();
+        result.Store.Should().NotBeNull();
+        result.Owner.Should().Be(user);
+    }
+
+    [Fact]
+    public void Constructor_WithNullStoreRepository_ThrowsInvalidFieldException()
+    {
+        var act = () => new StoreManager(null!, new StubUserRepository(null));
+        act.Should().Throw<InvalidFieldException>();
+    }
+
+    [Fact]
+    public void Constructor_WithNullUserRepository_ThrowsInvalidFieldException()
+    {
+        var act = () => new StoreManager(new StubStoreRepository(), null!);
+        act.Should().Throw<InvalidFieldException>();
+    }
+
     private sealed class StubStoreRepository(bool ownerHasStore = false, bool nameExists = false) : IStoreRepository
     {
         public Task<Store?> GetByOwnerIdAsync(Guid ownerId, CancellationToken cancellationToken = default)

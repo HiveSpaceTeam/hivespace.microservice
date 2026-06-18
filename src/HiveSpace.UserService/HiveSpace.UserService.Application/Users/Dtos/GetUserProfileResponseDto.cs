@@ -1,0 +1,14 @@
+using HiveSpace.Domain.Shared.Enumerations;
+using HiveSpace.UserService.Domain.Enums;
+
+namespace HiveSpace.UserService.Application.Users.Dtos;
+
+public record GetUserProfileResponseDto(
+    string FullName,
+    string UserName,
+    string Email,
+    string? AvatarUrl,
+    string? PhoneNumber,
+    Gender? Gender,
+    DateTimeOffset? DateOfBirth
+);

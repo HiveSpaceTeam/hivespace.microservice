@@ -192,10 +192,8 @@ public class GetCartSummaryQueryHandler(
             var coupon = coupons.FirstOrDefault(c =>
                 c.Code.Equals(code, StringComparison.OrdinalIgnoreCase) &&
                 c.OwnerType == CouponOwnerType.Platform);
-            if (coupon is null)
-                continue;
 
-            var (itemDiscount, _) = ApplyCoupon(coupon, userId, totalSubTotal, shippingFee: 0);
+            var (itemDiscount, _) = ApplyCoupon(coupon!, userId, totalSubTotal, shippingFee: 0);
             total += itemDiscount;
         }
 

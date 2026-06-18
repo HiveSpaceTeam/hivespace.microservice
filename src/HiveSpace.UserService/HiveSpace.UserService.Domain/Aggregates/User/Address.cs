@@ -37,6 +37,7 @@ public class Address : Entity<Guid>, IAuditable
         Country = country;
         ZipCode = zipCode;
         AddressType = addressType;
+        CreatedAt = DateTimeOffset.UtcNow;
     }
     
     private static void ValidateAndThrow(string? fullName, string? phoneNumber, string? street, 
@@ -81,6 +82,7 @@ public class Address : Entity<Guid>, IAuditable
         if (!string.IsNullOrWhiteSpace(country)) Country = country;
         if (zipCode != null) ZipCode = zipCode;
         if (addressType != null) AddressType = addressType.Value;
+        UpdatedAt = DateTimeOffset.UtcNow;
     }
     
     public void SetAsDefault()

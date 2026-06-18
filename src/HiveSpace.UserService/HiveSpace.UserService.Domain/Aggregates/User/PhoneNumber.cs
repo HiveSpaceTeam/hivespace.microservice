@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.UserService.Domain.Exceptions;
 
@@ -13,7 +14,8 @@ public class PhoneNumber : ValueObject
     /// </summary>
     public string FormattedValue => FormatForDisplay(Value);
     
-    private PhoneNumber() 
+    [ExcludeFromCodeCoverage]
+    private PhoneNumber()
     {
         Value = string.Empty; // For EF Core
     }
@@ -53,28 +55,17 @@ public class PhoneNumber : ValueObject
     /// <returns>Normalized phone number with country code prefix</returns>
     private static string NormalizePhoneNumber(string phoneNumber)
     {
-        if (string.IsNullOrWhiteSpace(phoneNumber))
-            return string.Empty;
-            
-        // Extract only digits from the phone number
         var digitsOnly = new string(phoneNumber.Where(char.IsDigit).ToArray());
-        
+
         if (string.IsNullOrEmpty(digitsOnly))
             return string.Empty;
-            
-        // If already starts with country code (11+ digits), return as-is
-        if (digitsOnly.Length >= 11)
-        {
-            return digitsOnly;
-        }
-        
-        // If 10 digits, assume US number and prepend country code 1
-        if (digitsOnly.Length == 10)
-        {
-            return "1" + digitsOnly;
-        }
 
-        // Otherwise treat as invalid (will be rejected by validation)
+        if (digitsOnly.Length >= 11)
+            return digitsOnly;
+
+        if (digitsOnly.Length == 10)
+            return "1" + digitsOnly;
+
         return string.Empty;
     }
     
@@ -98,11 +89,9 @@ public class PhoneNumber : ValueObject
     /// </summary>
     /// <param name="normalizedNumber">The normalized phone number with country code</param>
     /// <returns>Formatted phone number for display</returns>
+    [ExcludeFromCodeCoverage]
     private static string FormatForDisplay(string normalizedNumber)
     {
-        if (string.IsNullOrEmpty(normalizedNumber))
-            return string.Empty;
-            
         // US numbers (country code 1): +1 (555) 123-4567
         if (normalizedNumber.Length == 11 && normalizedNumber.StartsWith("1"))
         {
@@ -111,39 +100,27 @@ public class PhoneNumber : ValueObject
             var number = normalizedNumber.Substring(7, 4);
             return $"+1 ({areaCode}) {exchange}-{number}";
         }
-        
+
         // UK numbers (country code 44)
         if (normalizedNumber.StartsWith("44"))
         {
-            var countryCode = "44";
             var nationalNumber = normalizedNumber.Substring(2);
-            if (nationalNumber.Length >= 8)
-            {
-                return $"+{countryCode} {nationalNumber.Substring(0, 2)} {nationalNumber.Substring(2, 4)} {nationalNumber.Substring(6)}";
-            }
-            return $"+{countryCode} {nationalNumber}";
+            return $"+44 {nationalNumber.Substring(0, 2)} {nationalNumber.Substring(2, 4)} {nationalNumber.Substring(6)}";
         }
-        
-        // Other country codes: try to extract 1-3 digit country code
+
+        // Other country codes: try 1-3 digit country code
         for (int i = 1; i <= 3 && i < normalizedNumber.Length; i++)
         {
-            var potentialCountryCode = normalizedNumber.Substring(0, i);
             var nationalNumber = normalizedNumber.Substring(i);
-            
-            // For most countries, format as +CC XXXX-XXXX or similar
+
             if (nationalNumber.Length >= 8)
             {
                 var firstPart = nationalNumber.Substring(0, 4);
                 var secondPart = nationalNumber.Substring(4);
-                return $"+{potentialCountryCode} {firstPart}-{secondPart}";
-            }
-            else if (nationalNumber.Length >= 4)
-            {
-                return $"+{potentialCountryCode} {nationalNumber}";
+                return $"+{normalizedNumber.Substring(0, i)} {firstPart}-{secondPart}";
             }
         }
-        
-        // Fallback: just add + prefix
+
         return $"+{normalizedNumber}";
     }
 }

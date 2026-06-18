@@ -1,53 +1,35 @@
 using FluentAssertions;
-using HiveSpace.IdentityService.Core.DomainModels;
 using HiveSpace.IdentityService.Core.Features.AccountSessions.Commands.SignOut;
-using HiveSpace.IdentityService.Tests.Fixtures;
-using Microsoft.EntityFrameworkCore;
+using HiveSpace.IdentityService.Core.Interfaces.Services;
+using NSubstitute;
 using Xunit;
 
 namespace HiveSpace.IdentityService.Tests.Application.Session;
 
-public class LogoutCommandHandlerTests : IClassFixture<IdentityServiceFixture>
+public class LogoutCommandHandlerTests
 {
-    private readonly IdentityServiceFixture _fixture;
-
-    public LogoutCommandHandlerTests(IdentityServiceFixture fixture) => _fixture = fixture;
-
     [Fact]
-    public async Task Handle_ClearsSessionForAuthenticatedUser()
+    public async Task Handle_ClearsTokenCookieAndCsrfToken()
     {
-        var user = NewUser("logout@hivespace.local", UserStatus.Active);
-        user.LastLoginAt = DateTimeOffset.UtcNow;
-        _fixture.DbContext.Users.Add(user);
-        await _fixture.DbContext.SaveChangesAsync();
+        var tokenCookieService = Substitute.For<ITokenCookieService>();
+        var csrfTokenService = Substitute.For<ICsrfTokenService>();
 
-        var stored = await _fixture.DbContext.Users.SingleAsync(u => u.Email == "logout@hivespace.local");
-        stored.LastLoginAt.Should().NotBeNull("user must have an active session for SignOutCommandHandler to clear");
-        typeof(SignOutCommandHandler).Should().NotBeNull();
+        var handler = new SignOutCommandHandler(tokenCookieService, csrfTokenService);
+        await handler.Handle(new SignOutCommand(), CancellationToken.None);
+
+        await tokenCookieService.Received(1).ClearAsync(Arg.Any<CancellationToken>());
+        csrfTokenService.Received(1).Clear();
     }
 
     [Fact]
-    public async Task Handle_WithActiveUser_UserExistsInDatabase()
+    public async Task Handle_CompletesSuccessfully()
     {
-        var user = NewUser("logout2@hivespace.local", UserStatus.Active);
-        _fixture.DbContext.Users.Add(user);
-        await _fixture.DbContext.SaveChangesAsync();
+        var handler = new SignOutCommandHandler(
+            Substitute.For<ITokenCookieService>(),
+            Substitute.For<ICsrfTokenService>());
 
-        var stored = await _fixture.DbContext.Users.FirstOrDefaultAsync(u => u.Email == "logout2@hivespace.local");
-        stored.Should().NotBeNull("SignOutCommandHandler looks up the user before clearing their session");
-        stored!.Status.Should().Be(UserStatus.Active);
+        var act = () => handler.Handle(new SignOutCommand(), CancellationToken.None);
+
+        await act.Should().NotThrowAsync();
     }
-
-    private static ApplicationUser NewUser(string email, UserStatus status) =>
-        new()
-        {
-            Id = Guid.NewGuid(),
-            Email = email,
-            NormalizedEmail = email.ToUpperInvariant(),
-            UserName = email,
-            NormalizedUserName = email.ToUpperInvariant(),
-            RoleName = "buyer",
-            Status = status,
-            CreatedAt = DateTimeOffset.UtcNow
-        };
 }

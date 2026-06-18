@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.UserService.Domain.Exceptions;
 
@@ -6,29 +7,26 @@ namespace HiveSpace.UserService.Domain.Aggregates.User;
 public class DateOfBirth : ValueObject
 {
     public DateTimeOffset Value { get; }
-    
+
+    [ExcludeFromCodeCoverage]
     private DateOfBirth() { } // For EF Core
-    
+
     public DateOfBirth(DateTimeOffset value)
     {
         ValidateAndThrow(value);
         Value = value;
     }
-    
+
     private static void ValidateAndThrow(DateTimeOffset value)
     {
         if (value > DateTimeOffset.UtcNow)
             throw new InvalidDateOfBirthException();
-            
+
         if (value < DateTimeOffset.UtcNow.AddYears(-120))
             throw new InvalidDateOfBirthException();
     }
-    
-    private static bool IsValidDateOfBirth(DateTimeOffset value)
-    {
-        return value <= DateTimeOffset.UtcNow && value >= DateTimeOffset.UtcNow.AddYears(-120);
-    }
-    
+
+
     public int Age
     {
         get

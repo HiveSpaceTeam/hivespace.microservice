@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\HiveSpace.Testing.Shared\HiveSpace.Testing.Shared.csproj" />
+    <ProjectReference Include="..\..\src\HiveSpace.PaymentService\HiveSpace.PaymentService.Api\HiveSpace.PaymentService.Api.csproj" />
     <ProjectReference Include="..\..\src\HiveSpace.PaymentService\HiveSpace.PaymentService.Application\HiveSpace.PaymentService.Application.csproj" />
     <ProjectReference Include="..\..\src\HiveSpace.PaymentService\HiveSpace.PaymentService.Infrastructure\HiveSpace.PaymentService.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\HiveSpace.PaymentService\HiveSpace.PaymentService.Domain\HiveSpace.PaymentService.Domain.csproj" />
@@ -24,6 +25,11 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="NSubstitute" />
+    <PackageReference Include="NSubstitute.Analyzers.CSharp">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
     <PackageReference Include="coverlet.collector">
       <PrivateAssets>all</PrivateAssets>

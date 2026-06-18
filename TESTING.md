@@ -26,6 +26,42 @@ Write an Application/ test when the behavior involves persistence or cross-cutti
 - Handler persists an entity and the stored value matches
 - Handler raises a domain event that propagates through the in-memory bus
 - Query returns correct paged results from the in-memory store
+- Application tests call the command handler or query handler directly
+
+Do not count these as Application-layer coverage:
+- `typeof(Handler).Should().NotBeNull()`
+- Direct aggregate mutation in an `Application/` test when the handler is the real unit under test
+- Multi-handler smoke tests that never execute the orchestration logic
+
+## Application Test Pattern — NSubstitute vs IClassFixture
+
+Use **NSubstitute** (`Substitute.For<IOrderRepository>()`) when the test verifies handler orchestration and mock-verify is sufficient:
+- Command handler calls `repository.SaveChangesAsync()`
+- Handler calls a method with specific arguments
+- Guard path rejects invalid input before touching the DB
+
+Use **IClassFixture** with in-memory EF Core when the test must round-trip through persistence:
+- Query handler reads back data it cannot observe through a mock
+- Insert-then-read scenario (store an entity, assert the retrieved DTO)
+- Multiple handlers that share state through the same `DbContext`
+
+The worked example under "Worked Example — Application Test (paired with Domain)" uses NSubstitute because it only needs to verify orchestration and the `ConfirmOrder` state transition. The fixture tests in `Application/Cart/` use `IClassFixture<OrderServiceFixture>` because the query handlers need a real in-memory store to read from.
+
+## Coverage
+
+Target: **80% line coverage** on Domain and Application layers per service, enforced by `quality-gate.ps1`.
+
+Coverage scope (defined by `coverage.runsettings`):
+- **Included**: `[HiveSpace.*.Application]*`, `[HiveSpace.*.Domain]*`, `[HiveSpace.*.Core]*`
+- **Excluded**: Api, Infrastructure, test projects, and generated code
+
+Generate an HTML report to see per-service coverage before pushing:
+
+```powershell
+.\coverage.ps1 -Service OrderService
+```
+
+The `quality-gate.ps1 -Scope backend:OrderService` script reads the Cobertura XML after test run and fails the gate (`coveragePct < 0.80`) with `failureCategory: coverage_below_threshold`.
 
 ## TDD Workflow
 
@@ -143,49 +179,54 @@ public class WalletTests
 
 ## Worked Example — Application Test (paired with Domain)
 
-The Domain test above verifies the invariant in isolation. The paired Application test verifies the handler persists the result:
+The Domain test above verifies the invariant in isolation. The paired Application test must execute the handler and verify the orchestration it owns:
 
 ```csharp
-public class AddAddressCommandHandlerTests : IClassFixture<UserServiceFixture>
+public class ConfirmOrderCommandHandlerTests
 {
-    private readonly UserServiceFixture _fixture;
-    public AddAddressCommandHandlerTests(UserServiceFixture fixture) => _fixture = fixture;
-
     [Fact]
-    public async Task Handle_WithValidAddress_PersistsAddressForUser()
+    public async Task Handle_WithPaidOrder_ConfirmsOrder_AndPersists()
     {
-        var user = User.CreateProfile(Guid.NewGuid(), Email.Create("a@test.local"), "a", "A");
-        _fixture.DbContext.Users.Add(user);
-        await _fixture.DbContext.SaveChangesAsync();
+        var userContext = Substitute.For<IUserContext>();
+        userContext.UserId.Returns(Guid.NewGuid());
+        userContext.StoreId.Returns(Guid.NewGuid());
 
-        user.AddAddress("Name", "0901234567", "123 Main", "Ward", "Hanoi", "VN", null, AddressType.Home, true);
-        await _fixture.DbContext.SaveChangesAsync();
+        var order = Order.Create(Guid.NewGuid(), ValidAddress(), userContext.StoreId.Value);
+        order.AddItem(1L, 1L, 1, Money.FromVND(50_000), ValidSnapshot());
+        order.MarkAsPaid(Guid.NewGuid());
 
-        var stored = await _fixture.DbContext.Users
-            .Include(u => u.Addresses)
-            .SingleAsync(u => u.Id == user.Id);
-        stored.Addresses.Should().ContainSingle(a => a.Street == "123 Main");
+        var orderRepository = Substitute.For<IOrderRepository>();
+        orderRepository
+            .GetByIdAndStoreIdAsync(order.Id, userContext.StoreId.Value, Arg.Any<CancellationToken>())
+            .Returns(order);
+
+        var handler = new ConfirmOrderCommandHandler(orderRepository, userContext);
+
+        var result = await handler.Handle(new ConfirmOrderCommand(order.Id), CancellationToken.None);
+
+        result.OrderId.Should().Be(order.Id);
+        order.Status.Should().Be(OrderStatus.Confirmed);
+        await orderRepository.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task Handle_WithDefaultAddressPresent_NewDefaultClearsPreviousOne()
+    public async Task Handle_WithoutStoreId_ThrowsForbiddenException()
     {
-        var user = User.CreateProfile(Guid.NewGuid(), Email.Create("b@test.local"), "b", "B");
-        user.AddAddress("Name", "0901234567", "St 1", "Ward", "Hanoi", "VN", null, AddressType.Home, true);
-        _fixture.DbContext.Users.Add(user);
-        await _fixture.DbContext.SaveChangesAsync();
+        var userContext = Substitute.For<IUserContext>();
+        userContext.UserId.Returns(Guid.NewGuid());
+        userContext.StoreId.Returns((Guid?)null);
 
-        var second = user.AddAddress("Name", "0901234567", "St 2", "Ward", "Hanoi", "VN", null, AddressType.Work);
-        user.MarkAddressAsDefault(second.Id);
-        await _fixture.DbContext.SaveChangesAsync();
+        var orderRepository = Substitute.For<IOrderRepository>();
+        var handler = new ConfirmOrderCommandHandler(orderRepository, userContext);
 
-        second.IsDefault.Should().BeTrue();
-        user.Addresses.First(a => a.Street == "St 1").IsDefault.Should().BeFalse();
+        var act = () => handler.Handle(new ConfirmOrderCommand(Guid.NewGuid()), CancellationToken.None);
+
+        await act.Should().ThrowAsync<ForbiddenException>();
     }
 }
 ```
 
-The Domain test catches the invariant; the Application test catches persistence regressions.
+The Domain test catches the invariant; the Application test catches orchestration and persistence regressions. If a test only calls `order.Confirm(...)`, `user.AddAddress(...)`, or checks that a handler type exists, it is still a Domain or smoke test, not an Application-layer handler test.
 
 ## Running Tests
 
@@ -200,3 +241,23 @@ dotnet test tests/HiveSpace.OrderService.Tests
 .\quality-gate.ps1 -Scope backend:OrderService
 .\quality-gate.ps1 -Scope release
 ```
+
+## Code Coverage
+
+One-time setup (installs `reportgenerator` as a local tool):
+
+```powershell
+dotnet tool restore
+```
+
+Generate an HTML coverage report:
+
+```powershell
+# All services → coverage-report/index.html
+.\coverage.ps1
+
+# Single service
+.\coverage.ps1 -Service OrderService
+```
+
+The script deletes stale `TestResults/` and `coverage-report/` directories, runs `dotnet test --collect:"XPlat Code Coverage"`, aggregates all Cobertura XML files, and opens the report in your default browser.

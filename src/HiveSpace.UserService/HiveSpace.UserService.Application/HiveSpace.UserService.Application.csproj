@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\HiveSpace.UserService.Domain\HiveSpace.UserService.Domain.csproj" />
     <ProjectReference Include="..\..\..\libs\HiveSpace.Core\HiveSpace.Core.csproj" />
     <ProjectReference Include="..\..\..\libs\HiveSpace.Infrastructure.Messaging\HiveSpace.Infrastructure.Messaging.csproj" />

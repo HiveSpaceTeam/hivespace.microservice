@@ -1,9 +1,10 @@
 using FluentAssertions;
+using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Domain.Shared.ValueObjects;
-using HiveSpace.PaymentService.Application.Wallets.Queries.GetTransactionHistory;
 using HiveSpace.PaymentService.Application.Wallets.Queries.GetWallet;
+using HiveSpace.PaymentService.Infrastructure.Repositories;
 using HiveSpace.PaymentService.Tests.Fixtures;
-using Microsoft.EntityFrameworkCore;
+using HiveSpace.Testing.Shared.Doubles;
 using Xunit;
 using WalletAggregate = HiveSpace.PaymentService.Domain.Aggregates.Wallets.Wallet;
 
@@ -13,34 +14,31 @@ public class GetWalletBalanceQueryHandlerTests : IClassFixture<PaymentServiceFix
 {
     private readonly PaymentServiceFixture _fixture;
 
-    public GetWalletBalanceQueryHandlerTests(PaymentServiceFixture fixture)
-    {
-        _fixture = fixture;
-    }
+    public GetWalletBalanceQueryHandlerTests(PaymentServiceFixture fixture) => _fixture = fixture;
 
     [Fact]
-    public async Task Handle_ReturnsCurrentBalance()
+    public async Task Handle_WithExistingWallet_ReturnsWalletDto()
     {
-        var wallet = WalletAggregate.CreateForUser(Guid.NewGuid());
-        wallet.Credit(Money.FromVND(100_000), "REFUND-1", "refund");
+        var userId = Guid.NewGuid();
+        var wallet = WalletAggregate.CreateForUser(userId);
+        wallet.Credit(Money.FromVND(100_000), "REFUND-wallet-1", "Test credit");
         _fixture.DbContext.Wallets.Add(wallet);
         await _fixture.DbContext.SaveChangesAsync();
 
-        var stored = await _fixture.DbContext.Wallets.SingleAsync(x => x.Id == wallet.Id);
+        var result = await BuildHandler(userId).Handle(new GetWalletQuery(userId), CancellationToken.None);
 
-        stored.AvailableBalance.Amount.Should().Be(100_000);
-        typeof(GetWalletQueryHandler).Should().NotBeNull();
+        result.UserId.Should().Be(userId);
+        result.AvailableBalance.Should().Be(100_000);
     }
 
     [Fact]
-    public void Handle_SequentialReads_DoNotMutateState()
+    public async Task Handle_WhenWalletNotFound_ThrowsNotFoundException()
     {
-        var wallet = WalletAggregate.CreateForUser(Guid.NewGuid());
-
-        var first = wallet.AvailableBalance.Amount;
-        var second = wallet.AvailableBalance.Amount;
-
-        second.Should().Be(first);
-        typeof(GetTransactionHistoryQueryHandler).Should().NotBeNull();
+        var userId = Guid.NewGuid();
+        var act = () => BuildHandler(userId).Handle(new GetWalletQuery(userId), CancellationToken.None);
+        await act.Should().ThrowAsync<NotFoundException>();
     }
+
+    private GetWalletQueryHandler BuildHandler(Guid userId) =>
+        new(new SqlWalletRepository(_fixture.DbContext), new FakeUserContext { UserId = userId });
 }

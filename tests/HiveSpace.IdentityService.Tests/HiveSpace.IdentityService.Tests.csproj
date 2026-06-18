@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\HiveSpace.Testing.Shared\HiveSpace.Testing.Shared.csproj" />
+    <ProjectReference Include="..\..\src\HiveSpace.IdentityService\HiveSpace.IdentityService.Api\HiveSpace.IdentityService.Api.csproj" />
     <ProjectReference Include="..\..\src\HiveSpace.IdentityService\HiveSpace.IdentityService.Core\HiveSpace.IdentityService.Core.csproj" />
   </ItemGroup>
 
@@ -21,6 +22,10 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="NSubstitute" />
+    <PackageReference Include="NSubstitute.Analyzers.CSharp">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
     <PackageReference Include="coverlet.collector">
       <PrivateAssets>all</PrivateAssets>

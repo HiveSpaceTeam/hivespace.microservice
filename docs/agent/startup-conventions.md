@@ -99,7 +99,7 @@ public static WebApplication ConfigurePipeline(this WebApplication app)
 
 **Serilog rule**: API projects use the shared Serilog host setup through `builder.AddDefaultSerilog()` and request logging through `app.UseSerilogRequestLogging()`. Do not configure Serilog directly in `Program.cs`.
 
-**UserService exception**: Keeps controller-based APIs, localization/culture middleware, and its documented legacy pipeline shape. It still uses the shared Serilog setup and shared health endpoint mapping.
+**UserService note**: Uses localization/culture middleware in addition to the standard pipeline shape. Still uses the shared Serilog setup and shared health endpoint mapping.
 
 ## Database Migration & Seeding
 

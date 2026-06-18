@@ -1,5 +1,6 @@
 using HiveSpace.IdentityService.Core.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Xunit;
 
 namespace HiveSpace.IdentityService.Tests.Fixtures;
@@ -12,6 +13,7 @@ public sealed class IdentityServiceFixture : IAsyncLifetime
     {
         var options = new DbContextOptionsBuilder<IdentityDbContext>()
             .UseInMemoryDatabase($"identity-tests-{Guid.NewGuid()}")
+            .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))
             .Options;
 
         DbContext = new IdentityDbContext(options);

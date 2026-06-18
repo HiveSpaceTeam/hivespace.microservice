@@ -56,14 +56,12 @@ public class UpdateCartItemsCommandHandler(
                 .Distinct()
                 .ToList();
 
-            var productsById = productIds.Count > 0
-                ? (await productRefRepository.GetByIdsAsync(productIds, cancellationToken))
-                    .ToDictionary(x => x.Id)
-                : new Dictionary<long, ProductRef>();
-            var skusById = skuIds.Count > 0
-                ? (await skuRefRepository.GetByIdsAsync(skuIds, cancellationToken))
-                    .ToDictionary(x => x.Id)
-                : new Dictionary<long, SkuRef>();
+            List<ProductRef> productRefs = productIds.Count > 0
+                ? await productRefRepository.GetByIdsAsync(productIds, cancellationToken) : [];
+            var productsById = productRefs.ToDictionary(x => x.Id);
+            List<SkuRef> skuRefs = skuIds.Count > 0
+                ? await skuRefRepository.GetByIdsAsync(skuIds, cancellationToken) : [];
+            var skusById = skuRefs.ToDictionary(x => x.Id);
 
             var snapshots = SelectedCartCouponEvaluator.BuildStoreSnapshots(
                 cart.Items,

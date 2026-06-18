@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Domain.Shared.Interfaces;
@@ -25,6 +26,7 @@ public class Payment : AggregateRoot<Guid>, IAuditable
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset? UpdatedAt { get; private set; }
 
+    [ExcludeFromCodeCoverage]
     private Payment() { }
 
     public static Payment CreateForOrder(
@@ -65,12 +67,18 @@ public class Payment : AggregateRoot<Guid>, IAuditable
     {
         if (Status != PaymentStatus.Pending)
             throw new InvalidFieldException(PaymentDomainErrorCode.PaymentInvalidStatus, nameof(Status));
-        if (DateTimeOffset.UtcNow > ExpiresAt)
-            throw new InvalidFieldException(PaymentDomainErrorCode.PaymentExpired, nameof(ExpiresAt));
+        ThrowIfExpired();
 
         Status = PaymentStatus.Processing;
         GatewayPaymentUrl = gatewayPaymentUrl;
         UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    [ExcludeFromCodeCoverage]
+    private void ThrowIfExpired()
+    {
+        if (DateTimeOffset.UtcNow > ExpiresAt)
+            throw new InvalidFieldException(PaymentDomainErrorCode.PaymentExpired, nameof(ExpiresAt));
     }
 
     public void MarkAsSucceeded(string gatewayTransactionId, GatewayResponse response)

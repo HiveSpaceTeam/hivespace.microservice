@@ -1,6 +1,7 @@
 using HiveSpace.Core;
 using HiveSpace.Infrastructure.Messaging.Extensions;
 using HiveSpace.UserService.Api.Consumers;
+using HiveSpace.UserService.Api.Endpoints;
 using HiveSpace.UserService.Api.Middleware;
 using HiveSpace.UserService.Infrastructure;
 using HiveSpace.UserService.Infrastructure.Data;
@@ -27,8 +28,6 @@ internal static class HostingExtensions
             options.KnownNetworks.Clear();
             options.KnownProxies.Clear();
         });
-        // builder.Services.AddMediatRRegistration(configuration);
-        builder.Services.AddAppApiControllers();
         builder.Services.AddAppOpenApi();
 
         builder.Services.AddUserDbContext(configuration);
@@ -38,7 +37,6 @@ internal static class HostingExtensions
         builder.Services.AddAppApplicationServices();
         builder.Services.AddAppAuthentication(configuration);
         builder.Services.AddAppAuthorization();
-        builder.Services.AddAppApiVersioning();
 
         var messagingOptions = configuration.GetSection(MessagingOptions.SectionName).Get<MessagingOptions>();
 
@@ -81,8 +79,9 @@ internal static class HostingExtensions
         app.UseAuthentication();
         app.UseAuthorization();
 
-        // Map all controllers under /user prefix using built-in .NET support
-        app.MapControllers();
+        app.MapUserEndpoints();
+        app.MapStoreEndpoints();
+        app.MapUserAddressEndpoints();
         app.MapDefaultEndpoints();
         
         if (app.Environment.IsDevelopment())

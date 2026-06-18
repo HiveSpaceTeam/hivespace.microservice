@@ -8,7 +8,7 @@ using HiveSpace.IdentityService.Core.Exceptions;
 using HiveSpace.IdentityService.Core.Features.AccountSessions.Services;
 using HiveSpace.IdentityService.Core.Interfaces.Messaging;
 using HiveSpace.IdentityService.Core.Interfaces.Services;
-using HiveSpace.IdentityService.Core.Messaging;
+using HiveSpace.IdentityService.Core.Infrastructure.Messaging.Publishers;
 using HiveSpace.IdentityService.Core.Persistence;
 using HiveSpace.Infrastructure.Messaging.Configurations;
 using HiveSpace.Infrastructure.Messaging.Extensions;

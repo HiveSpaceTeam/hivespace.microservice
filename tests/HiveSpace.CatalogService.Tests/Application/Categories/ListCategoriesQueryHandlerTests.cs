@@ -1,38 +1,40 @@
 using FluentAssertions;
+using HiveSpace.CatalogService.Application.Categories.Dtos;
 using HiveSpace.CatalogService.Application.Categories.Queries.GetCategories;
-using HiveSpace.CatalogService.Domain.Aggregates.CategoryAggregate;
+using HiveSpace.CatalogService.Tests.Fakes;
 using HiveSpace.CatalogService.Tests.Fixtures;
-using Microsoft.EntityFrameworkCore;
 using Xunit;
 
 namespace HiveSpace.CatalogService.Tests.Application.Categories;
 
 public class ListCategoriesQueryHandlerTests : IClassFixture<CatalogServiceFixture>
 {
-    private readonly CatalogServiceFixture _fixture;
-
-    public ListCategoriesQueryHandlerTests(CatalogServiceFixture fixture) => _fixture = fixture;
+    public ListCategoriesQueryHandlerTests(CatalogServiceFixture fixture) { }
 
     [Fact]
-    public async Task Handle_ReturnsNonEmptyList()
+    public async Task Handle_WithSeededCategories_ReturnsCategoryList()
     {
-        _fixture.DbContext.Categories.Add(new Category(8001, "Electronics", isActive: true));
-        await _fixture.DbContext.SaveChangesAsync();
+        var categories = new List<CategoryDto>
+        {
+            new(1, "Electronics", "Electronics", null, null),
+            new(2, "Books", "Books", null, null),
+            new(3, "Sports", "Sports", null, null),
+        };
+        var handler = new GetCategoriesQueryHandler(new FakeCategoryDataQuery(categories));
 
-        var categories = await _fixture.DbContext.Categories.ToListAsync();
-        categories.Should().NotBeEmpty();
-        typeof(GetCategoriesQueryHandler).Should().NotBeNull();
+        var result = await handler.Handle(new GetCategoriesQuery(), CancellationToken.None);
+
+        result.Should().HaveCount(3);
+        result.Should().Contain(c => c.Name == "Books");
     }
 
     [Fact]
-    public async Task Handle_ReturnsOnlyActiveCategories()
+    public async Task Handle_WithNoCategories_ReturnsEmptyList()
     {
-        _fixture.DbContext.Categories.Add(new Category(8002, "Inactive Cat", isActive: false));
-        await _fixture.DbContext.SaveChangesAsync();
+        var handler = new GetCategoriesQueryHandler(new FakeCategoryDataQuery());
 
-        var active = await _fixture.DbContext.Categories.Where(c => c.IsActive == true).ToListAsync();
-        active.Should().NotContain(c => c.Id == 8002);
+        var result = await handler.Handle(new GetCategoriesQuery(), CancellationToken.None);
+
+        result.Should().BeEmpty();
     }
-
-    private static Category NewCategory(int id, string name) => new(id, name, isActive: true);
 }

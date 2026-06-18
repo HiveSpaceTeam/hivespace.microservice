@@ -2,6 +2,7 @@ using HiveSpace.Domain.Shared.ValueObjects;
 using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.CatalogService.Domain.Exceptions;
 using HiveSpace.Domain.Shared.Entities;
+using System.Diagnostics.CodeAnalysis;
 
 namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
 {
@@ -24,7 +25,7 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
         #endregion
 
         #region Constructors
-        // Parameterless constructor for Entity Framework
+        [ExcludeFromCodeCoverage]
         private Sku()
         {
             SkuNo = string.Empty;

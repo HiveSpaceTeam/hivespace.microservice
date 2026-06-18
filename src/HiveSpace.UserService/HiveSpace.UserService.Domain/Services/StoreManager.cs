@@ -46,8 +46,10 @@ public class StoreManager : IDomainService
         Guid? storeId = null,
         CancellationToken cancellationToken = default)
     {
-        // Fail-fast: validate name characters before any DB calls
-        if (!string.IsNullOrWhiteSpace(name) && ContainsInvalidCharacters(name.Trim()))
+        // Fail-fast: validate name before any DB calls
+        if (string.IsNullOrWhiteSpace(name))
+            throw new InvalidStoreInformationException();
+        if (ContainsInvalidCharacters(name.Trim()))
             throw new InvalidStoreInformationException();
 
         // Validate owner profile exists. Account availability belongs to IdentityService.
@@ -74,13 +76,7 @@ public class StoreManager : IDomainService
     /// <param name="cancellationToken">Optional cancellation token</param>
     /// <returns>True if the name is available, false otherwise</returns>
     private async Task<bool> IsStoreNameAvailableAsync(string name, CancellationToken cancellationToken = default)
-    {
-        if (string.IsNullOrWhiteSpace(name))
-            return false;
-            
-        // Use the more efficient exists check if available
-        return !await _storeRepository.StoreNameExistsAsync(name.Trim(), cancellationToken);
-    }
+        => !await _storeRepository.StoreNameExistsAsync(name.Trim(), cancellationToken);
 
     /// <summary>
     /// Checks if a user can create a store.

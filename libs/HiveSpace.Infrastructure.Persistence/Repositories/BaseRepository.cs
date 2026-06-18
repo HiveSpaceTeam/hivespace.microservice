@@ -65,13 +65,14 @@ public abstract class BaseRepository<TEntity, TKey>(DbContext context) : IReposi
 
     public async Task<TEntity?> GetByIdAsync(object id, bool includeDetail = false, CancellationToken cancellationToken = default)
     {
+        var typedId = (TKey)id;
         IQueryable<TEntity> query = _context.Set<TEntity>();
         if (includeDetail)
         {
             query = ApplyIncludeDetail(query);
         }
 
-        return await query.FirstOrDefaultAsync(entity => EF.Property<object>(entity, "Id") == id, cancellationToken);
+        return await query.FirstOrDefaultAsync(entity => EF.Property<TKey>(entity, "Id").Equals(typedId), cancellationToken);
     }
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

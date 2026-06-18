@@ -1,9 +1,7 @@
 using FluentAssertions;
-using HiveSpace.OrderService.Application.Cart.Queries.GetCheckoutPreview;
+using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.OrderService.Tests.Domain;
 using HiveSpace.OrderService.Tests.Fixtures;
-using HiveSpace.Testing.Shared.Capture;
-using HiveSpace.Infrastructure.Messaging.Events;
 using Xunit;
 using CartAggregate = HiveSpace.OrderService.Domain.Aggregates.Carts.Cart;
 
@@ -20,28 +18,23 @@ public class InitiateCheckoutCommandHandlerTests : IClassFixture<OrderServiceFix
     }
 
     [Fact]
-    public async Task Handle_WithValidCart_ClearsCartAndPublishesIntegrationEvent()
+    public void ValidateForCheckout_WithItems_Succeeds()
     {
-        var cart = CartAggregate.Create(Guid.NewGuid(), Guid.NewGuid());
-        cart.AddItem(1, 10, 2);
-        var capture = new InMemoryMessageCapture();
+        var cart = CartAggregate.Create(Guid.NewGuid());
+        cart.AddItem(1L, 10L, 2);
 
-        cart.ValidateForCheckout();
-        cart.Clear();
-        await capture.PublishAsync(new IntegrationEvent());
+        var act = () => cart.ValidateForCheckout();
 
-        cart.Items.Should().BeEmpty();
-        capture.Published.Should().ContainSingle();
-        typeof(GetCheckoutPreviewQueryHandler).Should().NotBeNull();
+        act.Should().NotThrow();
     }
 
     [Fact]
-    public async Task Handle_CartWithNoItems_CannotInitiateCheckout()
+    public void ValidateForCheckout_WithEmptyCart_ThrowsInvalidFieldException()
     {
-        var cart = CartAggregate.Create(Guid.NewGuid(), Guid.NewGuid());
-        _fixture.DbContext.Carts.Add(cart);
-        await _fixture.DbContext.SaveChangesAsync();
+        var cart = CartAggregate.Create(Guid.NewGuid());
 
-        cart.Items.Should().BeEmpty("a cart with no items cannot proceed to checkout");
+        var act = () => cart.ValidateForCheckout();
+
+        act.Should().Throw<InvalidFieldException>("an empty cart cannot proceed to checkout");
     }
 }

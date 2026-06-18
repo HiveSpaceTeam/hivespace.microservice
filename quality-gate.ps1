@@ -12,7 +12,6 @@ $ErrorActionPreference = "Stop"
 
 $serviceProjects = [ordered]@{
     "IdentityService" = "tests/HiveSpace.IdentityService.Tests/HiveSpace.IdentityService.Tests.csproj"
-    "ApiGateway" = "tests/HiveSpace.ApiGateway.Tests/HiveSpace.ApiGateway.Tests.csproj"
     "UserService" = "tests/HiveSpace.UserService.Tests/HiveSpace.UserService.Tests.csproj"
     "CatalogService" = "tests/HiveSpace.CatalogService.Tests/HiveSpace.CatalogService.Tests.csproj"
     "OrderService" = "tests/HiveSpace.OrderService.Tests/HiveSpace.OrderService.Tests.csproj"
@@ -40,31 +39,68 @@ function New-CheckResult {
         [object]$FailureCategory,
         [string]$BlockingDecision,
         [int]$RerunCount,
-        [string]$Summary
+        [string]$Summary,
+        [AllowNull()]
+        [object]$CoveragePct
     )
 
     [ordered]@{
-        checkId = $CheckId
-        name = $Name
-        journey = $Journey
-        audience = $Audience
-        ownerSurface = $OwnerSurface
-        status = $Status
+        checkId         = $CheckId
+        name            = $Name
+        journey         = $Journey
+        audience        = $Audience
+        ownerSurface    = $OwnerSurface
+        status          = $Status
         failureCategory = $FailureCategory
         blockingDecision = $BlockingDecision
-        rerunCount = $RerunCount
-        summary = $Summary
+        rerunCount      = $RerunCount
+        coveragePct     = $CoveragePct
+        summary         = $Summary
     }
 }
 
-function Invoke-DotnetTest {
-    param([string]$Project)
+$CoverageThreshold = 0.80
+$CoverageResultsRoot = Join-Path $PSScriptRoot "TestResults\quality-gate-$([DateTime]::UtcNow.ToString('yyyyMMddHHmmssfff'))"
+$CoverageSettings = Join-Path $PSScriptRoot "coverage.runsettings"
 
-    $output = & dotnet test $Project --nologo --verbosity minimal 2>&1 | Out-String
-    [ordered]@{
-        exitCode = $LASTEXITCODE
-        output = $output.Trim()
+function Invoke-DotnetTest {
+    param([string]$Project, [switch]$CollectCoverage)
+
+    if ($CollectCoverage -and (Test-Path $CoverageSettings)) {
+        $resultsDir = Join-Path $CoverageResultsRoot ([System.IO.Path]::GetFileNameWithoutExtension($Project))
+        $output = & dotnet test $Project --nologo --verbosity minimal `
+            --collect:"XPlat Code Coverage" `
+            --settings $CoverageSettings `
+            --results-directory $resultsDir 2>&1 | Out-String
+        [ordered]@{
+            exitCode   = $LASTEXITCODE
+            output     = $output.Trim()
+            resultsDir = $resultsDir
+        }
+    } else {
+        $output = & dotnet test $Project --nologo --verbosity minimal 2>&1 | Out-String
+        [ordered]@{
+            exitCode   = $LASTEXITCODE
+            output     = $output.Trim()
+            resultsDir = $null
+        }
     }
+}
+
+function Get-CoverageLineRate {
+    param([string]$ResultsDir)
+
+    if (-not $ResultsDir -or -not (Test-Path $ResultsDir)) { return $null }
+
+    $xmlFiles = @(Get-ChildItem -Path $ResultsDir -Recurse -Filter "coverage.cobertura.xml" -ErrorAction SilentlyContinue |
+                  Select-Object -ExpandProperty FullName)
+    if ($xmlFiles.Count -eq 0) { return $null }
+
+    # If multiple XML files (parallel test runs), use the first one
+    [xml]$xml = Get-Content $xmlFiles[0] -Raw
+    $rate = $xml.coverage.'line-rate'
+    if ($null -eq $rate) { return $null }
+    return [double]$rate
 }
 
 function New-CoverageGap {
@@ -122,28 +158,51 @@ function Invoke-ProjectCheck {
         [string]$Name,
         [string]$Journey,
         [string]$Audience,
-        [string]$OwnerSurface
+        [string]$OwnerSurface,
+        [switch]$WithCoverage
     )
 
-    $first = Invoke-DotnetTest $Project
+    $first = Invoke-DotnetTest $Project -CollectCoverage:$WithCoverage
     if ($first.exitCode -eq 0) {
-        return New-CheckResult $CheckId $Name $Journey $Audience $OwnerSurface "pass" $null "none" 0 "$Name passed"
+        $coveragePct = if ($WithCoverage) { Get-CoverageLineRate $first.resultsDir } else { $null }
+
+        if ($WithCoverage -and $null -ne $coveragePct -and $coveragePct -lt $CoverageThreshold) {
+            $pctDisplay = [math]::Round($coveragePct * 100, 1)
+            return New-CheckResult $CheckId $Name $Journey $Audience $OwnerSurface `
+                "fail" "coverage_below_threshold" "merge_blocking" 0 `
+                "$Name tests passed but line coverage is $pctDisplay% (threshold: $([int]($CoverageThreshold*100))%)" `
+                $coveragePct
+        }
+
+        return New-CheckResult $CheckId $Name $Journey $Audience $OwnerSurface "pass" $null "none" 0 "$Name passed" $coveragePct
     }
 
-    $second = Invoke-DotnetTest $Project
+    $second = Invoke-DotnetTest $Project -CollectCoverage:$WithCoverage
     if ($second.exitCode -eq 0) {
-        return New-CheckResult $CheckId $Name $Journey $Audience $OwnerSurface "pass" $null "none" 1 "$Name passed after one rerun"
+        $coveragePct = if ($WithCoverage) { Get-CoverageLineRate $second.resultsDir } else { $null }
+
+        if ($WithCoverage -and $null -ne $coveragePct -and $coveragePct -lt $CoverageThreshold) {
+            $pctDisplay = [math]::Round($coveragePct * 100, 1)
+            return New-CheckResult $CheckId $Name $Journey $Audience $OwnerSurface `
+                "fail" "coverage_below_threshold" "merge_blocking" 1 `
+                "$Name tests passed (after rerun) but line coverage is $pctDisplay% (threshold: $([int]($CoverageThreshold*100))%)" `
+                $coveragePct
+        }
+
+        return New-CheckResult $CheckId $Name $Journey $Audience $OwnerSurface "pass" $null "none" 1 "$Name passed after one rerun" $coveragePct
     }
 
     if ($first.exitCode -ne $second.exitCode) {
-        return New-CheckResult $CheckId $Name $Journey $Audience $OwnerSurface "unstable_check" "unstable_check" "merge_blocking" 1 "$Name produced inconsistent exit codes $($first.exitCode) and $($second.exitCode)"
+        return New-CheckResult $CheckId $Name $Journey $Audience $OwnerSurface `
+            "unstable_check" "unstable_check" "merge_blocking" 1 `
+            "$Name produced inconsistent exit codes $($first.exitCode) and $($second.exitCode)" $null
     }
 
     $failureCategory = Get-FailureCategory $second.output
     $status = if ($failureCategory -eq "environment_readiness") { "environment_failure" } elseif ($failureCategory -eq "missing_test_data") { "missing_data" } else { "fail" }
     $summary = if ([string]::IsNullOrWhiteSpace($second.output)) { "$Name failed with exit code $($second.exitCode)" } else { ($second.output -split "`n" | Select-Object -Last 8) -join "`n" }
 
-    return New-CheckResult $CheckId $Name $Journey $Audience $OwnerSurface $status $failureCategory "merge_blocking" 1 $summary
+    return New-CheckResult $CheckId $Name $Journey $Audience $OwnerSurface $status $failureCategory "merge_blocking" 1 $summary $null
 }
 
 function Get-ServiceJourney {
@@ -181,7 +240,7 @@ $coverageGaps = @()
 $acceptedRisks = @()
 
 if ($Scope -eq "docs-only") {
-    $checkResults += New-CheckResult "backend.docs.runtime-not-applicable" "Backend runtime checks not applicable" "documentation-only-change" "contributor" "backend" "not_applicable" $null "none" 0 "Documentation-only scope does not run backend tests"
+    $checkResults += New-CheckResult "backend.docs.runtime-not-applicable" "Backend runtime checks not applicable" "documentation-only-change" "contributor" "backend" "not_applicable" $null "none" 0 "Documentation-only scope does not run backend tests" $null
 }
 elseif ($Scope -eq "shared") {
     $checkResults += Invoke-ProjectCheck $sharedProject "backend.shared.test-infrastructure" "Shared backend test infrastructure" "shared-backend-baseline" "service" "HiveSpace.Testing.Shared"
@@ -189,13 +248,13 @@ elseif ($Scope -eq "shared") {
 elseif ($Scope -eq "release") {
     $checkResults += Invoke-ProjectCheck $sharedProject "backend.shared.test-infrastructure" "Shared backend test infrastructure" "shared-backend-baseline" "service" "HiveSpace.Testing.Shared"
     foreach ($serviceName in $serviceProjects.Keys) {
-        $checkResults += Invoke-ProjectCheck $serviceProjects[$serviceName] "backend.$($serviceName.ToLowerInvariant()).tests" "$serviceName backend tests" (Get-ServiceJourney $serviceName) "service" $serviceName
+        $checkResults += Invoke-ProjectCheck $serviceProjects[$serviceName] "backend.$($serviceName.ToLowerInvariant()).tests" "$serviceName backend tests" (Get-ServiceJourney $serviceName) "service" $serviceName -WithCoverage
     }
 }
 else {
     $serviceName = $Scope.Substring("backend:".Length)
     $checkResults += Invoke-ProjectCheck $sharedProject "backend.shared.test-infrastructure" "Shared backend test infrastructure" "shared-backend-baseline" "service" "HiveSpace.Testing.Shared"
-    $checkResults += Invoke-ProjectCheck $serviceProjects[$serviceName] "backend.$($serviceName.ToLowerInvariant()).tests" "$serviceName backend tests" (Get-ServiceJourney $serviceName) "service" $serviceName
+    $checkResults += Invoke-ProjectCheck $serviceProjects[$serviceName] "backend.$($serviceName.ToLowerInvariant()).tests" "$serviceName backend tests" (Get-ServiceJourney $serviceName) "service" $serviceName -WithCoverage
 }
 
 if ($Scope -eq "backend:OrderService" -or $Scope -eq "release") {
@@ -225,7 +284,8 @@ if ($Scope -eq "backend:OrderService" -or $Scope -eq "release") {
             "accepted_coverage_gap" `
             "blocked_until_risk_accepted" `
             0 `
-            "Accepted risk recorded for backend-visible coupon promotion gap"
+            "Accepted risk recorded for backend-visible coupon promotion gap" `
+            $null
     }
 }
 

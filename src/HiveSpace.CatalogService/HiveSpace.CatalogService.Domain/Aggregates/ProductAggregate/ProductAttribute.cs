@@ -2,6 +2,7 @@
 using HiveSpace.Domain.Shared.Entities;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
 {
@@ -17,7 +18,7 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
         #endregion
 
         #region Constructors
-        // Parameterless constructor for Entity Framework
+        [ExcludeFromCodeCoverage]
         private ProductAttribute()
         {
         }

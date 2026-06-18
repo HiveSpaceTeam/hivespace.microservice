@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.Domain.Shared.Exceptions;
@@ -29,6 +30,7 @@ public class User : AggregateRoot<Guid>, IAuditable, ISoftDeletable
     public bool IsDeleted { get; set; }
     public DateTimeOffset? DeletedAt { get; set; }
 
+    [ExcludeFromCodeCoverage]
     private User()
     {
         _addresses = [];
@@ -60,44 +62,6 @@ public class User : AggregateRoot<Guid>, IAuditable, ISoftDeletable
         CreatedAt = createdAt ?? DateTimeOffset.UtcNow;
         UpdatedAt = updatedAt;
         Settings = new UserSettings(Theme.Light, Culture.En);
-    }
-
-    internal static User Rehydrate(
-        Guid id,
-        Email email,
-        string userName,
-        string fullName,
-        string? avatarUrl,
-        PhoneNumber? phoneNumber,
-        DateOfBirth? dateOfBirth,
-        Gender? gender,
-        DateTimeOffset createdAt,
-        DateTimeOffset? updatedAt,
-        bool isDeleted = false,
-        DateTimeOffset? deletedAt = null,
-        IEnumerable<Address>? addresses = null,
-        Theme theme = Theme.Light,
-        Culture culture = Culture.Vi,
-        string? avatarFileId = null)
-    {
-        var user = new User(email, userName, fullName, avatarUrl, phoneNumber, dateOfBirth, gender, createdAt, updatedAt)
-        {
-            Id = id,
-            AvatarFileId = avatarFileId,
-            IsDeleted = isDeleted,
-            DeletedAt = deletedAt,
-            Settings = new UserSettings(theme, culture)
-        };
-
-        if (addresses != null)
-        {
-            foreach (var address in addresses)
-            {
-                user._addresses.Add(address);
-            }
-        }
-
-        return user;
     }
 
     public static User CreateProfile(

@@ -1,33 +1,38 @@
 using FluentAssertions;
+using HiveSpace.CatalogService.Application.Categories.Dtos;
 using HiveSpace.CatalogService.Application.Categories.Queries.GetAttributesByCategoryId;
-using HiveSpace.CatalogService.Domain.Aggregates.CategoryAggregate;
+using HiveSpace.CatalogService.Domain.Aggregates.AttributeAggregate;
+using HiveSpace.CatalogService.Tests.Fakes;
 using HiveSpace.CatalogService.Tests.Fixtures;
-using Microsoft.EntityFrameworkCore;
 using Xunit;
 
 namespace HiveSpace.CatalogService.Tests.Application.Categories;
 
 public class GetCategoryAttributesQueryHandlerTests : IClassFixture<CatalogServiceFixture>
 {
-    private readonly CatalogServiceFixture _fixture;
-
-    public GetCategoryAttributesQueryHandlerTests(CatalogServiceFixture fixture) => _fixture = fixture;
+    public GetCategoryAttributesQueryHandlerTests(CatalogServiceFixture fixture) { }
 
     [Fact]
-    public async Task Handle_WithValidCategoryId_CategoryIsQueryable()
+    public async Task Handle_WithAttributesForCategory_ReturnsAttributeList()
     {
-        _fixture.DbContext.Categories.Add(new Category(9001, "Phones", isActive: true));
-        await _fixture.DbContext.SaveChangesAsync();
+        var attributes = new List<AttributeDto>
+        {
+            new(1, "Color", AttributeValueType.String, InputType.Dropdown, false, 5, true, DateTime.UtcNow, null, []),
+        };
+        var handler = new GetAttributesByCategoryIdQueryHandler(new FakeCategoryDataQuery(attributes: attributes));
 
-        var category = await _fixture.DbContext.Categories.FirstOrDefaultAsync(c => c.Id == 9001);
-        category.Should().NotBeNull("GetAttributesByCategoryIdQueryHandler loads the category before returning attributes");
-        typeof(GetAttributesByCategoryIdQueryHandler).Should().NotBeNull();
+        var result = await handler.Handle(new GetAttributesByCategoryIdQuery(CategoryId: 10), CancellationToken.None);
+
+        result.Should().ContainSingle(a => a.Name == "Color");
     }
 
     [Fact]
-    public async Task Handle_WithUnknownCategoryId_NoCategoryFound()
+    public async Task Handle_WithNoAttributesForCategory_ReturnsEmptyList()
     {
-        var category = await _fixture.DbContext.Categories.FirstOrDefaultAsync(c => c.Id == 99999);
-        category.Should().BeNull("handler throws NotFoundException when the category does not exist");
+        var handler = new GetAttributesByCategoryIdQueryHandler(new FakeCategoryDataQuery());
+
+        var result = await handler.Handle(new GetAttributesByCategoryIdQuery(CategoryId: 99), CancellationToken.None);
+
+        result.Should().BeEmpty();
     }
 }

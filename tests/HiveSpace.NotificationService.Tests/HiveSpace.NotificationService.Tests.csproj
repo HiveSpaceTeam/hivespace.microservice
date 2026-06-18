@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\HiveSpace.Testing.Shared\HiveSpace.Testing.Shared.csproj" />
+    <ProjectReference Include="..\..\src\HiveSpace.NotificationService\HiveSpace.NotificationService.Api\HiveSpace.NotificationService.Api.csproj" />
     <ProjectReference Include="..\..\src\HiveSpace.NotificationService\HiveSpace.NotificationService.Core\HiveSpace.NotificationService.Core.csproj" />
   </ItemGroup>
 
@@ -26,6 +27,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="NSubstitute" />
   </ItemGroup>
 
 </Project>

@@ -1,11 +1,13 @@
 using FluentAssertions;
+using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Domain.Shared.ValueObjects;
 using HiveSpace.OrderService.Application.Orders.Queries.GetOrderById;
 using HiveSpace.OrderService.Domain.Aggregates.Orders;
 using HiveSpace.OrderService.Domain.ValueObjects;
+using HiveSpace.OrderService.Infrastructure.Repositories;
 using HiveSpace.OrderService.Tests.Domain;
 using HiveSpace.OrderService.Tests.Fixtures;
-using Microsoft.EntityFrameworkCore;
+using HiveSpace.Testing.Shared.Doubles;
 using Xunit;
 
 namespace HiveSpace.OrderService.Tests.Application.BuyerOrders;
@@ -21,23 +23,32 @@ public class GetOrderDetailQueryHandlerTests : IClassFixture<OrderServiceFixture
     }
 
     [Fact]
-    public async Task Handle_WithExistingOrder_ReturnsOrderDetail()
+    public async Task Handle_WithExistingOrder_ReturnsDetailDto()
     {
-        var order = Order.Create(Guid.NewGuid(), ValidAddress(), Guid.NewGuid());
+        var buyerId = Guid.NewGuid();
+        var order = Order.Create(buyerId, ValidAddress(), Guid.NewGuid());
         _fixture.DbContext.Orders.Add(order);
         await _fixture.DbContext.SaveChangesAsync();
 
-        var stored = await _fixture.DbContext.Orders.SingleAsync(o => o.Id == order.Id);
-        stored.Should().NotBeNull();
-        typeof(GetOrderByIdQueryHandler).Should().NotBeNull();
+        var handler = new GetOrderByIdQueryHandler(
+            new SqlOrderRepository(_fixture.DbContext),
+            new FakeUserContext { UserId = buyerId });
+
+        var result = await handler.Handle(new GetOrderByIdQuery(order.Id), CancellationToken.None);
+
+        result.Should().NotBeNull();
     }
 
     [Fact]
-    public async Task Handle_WithNonExistentOrderId_NoOrderFound()
+    public async Task Handle_WithNonExistentOrderId_ThrowsNotFoundException()
     {
-        var missingId = Guid.NewGuid();
-        var order = await _fixture.DbContext.Orders.FirstOrDefaultAsync(o => o.Id == missingId);
-        order.Should().BeNull("GetOrderByIdQueryHandler throws NotFoundException for unknown order IDs");
+        var handler = new GetOrderByIdQueryHandler(
+            new SqlOrderRepository(_fixture.DbContext),
+            new FakeUserContext { UserId = Guid.NewGuid() });
+
+        var act = () => handler.Handle(new GetOrderByIdQuery(Guid.NewGuid()), CancellationToken.None);
+
+        await act.Should().ThrowAsync<NotFoundException>();
     }
 
     private static DeliveryAddress ValidAddress() =>

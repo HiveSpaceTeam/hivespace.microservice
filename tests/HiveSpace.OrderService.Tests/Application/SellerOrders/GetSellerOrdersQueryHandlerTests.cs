@@ -1,11 +1,9 @@
 using FluentAssertions;
-using HiveSpace.Domain.Shared.ValueObjects;
+using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.OrderService.Application.Orders.Queries.GetSellerOrders;
-using HiveSpace.OrderService.Domain.Aggregates.Orders;
-using HiveSpace.OrderService.Domain.ValueObjects;
 using HiveSpace.OrderService.Tests.Domain;
 using HiveSpace.OrderService.Tests.Fixtures;
-using Microsoft.EntityFrameworkCore;
+using HiveSpace.Testing.Shared.Doubles;
 using Xunit;
 
 namespace HiveSpace.OrderService.Tests.Application.SellerOrders;
@@ -21,26 +19,31 @@ public class GetSellerOrdersQueryHandlerTests : IClassFixture<OrderServiceFixtur
     }
 
     [Fact]
-    public async Task Handle_WithOrdersForStore_ReturnsSellerOrders()
+    public async Task Handle_AsSeller_ReturnsOrdersFromQuery()
     {
         var storeId = Guid.NewGuid();
-        var order = Order.Create(Guid.NewGuid(), ValidAddress(), storeId);
-        _fixture.DbContext.Orders.Add(order);
-        await _fixture.DbContext.SaveChangesAsync();
+        var handler = new GetSellerOrdersQueryHandler(
+            new FakeOrderDataQuery(),
+            new FakeUserContext { UserId = Guid.NewGuid(), Roles = ["Seller"], StoreId = storeId });
 
-        var orders = await _fixture.DbContext.Orders.Where(o => o.StoreId == storeId).ToListAsync();
-        orders.Should().ContainSingle();
-        typeof(GetSellerOrdersQueryHandler).Should().NotBeNull();
+        var result = await handler.Handle(
+            new GetSellerOrdersQuery(1, 20),
+            CancellationToken.None);
+
+        result.Should().NotBeNull();
+        result.Orders.Should().BeEmpty();
+        result.Pagination.CurrentPage.Should().Be(1);
     }
 
     [Fact]
-    public async Task Handle_WithStoreWithNoOrders_ReturnsEmpty()
+    public async Task Handle_WithNoStoreId_ThrowsForbiddenException()
     {
-        var unknownStoreId = Guid.NewGuid();
-        var orders = await _fixture.DbContext.Orders.Where(o => o.StoreId == unknownStoreId).ToListAsync();
-        orders.Should().BeEmpty();
-    }
+        var handler = new GetSellerOrdersQueryHandler(
+            new FakeOrderDataQuery(),
+            new FakeUserContext { UserId = Guid.NewGuid(), Roles = ["Seller"] });
 
-    private static DeliveryAddress ValidAddress() =>
-        new("Test User", new PhoneNumber("0901234567"), "123 Main St", "Ward 1", "Hanoi");
+        var act = () => handler.Handle(new GetSellerOrdersQuery(1, 20), CancellationToken.None);
+
+        await act.Should().ThrowAsync<ForbiddenException>();
+    }
 }

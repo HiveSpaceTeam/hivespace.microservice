@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\libs\HiveSpace.Core\HiveSpace.Core.csproj" />
     <ProjectReference Include="..\..\libs\HiveSpace.Domain.Shared\HiveSpace.Domain.Shared.csproj" />
     <ProjectReference Include="..\..\libs\HiveSpace.Infrastructure.Messaging\HiveSpace.Infrastructure.Messaging.csproj" />
   </ItemGroup>

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Domain.Shared.Enumerations;
@@ -21,6 +22,7 @@ public class Store : AggregateRoot<Guid>
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
 
+    [ExcludeFromCodeCoverage]
     private Store()
     {
         LogoFileId = string.Empty;

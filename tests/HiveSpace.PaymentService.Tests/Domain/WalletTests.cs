@@ -76,4 +76,31 @@ public class WalletTests
         wallet.Activate();
         wallet.Status.Should().Be(WalletStatus.Active);
     }
+
+    [Fact]
+    public void CreateForUser_WithEmptyUserId_ThrowsDomainException()
+    {
+        var act = () => Wallet.CreateForUser(Guid.Empty);
+        act.Should().Throw<DomainException>();
+    }
+
+    [Fact]
+    public void Debit_WithZeroAmount_ThrowsDomainException()
+    {
+        var wallet = Wallet.CreateForUser(Guid.NewGuid());
+        wallet.Credit(Money.FromVND(100_000), "CREDIT-001", "setup");
+
+        var act = () => wallet.Debit(Money.Zero(), "DEBIT-ZERO", "zero amount");
+
+        act.Should().Throw<DomainException>();
+    }
+
+    [Fact]
+    public void TotalBalance_EqualsAvailableBalancePlusEscrowBalance()
+    {
+        var wallet = Wallet.CreateForUser(Guid.NewGuid());
+        wallet.Credit(Money.FromVND(75_000), "CREDIT-001", "setup");
+
+        wallet.TotalBalance.Amount.Should().Be(wallet.AvailableBalance.Amount + wallet.EscrowBalance.Amount);
+    }
 }

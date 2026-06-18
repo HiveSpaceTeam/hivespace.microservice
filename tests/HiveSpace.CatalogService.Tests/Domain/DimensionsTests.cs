@@ -21,4 +21,11 @@ public class DimensionsTests
         var b = new Dimensions(10, 20, 30, DimensionUnit.Centimeter);
         a.Should().Be(b);
     }
+
+    [Fact]
+    public void ToString_ReturnsFormattedString()
+    {
+        var d = new Dimensions(10, 20, 30, DimensionUnit.Centimeter);
+        d.ToString().Should().Be("10x20x30 Centimeter");
+    }
 }

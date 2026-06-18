@@ -1,4 +1,5 @@
 using HiveSpace.Domain.Shared.Entities;
+using System.Diagnostics.CodeAnalysis;
 
 namespace HiveSpace.CatalogService.Domain.Aggregates.CategoryAggregate
 {
@@ -14,6 +15,7 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.CategoryAggregate
         private readonly List<CategoryAttribute> _categoryAttributes = [];
         public IReadOnlyCollection<CategoryAttribute> CategoryAttributes => _categoryAttributes.AsReadOnly();
 
+        [ExcludeFromCodeCoverage]
         private Category()
         {
             Name = string.Empty;

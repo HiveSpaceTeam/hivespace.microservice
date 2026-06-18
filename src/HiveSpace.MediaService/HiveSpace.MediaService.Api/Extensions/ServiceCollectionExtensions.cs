@@ -1,5 +1,5 @@
 using HiveSpace.MediaService.Core.Infrastructure.Configuration;
-using HiveSpace.MediaService.Core.Infrastructure.Data;
+using HiveSpace.MediaService.Core.Persistence;
 using HiveSpace.MediaService.Core.Infrastructure.Messaging.Publishers;
 using HiveSpace.MediaService.Core.Infrastructure.Storage;
 using HiveSpace.MediaService.Core.Interfaces;

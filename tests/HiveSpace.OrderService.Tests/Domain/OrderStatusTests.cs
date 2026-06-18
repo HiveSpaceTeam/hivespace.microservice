@@ -54,4 +54,76 @@ public class OrderStatusTests
     {
         OrderStatus.Confirmed.CanBeRejected().Should().BeFalse();
     }
+
+    [Fact]
+    public void IsInProgress_ForCreated_ReturnsTrue()
+    {
+        OrderStatus.Created.IsInProgress().Should().BeTrue();
+    }
+
+    [Fact]
+    public void IsInProgress_ForCompleted_ReturnsFalse()
+    {
+        OrderStatus.Completed.IsInProgress().Should().BeFalse();
+    }
+
+    [Fact]
+    public void IsInProgress_ForCancelled_ReturnsFalse()
+    {
+        OrderStatus.Cancelled.IsInProgress().Should().BeFalse();
+    }
+
+    [Fact]
+    public void IsInProgress_ForRejected_ReturnsFalse()
+    {
+        OrderStatus.Rejected.IsInProgress().Should().BeFalse();
+    }
+
+    [Fact]
+    public void ReadyToShip_CanBeShipped_ReturnsTrue()
+    {
+        OrderStatus.ReadyToShip.CanBeShipped().Should().BeTrue();
+    }
+
+    [Fact]
+    public void COD_CanBeConfirmed_ReturnsTrue()
+    {
+        OrderStatus.COD.CanBeConfirmed().Should().BeTrue();
+    }
+
+    [Fact]
+    public void COD_CanBeRejected_ReturnsTrue()
+    {
+        OrderStatus.COD.CanBeRejected().Should().BeTrue();
+    }
+
+    [Fact]
+    public void Paid_CanBeRejected_ReturnsTrue()
+    {
+        OrderStatus.Paid.CanBeRejected().Should().BeTrue();
+    }
+
+    [Fact]
+    public void Refunded_IsFinal_ReturnsTrue()
+    {
+        OrderStatus.Refunded.IsFinal().Should().BeTrue();
+    }
+
+    [Fact]
+    public void Solved_IsFinal_ReturnsTrue()
+    {
+        OrderStatus.Solved.IsFinal().Should().BeTrue();
+    }
+
+    [Fact]
+    public void Paid_CanBeCancelled_ReturnsTrue()
+    {
+        OrderStatus.Paid.CanBeCancelled().Should().BeTrue();
+    }
+
+    [Fact]
+    public void Confirmed_CanBeCancelled_ReturnsTrue()
+    {
+        OrderStatus.Confirmed.CanBeCancelled().Should().BeTrue();
+    }
 }
