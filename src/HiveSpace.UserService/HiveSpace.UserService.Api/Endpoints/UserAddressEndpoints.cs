@@ -1,3 +1,4 @@
+using HiveSpace.Infrastructure.Authorization;
 using HiveSpace.UserService.Application.UserAddresses.Commands.CreateUserAddress;
 using HiveSpace.UserService.Application.UserAddresses.Commands.DeleteUserAddress;
 using HiveSpace.UserService.Application.UserAddresses.Commands.SetDefaultUserAddress;
@@ -17,7 +18,7 @@ public static class UserAddressEndpoints
     {
         var group = app.MapGroup("/api/v1/users/address")
             .WithTags("UserAddresses")
-            .RequireAuthorization();
+            .RequireAuthorization(HiveSpaceAuthorizeAttribute.AdminOrUser.Policy);
 
         group.MapGet("/", async (IMediator mediator, CancellationToken ct) =>
         {
@@ -30,10 +31,11 @@ public static class UserAddressEndpoints
         group.MapGet("/default", async (IMediator mediator, CancellationToken ct) =>
         {
             var result = await mediator.Send(new GetDefaultUserAddressQuery(), ct);
-            return Results.Ok(result);
+            return result is null ? Results.NotFound() : Results.Ok(result);
         })
         .WithName("GetDefaultUserAddress")
-        .Produces<UserAddressDto?>();
+        .Produces<UserAddressDto>()
+        .Produces(StatusCodes.Status404NotFound);
 
         group.MapGet("/{addressId:guid}", async (
             Guid addressId,

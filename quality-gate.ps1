@@ -93,11 +93,10 @@ function Get-CoverageLineRate {
     if (-not $ResultsDir -or -not (Test-Path $ResultsDir)) { return $null }
 
     $xmlFiles = @(Get-ChildItem -Path $ResultsDir -Recurse -Filter "coverage.cobertura.xml" -ErrorAction SilentlyContinue |
-                  Select-Object -ExpandProperty FullName)
+                  Sort-Object LastWriteTime -Descending)
     if ($xmlFiles.Count -eq 0) { return $null }
 
-    # If multiple XML files (parallel test runs), use the first one
-    [xml]$xml = Get-Content $xmlFiles[0] -Raw
+    [xml]$xml = Get-Content $xmlFiles[0].FullName -Raw
     $rate = $xml.coverage.'line-rate'
     if ($null -eq $rate) { return $null }
     return [double]$rate
