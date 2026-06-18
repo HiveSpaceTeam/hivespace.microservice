@@ -50,6 +50,13 @@ Step 3 - Implement according to the derived contract
 - Add or update contracts, endpoints, migrations, consumers, catalogs, and docs only when required by the selected tasks.
 - Before reporting done, verify the contract checklist against the changed files.
 - Verify with the smallest meaningful checks for the changed service, normally `dotnet build` for the affected project and targeted tests if they exist.
+- **TDD ordering**: When the selected backend task group includes test-code tasks (B### tasks that create `*Tests.cs` files), write those test files first. Run `dotnet test --filter [TestClassName]` to confirm the new test is red before writing the implementation. Only then implement the production code to make the test green.
+- **Pre-existing test failure protocol**: When running `dotnet build` or `dotnet test` and a test that existed before this feature's changes fails:
+  1. **Identify**: Extract the test class name, test method name, file path, failure message, and the most relevant stack trace line from the output
+  2. **Explain**: State in plain language — which test failed, what user scenario or AC the test protects (read the test name and body), what the expected result was vs. what actually happened
+  3. **Propose**: State whether the fix is in the new implementation code (the test is correct — new code broke existing behavior) or in the test itself (the behavior has intentionally changed); provide the specific change needed
+  4. **STOP and confirm**: Ask the user — "Test `[ClassName.MethodName]` is now failing. It protects: [scenario]. Expected: [expected]. Actual: [actual]. Proposed fix: [change]. Apply? (yes / no / show more)" — do not apply the fix until the user approves
+  5. **Apply only after approval**: Re-run the affected test after applying; if the user declines, offer to revert the triggering change, skip the task, or mark the failure as accepted risk
 
 Step 4 - Report
 - List files changed.
