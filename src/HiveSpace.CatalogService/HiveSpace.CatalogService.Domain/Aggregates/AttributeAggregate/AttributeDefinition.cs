@@ -1,7 +1,6 @@
 ﻿using HiveSpace.CatalogService.Domain.Aggregates.CategoryAggregate;
 using HiveSpace.Domain.Shared.Entities;
 using System;
-using System.Diagnostics.CodeAnalysis;
 
 namespace HiveSpace.CatalogService.Domain.Aggregates.AttributeAggregate
 {
@@ -18,7 +17,6 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.AttributeAggregate
         private readonly List<AttributeValue> _values = new();
         public IReadOnlyList<AttributeValue> Values => _values.AsReadOnly();
 
-        [ExcludeFromCodeCoverage]
         private AttributeDefinition()
         {
             Name = string.Empty;

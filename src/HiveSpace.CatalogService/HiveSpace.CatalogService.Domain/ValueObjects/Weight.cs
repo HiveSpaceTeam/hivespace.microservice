@@ -1,5 +1,4 @@
 using HiveSpace.Domain.Shared.Entities;
-using System.Diagnostics.CodeAnalysis;
 
 namespace HiveSpace.CatalogService.Domain.ValueObjects
 {
@@ -10,7 +9,6 @@ namespace HiveSpace.CatalogService.Domain.ValueObjects
         public decimal Value { get; private set; }
         public WeightUnit Unit { get; private set; }
 
-        [ExcludeFromCodeCoverage]
         private Weight() { }
 
         public Weight(decimal value, WeightUnit unit)

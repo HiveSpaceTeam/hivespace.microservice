@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.Domain.Shared.Exceptions;
@@ -30,7 +29,6 @@ public class User : AggregateRoot<Guid>, IAuditable, ISoftDeletable
     public bool IsDeleted { get; set; }
     public DateTimeOffset? DeletedAt { get; set; }
 
-    [ExcludeFromCodeCoverage]
     private User()
     {
         _addresses = [];

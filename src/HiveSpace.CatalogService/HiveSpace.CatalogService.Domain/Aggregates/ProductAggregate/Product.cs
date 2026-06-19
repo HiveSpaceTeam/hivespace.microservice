@@ -5,7 +5,6 @@ using HiveSpace.Domain.Shared.Errors;
 using HiveSpace.CatalogService.Domain.Exceptions;
 using HiveSpace.CatalogService.Domain.ValueObjects;
 using HiveSpace.CatalogService.Domain.Enums;
-using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 using HiveSpace.Domain.Shared.Enumerations;
 
@@ -57,7 +56,6 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
 
         #region Constructors
 
-        [ExcludeFromCodeCoverage]
         private Product()
         {
             Name = string.Empty;

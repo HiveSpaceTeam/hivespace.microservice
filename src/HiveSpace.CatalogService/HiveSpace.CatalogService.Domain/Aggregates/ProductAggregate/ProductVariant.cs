@@ -1,5 +1,4 @@
 ﻿using HiveSpace.Domain.Shared.Entities;
-using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
 namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
@@ -10,7 +9,6 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
         public IReadOnlyCollection<ProductVariantOption> Options => _options.AsReadOnly();
         private readonly List<ProductVariantOption> _options = [];
 
-        [ExcludeFromCodeCoverage]
         private ProductVariant()
         {
             Name = string.Empty;

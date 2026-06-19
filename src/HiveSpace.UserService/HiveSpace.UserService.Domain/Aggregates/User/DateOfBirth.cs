@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.UserService.Domain.Exceptions;
 
@@ -8,7 +7,6 @@ public class DateOfBirth : ValueObject
 {
     public DateTimeOffset Value { get; }
 
-    [ExcludeFromCodeCoverage]
     private DateOfBirth() { } // For EF Core
 
     public DateOfBirth(DateTimeOffset value)

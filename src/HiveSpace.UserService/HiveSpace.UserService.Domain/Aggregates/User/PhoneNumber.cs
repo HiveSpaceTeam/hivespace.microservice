@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.UserService.Domain.Exceptions;
 
@@ -14,7 +13,6 @@ public class PhoneNumber : ValueObject
     /// </summary>
     public string FormattedValue => FormatForDisplay(Value);
     
-    [ExcludeFromCodeCoverage]
     private PhoneNumber()
     {
         Value = string.Empty; // For EF Core
@@ -89,7 +87,6 @@ public class PhoneNumber : ValueObject
     /// </summary>
     /// <param name="normalizedNumber">The normalized phone number with country code</param>
     /// <returns>Formatted phone number for display</returns>
-    [ExcludeFromCodeCoverage]
     private static string FormatForDisplay(string normalizedNumber)
     {
         // US numbers (country code 1): +1 (555) 123-4567

@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Domain.Shared.Interfaces;
@@ -24,7 +23,6 @@ public class Wallet : AggregateRoot<Guid>, IAuditable
 
     public IReadOnlyCollection<Transaction> Transactions => _transactions.AsReadOnly();
 
-    [ExcludeFromCodeCoverage]
     private Wallet() { }
 
     public static Wallet CreateForUser(Guid userId)

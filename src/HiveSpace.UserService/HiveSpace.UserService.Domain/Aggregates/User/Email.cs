@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.UserService.Domain.Exceptions;
@@ -10,7 +9,6 @@ public partial class Email : ValueObject
 {
     public string Value { get; }
 
-    [ExcludeFromCodeCoverage]
     private Email()
     {
         Value = string.Empty; // For EF Core
