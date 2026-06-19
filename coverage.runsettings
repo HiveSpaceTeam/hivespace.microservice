@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat Code Coverage">
+        <Configuration>
+          <Format>cobertura</Format>
+          <!-- Measure only service business layers/workflows -->
+          <Include>[HiveSpace.*.Application]*,[HiveSpace.*.Domain]*,[HiveSpace.*.Core]*,[HiveSpace.*.Api]*.Consumers.*</Include>
+          <Exclude>[HiveSpace.*.Infrastructure]*,[HiveSpace.ServiceDefaults]*,[HiveSpace.AppHost]*,[HiveSpace.Core]*,[HiveSpace.Application.Shared]*,[HiveSpace.Domain.Shared]*,[HiveSpace.Infrastructure.*]*,[HiveSpace.*.Tests]*,[HiveSpace.Testing.Shared]*</Exclude>
+          <ExcludeByFile>**/Infrastructure/**/*.cs,**/Persistence/**/*.cs,**/Interfaces/**/*.cs,**/Extensions/**/*.cs,**/Migrations/**/*.cs,**/*Validator.cs,**/*Validation.cs,**/Messaging/**/*.cs,**/*Core/Services/**/*.cs,**/*Extensions.cs,**/*Mapper.cs,**/BackgroundJobs/**/*.cs,**/DataSeeder.cs,**/DataSeeder.*.cs,**/Dtos/**/*.cs,**/*Command.cs,**/*Query.cs,**/Dispatch/Models/**/*.cs,**/*ConsumerDefinition.cs</ExcludeByFile>
+          <ExcludeByAttribute>
+            ExcludeFromCodeCoverage,GeneratedCode
+          </ExcludeByAttribute>
+          <SingleHit>false</SingleHit>
+          <IncludeTestAssembly>false</IncludeTestAssembly>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>

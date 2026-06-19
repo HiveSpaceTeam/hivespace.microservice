@@ -1,6 +1,6 @@
 using HiveSpace.MediaService.Api.Extensions;
 using HiveSpace.MediaService.Core.Interfaces;
-using HiveSpace.MediaService.Core.Infrastructure;
+using HiveSpace.MediaService.Core;
 using Microsoft.Extensions.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);

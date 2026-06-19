@@ -17,7 +17,6 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
         #endregion
 
         #region Constructors
-        // Parameterless constructor for Entity Framework
         private ProductAttribute()
         {
         }

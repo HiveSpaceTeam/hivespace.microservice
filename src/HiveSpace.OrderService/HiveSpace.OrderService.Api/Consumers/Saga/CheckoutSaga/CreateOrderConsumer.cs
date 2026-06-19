@@ -318,8 +318,7 @@ public class CreateOrderConsumer(
 
     private static void ApplyPlatformCouponProration(IReadOnlyList<Order> createdOrders, Coupon platformCoupon)
     {
-        if (createdOrders.Count == 0)
-            return;
+        if (createdOrders.Count == 0) return;
 
         var weightedOrders = createdOrders
             .Where(o => o.SubTotal.Amount > 0)
@@ -330,14 +329,12 @@ public class CreateOrderConsumer(
             })
             .ToList();
 
-        if (weightedOrders.Count == 0)
-            return;
+        if (weightedOrders.Count == 0) return;
 
         var totalWeight = weightedOrders.Sum(x => x.Weight);
         var totalDiscountAmount = platformCoupon.CalculateDiscount(Money.FromVND(totalWeight)).Amount;
 
-        if (totalDiscountAmount <= 0)
-            return;
+        if (totalDiscountAmount <= 0) return;
 
         var allocations = weightedOrders
             .Select(x => new

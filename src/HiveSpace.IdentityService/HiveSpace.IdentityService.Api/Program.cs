@@ -1,5 +1,5 @@
 using HiveSpace.IdentityService.Api.Extensions;
-using HiveSpace.IdentityService.Core.Infrastructure;
+using HiveSpace.IdentityService.Core;
 
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.ConfigureServices();

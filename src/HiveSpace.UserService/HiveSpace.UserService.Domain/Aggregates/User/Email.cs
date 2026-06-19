@@ -9,7 +9,7 @@ public partial class Email : ValueObject
 {
     public string Value { get; }
 
-    private Email() 
+    private Email()
     {
         Value = string.Empty; // For EF Core
     }

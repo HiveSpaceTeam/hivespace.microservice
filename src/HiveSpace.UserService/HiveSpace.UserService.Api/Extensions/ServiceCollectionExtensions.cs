@@ -1,9 +1,6 @@
-using Asp.Versioning;
 using HiveSpace.Core;
 using HiveSpace.UserService.Api.Services.Localization;
 using HiveSpace.UserService.Application;
-using HiveSpace.UserService.Application.Services;
-using HiveSpace.UserService.Application.Interfaces.Services;
 using HiveSpace.UserService.Domain.Services;
 using System.Globalization;
 using Microsoft.AspNetCore.Localization;
@@ -13,32 +10,15 @@ using Microsoft.Extensions.Hosting;
 
 namespace HiveSpace.UserService.Api.Extensions;
 
-// --- Extension methods for separation of concerns ---
-
 internal static class ServiceCollectionExtensions
 {
-    public static void AddAppApiControllers(this IServiceCollection services)
-    {
-        services.AddHiveSpaceControllers();
-
-        services.Configure<RouteOptions>(options =>
-        {
-            options.LowercaseUrls = true;
-            options.LowercaseQueryStrings = true;
-        });
-    }
-
     public static void AddAppApplicationServices(this IServiceCollection services)
     {
         services.AddApplication();
-        services.AddScoped<IStoreService, StoreService>();
-        services.AddScoped<IUserService, Application.Services.UserService>();
-        services.AddScoped<IUserAddressService, UserAddressService>();
     }
 
     public static void AddAppDomainServices(this IServiceCollection services)
     {
-        // Domain services
         services.AddScoped<StoreManager>();
     }
 
@@ -70,16 +50,6 @@ internal static class ServiceCollectionExtensions
     public static void AddAppAuthorization(this IServiceCollection services)
     {
         // Authorization policies are registered by AddHiveSpaceJwtBearerAuthentication.
-    }
-
-    public static void AddAppApiVersioning(this IServiceCollection services)
-    {
-        services.AddApiVersioning(options =>
-        {
-            options.DefaultApiVersion = new ApiVersion(1, 0);
-            options.AssumeDefaultVersionWhenUnspecified = true;
-            options.ReportApiVersions = true;
-        });
     }
 
     public static void AddAppOpenApi(this IServiceCollection services)

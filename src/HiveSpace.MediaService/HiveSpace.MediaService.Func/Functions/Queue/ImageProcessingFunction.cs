@@ -1,5 +1,5 @@
 using System.Text.Json;
-using HiveSpace.MediaService.Core.Infrastructure.Data;
+using HiveSpace.MediaService.Core.Persistence;
 using HiveSpace.MediaService.Core.Infrastructure.Configuration;
 using HiveSpace.MediaService.Core.DomainModels;
 using HiveSpace.MediaService.Core.Features.Media.Dtos;

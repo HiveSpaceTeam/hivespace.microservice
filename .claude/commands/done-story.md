@@ -6,7 +6,7 @@ Context:
 - Read relevant `tasks/config.md`, `tasks/docs-catalog.md`, and `tasks/verification.md` entries when they apply to the completed backend story.
 
 Backend checks:
-- New feature work follows CQRS plus Minimal API, except required UserService legacy maintenance.
+- New feature work follows CQRS plus Minimal API.
 - Domain entities use private setters, protected parameterless constructors for EF Core, and static factory methods.
 - Domain events are added through `AddDomainEvent(...)`.
 - Entity removal follows existing soft-delete/status patterns; no accidental hard-delete behavior.

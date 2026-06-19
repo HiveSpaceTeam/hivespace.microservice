@@ -17,7 +17,6 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.AttributeAggregate
         private readonly List<AttributeValue> _values = new();
         public IReadOnlyList<AttributeValue> Values => _values.AsReadOnly();
 
-        // Parameterless constructor for Entity Framework
         private AttributeDefinition()
         {
             Name = string.Empty;

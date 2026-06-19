@@ -192,6 +192,7 @@ public class GetCartSummaryQueryHandler(
             var coupon = coupons.FirstOrDefault(c =>
                 c.Code.Equals(code, StringComparison.OrdinalIgnoreCase) &&
                 c.OwnerType == CouponOwnerType.Platform);
+
             if (coupon is null)
                 continue;
 

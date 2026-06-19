@@ -9,7 +9,7 @@ Used for all write operations and reads that require business rule validation.
 1. **Domain**: Define or update aggregate + business methods + repository interface
 2. **Application**: `record MyCommand(...) : ICommand<MyResult>` + handler + FluentValidation validator (use `ICommand`/`ICommandHandler` from `HiveSpace.Application.Shared`)
 3. **Infrastructure**: Repository implementation + `IEntityTypeConfiguration<T>` in `EntityConfigurations/`
-4. **Api**: Map a Minimal API endpoint; legacy `UserService` controller code should be maintained only when required by existing behavior
+4. **Api**: Map a Minimal API endpoint
 
 ## Pattern 2 — Complex query operations (bypass domain)
 

@@ -4,9 +4,9 @@ This file provides guidance to agents working with code in this repository.
 
 ## Tech Stack
 
-- .NET 8, ASP.NET Core Minimal APIs for service APIs; IdentityService hosts the auth Razor Pages exception, and UserService remains a temporary controller-based profile/store exception
+- .NET 8, ASP.NET Core Minimal APIs for service APIs; IdentityService hosts the auth Razor Pages exception
 - Entity Framework Core 8
-- Mediator for CQRS pattern (source-generated) for all service feature work; UserService legacy code may still contain service-based implementation
+- Mediator for CQRS pattern (source-generated) for all service feature work
 - FluentValidation for request validation
 - Scalar for API documentation (OpenAPI)
 
@@ -54,7 +54,7 @@ Keep paired Codex and Claude command content semantically equivalent.
 
 ## Always Clarify Implementation Pattern Before Starting
 
-Before implementing any new feature, first check the existing service architecture. All new feature work uses CQRS plus Minimal API. `UserService` may still contain legacy service-based code, but that legacy pattern must not be extended to new work:
+Before implementing any new feature, first check the existing service architecture. All new feature work uses CQRS plus Minimal API:
 
 **Option A - CQRS (MediatR)**
 Each operation is a discrete command or query handler. Use this when the feature maps cleanly to a single intent (create, update, cancel, list, get).
@@ -137,14 +137,14 @@ See startup file conventions (`Program.cs`, `HostingExtensions.cs`, `ServiceColl
 | Service             | Type     | Application layer | API surface               |
 | ------------------- | -------- | ----------------- | ------------------------- |
 | IdentityService     | **Lite** | CQRS + ASP.NET Identity | Minimal Endpoints + Razor Pages |
-| UserService         | **Full** | Legacy service-based | Legacy controllers |
+| UserService         | **Full** | CQRS              | Minimal Endpoints         |
 | CatalogService      | **Full** | CQRS              | Minimal Endpoints         |
 | OrderService        | **Full** | CQRS              | Minimal Endpoints         |
 | PaymentService      | **Full** | CQRS              | Minimal Endpoints         |
 | MediaService        | **Lite** | CQRS              | Minimal Endpoints         |
 | NotificationService | **Lite** | CQRS              | Minimal Endpoints         |
 
-The Application layer pattern in the table above is **fixed per service**. Agents must not introduce new service-based feature implementations. Specifically: all new feature work uses CQRS and Minimal API endpoints; `IdentityService` Razor Pages may be maintained for auth UI, and `UserService` legacy service/controller code may be maintained only when required by the existing implementation.
+The Application layer pattern in the table above is **fixed per service**. All new feature work uses CQRS and Minimal API endpoints. `IdentityService` Razor Pages may be maintained for auth UI.
 
 Full detail on layouts, mandatory rules, and new service checklists: `docs/agent/service-architecture.md`
 
@@ -188,6 +188,8 @@ When adding or changing shared hook behavior:
 
 ## PR Process
 
+**Trigger**: Run this flow only when the user explicitly invokes `/create-pr`. Do not run it automatically after completing an implementation task.
+
 Required flow:
 
 1. Run `bash scripts/sync-config.sh` to sync all `appsettings.json` / `local.settings.json` to `hivespace.config/`
@@ -209,7 +211,7 @@ Required flow:
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **hivespace.microservice** (7028 symbols, 18032 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **hivespace.microservice** (9482 symbols, 29150 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 

@@ -39,10 +39,10 @@ public class ProductRefSyncConsumer(OrderDbContext db, ILogger<ProductRefSyncCon
     public async Task Consume(ConsumeContext<ProductSkuUpdatedIntegrationEvent> context)
     {
         var msg = context.Message;
-        var existing = await db.SkuRefs.FindAsync([msg.SkuId], context.CancellationToken);
+        var existing = await db.SkuRefs.FindAsync([(long)msg.SkuId], context.CancellationToken);
         if (existing is null)
         {
-            db.SkuRefs.Add(new SkuRef(msg.SkuId, msg.ProductId, msg.SkuNo, msg.Price, msg.Currency,
+            db.SkuRefs.Add(new SkuRef((long)msg.SkuId, (long)msg.ProductId, msg.SkuNo, msg.Price, msg.Currency,
                 imageUrl: msg.ThumbnailUrl, attributes: null, skuName: msg.SkuName));
             logger.LogInformation("SkuRef created. SkuId={SkuId}", msg.SkuId);
         }

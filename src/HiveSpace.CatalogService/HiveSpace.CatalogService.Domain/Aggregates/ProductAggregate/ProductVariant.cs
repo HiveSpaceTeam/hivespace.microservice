@@ -9,7 +9,6 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
         public IReadOnlyCollection<ProductVariantOption> Options => _options.AsReadOnly();
         private readonly List<ProductVariantOption> _options = [];
 
-        // Parameterless constructor for Entity Framework
         private ProductVariant()
         {
             Name = string.Empty;

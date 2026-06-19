@@ -56,7 +56,6 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
 
         #region Constructors
 
-        // Parameterless constructor for Entity Framework
         private Product()
         {
             Name = string.Empty;
@@ -113,9 +112,6 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
             if (variants   is not null) product._variants.AddRange(variants);
             return product;
         }
-
-        private static string GenerateSlug(string name)
-            => $"{name}-{Guid.NewGuid().ToString("N")[..6]}";
 
         #endregion
 

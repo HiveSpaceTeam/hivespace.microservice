@@ -92,9 +92,11 @@ public class RegisterAccountCommandHandler(
 
     private string BuildVerificationCallbackUrl(string app)
     {
-        var origin = configuration[$"FrontendRedirects:{app}:Origin"]
-            ?? configuration["DefaultRedirectUrl"]
-            ?? throw new ConfigurationException([new Error(IdentityDomainErrorCode.InvalidConfiguration, $"FrontendRedirects:{app}:Origin")]);
+        var origin = configuration[$"FrontendRedirects:{app}:Origin"];
+        if (string.IsNullOrWhiteSpace(origin))
+            origin = configuration["DefaultRedirectUrl"];
+        if (string.IsNullOrWhiteSpace(origin))
+            throw new ConfigurationException([new Error(IdentityDomainErrorCode.InvalidConfiguration, $"FrontendRedirects:{app}:Origin")]);
 
         return new Uri(new Uri(origin.TrimEnd('/') + "/"), VerificationCallbackPath.TrimStart('/')).ToString();
     }
