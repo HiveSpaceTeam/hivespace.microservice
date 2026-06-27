@@ -20,6 +20,18 @@ This file provides guidance to agents working with code in this repository.
 
 Keep paired Codex and Claude command content semantically equivalent.
 
+Story work is TDD-first and coverage-aware:
+
+- Write the planned test tasks before their paired implementation tasks.
+- After implementation, run backend coverage for the affected service.
+- If the affected measured scope is below 80% line coverage, add tests and rerun
+  coverage before treating the story as complete.
+- Treat any task in `../hivespace.spec/specs/[feature-name]/tasks/verification.md`
+  with a detail bullet that starts with `User-owned E2E:` as explicit but
+  non-executable user work. `/start-story`, `/verify-story`, and `/done-story`
+  must skip those tasks, keep them pending for the user, and never mark them
+  complete automatically.
+
 ## Plan First
 
 - Treat any non-trivial task as architectural work.
@@ -96,7 +108,8 @@ dotnet ef migrations add <Name> --project src/HiveSpace.OrderService/HiveSpace.O
 dotnet ef database update --project src/HiveSpace.OrderService/HiveSpace.OrderService.Infrastructure --startup-project src/HiveSpace.OrderService/HiveSpace.OrderService.Api
 ```
 
-No test projects exist - `dotnet test` returns immediately.
+Run targeted tests whenever they exist, and use `.\quality-gate.ps1 -Scope backend:<ServiceName>`
+after implementation to inspect measured coverage for the affected service.
 
 **Infrastructure requirements**: AppHost starts SQL Server on `localhost:1433` (sa/Passw0rd123!), RabbitMQ on `localhost:5672` (guest/guest), Kafka on `localhost:9092`, Redis on `localhost:6379`, and Azurite on `localhost:10000` / `10001` / `10002`. Frontend dev servers remain outside AppHost v1 and continue using `http://localhost:5000`.
 
@@ -198,6 +211,14 @@ Required flow:
 4. After the PR is open, ask the user to **start a new session** in this repository
 5. In the new session, ask the user to run `/review` to review all current changes
 6. Apply any fixes from the review and push them to the same branch
+
+## Coverage Rule
+
+- Backend stories must review coverage after implementation, not only build/test
+  pass/fail.
+- The target for an affected measured service scope is **80% line coverage**.
+- If coverage is below 80%, add tests for the missing handler, domain, query,
+  consumer, or guard-path behavior and rerun coverage before closing the story.
 
 ## Git Commit Guardrails
 

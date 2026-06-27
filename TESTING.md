@@ -61,7 +61,7 @@ Generate an HTML report to see per-service coverage before pushing:
 .\coverage.ps1 -Service OrderService
 ```
 
-The `quality-gate.ps1 -Scope backend:OrderService` script reads the Cobertura XML after test run and fails the gate (`coveragePct < 0.80`) with `failureCategory: coverage_below_threshold`.
+The `quality-gate.ps1 -Scope backend:OrderService` script reads the Cobertura XML after test run and fails the gate when measured service coverage is below 80% with `failureCategory: coverage_below_threshold`.
 
 ## TDD Workflow
 
@@ -261,3 +261,6 @@ Generate an HTML coverage report:
 ```
 
 The script deletes stale `TestResults/` and `coverage-report/` directories, runs `dotnet test --collect:"XPlat Code Coverage"`, aggregates all Cobertura XML files, and opens the report in your default browser.
+
+If the reported service coverage is below 80%, treat the story as not complete yet: add tests for the missing measured behavior and rerun the scoped quality gate.
+

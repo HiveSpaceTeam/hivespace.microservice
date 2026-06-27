@@ -1,4 +1,5 @@
 using HiveSpace.AppHost.Extensions;
+using Microsoft.Extensions.Configuration;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
@@ -6,25 +7,21 @@ const string httpLaunchProfile = "http";
 
 var sqlPassword = builder.AddParameter(
     "sqlpassword",
-    () => builder.Configuration["AppHost:SqlServer:Password"]
-          ?? throw new InvalidOperationException("Missing AppHost:SqlServer:Password"),
+    () => RequireNonEmptyConfiguration(builder.Configuration, "AppHost:SqlServer:Password"),
     secret: true);
 
 var rabbitMqUsername = builder.AddParameter(
     "rabbitmqusername",
-    () => builder.Configuration["AppHost:RabbitMq:Username"]
-          ?? throw new InvalidOperationException("Missing AppHost:RabbitMq:Username"));
+    () => RequireNonEmptyConfiguration(builder.Configuration, "AppHost:RabbitMq:Username"));
 
 var rabbitMqPassword = builder.AddParameter(
     "rabbitmqpassword",
-    () => builder.Configuration["AppHost:RabbitMq:Password"]
-          ?? throw new InvalidOperationException("Missing AppHost:RabbitMq:Password"),
+    () => RequireNonEmptyConfiguration(builder.Configuration, "AppHost:RabbitMq:Password"),
     secret: true);
 
 var redisPassword = builder.AddParameter(
     "redispassword",
-    () => builder.Configuration["AppHost:Redis:Password"]
-          ?? throw new InvalidOperationException("Missing AppHost:Redis:Password"),
+    () => RequireNonEmptyConfiguration(builder.Configuration, "AppHost:Redis:Password"),
     secret: true);
 
 var mediaFuncPath = Path.GetFullPath(Path.Combine(
@@ -75,7 +72,8 @@ var queueStorage = storage.AddQueues("azure-queue-storage");
 var identity = builder.AddProject<Projects.HiveSpace_IdentityService_Api>("identity-service", httpLaunchProfile)
     .WithReference(identityDb)
     .WithReference(rabbitMq, "RabbitMq")
-    .WaitFor(identityDb);
+    .WaitFor(identityDb)
+    .WaitFor(rabbitMq);
 
 var identityEndpoint = identity.GetEndpoint(httpLaunchProfile);
 
@@ -83,13 +81,17 @@ var user = builder.AddProject<Projects.HiveSpace_UserService_Api>("user-service"
     .WithReference(userDb)
     .WithReference(rabbitMq, "RabbitMq")
     .WithEnvironment("Authentication__Authority", identityEndpoint)
-    .WaitFor(userDb);
+    .WaitFor(userDb)
+    .WaitFor(rabbitMq)
+    .WaitFor(identity);
 
 var catalog = builder.AddProject<Projects.HiveSpace_CatalogService_Api>("catalog-service", httpLaunchProfile)
     .WithReference(catalogDb)
     .WithReference(rabbitMq, "RabbitMq")
     .WithEnvironment("Authentication__Authority", identityEndpoint)
-    .WaitFor(catalogDb);
+    .WaitFor(catalogDb)
+    .WaitFor(rabbitMq)
+    .WaitFor(identity);
 
 var media = builder.AddProject<Projects.HiveSpace_MediaService_Api>("media-service", httpLaunchProfile)
     .WithReference(rabbitMq, "RabbitMq")
@@ -97,7 +99,10 @@ var media = builder.AddProject<Projects.HiveSpace_MediaService_Api>("media-servi
     .WithReference(blobStorage, "AzureBlobStorage")
     .WithReference(queueStorage, "AzureQueueStorage")
     .WithEnvironment("Authentication__Authority", identityEndpoint)
-    .WaitFor(mediaDb);
+    .WaitFor(mediaDb)
+    .WaitFor(rabbitMq)
+    .WaitFor(storage)
+    .WaitFor(identity);
 
 builder.AddExecutable("media-func", "func", mediaFuncPath, "start", "--port", "7072", "--no-build", "--verbose")
     .WithReference(rabbitMq, "RabbitMq")
@@ -115,21 +120,27 @@ var order = builder.AddProject<Projects.HiveSpace_OrderService_Api>("order-servi
     .WithReference(orderDb)
     .WithReference(rabbitMq, "RabbitMq")
     .WithEnvironment("Authentication__Authority", identityEndpoint)
-    .WaitFor(orderDb);
+    .WaitFor(orderDb)
+    .WaitFor(rabbitMq)
+    .WaitFor(identity);
 
 var payment = builder.AddProject<Projects.HiveSpace_PaymentService_Api>("payment-service", httpLaunchProfile)
     .WithReference(paymentDb)
     .WithReference(rabbitMq, "RabbitMq")
     .WithEnvironment("Authentication__Authority", identityEndpoint)
-    .WaitFor(paymentDb);
+    .WaitFor(paymentDb)
+    .WaitFor(rabbitMq)
+    .WaitFor(identity);
 
 var notification = builder.AddProject<Projects.HiveSpace_NotificationService_Api>("notification-service", httpLaunchProfile)
     .WithReference(notificationDb)
     .WithReference(rabbitMq, "RabbitMq")
     .WithReference(redis, "Redis")
     .WithEnvironment("Authentication__Authority", identityEndpoint)
+    .WaitFor(rabbitMq)
     .WaitFor(redis)
-    .WaitFor(notificationDb);
+    .WaitFor(notificationDb)
+    .WaitFor(identity);
 
 builder.AddProject<Projects.HiveSpace_YarpApiGateway>("api-gateway", httpLaunchProfile)
     .WithReference(identity)
@@ -144,3 +155,12 @@ builder.AddProject<Projects.HiveSpace_YarpApiGateway>("api-gateway", httpLaunchP
     .WithEnvironment("ReverseProxy__Clusters__notification-cluster__Destinations__destination1__Address", notification.GetEndpoint(httpLaunchProfile));
 
 builder.Build().Run();
+
+static string RequireNonEmptyConfiguration(IConfiguration configuration, string key)
+{
+    var value = configuration[key];
+    if (!string.IsNullOrWhiteSpace(value))
+        return value!;
+
+    throw new InvalidOperationException($"Missing or empty {key}");
+}

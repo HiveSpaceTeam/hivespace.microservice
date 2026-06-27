@@ -48,4 +48,18 @@ public class IdentityEventPublisher(IPublishEndpoint publishEndpoint) : IIdentit
             ToName  = user.FullName ?? user.UserName ?? user.Email!,
             Locale  = locale
         }, cancellationToken);
+
+    public Task PublishOtpChallengeRequestedAsync(
+        ApplicationUser user,
+        string otpCode,
+        DateTimeOffset expiresAt,
+        string purpose,
+        CancellationToken cancellationToken = default)
+        => publishEndpoint.Publish(new UserOtpChallengeRequestedIntegrationEvent
+        {
+            RecipientEmail = user.Email!,
+            OtpCode = otpCode,
+            ExpiresAt = expiresAt,
+            Purpose = purpose
+        }, cancellationToken);
 }

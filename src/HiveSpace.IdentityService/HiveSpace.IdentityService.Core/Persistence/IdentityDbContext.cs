@@ -9,6 +9,8 @@ namespace HiveSpace.IdentityService.Core.Persistence;
 public class IdentityDbContext(DbContextOptions<IdentityDbContext> options)
     : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>(options)
 {
+    public DbSet<OtpChallenge> OtpChallenges => Set<OtpChallenge>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         builder.Ignore<IdentityUserRole<Guid>>();

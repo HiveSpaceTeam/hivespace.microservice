@@ -61,6 +61,8 @@ public class CsrfValidationMiddleware(
 
         if (request.Path.Equals("/api/v1/accounts/login", StringComparison.OrdinalIgnoreCase)
             || request.Path.Equals("/api/v1/accounts/register", StringComparison.OrdinalIgnoreCase)
+            || request.Path.Equals("/api/v1/accounts/otp/request", StringComparison.OrdinalIgnoreCase)
+            || request.Path.Equals("/api/v1/accounts/otp/verify", StringComparison.OrdinalIgnoreCase)
             || request.Path.Equals("/api/v1/accounts/email-verification/resend", StringComparison.OrdinalIgnoreCase)
             || request.Path.Equals("/api/v1/accounts/email-verification/verify", StringComparison.OrdinalIgnoreCase))
             return false;

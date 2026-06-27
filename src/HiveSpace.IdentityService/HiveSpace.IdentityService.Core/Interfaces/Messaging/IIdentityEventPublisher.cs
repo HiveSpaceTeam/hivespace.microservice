@@ -21,4 +21,11 @@ public interface IIdentityEventPublisher
         ApplicationUser user,
         Culture locale,
         CancellationToken cancellationToken = default);
+
+    Task PublishOtpChallengeRequestedAsync(
+        ApplicationUser user,
+        string otpCode,
+        DateTimeOffset expiresAt,
+        string purpose,
+        CancellationToken cancellationToken = default);
 }

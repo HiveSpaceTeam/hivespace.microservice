@@ -56,6 +56,7 @@ internal static class HostingExtensions
         app.UseAuthorization();
 
         app.MapIdentityEndpoints();
+        app.MapOtpSignInEndpoints();
         app.MapGoogleExternalAuthEndpoints();
         app.MapAdminIdentityEndpoints();
         app.MapDefaultEndpoints();
