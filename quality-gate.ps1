@@ -41,7 +41,7 @@ function New-CheckResult {
         [int]$RerunCount,
         [string]$Summary,
         [AllowNull()]
-        [object]$CoveragePct
+        [double]$CoveragePct = $null
     )
 
     [ordered]@{
@@ -303,3 +303,4 @@ $report = [ordered]@{
 }
 
 $report | ConvertTo-Json -Depth 8
+

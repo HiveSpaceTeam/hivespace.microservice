@@ -25,4 +25,6 @@ public class IdentityDomainErrorCode : DomainErrorCode
     public static readonly IdentityDomainErrorCode PendingGoogleLinkExpired = new(6017, "PendingGoogleLinkExpired", "IDN6017");
     public static readonly IdentityDomainErrorCode EmailVerificationRequired = new(6018, "EmailVerificationRequired", "IDN6018");
     public static readonly IdentityDomainErrorCode PendingEmailVerification = new(6019, "PendingEmailVerification", "IDN6019");
+    public static readonly IdentityDomainErrorCode InvalidOrExpiredOtpCode = new(6020, "InvalidOrExpiredOtpCode", "IDN6020");
+    public static readonly IdentityDomainErrorCode MaxOtpAttemptsExceeded = new(6021, "MaxOtpAttemptsExceeded", "IDN6021");
 }

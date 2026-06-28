@@ -10,6 +10,9 @@ Step 1 - Load context
 - Read `../hivespace.spec/specs/[feature-name]/spec.md`, `plan.md`, `tasks.md`, and `tasks/backend.md`.
 - Read `tasks/config.md`, `tasks/docs-catalog.md`, and `tasks/verification.md` entries that apply to backend/config/docs/catalog/backend verification.
 - Read affected `../hivespace.spec/services/<service-name>/README.md` files named by the plan or backend tasks.
+- Identify any `tasks/verification.md` item with a detail bullet that starts
+  with `User-owned E2E:` and treat it as explicit user-run validation outside
+  this command's executable scope.
 
 Step 2 - Inspect current changes
 - Run `git status --short` and `git diff --name-only` to identify changed, deleted, and untracked files.
@@ -19,22 +22,32 @@ Step 2 - Inspect current changes
 
 Step 3 - Verify task coverage
 - Produce a table for every relevant backend, config, docs/catalog, and verification task with status `Covered`, `Partial`, `Missing`, or `Not Applicable`.
+- Mark `User-owned E2E` tasks as `User-owned` or `Pending user` rather than
+  `Missing` when implementation is otherwise complete.
 - Include concrete evidence for every `Covered` or `Partial` status: file path, symbol/route/type, search result, diff evidence, or verification command.
 - Do not mark a task `Covered` only because an expected file exists; verify behavior, constraints, forbidden behavior, and acceptance criteria.
+- Verify that each planned backend scenario has a matching test or clearly
+  explain the missing coverage.
 - Check public endpoint changes against `shared/api-catalog.md`.
 - Check event/message changes against `shared/event-catalog.md`; confirm reused contracts remain unchanged when tasks require no new event.
 - Check repo rules that commonly regress backend stories: CQRS/Minimal API pattern, service boundaries, outbox for integration events, idempotent consumers, no package `Version=` attributes, and no direct cross-service database reads.
 
 Step 4 - Run verification commands
 - Run the smallest meaningful build/test command for each affected backend service, normally `dotnet build <affected-api-csproj>`.
+- Run `.\quality-gate.ps1 -Scope backend:<ServiceName>` for each affected
+  service when the local environment supports coverage collection.
 - Run full `dotnet build` only when shared libraries, shared authorization, contracts, or multiple services changed.
 - If a command cannot run because of local infrastructure, file locks, or environment issues, report the exact blocker and whether a retry was attempted.
 - Do not run commands that intentionally mutate tracked files.
 
 Step 5 - Report
 - Start with the overall judgment: `Ready`, `Not ready`, or `Blocked`.
+- If only `User-owned E2E` tasks remain, the overall judgment may still be
+  `Ready`, but the pending user validation must be called out explicitly.
 - List critical gaps first, with task IDs and file references.
 - Include the task coverage table.
 - Include verification commands and results.
+- Call out any affected service that is below 90% measured line coverage and
+  identify where additional tests are needed.
 - List unrelated or suspicious changed files separately from expected story files.
 - If gaps remain, recommend running `/start-story` or manual fixes for the specific missing task IDs, then rerun `/verify-story`.

@@ -54,7 +54,8 @@ public static class NotificationEventGroup
         NotificationEventType.LowStockAlert         => Inventory,
 
         NotificationEventType.EmailVerificationRequested
-        or NotificationEventType.EmailVerified          => AccountActivity,
+        or NotificationEventType.EmailVerified
+        or NotificationEventType.OtpSignInRequested    => AccountActivity,
 
         _                                           => Promotions,
     };

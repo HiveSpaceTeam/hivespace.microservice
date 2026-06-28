@@ -10,4 +10,5 @@ public class NotificationDomainErrorCode : DomainErrorCode
     public static readonly NotificationDomainErrorCode NotNotificationOwner = new(4002, "NotNotificationOwner", "NTF4002");
     public static readonly NotificationDomainErrorCode InvalidConfiguration  = new(4003, "InvalidConfiguration",  "NTF4003");
     public static readonly NotificationDomainErrorCode InvalidEventGroup     = new(4004, "InvalidEventGroup",     "NTF4004");
+    public static readonly NotificationDomainErrorCode UnsupportedOtpPurpose = new(4005, "UnsupportedOtpPurpose", "NTF4005");
 }

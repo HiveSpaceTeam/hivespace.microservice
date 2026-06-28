@@ -94,7 +94,9 @@ public class SessionForwardingMiddleware(
             return true;
 
         return request.Path.Equals("/api/v1/accounts/login", StringComparison.OrdinalIgnoreCase)
-            || request.Path.Equals("/api/v1/accounts/register", StringComparison.OrdinalIgnoreCase);
+            || request.Path.Equals("/api/v1/accounts/register", StringComparison.OrdinalIgnoreCase)
+            || request.Path.Equals("/api/v1/accounts/otp/request", StringComparison.OrdinalIgnoreCase)
+            || request.Path.Equals("/api/v1/accounts/otp/verify", StringComparison.OrdinalIgnoreCase);
     }
 
     private static void RestoreAuthorizationHeader(HttpRequest request, StringValues originalAuthorization)

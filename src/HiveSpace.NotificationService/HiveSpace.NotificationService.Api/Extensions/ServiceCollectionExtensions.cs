@@ -128,6 +128,7 @@ internal static class ServiceCollectionExtensions
             cfg.AddConsumer<StoreSyncConsumer>();
             cfg.AddConsumer<EmailVerificationRequestedConsumer>();
             cfg.AddConsumer<EmailVerifiedConsumer>();
+            cfg.AddConsumer<OtpChallengeRequestedConsumer>();
         });
     }
 

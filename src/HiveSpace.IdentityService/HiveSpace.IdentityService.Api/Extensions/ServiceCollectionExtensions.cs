@@ -6,10 +6,13 @@ using HiveSpace.IdentityService.Core.Extensions;
 using HiveSpace.IdentityService.Core.DomainModels;
 using HiveSpace.IdentityService.Core.Exceptions;
 using HiveSpace.IdentityService.Core.Features.AccountSessions.Services;
+using HiveSpace.IdentityService.Core.Infrastructure;
 using HiveSpace.IdentityService.Core.Interfaces.Messaging;
+using HiveSpace.IdentityService.Core.Interfaces;
 using HiveSpace.IdentityService.Core.Interfaces.Services;
 using HiveSpace.IdentityService.Core.Infrastructure.Messaging.Publishers;
 using HiveSpace.IdentityService.Core.Persistence;
+using HiveSpace.IdentityService.Core.Persistence.Repositories;
 using HiveSpace.Infrastructure.Messaging.Configurations;
 using HiveSpace.Infrastructure.Messaging.Extensions;
 using HiveSpace.Core.Exceptions;
@@ -193,11 +196,13 @@ internal static class ServiceCollectionExtensions
         services.AddCoreServices();
         services.AddHttpContextAccessor();
         services.AddScoped<IIdentityEventPublisher, IdentityEventPublisher>();
+        services.AddScoped<IOtpChallengeRepository, OtpChallengeRepository>();
         services.AddScoped<IEmailVerificationResendCooldownStore, DistributedEmailVerificationResendCooldownStore>();
         services.AddScoped<ITokenCookieService, TokenCookieService>();
         services.AddScoped<ICsrfTokenService, CsrfTokenService>();
         services.AddScoped<IPendingGoogleLinkStore, PendingGoogleLinkCookieStore>();
         services.AddScoped<IAccountSessionIssuer, AccountSessionIssuer>();
+        services.AddHostedService<OtpChallengeCleanupService>();
 
         return services;
     }

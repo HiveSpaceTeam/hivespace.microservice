@@ -112,6 +112,26 @@ internal sealed class NotificationTemplateSeeder(
             <p>Thank you for joining HiveSpace!</p>
             """
         ),
+        (
+            NotificationEventType.OtpSignInRequested, NotificationChannel.Email, Culture.Vi,
+            "Ma dang nhap mot lan cua ban",
+            """
+            <p>Xin chao,</p>
+            <p>Ma dang nhap HiveSpace cua ban la <strong>{{ otpCode }}</strong>.</p>
+            <p>Ma co hieu luc den <strong>{{ expiresAt }}</strong>.</p>
+            <p>Neu ban khong yeu cau ma nay, vui long bo qua email.</p>
+            """
+        ),
+        (
+            NotificationEventType.OtpSignInRequested, NotificationChannel.Email, Culture.En,
+            "Your one-time sign-in code",
+            """
+            <p>Hi,</p>
+            <p>Your HiveSpace sign-in code is <strong>{{ otpCode }}</strong>.</p>
+            <p>This code expires at <strong>{{ expiresAt }}</strong>.</p>
+            <p>If you did not request this code, please ignore this email.</p>
+            """
+        ),
     ];
 
     public async Task SeedAsync(CancellationToken ct = default)

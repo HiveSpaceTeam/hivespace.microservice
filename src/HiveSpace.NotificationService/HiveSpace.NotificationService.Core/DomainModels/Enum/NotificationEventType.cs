@@ -14,4 +14,5 @@ public static class NotificationEventType
 
     public const string EmailVerificationRequested = "user.email.verification";
     public const string EmailVerified              = "user.email.verified";
+    public const string OtpSignInRequested         = "user.otp.signin";
 }
