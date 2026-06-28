@@ -70,14 +70,7 @@ public class RequestOtpSignInCommandHandler(
 
     private async Task<bool> IsEligibleAsync(ApplicationUser? user, CancellationToken cancellationToken)
     {
-        if (user is null || !user.EmailConfirmed || user.Status != UserStatus.Active)
-            return false;
-
-        if (await userManager.IsLockedOutAsync(user))
-            return false;
-
-        var roles = await AccountSessionHandlerBase.GetRolesAsync(userManager, user);
-        return !roles.Contains("Admin") && !roles.Contains("SystemAdmin");
+        return await AccountSessionHandlerBase.IsOtpSignInEligibleAsync(userManager, user);
     }
 
     private OtpSignInResponseDto CreateDummyResponse(DateTimeOffset now)
@@ -94,8 +87,6 @@ public class RequestOtpSignInCommandHandler(
 
     private string GenerateCode()
     {
-        var digits = configuration.GetValue("Otp:CodeLengthDigits", 6);
-        var maxExclusive = (int)Math.Pow(10, digits);
-        return Random.Shared.Next(0, maxExclusive).ToString($"D{digits}");
+        return Random.Shared.Next(0, 1_000_000).ToString("D6");
     }
 }

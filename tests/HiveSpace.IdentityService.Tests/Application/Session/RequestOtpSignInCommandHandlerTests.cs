@@ -57,7 +57,8 @@ public class RequestOtpSignInCommandHandlerTests
             (Email: "unknown-otp@hivespace.local", Role: (string?)null, Status: UserStatus.Active, Confirmed: true, Lockout: false, SeedUser: false),
             (Email: "locked-otp@hivespace.local", Role: "Buyer", Status: UserStatus.Active, Confirmed: true, Lockout: true, SeedUser: true),
             (Email: "inactive-otp@hivespace.local", Role: "Buyer", Status: UserStatus.Inactive, Confirmed: true, Lockout: false, SeedUser: true),
-            (Email: "admin-otp@hivespace.local", Role: "Admin", Status: UserStatus.Active, Confirmed: true, Lockout: false, SeedUser: true)
+            (Email: "admin-otp@hivespace.local", Role: "Admin", Status: UserStatus.Active, Confirmed: true, Lockout: false, SeedUser: true),
+            (Email: "system-admin-otp@hivespace.local", Role: "SystemAdmin", Status: UserStatus.Active, Confirmed: true, Lockout: false, SeedUser: true)
         };
 
         foreach (var testCase in cases)
@@ -176,6 +177,31 @@ public class RequestOtpSignInCommandHandlerTests
         publisher.PublishedOtpRequests.Single().OtpCode.Should().Be(challenges[1].Code);
     }
 
+    [Fact]
+    public async Task Handle_GeneratesSixDigitCode_WhenConfigurationContainsDifferentLength()
+    {
+        await using var dbContext = CreateDbContext();
+        var userManager = CreateUserManager(dbContext);
+        var user = CreateUser("fixed-length-otp@hivespace.local", "Buyer", UserStatus.Active, emailConfirmed: true);
+        dbContext.Users.Add(user);
+        await dbContext.SaveChangesAsync();
+
+        var publisher = new RecordingIdentityEventPublisher();
+        var handler = new RequestOtpSignInCommandHandler(
+            userManager,
+            new OtpChallengeRepository(dbContext),
+            publisher,
+            CreateConfiguration(codeLengthDigits: 8));
+
+        await handler.Handle(
+            new RequestOtpSignInCommand("fixed-length-otp@hivespace.local"),
+            CancellationToken.None);
+
+        var challenge = await dbContext.Set<OtpChallenge>().SingleAsync();
+        challenge.Code.Should().MatchRegex(@"^\d{6}$");
+        publisher.PublishedOtpRequests.Single().OtpCode.Should().Be(challenge.Code);
+    }
+
     private static IdentityDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder<IdentityDbContext>()
@@ -203,11 +229,11 @@ public class RequestOtpSignInCommandHandlerTests
             NullLogger<UserManager<ApplicationUser>>.Instance);
     }
 
-    private static IConfiguration CreateConfiguration()
+    private static IConfiguration CreateConfiguration(int codeLengthDigits = 6)
         => new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["Otp:CodeLengthDigits"] = "6",
+                ["Otp:CodeLengthDigits"] = codeLengthDigits.ToString(),
                 ["Otp:ExpiryMinutes"] = "10",
                 ["Otp:CooldownSeconds"] = "60"
             })

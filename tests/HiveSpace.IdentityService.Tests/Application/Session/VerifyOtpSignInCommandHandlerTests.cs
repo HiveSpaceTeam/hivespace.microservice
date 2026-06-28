@@ -177,6 +177,42 @@ public class VerifyOtpSignInCommandHandlerTests
         ex.Which.ErrorCodeList.Single().ErrorCode.Code.Should().Be("IDN6020");
     }
 
+    [Fact]
+    public async Task Handle_UserNoLongerEligibleForOtp_InvalidatesChallengeAndDoesNotIssueSession()
+    {
+        await using var dbContext = CreateDbContext();
+        var userManager = CreateUserManager(dbContext);
+        var user = CreateUser("role-changed-otp@hivespace.local", "Admin", UserStatus.Active, emailConfirmed: true);
+        var challenge = OtpChallenge.Create(
+            "ROLE-CHANGED-OTP@HIVESPACE.LOCAL",
+            OtpChallengePurpose.SignIn,
+            Guid.NewGuid().ToString("N"),
+            "123456",
+            DateTimeOffset.UtcNow.AddMinutes(10),
+            DateTimeOffset.UtcNow.AddSeconds(60));
+
+        dbContext.Users.Add(user);
+        dbContext.OtpChallenges.Add(challenge);
+        await dbContext.SaveChangesAsync();
+
+        var issuer = new RecordingAccountSessionIssuer();
+        var handler = new VerifyOtpSignInCommandHandler(
+            userManager,
+            new OtpChallengeRepository(dbContext),
+            issuer,
+            CreateConfiguration());
+
+        var act = () => handler.Handle(
+            new VerifyOtpSignInCommand(challenge.ChallengeToken, "123456", "buyer", null),
+            CancellationToken.None);
+
+        var ex = await act.Should().ThrowAsync<UnauthorizedException>();
+        ex.Which.ErrorCodeList.Single().ErrorCode.Code.Should().Be("IDN6020");
+        challenge.IsInvalidated.Should().BeTrue();
+        challenge.IsUsed.Should().BeFalse();
+        issuer.Issued.Should().BeFalse();
+    }
+
     private static IdentityDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder<IdentityDbContext>()

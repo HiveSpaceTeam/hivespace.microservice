@@ -1,5 +1,6 @@
 using HiveSpace.IdentityService.Core.Features.AccountSessions.Dtos;
 using HiveSpace.IdentityService.Core.DomainModels;
+using HiveSpace.Domain.Shared.Enumerations;
 using Microsoft.AspNetCore.Identity;
 
 namespace HiveSpace.IdentityService.Core.Features.AccountSessions.Commands;
@@ -37,6 +38,20 @@ internal static class AccountSessionHandlerBase
             roles.Add("Buyer");
 
         return roles;
+    }
+
+    public static async Task<bool> IsOtpSignInEligibleAsync(
+        UserManager<ApplicationUser> userManager,
+        ApplicationUser? user)
+    {
+        if (user is null || !user.EmailConfirmed || user.Status != UserStatus.Active)
+            return false;
+
+        if (await userManager.IsLockedOutAsync(user))
+            return false;
+
+        var roles = await GetRolesAsync(userManager, user);
+        return !roles.Contains("Admin") && !roles.Contains("SystemAdmin");
     }
 
     public static SessionUser ToSessionUser(ApplicationUser user, IReadOnlyCollection<string> roles)

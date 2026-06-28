@@ -46,6 +46,13 @@ public class VerifyOtpSignInCommandHandler(
             throw InvalidOrExpiredCode();
         }
 
+        if (!await AccountSessionHandlerBase.IsOtpSignInEligibleAsync(userManager, user))
+        {
+            challenge.Invalidate();
+            await otpChallengeRepository.SaveChangesAsync(cancellationToken);
+            throw InvalidOrExpiredCode();
+        }
+
         var roles = await accountSessionIssuer.ValidateCanIssueAsync(user, command.App, cancellationToken);
 
         challenge.MarkUsed();
