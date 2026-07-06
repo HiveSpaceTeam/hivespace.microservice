@@ -232,6 +232,7 @@ public class CouponTests
             DiscountType.Percentage, 5m, null,
             CouponScope.ItemPrice,
             DateTimeOffset.UtcNow.AddMinutes(-1), DateTimeOffset.UtcNow.AddDays(1),
+            minOrderAmount: Money.FromVND(1),
             id: Guid.NewGuid());
 
         coupon.DiscountPercentage.Should().Be(5m);
@@ -256,7 +257,8 @@ public class CouponTests
             Guid.NewGuid(), Guid.NewGuid(), "C", "N",
             DiscountType.Percentage, 150m, null,
             CouponScope.ItemPrice,
-            DateTimeOffset.UtcNow.AddMinutes(-1), DateTimeOffset.UtcNow.AddDays(1));
+            DateTimeOffset.UtcNow.AddMinutes(-1), DateTimeOffset.UtcNow.AddDays(1),
+            minOrderAmount: Money.FromVND(1));
 
         act.Should().Throw<HiveSpace.Domain.Shared.Exceptions.DomainException>();
     }
@@ -293,7 +295,8 @@ public class CouponTests
         var act = () => Coupon.CreateByPlatform(
             "admin", "C", "N", DiscountType.Percentage, 0m, null,
             CouponScope.ItemPrice,
-            DateTimeOffset.UtcNow.AddMinutes(-1), DateTimeOffset.UtcNow.AddDays(1));
+            DateTimeOffset.UtcNow.AddMinutes(-1), DateTimeOffset.UtcNow.AddDays(1),
+            minOrderAmount: Money.FromVND(1));
 
         act.Should().Throw<HiveSpace.Domain.Shared.Exceptions.DomainException>();
     }
@@ -655,6 +658,7 @@ public class CouponTests
             DiscountType.Percentage, 100m, null,
             CouponScope.ItemPrice,
             DateTimeOffset.UtcNow.AddMinutes(-1), DateTimeOffset.UtcNow.AddDays(1),
+            minOrderAmount: Money.FromVND(1),
             id: Guid.NewGuid());
 
         var discount = coupon.CalculateDiscount(Money.FromVND(50_000));
@@ -715,11 +719,15 @@ public class CouponTests
         var end = DateTimeOffset.UtcNow.AddDays(6);
         var coupon = Coupon.CreateByPlatform(
             "admin", "UP", "Up", DiscountType.Percentage, 10m, null,
-            CouponScope.ItemPrice, start, end, id: Guid.NewGuid());
+            CouponScope.ItemPrice, start, end,
+            minOrderAmount: Money.FromVND(1),
+            id: Guid.NewGuid());
 
         var newStart = DateTimeOffset.UtcNow.AddDays(4);
         var newEnd = DateTimeOffset.UtcNow.AddDays(7);
-        coupon.Update("Updated", "UPDATED", newStart, newEnd, null, 0, discountPercentage: 20m);
+        coupon.Update("Updated", "UPDATED", newStart, newEnd, null, 0,
+            discountPercentage: 20m,
+            minOrderAmount: Money.FromVND(1));
 
         coupon.DiscountPercentage.Should().Be(20m);
     }
@@ -966,7 +974,9 @@ public class CouponTests
         var end = DateTimeOffset.UtcNow.AddDays(6);
         var coupon = Coupon.CreateByPlatform(
             "admin", "UP", "Up", DiscountType.Percentage, 10m, null,
-            CouponScope.ItemPrice, start, end, id: Guid.NewGuid());
+            CouponScope.ItemPrice, start, end,
+            minOrderAmount: Money.FromVND(1),
+            id: Guid.NewGuid());
 
         var newStart = DateTimeOffset.UtcNow.AddDays(4);
         var newEnd = DateTimeOffset.UtcNow.AddDays(7);
@@ -982,7 +992,9 @@ public class CouponTests
         var end = DateTimeOffset.UtcNow.AddDays(6);
         var coupon = Coupon.CreateByPlatform(
             "admin", "UP", "Up", DiscountType.Percentage, 10m, null,
-            CouponScope.ItemPrice, start, end, id: Guid.NewGuid());
+            CouponScope.ItemPrice, start, end,
+            minOrderAmount: Money.FromVND(1),
+            id: Guid.NewGuid());
 
         var newStart = DateTimeOffset.UtcNow.AddDays(4);
         var newEnd = DateTimeOffset.UtcNow.AddDays(7);

@@ -1,9 +1,9 @@
 ---
 name: "verify-story"
-description: "Audit current backend changes against a planned HiveSpace feature's task definitions without editing files."
+description: "Audit current backend changes against a planned HiveSpace feature's backend task definitions without editing files."
 ---
 
-Audit whether the current backend repo changes cover the selected HiveSpace feature tasks. This command is verification-only: do not edit files, stage files, commit, format, generate migrations, or implement missing work.
+Audit whether the current backend repo changes cover the selected HiveSpace feature backend tasks. This command is verification-only: do not edit files, stage files, commit, format, generate migrations, or implement missing work.
 
 Step 1 - Load context
 - Read local `AGENTS.md` and `CLAUDE.md` if present.
@@ -13,28 +13,25 @@ Step 1 - Load context
   - `../hivespace.spec/shared/event-catalog.md`
 - Identify the feature from the user request. If not provided, read `../hivespace.spec/.specify/feature.json`; if still unclear, ask for the feature name.
 - Read `../hivespace.spec/specs/[feature-name]/spec.md`, `plan.md`, `tasks.md`, and `tasks/backend.md`.
-- Read `tasks/config.md`, `tasks/docs-catalog.md`, and `tasks/verification.md` entries that apply to backend/config/docs/catalog/backend verification.
 - Read affected `../hivespace.spec/services/<service-name>/README.md` files named by the plan or backend tasks.
-- Identify any `tasks/verification.md` item with a detail bullet that starts
-  with `User-owned E2E:` and treat it as explicit user-run validation outside
-  this command's executable scope.
+- If `tasks/verification.md` exists, read only enough to identify any item with a detail bullet that starts with `User-owned E2E:` and treat it as explicit user-run validation outside this command's executable scope. Do not score `tasks/verification.md` items as task coverage.
+- Do not load `tasks/config.md` or `tasks/docs-catalog.md` as task sources for this command.
 
 Step 2 - Inspect current changes
 - Run `git status --short` and `git diff --name-only` to identify changed, deleted, and untracked files.
-- Use `git diff` and targeted searches to compare implementation behavior against each relevant task's exact acceptance text.
+- Use `git diff` and targeted searches to compare implementation behavior against each backend task's exact acceptance text.
 - Use GitNexus `detect_changes({ scope: "all" })` when available and report the risk level and unexpected affected flows.
 - Treat untracked source files as part of the implementation surface, but call out temporary files, generated artifacts, `.keys`, logs, or unrelated config churn.
 
-Step 3 - Verify task coverage
-- Produce a table for every relevant backend, config, docs/catalog, and verification task with status `Covered`, `Partial`, `Missing`, or `Not Applicable`.
-- Mark `User-owned E2E` tasks as `User-owned` or `Pending user` rather than
-  `Missing` when implementation is otherwise complete.
+Step 3 - Verify backend task coverage
+- Produce a table for every relevant `tasks/backend.md` item with status `Covered`, `Partial`, `Missing`, or `Not Applicable`.
+- Mark `User-owned E2E` items separately as `User-owned` or `Pending user` rather than `Missing` when implementation is otherwise complete.
 - Include concrete evidence for every `Covered` or `Partial` status: file path, symbol/route/type, search result, diff evidence, or verification command.
 - Do not mark a task `Covered` only because an expected file exists; verify behavior, constraints, forbidden behavior, and acceptance criteria.
-- Verify that each planned backend scenario has a matching test or clearly
-  explain the missing coverage.
+- Verify that each planned backend scenario has a matching test or clearly explain the missing coverage.
 - Check public endpoint changes against `shared/api-catalog.md`.
 - Check event/message changes against `shared/event-catalog.md`; confirm reused contracts remain unchanged when tasks require no new event.
+- Treat API/event catalog mismatches as backend contract findings, not as docs/catalog task failures.
 - Check repo rules that commonly regress backend stories: CQRS/Minimal API pattern, service boundaries, outbox for integration events, idempotent consumers, no package `Version=` attributes, and no direct cross-service database reads.
 
 Step 4 - Run verification commands
@@ -47,12 +44,12 @@ Step 4 - Run verification commands
 
 Step 5 - Report
 - Start with the overall judgment: `Ready`, `Not ready`, or `Blocked`.
-- If only `User-owned E2E` tasks remain, the overall judgment may still be
-  `Ready`, but the pending user validation must be called out explicitly.
-- List critical gaps first, with task IDs and file references.
-- Include the task coverage table.
+- Base the judgment on backend task coverage and backend verification only.
+- If only `User-owned E2E` tasks remain, the overall judgment may still be `Ready`, but the pending user validation must be called out explicitly.
+- List critical gaps first, with backend task IDs and file references.
+- Include the backend task coverage table.
 - Include verification commands and results.
-- Call out any affected service that is below 90% measured line coverage and
-  identify where additional tests are needed.
+- Call out any affected service that is below 90% measured line coverage and identify where additional tests are needed.
+- List backend contract findings such as missing API/event catalog updates separately from backend task coverage; do not report them as docs/catalog task failures.
 - List unrelated or suspicious changed files separately from expected story files.
-- If gaps remain, recommend running `/start-story` or manual fixes for the specific missing task IDs, then rerun `/verify-story`.
+- If gaps remain, recommend running `/start-story` or manual fixes for the specific missing backend task IDs, then rerun `/verify-story`.

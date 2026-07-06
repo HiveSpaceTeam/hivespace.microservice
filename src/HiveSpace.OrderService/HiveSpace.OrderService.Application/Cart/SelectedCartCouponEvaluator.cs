@@ -30,6 +30,10 @@ public static class SelectedCartCouponEvaluator
         if (selectedItems.Count == 0)
             return [];
 
+        var currency = ResolveSingleCurrency(
+            selectedItems.Select(x => x.Sku!.Currency),
+            nameof(SelectedCartCouponEvaluator));
+
         var totalItemCount = selectedItems.Sum(x => x.Item.Quantity);
         var rawShippingFee = CalculateShippingFee(totalItemCount);
         var storeGroups = selectedItems.GroupBy(x => x.Product!.StoreId).ToList();
@@ -39,7 +43,6 @@ public static class SelectedCartCouponEvaluator
         for (int i = 0; i < storeGroups.Count; i++)
         {
             var group = storeGroups[i];
-            var currency = group.First().Sku!.Currency;
 
             snapshots.Add(new SelectedCartStoreSnapshot(
                 group.Key,
@@ -71,9 +74,12 @@ public static class SelectedCartCouponEvaluator
     {
         EnsureSelectedCartExists(result, nameof(SelectedCartCouponEvaluator));
 
+        var currency = ResolveSingleCurrency(
+            result.Rows.Select(r => r.Currency),
+            nameof(SelectedCartCouponEvaluator));
+
         var totalItemCount = result.Rows.Sum(r => r.Quantity);
         var rawShippingFee = CalculateShippingFee(totalItemCount);
-        var currency = result.Rows.FirstOrDefault(r => r.Currency != null)?.Currency ?? "VND";
 
         var storeGroups = result.Rows.GroupBy(r => r.StoreId).ToList();
         var shippingPerStore = DistributeShippingFee(rawShippingFee, storeGroups.Count);
@@ -163,7 +169,7 @@ public static class SelectedCartCouponEvaluator
             : snapshot.ProductIds;
         var validation = coupon.Validate(
             userId,
-            Money.FromVND(validationSubtotal),
+            Money.FromSmallestUnit(validationSubtotal, snapshot.Currency),
             validationProductIds,
             snapshot.StoreId);
 
@@ -184,6 +190,7 @@ public static class SelectedCartCouponEvaluator
             userId,
             validationSubtotal,
             snapshot.ShippingFee,
+            snapshot.Currency,
             validationProductIds,
             snapshot.StoreId);
 
@@ -195,6 +202,20 @@ public static class SelectedCartCouponEvaluator
             eligibleSubtotal,
             eligibleProductIds,
             []);
+    }
+
+    public static string ResolveSingleCurrency(IEnumerable<string?> currencies, string source)
+    {
+        var distinctCurrencies = currencies
+            .Where(currency => !string.IsNullOrWhiteSpace(currency))
+            .Select(currency => currency!.Trim().ToUpperInvariant())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        if (distinctCurrencies.Count != 1)
+            throw new InvalidFieldException(OrderDomainErrorCode.CheckoutMixedCurrencyNotAllowed, source);
+
+        return distinctCurrencies[0];
     }
 
     private static List<long> ResolveEligibleProductIds(Coupon coupon, SelectedCartStoreSnapshot snapshot)

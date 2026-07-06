@@ -1,4 +1,5 @@
 using HiveSpace.Infrastructure.Authorization;
+using HiveSpace.UserService.Application.Configuration.Queries.GetActivePlatformCurrencyConfig;
 using HiveSpace.UserService.Application.Users.Commands.UpdateUserProfile;
 using HiveSpace.UserService.Application.Users.Commands.UpdateUserSetting;
 using HiveSpace.UserService.Application.Users.Dtos;
@@ -59,6 +60,15 @@ public static class UserEndpoints
         .WithName("UpdateUserSetting")
         .Produces(StatusCodes.Status204NoContent)
         .Produces(StatusCodes.Status400BadRequest)
+        .Produces(StatusCodes.Status404NotFound);
+
+        group.MapGet("/platform-currency-policy", async (IMediator mediator, CancellationToken ct) =>
+        {
+            var result = await mediator.Send(new GetActivePlatformCurrencyConfigQuery(), ct);
+            return Results.Ok(result);
+        })
+        .WithName("GetPlatformCurrencyPolicy")
+        .Produces(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status404NotFound);
 
         return app;

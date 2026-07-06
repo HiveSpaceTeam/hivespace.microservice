@@ -62,6 +62,8 @@ public static class UserInfrastructureExtension
     {
         services.AddScoped<IUserRepository, SqlUserRepository>();
         services.AddScoped<IStoreRepository, SqlStoreRepository>();
+        services.AddScoped<IPlatformConfigRepository, SqlPlatformConfigRepository>();
+        services.AddScoped<IPlatformCurrencyRepository, SqlPlatformCurrencyRepository>();
     }
 
     public static void AddInfrastructureServices(this IServiceCollection services)
@@ -71,6 +73,7 @@ public static class UserInfrastructureExtension
     public static void AddEventPublisherServices(this IServiceCollection services)
     {
         services.AddScoped<IStoreEventPublisher, StoreEventPublisher>();
+        services.AddScoped<IPlatformCurrencyConfigEventPublisher, PlatformCurrencyConfigEventPublisher>();
     }
 
 }

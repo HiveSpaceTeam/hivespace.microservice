@@ -88,7 +88,10 @@ public class GetCartSummaryQueryHandler(
             couponState.AppliedPlatformCoupons.Select(x => x.CouponCode).ToList(),
             coupons,
             userId,
-            grandSelectedSubtotal);
+            grandSelectedSubtotal,
+            snapshots.Count == 0
+                ? string.Empty
+                : SelectedCartCouponEvaluator.ResolveSingleCurrency(snapshots.Select(x => x.Currency), nameof(GetCartSummaryQueryHandler)));
         var selectedItemIds = selectedCart.Rows
             .Select(x => x.CartItemId)
             .ToHashSet();
@@ -160,7 +163,8 @@ public class GetCartSummaryQueryHandler(
             couponState.AppliedPlatformCoupons.Select(x => x.CouponCode).ToList(),
             coupons,
             userId,
-            grandSubTotal);
+            grandSubTotal,
+            SelectedCartCouponEvaluator.ResolveSingleCurrency(snapshots.Select(x => x.Currency), nameof(GetCartSummaryQueryHandler)));
 
         var discountAmount = storeDiscount + platformDiscount;
         return new CartSummaryTotalsResponse(
@@ -181,7 +185,8 @@ public class GetCartSummaryQueryHandler(
         List<string> codes,
         List<Coupon> coupons,
         Guid userId,
-        long totalSubTotal)
+        long totalSubTotal,
+        string currencyCode)
     {
         if (codes.Count == 0)
             return 0L;
@@ -196,7 +201,7 @@ public class GetCartSummaryQueryHandler(
             if (coupon is null)
                 continue;
 
-            var (itemDiscount, _) = ApplyCoupon(coupon, userId, totalSubTotal, shippingFee: 0);
+            var (itemDiscount, _) = ApplyCoupon(coupon, userId, totalSubTotal, shippingFee: 0, currencyCode);
             total += itemDiscount;
         }
 

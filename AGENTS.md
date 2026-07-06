@@ -15,8 +15,8 @@ This file provides guidance to agents working with code in this repository.
 | Command | Codex location | Claude Code location | Purpose |
 | --- | --- | --- | --- |
 | `/start-story` | `.agents/skills/start-story/SKILL.md` | `.claude/commands/start-story.md` | Start a backend story from `../hivespace.spec/specs/[feature-name]` |
-| `/verify-story` | `.agents/skills/verify-story/SKILL.md` | `.claude/commands/verify-story.md` | Audit current backend changes against the feature task definitions |
-| `/done-story` | `.agents/skills/done-story/SKILL.md` | `.claude/commands/done-story.md` | Verify a completed backend story |
+| `/verify-story` | `.agents/skills/verify-story/SKILL.md` | `.claude/commands/verify-story.md` | Audit current backend changes against the feature's backend task definitions |
+| `/done-story` | `.agents/skills/done-story/SKILL.md` | `.claude/commands/done-story.md` | Verify a completed backend story against backend task definitions |
 
 Keep paired Codex and Claude command content semantically equivalent.
 
@@ -31,6 +31,10 @@ Story work is TDD-first and coverage-aware:
   non-executable user work. `/start-story`, `/verify-story`, and `/done-story`
   must skip those tasks, keep them pending for the user, and never mark them
   complete automatically.
+- `/verify-story` and `/done-story` audit backend task coverage only. They may
+  inspect `shared/api-catalog.md` and `shared/event-catalog.md` as backend
+  contract evidence, but do not score `tasks/config.md`,
+  `tasks/docs-catalog.md`, or `tasks/verification.md` as task completion.
 
 ## Plan First
 
@@ -232,7 +236,7 @@ Required flow:
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **hivespace.microservice** (9482 symbols, 29150 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **hivespace.microservice** (9667 symbols, 30930 relationships, 270 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 

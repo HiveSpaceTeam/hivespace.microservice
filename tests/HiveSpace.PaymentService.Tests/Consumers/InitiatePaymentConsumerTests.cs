@@ -3,6 +3,7 @@ using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Events;
 using HiveSpace.PaymentService.Api.Consumers.Saga.CheckoutSaga;
 using HiveSpace.PaymentService.Domain.Aggregates.Payments;
 using HiveSpace.PaymentService.Domain.Aggregates.Payments.Enumerations;
+using HiveSpace.PaymentService.Domain.Aggregates.External;
 using HiveSpace.PaymentService.Domain.Repositories;
 using HiveSpace.PaymentService.Domain.Services;
 using MassTransit;
@@ -15,12 +16,15 @@ namespace HiveSpace.PaymentService.Tests.Consumers;
 public class InitiatePaymentConsumerTests
 {
     private readonly IPaymentRepository _paymentRepository = Substitute.For<IPaymentRepository>();
+    private readonly IPlatformCurrencyPolicyRefRepository _currencyPolicyRepository = Substitute.For<IPlatformCurrencyPolicyRefRepository>();
     private readonly IPaymentGatewayFactory _gatewayFactory = Substitute.For<IPaymentGatewayFactory>();
     private readonly InitiatePaymentConsumer _consumer;
 
     public InitiatePaymentConsumerTests()
     {
-        _consumer = new InitiatePaymentConsumer(_paymentRepository, _gatewayFactory);
+        _currencyPolicyRepository.GetCurrentAsync(Arg.Any<CancellationToken>())
+            .Returns(new PlatformCurrencyPolicyRef(Guid.NewGuid(), "VND", 1, DateTimeOffset.UtcNow, ["VND", "USD", "EUR"]));
+        _consumer = new InitiatePaymentConsumer(_paymentRepository, _currencyPolicyRepository, _gatewayFactory);
     }
 
     [Fact]

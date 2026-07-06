@@ -1,9 +1,13 @@
 using FluentAssertions;
 using HiveSpace.CatalogService.Application.Contracts;
 using HiveSpace.CatalogService.Application.Products.Commands.CreateProduct;
+using HiveSpace.CatalogService.Domain.Aggregates.External;
+using HiveSpace.CatalogService.Domain.Exceptions;
+using HiveSpace.CatalogService.Infrastructure.Repositories.Externals;
 using HiveSpace.CatalogService.Infrastructure.Repositories;
 using HiveSpace.CatalogService.Tests.Fakes;
 using HiveSpace.CatalogService.Tests.Fixtures;
+using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.Domain.Shared.ValueObjects;
 using HiveSpace.Testing.Shared.Doubles;
@@ -21,11 +25,14 @@ public class CreateProductCommandHandlerTests : IClassFixture<CatalogServiceFixt
     [Fact]
     public async Task Handle_WithValidPayload_PersistsProductAndReturnsId()
     {
+        await SeedCurrencyPolicyAsync("VND");
+
         var sellerId = Guid.NewGuid();
         var handler = new CreateProductCommandHandler(
             new SqlProductRepository(_fixture.DbContext),
             new FakeCatalogTransactionService(_fixture.DbContext),
             new FakeUserContext { UserId = Guid.NewGuid(), StoreId = sellerId },
+            new PlatformCurrencyPolicyRefRepository(_fixture.DbContext),
             new FakeProductEventPublisher());
 
         var command = new CreateProductCommand(new ProductUpsertRequestDto("New Phone", 1, "A great phone"));
@@ -42,17 +49,21 @@ public class CreateProductCommandHandlerTests : IClassFixture<CatalogServiceFixt
     [Fact]
     public async Task Handle_WithSellerContext_ProductHasCorrectSellerId()
     {
+        await SeedCurrencyPolicyAsync("VND");
+
         var sellerA = Guid.NewGuid();
         var sellerB = Guid.NewGuid();
         var handlerA = new CreateProductCommandHandler(
             new SqlProductRepository(_fixture.DbContext),
             new FakeCatalogTransactionService(_fixture.DbContext),
             new FakeUserContext { UserId = Guid.NewGuid(), StoreId = sellerA },
+            new PlatformCurrencyPolicyRefRepository(_fixture.DbContext),
             new FakeProductEventPublisher());
         var handlerB = new CreateProductCommandHandler(
             new SqlProductRepository(_fixture.DbContext),
             new FakeCatalogTransactionService(_fixture.DbContext),
             new FakeUserContext { UserId = Guid.NewGuid(), StoreId = sellerB },
+            new PlatformCurrencyPolicyRefRepository(_fixture.DbContext),
             new FakeProductEventPublisher());
 
         var idA = await handlerA.Handle(new CreateProductCommand(new ProductUpsertRequestDto("Laptop A", 2, "Desc")), CancellationToken.None);
@@ -67,11 +78,14 @@ public class CreateProductCommandHandlerTests : IClassFixture<CatalogServiceFixt
     [Fact]
     public async Task Handle_WithVariantsSkusAndAttributes_PersistsNestedProductData()
     {
+        await SeedCurrencyPolicyAsync("VND");
+
         var sellerId = Guid.NewGuid();
         var handler = new CreateProductCommandHandler(
             new SqlProductRepository(_fixture.DbContext),
             new FakeCatalogTransactionService(_fixture.DbContext),
             new FakeUserContext { UserId = Guid.NewGuid(), StoreId = sellerId },
+            new PlatformCurrencyPolicyRefRepository(_fixture.DbContext),
             new FakeProductEventPublisher());
 
         var command = new CreateProductCommand(new ProductUpsertRequestDto(
@@ -122,10 +136,13 @@ public class CreateProductCommandHandlerTests : IClassFixture<CatalogServiceFixt
     [Fact]
     public async Task Handle_WhenStoreIdIsNull_UsesFallbackGuid()
     {
+        await SeedCurrencyPolicyAsync("VND");
+
         var handler = new CreateProductCommandHandler(
             new SqlProductRepository(_fixture.DbContext),
             new FakeCatalogTransactionService(_fixture.DbContext),
             new FakeUserContext { UserId = Guid.NewGuid(), StoreId = null },
+            new PlatformCurrencyPolicyRefRepository(_fixture.DbContext),
             new FakeProductEventPublisher());
 
         var productId = await handler.Handle(
@@ -135,5 +152,58 @@ public class CreateProductCommandHandlerTests : IClassFixture<CatalogServiceFixt
         var stored = await _fixture.DbContext.Products.FindAsync(productId);
         stored.Should().NotBeNull();
         stored!.SellerId.Should().Be(Guid.Empty);
+    }
+
+    [Fact]
+    public async Task Handle_WithDisabledSkuCurrency_ThrowsInvalidFieldException()
+    {
+        await SeedCurrencyPolicyAsync("VND");
+
+        var handler = new CreateProductCommandHandler(
+            new SqlProductRepository(_fixture.DbContext),
+            new FakeCatalogTransactionService(_fixture.DbContext),
+            new FakeUserContext { UserId = Guid.NewGuid(), StoreId = Guid.NewGuid() },
+            new PlatformCurrencyPolicyRefRepository(_fixture.DbContext),
+            new FakeProductEventPublisher());
+
+        var command = new CreateProductCommand(new ProductUpsertRequestDto(
+            "USD Product",
+            3,
+            "Rejected because USD is disabled",
+            Skus:
+            [
+                new ProductSkuRequestDto(
+                    0,
+                    [],
+                    Money.FromMajorUnit(19.99m, "USD"),
+                    4,
+                    "USD-SKU")
+            ]));
+
+        var act = () => handler.Handle(command, CancellationToken.None);
+
+        var exception = await act.Should().ThrowAsync<InvalidFieldException>();
+        exception.Which.ErrorCode.Should().Be(CatalogDomainErrorCode.PlatformCurrencyDisabled);
+    }
+
+    private async Task SeedCurrencyPolicyAsync(params string[] enabledCurrencyCodes)
+    {
+        var policy = await _fixture.DbContext.PlatformCurrencyPolicyRefs.SingleOrDefaultAsync();
+        if (policy is null)
+        {
+            _fixture.DbContext.PlatformCurrencyPolicyRefs.Add(
+                new PlatformCurrencyPolicyRef(
+                    Guid.NewGuid(),
+                    "VND",
+                    1,
+                    DateTimeOffset.UtcNow,
+                    enabledCurrencyCodes));
+        }
+        else
+        {
+            policy.Update("VND", policy.Version + 1, DateTimeOffset.UtcNow, enabledCurrencyCodes);
+        }
+
+        await _fixture.DbContext.SaveChangesAsync();
     }
 }

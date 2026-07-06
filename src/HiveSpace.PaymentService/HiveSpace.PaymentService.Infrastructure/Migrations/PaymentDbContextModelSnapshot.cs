@@ -22,6 +22,33 @@ namespace HiveSpace.PaymentService.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("HiveSpace.PaymentService.Domain.Aggregates.External.PlatformCurrencyPolicyRef", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("DefaultCurrencyCode")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)");
+
+                    b.Property<string>("EnabledCurrencyCodes")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long>("Version")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("platform_currency_policy_refs", (string)null);
+                });
+
             modelBuilder.Entity("HiveSpace.PaymentService.Domain.Aggregates.Payments.Payment", b =>
                 {
                     b.Property<Guid>("Id")

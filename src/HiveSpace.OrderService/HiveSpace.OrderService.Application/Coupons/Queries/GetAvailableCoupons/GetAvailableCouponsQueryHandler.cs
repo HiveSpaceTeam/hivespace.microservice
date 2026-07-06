@@ -59,7 +59,7 @@ public class GetAvailableCouponsQueryHandler(
                         EndDateTime = coupon.EndDateTime,
                         DiscountType = coupon.DiscountType,
                         DiscountAmount = coupon.DiscountAmount?.Amount,
-                        DiscountCurrency = coupon.DiscountAmount?.Currency.GetCode() ?? coupon.MinOrderAmount.Currency.GetCode(),
+                        CurrencyCode = coupon.CurrencyCode,
                         DiscountPercentage = coupon.DiscountType == Domain.Enumerations.DiscountType.Percentage ? coupon.DiscountPercentage : null,
                         MaxDiscountAmount = coupon.MaxDiscountAmount?.Amount,
                         MinOrderAmount = coupon.MinOrderAmount.Amount,

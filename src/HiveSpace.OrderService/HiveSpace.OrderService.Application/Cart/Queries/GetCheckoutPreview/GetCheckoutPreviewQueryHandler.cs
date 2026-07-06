@@ -26,10 +26,12 @@ public class GetCheckoutPreviewQueryHandler(
         var result = await checkoutQuery.GetSelectedCartItemsAsync(userId, cancellationToken);
         SelectedCartCouponEvaluator.EnsureSelectedCartExists(result, nameof(GetCheckoutPreviewQueryHandler));
 
+        var snapshots = SelectedCartCouponEvaluator.BuildStoreSnapshots(result);
         var totalItemCount = result.Rows.Sum(r => r.Quantity);
         var rawShippingFee = CalculateShippingFee(totalItemCount);
-        var currency = result.Rows.FirstOrDefault(r => r.Currency != null)?.Currency ?? "VND";
-        var snapshots = SelectedCartCouponEvaluator.BuildStoreSnapshots(result);
+        var currency = SelectedCartCouponEvaluator.ResolveSingleCurrency(
+            snapshots.Select(x => x.Currency),
+            nameof(GetCheckoutPreviewQueryHandler));
         var couponState = await PersistedCartCouponState.ValidateAsync(
             cart,
             snapshots,
@@ -49,7 +51,8 @@ public class GetCheckoutPreviewQueryHandler(
             couponState.AppliedPlatformCoupons.Select(x => x.CouponCode).ToList(),
             coupons,
             userId,
-            grandOriginalSubtotal);
+            grandOriginalSubtotal,
+            currency);
 
         var packages = new List<CheckoutPreviewPackageDto>();
         for (int i = 0; i < storeGroups.Count; i++)
@@ -62,7 +65,7 @@ public class GetCheckoutPreviewQueryHandler(
             var snapshot = new SelectedCartStoreSnapshot(
                 group.Key,
                 group.First().StoreName,
-                currency,
+                SelectedCartCouponEvaluator.ResolveSingleCurrency(group.Select(r => r.Currency), nameof(GetCheckoutPreviewQueryHandler)),
                 pkgOriginalSubtotal,
                 pkgOriginalShipping,
                 productIds.Distinct().ToList(),
@@ -126,7 +129,7 @@ public class GetCheckoutPreviewQueryHandler(
                 OriginalShippingFee: pkgOriginalShipping,
                 ShippingFee: pkgShippingFee,
                 ShippingType: "economy",
-                Currency: currency,
+                Currency: snapshot.Currency,
                 OriginalSubtotal: pkgOriginalSubtotal,
                 Subtotal: pkgSubtotal,
                 PackageTotal: pkgSubtotal + pkgShippingFee,
@@ -152,7 +155,7 @@ public class GetCheckoutPreviewQueryHandler(
     }
 
     private static long CalculatePlatformDiscount(
-        List<string> codes, List<Coupon> coupons, Guid userId, long totalSubtotal)
+        List<string> codes, List<Coupon> coupons, Guid userId, long totalSubtotal, string currency)
     {
         if (codes.Count == 0) return 0L;
 
@@ -164,7 +167,7 @@ public class GetCheckoutPreviewQueryHandler(
                 c.OwnerType == CouponOwnerType.Platform);
             if (coupon is null) continue;
 
-            var (itemDiscount, _) = ApplyCoupon(coupon, userId, totalSubtotal, shippingFee: 0);
+            var (itemDiscount, _) = ApplyCoupon(coupon, userId, totalSubtotal, shippingFee: 0, currency);
             total += itemDiscount;
         }
         return total;

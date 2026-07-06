@@ -28,4 +28,6 @@ public class CatalogDomainErrorCode(int id, string name, string code) : DomainEr
     // Value objects
     public static readonly CatalogDomainErrorCode InvalidMoney     = new(3040, "InvalidMoney",     "CAT3040");
     public static readonly CatalogDomainErrorCode InvalidImageUrl  = new(3041, "InvalidImageUrl",  "CAT3041");
+    public static readonly CatalogDomainErrorCode PlatformCurrencyPolicyMissing = new(3042, "PlatformCurrencyPolicyMissing", "CAT3042");
+    public static readonly CatalogDomainErrorCode PlatformCurrencyDisabled = new(3043, "PlatformCurrencyDisabled", "CAT3043");
 }

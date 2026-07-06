@@ -35,7 +35,10 @@ public class GetPaymentQueryHandlerTests : IClassFixture<PaymentServiceFixture>
         result.PaymentId.Should().Be(payment.Id);
         result.OrderId.Should().Be(orderId);
         result.BuyerId.Should().Be(buyerId);
-        result.Amount.Should().Be(50_000);
+        result.Amount.Amount.Should().Be(50_000);
+        result.Amount.CurrencyCode.Should().Be("VND");
+        result.Amount.IsValid.Should().BeTrue();
+        result.Amount.IssueCode.Should().BeNull();
         result.Status.Should().Be(PaymentStatus.Pending.ToString());
     }
 

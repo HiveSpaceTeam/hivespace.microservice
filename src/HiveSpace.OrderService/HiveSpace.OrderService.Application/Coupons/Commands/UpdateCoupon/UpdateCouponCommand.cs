@@ -12,7 +12,7 @@ public record UpdateCouponCommand : ICommand<CouponDto>
     public DateTimeOffset EndDateTime { get; init; }
     public DateTimeOffset? EarlySaveDateTime { get; init; }
     
-    public string DiscountCurrency { get; init; } = string.Empty;
+    public string CurrencyCode { get; init; } = string.Empty;
     public long? DiscountAmount { get; init; }
     public decimal? DiscountPercentage { get; init; }
     public long? MaxDiscountAmount { get; init; }

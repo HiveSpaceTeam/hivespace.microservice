@@ -12,7 +12,7 @@ public record ProductDetailDto
     public List<ProductCategory> Categories { get; init; } = [];
     public List<ProductImageDto> Images { get; init; } = [];
     public List<ProductAttributeDto> Attributes { get; init; } = [];
-    public List<Sku> Skus { get; init; } = [];
+    public List<ProductSkuDto> Skus { get; init; } = [];
     public List<ProductVariant> Variants { get; init; } = [];
     public CurrentSellerDto? CurrentSeller { get; init; }
 }

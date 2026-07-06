@@ -2,10 +2,13 @@ using HiveSpace.Application.Shared.Handlers;
 using HiveSpace.CatalogService.Application.Contracts;
 using HiveSpace.CatalogService.Application.Helpers;
 using HiveSpace.CatalogService.Application.Interfaces.Messaging;
+using HiveSpace.CatalogService.Domain.Exceptions;
 using HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate;
 using HiveSpace.CatalogService.Domain.Enums;
 using HiveSpace.CatalogService.Domain.Repositories;
+using HiveSpace.CatalogService.Domain.Repositories.External;
 using HiveSpace.Core.Contexts;
+using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.Infrastructure.Persistence.Transaction;
 
@@ -15,12 +18,22 @@ public class CreateProductCommandHandler(
     IProductRepository productRepository,
     ITransactionService transactionService,
     IUserContext userContext,
+    IPlatformCurrencyPolicyRefRepository currencyPolicyRepository,
     IProductEventPublisher productEventPublisher)
     : ICommandHandler<CreateProductCommand, int>
 {
     public async Task<int> Handle(CreateProductCommand request, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
+
+        var currencyPolicy = await currencyPolicyRepository.GetCurrentAsync(cancellationToken)
+            ?? throw new InvalidFieldException(CatalogDomainErrorCode.PlatformCurrencyPolicyMissing, nameof(currencyPolicyRepository));
+
+        foreach (var sku in request.Payload.Skus ?? [])
+        {
+            if (!currencyPolicy.IsCurrencyEnabled(sku.Price.Currency.ToString()))
+                throw new InvalidFieldException(CatalogDomainErrorCode.PlatformCurrencyDisabled, nameof(request.Payload.Skus));
+        }
 
         var payload = request.Payload;
         var currentUserId = userContext.UserId.ToString();

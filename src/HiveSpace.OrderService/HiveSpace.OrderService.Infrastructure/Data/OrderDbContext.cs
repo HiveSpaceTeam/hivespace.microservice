@@ -23,6 +23,7 @@ public class OrderDbContext : DbContext
     public DbSet<StoreRef> StoreRefs { get; set; } = null!;
     public DbSet<ProductRef> ProductRefs { get; set; } = null!;
     public DbSet<SkuRef> SkuRefs { get; set; } = null!;
+    public DbSet<PlatformCurrencyPolicyRef> PlatformCurrencyPolicyRefs { get; set; } = null!;
     public DbSet<FulfillmentSagaState> FulfillmentSagaStates { get; set; } = null!;
 
     public OrderDbContext(DbContextOptions<OrderDbContext> options) : base(options)

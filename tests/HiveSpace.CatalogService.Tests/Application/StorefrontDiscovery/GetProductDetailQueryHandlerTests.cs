@@ -21,6 +21,18 @@ public class GetProductDetailQueryHandlerTests : IClassFixture<CatalogServiceFix
             Name = "Blue Widget",
             Description = "A great widget",
             SellerId = Guid.NewGuid(),
+            Skus =
+            [
+                new ProductSkuDto(
+                    10,
+                    "SKU-USD",
+                    "USD SKU",
+                    new ProductMoneyDto(2_505, "USD", true, null),
+                    3,
+                    true,
+                    [new ProductImageDto("file-1", "https://cdn.example.com/sku-1.png")],
+                    null)
+            ]
         };
         var handler = new GetProductDetailQueryHandler(new FakeProductDataQuery(dto));
 
@@ -28,6 +40,11 @@ public class GetProductDetailQueryHandlerTests : IClassFixture<CatalogServiceFix
 
         result.Should().NotBeNull();
         result.Name.Should().Be("Blue Widget");
+        result.Skus.Should().ContainSingle();
+        result.Skus[0].Price.CurrencyCode.Should().Be("USD");
+        result.Skus[0].Price.IsValid.Should().BeTrue();
+        result.Skus[0].Images.Should().ContainSingle();
+        result.Skus[0].Images[0].ImageUrl.Should().Be("https://cdn.example.com/sku-1.png");
     }
 
     [Fact]

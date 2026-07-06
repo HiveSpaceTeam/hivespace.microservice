@@ -200,4 +200,10 @@ public class OrderDomainErrorCode : DomainErrorCode
         new(11006, "CheckoutNotFound", "ORD11006");
     public static readonly OrderDomainErrorCode CheckoutPaymentFailed =
         new(11007, "CheckoutPaymentFailed", "ORD11007");
+    public static readonly OrderDomainErrorCode PlatformCurrencyPolicyMissing =
+        new(11008, "PlatformCurrencyPolicyMissing", "ORD11008");
+    public static readonly OrderDomainErrorCode PlatformCurrencyDisabled =
+        new(11009, "PlatformCurrencyDisabled", "ORD11009");
+    public static readonly OrderDomainErrorCode CheckoutMixedCurrencyNotAllowed =
+        new(11010, "CheckoutMixedCurrencyNotAllowed", "ORD11010");
 }

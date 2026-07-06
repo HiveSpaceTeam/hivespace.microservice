@@ -51,6 +51,7 @@ public static class PaymentInfrastructureExtensions
     public static void AddPaymentServiceRepositories(this IServiceCollection services)
     {
         services.AddScoped<IPaymentRepository, SqlPaymentRepository>();
+        services.AddScoped<IPlatformCurrencyPolicyRefRepository, SqlPlatformCurrencyPolicyRefRepository>();
         services.AddScoped<IWalletRepository, SqlWalletRepository>();
         services.AddScoped<ISeeder, WalletSeeder>();
         services.AddScoped<IPaymentEventPublisher, PaymentEventPublisher>();

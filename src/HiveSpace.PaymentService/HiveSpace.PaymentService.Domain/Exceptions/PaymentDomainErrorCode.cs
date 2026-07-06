@@ -54,4 +54,8 @@ public class PaymentDomainErrorCode : DomainErrorCode
         new(3002, "GatewayNotSupported", "PAY3002");
     public static readonly PaymentDomainErrorCode GatewayInitiationFailed =
         new(3003, "GatewayInitiationFailed", "PAY3003");
+    public static readonly PaymentDomainErrorCode PlatformCurrencyPolicyMissing =
+        new(3004, "PlatformCurrencyPolicyMissing", "PAY3004");
+    public static readonly PaymentDomainErrorCode PlatformCurrencyDisabled =
+        new(3005, "PlatformCurrencyDisabled", "PAY3005");
 }

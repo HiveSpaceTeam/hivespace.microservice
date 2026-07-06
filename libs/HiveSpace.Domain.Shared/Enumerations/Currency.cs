@@ -12,6 +12,10 @@ public enum Currency
 
 public static class CurrencyExtensions
 {
+    private static readonly string[] SupportedCurrencyCodes = Enum.GetValues<Currency>()
+        .Select(currency => currency.GetCode())
+        .ToArray();
+
     public static string GetCode(this Currency currency)
     {
         return currency switch
@@ -33,4 +37,6 @@ public static class CurrencyExtensions
             _ => throw new InvalidFieldException(DomainErrorCode.InvalidEnumerationValue, nameof(code))
         };
     }
+
+    public static IReadOnlyCollection<string> GetSupportedCodes() => SupportedCurrencyCodes;
 }

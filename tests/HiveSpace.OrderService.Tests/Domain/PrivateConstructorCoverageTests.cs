@@ -164,6 +164,7 @@ public class PrivateConstructorCoverageTests
             HiveSpace.OrderService.Domain.Enumerations.DiscountType.Percentage, 10m, null,
             HiveSpace.OrderService.Domain.Enumerations.CouponScope.ItemPrice,
             DateTimeOffset.UtcNow.AddMinutes(-1), DateTimeOffset.UtcNow.AddDays(1),
+            minOrderAmount: Money.FromVND(1),
             id: Guid.NewGuid());
         // Force DiscountPercentage to 200 to make calculated discount (20_000) exceed orderTotal (10_000)
         SetPrivate<Coupon>(coupon, "DiscountPercentage", (decimal?)200m);

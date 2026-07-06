@@ -39,6 +39,7 @@ namespace HiveSpace.CatalogService.Api.Extensions
                 builder.Services.AddMassTransitWithRabbitMq<CatalogDbContext>(builder.Configuration, cfg =>
                 {
                     cfg.AddConsumer<StoreRefSyncConsumer>();
+                    cfg.AddConsumer<PlatformCurrencyPolicySyncConsumer>();
                     cfg.AddConsumer<ReserveInventoryConsumer>();
                     cfg.AddConsumer<ConfirmInventoryConsumer>();
                     cfg.AddConsumer<ReleaseInventoryConsumer>();

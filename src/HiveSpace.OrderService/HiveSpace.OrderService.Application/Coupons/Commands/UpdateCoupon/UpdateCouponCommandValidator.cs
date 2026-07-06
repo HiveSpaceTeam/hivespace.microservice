@@ -44,8 +44,8 @@ public class UpdateCouponCommandValidator : AbstractValidator<UpdateCouponComman
         
         When(x => x.DiscountAmount.HasValue || x.DiscountPercentage.HasValue, () => 
         {
-            RuleFor(x => x.DiscountCurrency).NotEmpty()
-                .WithState(_ => new Error(CommonErrorCode.Required, nameof(UpdateCouponCommand.DiscountCurrency)));
+            RuleFor(x => x.CurrencyCode).NotEmpty()
+                .WithState(_ => new Error(CommonErrorCode.Required, nameof(UpdateCouponCommand.CurrencyCode)));
         });
 
         When(x => x.DiscountPercentage.HasValue, () =>

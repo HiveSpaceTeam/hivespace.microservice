@@ -73,10 +73,13 @@ public static class PersistedCartCouponState
         var appliedPlatformCoupons = new List<AppliedPlatformCouponDto>();
         var appliedStoreCoupons = new Dictionary<Guid, AppliedStoreCouponDto>();
         var grandSubtotal = snapshots.Sum(x => x.Subtotal);
+        var cartCurrencyCode = snapshots.Count == 0
+            ? null
+            : SelectedCartCouponEvaluator.ResolveSingleCurrency(snapshots.Select(x => x.Currency), nameof(PersistedCartCouponState));
 
         foreach (var couponCode in platformCodes)
         {
-            if (!TryValidatePlatformCoupon(couponCode, couponsByCode, userId, grandSubtotal, out var applied, out var invalid))
+            if (!TryValidatePlatformCoupon(couponCode, couponsByCode, userId, grandSubtotal, cartCurrencyCode, out var applied, out var invalid))
             {
                 if (invalid is not null)
                     invalidatedCoupons.Add(invalid);
@@ -128,6 +131,7 @@ public static class PersistedCartCouponState
         IReadOnlyDictionary<string, Coupon> couponsByCode,
         Guid userId,
         long grandSubtotal,
+        string? currencyCode,
         out AppliedPlatformCouponDto? applied,
         out InvalidAppliedCouponDto? invalid)
     {
@@ -146,7 +150,13 @@ public static class PersistedCartCouponState
             return false;
         }
 
-        var validation = coupon.Validate(userId, HiveSpace.Domain.Shared.ValueObjects.Money.FromVND(grandSubtotal));
+        if (string.IsNullOrWhiteSpace(currencyCode))
+        {
+            invalid = BuildInvalidCoupon(couponCode, CouponOwnerType.Platform, null, OrderDomainErrorCode.CheckoutValidationFailed);
+            return false;
+        }
+
+        var validation = coupon.Validate(userId, HiveSpace.Domain.Shared.ValueObjects.Money.FromSmallestUnit(grandSubtotal, currencyCode));
         if (!validation.IsValid)
         {
             invalid = BuildInvalidCoupon(couponCode, CouponOwnerType.Platform, null, validation.Errors.First().ErrorCode);

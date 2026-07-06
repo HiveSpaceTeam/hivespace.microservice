@@ -61,6 +61,7 @@ internal static class ServiceCollectionExtensions
             cfg.AddConsumer<CancelOrderConsumer, CancelOrderConsumerDefinition>();
             cfg.AddConsumer<StoreRefSyncConsumer>();
             cfg.AddConsumer<ProductRefSyncConsumer>();
+            cfg.AddConsumer<PlatformCurrencyPolicySyncConsumer>();
         });
     }
 

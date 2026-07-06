@@ -51,4 +51,19 @@ public class ProductFactoryTests
         result.Should().ContainSingle();
         result[0].SkuNo.Should().BeEmpty();
     }
+
+    [Theory]
+    [InlineData("USD", 1050L)]
+    [InlineData("EUR", 2505L)]
+    public void CreateProductSkus_WhenPriceUsesSmallestUnitForeignCurrency_PreservesExactAmount(string currencyCode, long smallestUnitAmount)
+    {
+        var result = ProductFactory.CreateProductSkus(
+        [
+            new ProductSkuRequestDto(0, [], Money.Create(smallestUnitAmount, currencyCode), 3, "SKU-FOREIGN")
+        ]);
+
+        result.Should().ContainSingle();
+        result[0].Price.Amount.Should().Be(smallestUnitAmount);
+        result[0].Price.Currency.ToString().Should().Be(currencyCode);
+    }
 }
