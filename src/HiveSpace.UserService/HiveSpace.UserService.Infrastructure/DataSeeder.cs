@@ -1,5 +1,6 @@
 using HiveSpace.UserService.Domain.Services;
 using HiveSpace.UserService.Domain.Aggregates.Configuration;
+using HiveSpace.UserService.Application.Interfaces.Messaging;
 using HiveSpace.UserService.Infrastructure.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +21,7 @@ public static partial class DataSeeder
         await using var scope = app.Services.CreateAsyncScope();
         var context      = scope.ServiceProvider.GetRequiredService<UserDbContext>();
         var storeManager = scope.ServiceProvider.GetRequiredService<StoreManager>();
+        var eventPublisher = scope.ServiceProvider.GetRequiredService<IPlatformCurrencyConfigEventPublisher>();
         var logger       = scope.ServiceProvider.GetRequiredService<ILogger<UserDbContext>>();
 
         var pending = (await context.Database.GetPendingMigrationsAsync(ct)).ToList();
@@ -35,21 +37,31 @@ public static partial class DataSeeder
         await SeedBobAsync(context, logger, ct);
         await SeedSystemAdminAsync(context, logger, ct);
         await SeedAdminAsync(context, logger, ct);
-        await SeedPlatformCurrencyPolicyAsync(context, logger, ct);
+        await SeedPlatformCurrencyPolicyAsync(context, eventPublisher, logger, ct);
         await SeedSellersAsync(storeManager, context, logger, ct);
     }
 
-    private static async Task SeedPlatformCurrencyPolicyAsync(UserDbContext context, ILogger logger, CancellationToken ct)
+    internal static async Task SeedPlatformCurrencyPolicyAsync(
+        UserDbContext context,
+        IPlatformCurrencyConfigEventPublisher eventPublisher,
+        ILogger logger,
+        CancellationToken ct)
     {
         if (await context.PlatformConfigs.AnyAsync(x => x.ConfigType == PlatformConfig.CurrencyConfigType, ct))
             return;
 
-        context.PlatformConfigs.Add(PlatformConfig.CreateCurrencyPolicy("VND"));
-        context.PlatformCurrencies.AddRange(
+        var config = PlatformConfig.CreateCurrencyPolicy("VND");
+        var currencies = new[]
+        {
             PlatformCurrency.CreateCurrency("VND", true, 0),
             PlatformCurrency.CreateCurrency("USD", false, 1),
-            PlatformCurrency.CreateCurrency("EUR", false, 2));
+            PlatformCurrency.CreateCurrency("EUR", false, 2)
+        };
 
+        context.PlatformConfigs.Add(config);
+        context.PlatformCurrencies.AddRange(currencies);
+
+        await eventPublisher.PublishPolicyUpdatedAsync(config, currencies, ct);
         await context.SaveChangesAsync(ct);
         logger.LogInformation("Seeded platform currency policy.");
     }

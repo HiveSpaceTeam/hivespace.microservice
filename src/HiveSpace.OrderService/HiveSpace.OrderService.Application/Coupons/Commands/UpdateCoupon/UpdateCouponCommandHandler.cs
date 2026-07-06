@@ -25,12 +25,6 @@ public class UpdateCouponCommandHandler : ICommandHandler<UpdateCouponCommand, C
 
     public async Task<CouponDto> Handle(UpdateCouponCommand request, CancellationToken cancellationToken)
     {
-        var currencyPolicy = await _currencyPolicyRepository.GetCurrentAsync(cancellationToken)
-            ?? throw new InvalidFieldException(OrderDomainErrorCode.PlatformCurrencyPolicyMissing, nameof(_currencyPolicyRepository));
-
-        if (!currencyPolicy.IsCurrencyEnabled(request.CurrencyCode))
-            throw new InvalidFieldException(OrderDomainErrorCode.PlatformCurrencyDisabled, nameof(request.CurrencyCode));
-
         var coupon = await _couponRepository.GetByIdAsync(request.Id, true, cancellationToken)
             ?? throw new NotFoundException(OrderDomainErrorCode.CouponNotFound, request.Id.ToString());
 
@@ -41,17 +35,32 @@ public class UpdateCouponCommandHandler : ICommandHandler<UpdateCouponCommand, C
              throw new ForbiddenException(OrderDomainErrorCode.CouponNotStoreOwned, request.Id.ToString());
         }
 
-        Money? discountAmount = request.DiscountAmount.HasValue && !string.IsNullOrEmpty(request.CurrencyCode)
-            ? Money.Create(request.DiscountAmount.Value, request.CurrencyCode)
+        var effectiveCurrencyCode = string.IsNullOrWhiteSpace(request.CurrencyCode)
+            ? coupon.CurrencyCode
+            : request.CurrencyCode;
+
+        var shouldValidateCurrency = request.DiscountAmount.HasValue
+            || request.DiscountPercentage.HasValue
+            || !string.IsNullOrWhiteSpace(request.CurrencyCode);
+
+        if (shouldValidateCurrency)
+        {
+            var currencyPolicy = await _currencyPolicyRepository.GetCurrentAsync(cancellationToken)
+                ?? throw new InvalidFieldException(OrderDomainErrorCode.PlatformCurrencyPolicyMissing, nameof(_currencyPolicyRepository));
+
+            if (!currencyPolicy.IsCurrencyEnabled(effectiveCurrencyCode))
+                throw new InvalidFieldException(OrderDomainErrorCode.PlatformCurrencyDisabled, nameof(request.CurrencyCode));
+        }
+
+        Money? discountAmount = request.DiscountAmount.HasValue
+            ? Money.Create(request.DiscountAmount.Value, effectiveCurrencyCode)
             : null;
 
-        Money? maxDiscountAmount = request.MaxDiscountAmount.HasValue && !string.IsNullOrEmpty(request.CurrencyCode)
-            ? Money.Create(request.MaxDiscountAmount.Value, request.CurrencyCode)
+        Money? maxDiscountAmount = request.MaxDiscountAmount.HasValue
+            ? Money.Create(request.MaxDiscountAmount.Value, effectiveCurrencyCode)
             : null;
 
-        Money minOrderAmount = !string.IsNullOrEmpty(request.CurrencyCode)
-            ? Money.Create(request.MinOrderAmount, request.CurrencyCode)
-            : Money.Zero(); 
+        Money minOrderAmount = Money.Create(request.MinOrderAmount, effectiveCurrencyCode);
 
         coupon.Update(
             request.Name,

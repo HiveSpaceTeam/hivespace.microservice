@@ -145,6 +145,87 @@ public class UpdateCouponCommandHandlerTests : IClassFixture<OrderServiceFixture
         await act.Should().ThrowAsync<InvalidFieldException>();
     }
 
+    [Fact]
+    public async Task Handle_WithOngoingCouponMetadataOnlyUpdate_DoesNotRequireCurrencyCode()
+    {
+        await SeedCurrencyPolicyAsync();
+        var start = DateTimeOffset.UtcNow.AddMinutes(-10);
+        var coupon = Coupon.CreateByPlatform(
+            Guid.NewGuid().ToString(),
+            "ONGOING01",
+            "Original Name",
+            DiscountType.FixedAmount,
+            null,
+            Money.FromVND(10_000),
+            CouponScope.ItemPrice,
+            start,
+            start.AddDays(7));
+
+        _fixture.DbContext.Coupons.Add(coupon);
+        await _fixture.DbContext.SaveChangesAsync();
+
+        var handler = new UpdateCouponCommandHandler(
+            new SqlCouponRepository(_fixture.DbContext),
+            new FakeUserContext { UserId = Guid.NewGuid(), Roles = ["Admin"] },
+            new SqlPlatformCurrencyPolicyRefRepository(_fixture.DbContext));
+
+        var result = await handler.Handle(new UpdateCouponCommand
+        {
+            Id = coupon.Id,
+            Name = "Renamed",
+            Code = "ONGOING01",
+            StartDateTime = start,
+            EndDateTime = start.AddDays(10),
+            MaxUsageCount = coupon.MaxUsageCount,
+            MinOrderAmount = 0,
+            ApplicableProductIds = []
+        }, CancellationToken.None);
+
+        result.Name.Should().Be("Renamed");
+        result.CurrencyCode.Should().Be("VND");
+    }
+
+    [Fact]
+    public async Task Handle_WithDisabledCurrency_ThrowsInvalidFieldException()
+    {
+        await SeedCurrencyPolicyAsync("VND");
+        var futureStart = DateTimeOffset.UtcNow.AddDays(1);
+        var coupon = Coupon.CreateByPlatform(
+            Guid.NewGuid().ToString(),
+            "DISABLED01",
+            "Original Name",
+            DiscountType.FixedAmount,
+            null,
+            Money.FromVND(10_000),
+            CouponScope.ItemPrice,
+            futureStart,
+            futureStart.AddDays(7));
+
+        _fixture.DbContext.Coupons.Add(coupon);
+        await _fixture.DbContext.SaveChangesAsync();
+
+        var handler = new UpdateCouponCommandHandler(
+            new SqlCouponRepository(_fixture.DbContext),
+            new FakeUserContext { UserId = Guid.NewGuid(), Roles = ["Admin"] },
+            new SqlPlatformCurrencyPolicyRefRepository(_fixture.DbContext));
+
+        var act = () => handler.Handle(new UpdateCouponCommand
+        {
+            Id = coupon.Id,
+            Name = "Updated Name",
+            Code = "DISABLED01",
+            StartDateTime = futureStart,
+            EndDateTime = futureStart.AddDays(14),
+            CurrencyCode = "USD",
+            DiscountAmount = 10_000,
+            MinOrderAmount = 1,
+            MaxUsageCount = coupon.MaxUsageCount,
+            ApplicableProductIds = []
+        }, CancellationToken.None);
+
+        await act.Should().ThrowAsync<InvalidFieldException>();
+    }
+
     private async Task SeedCurrencyPolicyAsync(params string[] enabledCodes)
     {
         var codes = enabledCodes.Length == 0 ? ["VND"] : enabledCodes;
