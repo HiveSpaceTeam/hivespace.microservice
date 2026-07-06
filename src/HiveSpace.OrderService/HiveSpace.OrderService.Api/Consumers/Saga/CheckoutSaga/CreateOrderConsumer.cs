@@ -151,6 +151,19 @@ public class CreateOrderConsumer(
         }
 
         var grandSubtotal = selectedItems.Sum(item => skuRefs[item.SkuId].Price * item.Quantity);
+        if (!TryResolveSingleCurrency(
+                selectedItems.Select(item => skuRefs[item.SkuId].Currency),
+                out var checkoutCurrency))
+        {
+            await context.RespondAsync<OrderCreationFailedIntegrationEvent>(new
+            {
+                message.CorrelationId,
+                Reason = "Checkout contains mixed currencies",
+                Errors = new List<string> { OrderDomainErrorCode.CheckoutMixedCurrencyNotAllowed.Name }
+            });
+            return;
+        }
+
         var shippingPerStore = DistributeShippingFee(
             CalculateShippingFee(selectedItems.Sum(i => i.Quantity)), itemsByStore.Count);
 
@@ -159,7 +172,7 @@ public class CreateOrderConsumer(
 
         foreach (var platformCoupon in platformCoupons)
         {
-            var validation = platformCoupon.Validate(message.UserId, Money.FromVND(grandSubtotal));
+            var validation = platformCoupon.Validate(message.UserId, Money.FromSmallestUnit(grandSubtotal, checkoutCurrency));
             if (!validation.IsValid)
             {
                 await RespondCouponValidationFailed(
@@ -176,6 +189,18 @@ public class CreateOrderConsumer(
             var storeGroup  = itemsByStore[i];
             var storeId     = storeGroup.Key;
             var pkgShipping = shippingPerStore[i];
+            if (!TryResolveSingleCurrency(
+                    storeGroup.Select(item => skuRefs[item.SkuId].Currency),
+                    out var storeCurrency))
+            {
+                await context.RespondAsync<OrderCreationFailedIntegrationEvent>(new
+                {
+                    message.CorrelationId,
+                    Reason = "Checkout contains mixed currencies",
+                    Errors = new List<string> { OrderDomainErrorCode.CheckoutMixedCurrencyNotAllowed.Name }
+                });
+                return;
+            }
 
             var address = new DeliveryAddress(
                 message.DeliveryAddress.RecipientName,
@@ -192,14 +217,14 @@ public class CreateOrderConsumer(
             {
                 var skuRef     = skuRefs[cartItem.SkuId];
                 var productRef = productRefs[cartItem.ProductId];
-                var unitPrice  = Money.FromVND(skuRef.Price);
+                var unitPrice  = Money.FromSmallestUnit(skuRef.Price, storeCurrency);
 
                 var snapshot = ProductSnapshot.Capture(
                     cartItem.ProductId,
                     cartItem.SkuId,
                     productRef.Name,
                     string.Empty,
-                    Money.FromVND(skuRef.Price),
+                    Money.FromSmallestUnit(skuRef.Price, storeCurrency),
                     skuRef.ImageUrl ?? productRef.ThumbnailUrl ?? string.Empty,
                     new Dictionary<string, string>());
 
@@ -218,12 +243,12 @@ public class CreateOrderConsumer(
                 });
             }
 
-            order.SetShippingFee(Money.FromVND(pkgShipping), isShippingPaidBySeller: false);
+            order.SetShippingFee(Money.FromSmallestUnit(pkgShipping, storeCurrency), isShippingPaidBySeller: false);
 
             var storeSnapshot = new SelectedCartStoreSnapshot(
                 storeId,
                 storeGroup.Select(x => productRefs[x.ProductId].Name).FirstOrDefault(),
-                storeGroup.Select(x => skuRefs[x.SkuId].Currency).FirstOrDefault() ?? "VND",
+                storeCurrency,
                 storeGroup.Sum(x => skuRefs[x.SkuId].Price * x.Quantity),
                 pkgShipping,
                 storeGroup.Select(x => x.ProductId).Distinct().ToList(),
@@ -254,7 +279,7 @@ public class CreateOrderConsumer(
                 }
 
                 if (evaluation.DiscountAmount > 0)
-                    order.ApplyDiscount(coupon, Money.FromVND(evaluation.DiscountAmount));
+                    order.ApplyDiscount(coupon, Money.FromSmallestUnit(evaluation.DiscountAmount, storeCurrency));
             }
 
             orderRepository.Add(order);
@@ -263,7 +288,7 @@ public class CreateOrderConsumer(
 
         foreach (var platformCoupon in platformCoupons)
         {
-            ApplyPlatformCouponProration(createdOrders, platformCoupon);
+            ApplyPlatformCouponProration(createdOrders, platformCoupon, checkoutCurrency);
         }
 
         foreach (var order in createdOrders)
@@ -316,7 +341,7 @@ public class CreateOrderConsumer(
                 .ToList()
         });
 
-    private static void ApplyPlatformCouponProration(IReadOnlyList<Order> createdOrders, Coupon platformCoupon)
+    private static void ApplyPlatformCouponProration(IReadOnlyList<Order> createdOrders, Coupon platformCoupon, string currencyCode)
     {
         if (createdOrders.Count == 0) return;
 
@@ -332,7 +357,7 @@ public class CreateOrderConsumer(
         if (weightedOrders.Count == 0) return;
 
         var totalWeight = weightedOrders.Sum(x => x.Weight);
-        var totalDiscountAmount = platformCoupon.CalculateDiscount(Money.FromVND(totalWeight)).Amount;
+        var totalDiscountAmount = platformCoupon.CalculateDiscount(Money.FromSmallestUnit(totalWeight, currencyCode)).Amount;
 
         if (totalDiscountAmount <= 0) return;
 
@@ -366,7 +391,25 @@ public class CreateOrderConsumer(
             if (allocated <= 0)
                 continue;
 
-            weightedOrder.Order.ApplyProratedDiscount(platformCoupon, Money.FromVND(allocated));
+            weightedOrder.Order.ApplyProratedDiscount(platformCoupon, Money.FromSmallestUnit(allocated, currencyCode));
         }
+    }
+
+    private static bool TryResolveSingleCurrency(IEnumerable<string> currencies, out string currencyCode)
+    {
+        var distinctCurrencies = currencies
+            .Where(currency => !string.IsNullOrWhiteSpace(currency))
+            .Select(currency => currency.Trim().ToUpperInvariant())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        if (distinctCurrencies.Count == 1)
+        {
+            currencyCode = distinctCurrencies[0];
+            return true;
+        }
+
+        currencyCode = string.Empty;
+        return false;
     }
 }

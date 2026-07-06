@@ -40,10 +40,11 @@ public static class CheckoutCalculator
         Guid userId,
         long subtotal,
         long shippingFee,
+        string currencyCode,
         IEnumerable<long>? productIds = null,
         Guid? storeId = null)
     {
-        var subtotalMoney = Money.FromVND(subtotal);
+        var subtotalMoney = Money.FromSmallestUnit(subtotal, currencyCode);
         var validation    = coupon.Validate(userId, subtotalMoney, productIds, storeId);
         if (!validation.IsValid) return (0L, 0L);
 

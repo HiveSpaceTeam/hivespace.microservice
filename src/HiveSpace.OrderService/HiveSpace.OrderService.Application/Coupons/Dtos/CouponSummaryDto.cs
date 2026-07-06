@@ -19,7 +19,9 @@ public record CouponSummaryDto
 
     public DiscountType DiscountType { get; init; }
     public long? DiscountAmount { get; init; }
-    public string DiscountCurrency { get; init; } = string.Empty;
+    public string CurrencyCode { get; init; } = string.Empty;
+    public bool IsMoneyValid { get; init; } = true;
+    public string? MoneyIssueCode { get; init; }
     public decimal? DiscountPercentage { get; init; }
     public long? MaxDiscountAmount { get; init; }
     public long MinOrderAmount { get; init; }

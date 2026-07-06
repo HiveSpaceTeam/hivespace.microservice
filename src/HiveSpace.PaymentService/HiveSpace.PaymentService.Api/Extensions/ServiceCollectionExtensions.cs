@@ -2,6 +2,7 @@ using HiveSpace.Core;
 using HiveSpace.Infrastructure.Messaging.Configurations;
 using HiveSpace.Infrastructure.Messaging.Extensions;
 using HiveSpace.PaymentService.Api.Consumers.Saga.CheckoutSaga;
+using HiveSpace.PaymentService.Api.Consumers.Sync;
 using HiveSpace.PaymentService.Infrastructure;
 using HiveSpace.PaymentService.Infrastructure.Data;
 using MassTransit;
@@ -25,6 +26,7 @@ internal static class ServiceCollectionExtensions
         services.AddMassTransitWithRabbitMq<PaymentDbContext>(configuration, cfg =>
         {
             cfg.AddConsumer<InitiatePaymentConsumer>();
+            cfg.AddConsumer<PlatformCurrencyPolicySyncConsumer>();
         });
     }
 

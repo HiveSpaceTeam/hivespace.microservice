@@ -1,4 +1,5 @@
 using HiveSpace.Infrastructure.Messaging.Extensions;
+using HiveSpace.UserService.Domain.Aggregates.Configuration;
 using HiveSpace.UserService.Domain.Aggregates.Store;
 using HiveSpace.UserService.Domain.Aggregates.User;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +11,8 @@ public class UserDbContext : DbContext
     public DbSet<User> Users { get; set; }
     public DbSet<Address> Addresses { get; set; }
     public DbSet<Store> Stores { get; set; }
+    public DbSet<PlatformConfig> PlatformConfigs { get; set; }
+    public DbSet<PlatformCurrency> PlatformCurrencies { get; set; }
     public UserDbContext(DbContextOptions<UserDbContext> options) : base(options)
     {
     }

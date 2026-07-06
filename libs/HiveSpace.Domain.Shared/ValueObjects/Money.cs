@@ -69,19 +69,44 @@ namespace HiveSpace.Domain.Shared.ValueObjects
         public static Money Zero(Currency currency = Currency.VND) => new(0, currency);
 
         /// <summary>
-        /// Create money from amount and currency code
+        /// Create money from a major-unit amount and currency code.
         /// </summary>
-        public static Money Create(long amount, string currencyCode)
+        public static Money Create(decimal amount, string currencyCode)
         {
             var currency = CurrencyExtensions.FromCode(currencyCode);
             return currency switch
             {
                 Currency.USD => FromUSD(amount),
                 Currency.EUR => FromEUR(amount),
-                Currency.VND => FromVND(amount),
-                _ => FromVND(amount) // Default
+                Currency.VND => FromVND((long)Math.Round(amount, MidpointRounding.AwayFromZero)),
+                _ => throw new InvalidFieldException(DomainErrorCode.InvalidEnumerationValue, nameof(currency))
             };
         }
+
+        /// <summary>
+        /// Create money from a smallest-unit amount and currency code.
+        /// </summary>
+        public static Money Create(long amount, string currencyCode) => FromSmallestUnit(amount, currencyCode);
+
+        /// <summary>
+        /// Create money from a smallest-unit amount and currency code.
+        /// </summary>
+        public static Money FromSmallestUnit(long amount, string currencyCode)
+        {
+            var currency = CurrencyExtensions.FromCode(currencyCode);
+            return currency switch
+            {
+                Currency.USD => FromUSDCents(amount),
+                Currency.EUR => FromEURCents(amount),
+                Currency.VND => FromVND(amount),
+                _ => throw new InvalidFieldException(DomainErrorCode.InvalidEnumerationValue, nameof(currency))
+            };
+        }
+
+        /// <summary>
+        /// Create money from a major-unit amount and currency code.
+        /// </summary>
+        public static Money FromMajorUnit(decimal amount, string currencyCode) => Create(amount, currencyCode);
 
         #endregion
 

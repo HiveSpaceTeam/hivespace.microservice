@@ -136,4 +136,36 @@ public class ApplyStoreCouponCommandHandlerTests : IClassFixture<OrderServiceFix
 
         await act.Should().ThrowAsync<InvalidFieldException>();
     }
+
+    [Fact]
+    public async Task Handle_WithMixedCurrencySelectedCart_ThrowsInvalidFieldException()
+    {
+        var userId = Guid.NewGuid();
+        var storeId = Guid.NewGuid();
+
+        var cart = CartAggregate.Create(userId);
+        _fixture.DbContext.Carts.Add(cart);
+
+        var coupon = Coupon.CreateByStore(
+            storeId, Guid.NewGuid(),
+            "STORE_MIXED1", "Store Mixed",
+            DiscountType.FixedAmount, null, Money.FromVND(5_000),
+            CouponScope.ItemPrice,
+            DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddDays(1));
+        _fixture.DbContext.Coupons.Add(coupon);
+        await _fixture.DbContext.SaveChangesAsync();
+
+        var handler = new ApplyStoreCouponCommandHandler(
+            new SqlCartRepository(_fixture.DbContext),
+            new FakeCheckoutQuery(
+                FakeCheckoutQuery.MakeRow(storeId, productId: 1, skuId: 10, price: 50_000, currency: "VND"),
+                FakeCheckoutQuery.MakeRow(storeId, productId: 2, skuId: 20, price: 2_500, currency: "USD")),
+            new SqlCouponRepository(_fixture.DbContext),
+            new FakeUserContext { UserId = userId });
+
+        var act = () => handler.Handle(
+            new ApplyStoreCouponCommand(storeId, "STORE_MIXED1"), CancellationToken.None);
+
+        await act.Should().ThrowAsync<InvalidFieldException>();
+    }
 }

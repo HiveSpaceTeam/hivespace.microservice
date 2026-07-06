@@ -50,7 +50,8 @@ public class CheckoutCalculatorTests
             coupon,
             Guid.NewGuid(),
             subtotal: 100_000L,
-            shippingFee: 30_000L);
+            shippingFee: 30_000L,
+            currencyCode: "VND");
 
         itemDiscount.Should().Be(10_000L);
         shippingDiscount.Should().Be(0L);
@@ -85,7 +86,8 @@ public class CheckoutCalculatorTests
             coupon,
             Guid.NewGuid(),
             subtotal: 100_000L,
-            shippingFee: shippingFee);
+            shippingFee: shippingFee,
+            currencyCode: "VND");
 
         var grandTotal = 100_000L + shippingFee - itemDiscount;
         grandTotal.Should().Be(120_000L);

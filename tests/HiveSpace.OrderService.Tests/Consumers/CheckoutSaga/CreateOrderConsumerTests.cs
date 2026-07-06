@@ -380,6 +380,43 @@ public class CreateOrderConsumerTests
         await _orderRepository.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
+    [Fact]
+    public async Task Consume_WhenCheckoutContainsMixedCurrencies_RespondsWithFailure()
+    {
+        var userId = Guid.NewGuid();
+        var storeId = Guid.NewGuid();
+        var cart = Cart.Create(userId, id: Guid.NewGuid());
+        cart.AddItem(1L, 1L, 1);
+        cart.AddItem(2L, 2L, 1);
+
+        var message = new CreateOrder
+        {
+            CorrelationId = Guid.NewGuid(),
+            UserId = userId,
+            DeliveryAddress = BuildAddress(),
+            PaymentMethod = PaymentMethod.COD
+        };
+
+        var context = BuildContext(message);
+        _cartRepository.GetByUserIdAsync(userId, Arg.Any<CancellationToken>()).Returns(cart);
+        _productRefRepository.GetByIdsAsync(Arg.Any<IEnumerable<long>>(), Arg.Any<CancellationToken>())
+            .Returns(new List<ProductRef>
+            {
+                new(1L, storeId, "Widget 1", null, ProductStatus.Available),
+                new(2L, storeId, "Widget 2", null, ProductStatus.Available)
+            });
+        _skuRefRepository.GetByIdsAsync(Arg.Any<IEnumerable<long>>(), Arg.Any<CancellationToken>())
+            .Returns(new List<SkuRef>
+            {
+                new(1L, 1L, "SKU-001", 50_000L, "VND", null, null),
+                new(2L, 2L, "SKU-002", 2_500L, "USD", null, null)
+            });
+
+        await _consumer.Consume(context);
+
+        await context.Received(1).RespondAsync<OrderCreationFailedIntegrationEvent>(Arg.Any<object>());
+    }
+
     // ── helpers ──────────────────────────────────────────────────────────────
 
     private static DeliveryAddressDto BuildAddress() => new()

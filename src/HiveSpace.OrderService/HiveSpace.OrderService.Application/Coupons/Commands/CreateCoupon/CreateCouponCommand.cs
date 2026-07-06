@@ -14,7 +14,7 @@ public class CreateCouponCommand : ICommand<CouponDto>
     
     public DiscountType DiscountType { get; set; }
     public long? DiscountAmount { get; set; }
-    public string DiscountCurrency { get; set; } = string.Empty;
+    public string CurrencyCode { get; set; } = string.Empty;
     public decimal? DiscountPercentage { get; set; }
     public long? MaxDiscountAmount { get; set; }
     public long MinOrderAmount { get; set; }

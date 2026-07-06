@@ -80,6 +80,7 @@ internal static class HostingExtensions
         app.UseAuthorization();
 
         app.MapUserEndpoints();
+        app.MapAdminConfigurationEndpoints();
         app.MapStoreEndpoints();
         app.MapUserAddressEndpoints();
         app.MapDefaultEndpoints();

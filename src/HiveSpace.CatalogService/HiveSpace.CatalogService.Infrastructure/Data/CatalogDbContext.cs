@@ -26,6 +26,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Data
 
         #region ReadModels
         public DbSet<StoreRef> StoreRef { get; set; }
+        public DbSet<PlatformCurrencyPolicyRef> PlatformCurrencyPolicyRefs { get; set; }
         #endregion
 
         public DbSet<IncomingRequest> IncomingRequest { get; set; }
@@ -42,6 +43,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new AttributeValueConfiguration());
 
             modelBuilder.ApplyConfiguration(new StoreRefValueConfiguration());
+            modelBuilder.ApplyConfiguration(new PlatformCurrencyPolicyRefConfiguration());
             modelBuilder.AddPersistenceBuilder();
             modelBuilder.AddEntityOutBox();
         }

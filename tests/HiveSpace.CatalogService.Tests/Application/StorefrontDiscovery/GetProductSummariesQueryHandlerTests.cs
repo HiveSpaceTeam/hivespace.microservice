@@ -6,6 +6,7 @@ using HiveSpace.CatalogService.Domain.Enums;
 using HiveSpace.CatalogService.Infrastructure.Repositories;
 using HiveSpace.CatalogService.Tests.Fixtures;
 using HiveSpace.Domain.Shared.Enumerations;
+using HiveSpace.Domain.Shared.ValueObjects;
 using Xunit;
 
 namespace HiveSpace.CatalogService.Tests.Application.StorefrontDiscovery;
@@ -63,8 +64,27 @@ public class GetProductSummariesQueryHandlerTests : IClassFixture<CatalogService
         result.Items.Should().HaveCountGreaterThanOrEqualTo(1);
     }
 
-    private static Product NewProduct(ProductStatus status, string slug, int id) =>
+    [Fact]
+    public async Task Handle_WithSkuPrice_ReturnsExplicitMoneyMetadata()
+    {
+        var sku = new Sku("SKU-USD", [], [], 3, true, Money.FromSmallestUnit(2_505, "USD"));
+        _fixture.DbContext.Products.Add(NewProduct(ProductStatus.Available, "summary-money", 70011, [sku]));
+        await _fixture.DbContext.SaveChangesAsync();
+
+        var handler = new GetProductSummariesQueryHandler(new SqlProductRepository(_fixture.DbContext));
+
+        var result = await handler.Handle(
+            new GetProductSummariesQuery(new ProductSearchRequestDto(Page: 1, PageSize: 20)),
+            CancellationToken.None);
+
+        var product = result.Items.Should().ContainSingle(x => x.Id == 70011).Subject;
+        product.Price.Amount.Should().Be(2_505);
+        product.Price.CurrencyCode.Should().Be("USD");
+        product.Price.IsValid.Should().BeTrue();
+    }
+
+    private static Product NewProduct(ProductStatus status, string slug, int id, List<Sku>? skus = null) =>
         Product.CreateProduct("Summary Product", slug, "Description", "Short",
             status, Guid.NewGuid(), ProductCondition.New, false,
-            [], [], [], [], [], DateTimeOffset.UtcNow, Guid.NewGuid().ToString(), id);
+            [], [], [], skus ?? [], [], DateTimeOffset.UtcNow, Guid.NewGuid().ToString(), id);
 }

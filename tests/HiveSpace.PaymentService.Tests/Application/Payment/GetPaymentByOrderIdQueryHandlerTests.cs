@@ -31,7 +31,10 @@ public class GetPaymentByOrderIdQueryHandlerTests : IClassFixture<PaymentService
         var result = await BuildHandler().Handle(new GetPaymentByOrderIdQuery(orderId), CancellationToken.None);
 
         result.OrderId.Should().Be(orderId);
-        result.Amount.Should().Be(20_000);
+        result.Amount.Amount.Should().Be(20_000);
+        result.Amount.CurrencyCode.Should().Be("VND");
+        result.Amount.IsValid.Should().BeTrue();
+        result.Amount.IssueCode.Should().BeNull();
         result.Status.Should().Be(PaymentStatus.Pending.ToString());
     }
 

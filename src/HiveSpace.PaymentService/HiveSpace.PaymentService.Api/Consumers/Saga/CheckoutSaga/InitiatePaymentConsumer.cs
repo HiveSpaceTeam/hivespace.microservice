@@ -1,9 +1,11 @@
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Commands;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Events;
 using HiveSpace.PaymentService.Domain.Aggregates.Payments.Enumerations;
+using HiveSpace.PaymentService.Domain.Exceptions;
 using HiveSpace.PaymentService.Domain.Repositories;
 using HiveSpace.PaymentService.Domain.Services;
 using HiveSpace.PaymentService.Application.Payments.Queries.GetPayment;
+using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Domain.Shared.ValueObjects;
 using HiveSpace.Domain.Shared.Enumerations;
 using PaymentMethodVO = HiveSpace.PaymentService.Domain.ValueObjects.PaymentMethod;
@@ -13,6 +15,7 @@ namespace HiveSpace.PaymentService.Api.Consumers.Saga.CheckoutSaga;
 
 public class InitiatePaymentConsumer(
     IPaymentRepository paymentRepository,
+    IPlatformCurrencyPolicyRefRepository currencyPolicyRepository,
     IPaymentGatewayFactory gatewayFactory) : IConsumer<InitiatePayment>
 {
     public async Task Consume(ConsumeContext<InitiatePayment> context)
@@ -38,7 +41,13 @@ public class InitiatePaymentConsumer(
                 gateway = PaymentGateway.VNPay;
 
             var currency = CurrencyExtensions.FromCode(msg.Currency);
-            var amount = Money.FromVND(msg.Amount);
+            var currencyPolicy = await currencyPolicyRepository.GetCurrentAsync(context.CancellationToken)
+                ?? throw new InvalidFieldException(PaymentDomainErrorCode.PlatformCurrencyPolicyMissing, nameof(currencyPolicyRepository));
+
+            if (!currencyPolicy.IsCurrencyEnabled(currency.GetCode()))
+                throw new InvalidFieldException(PaymentDomainErrorCode.PlatformCurrencyDisabled, nameof(msg.Currency));
+
+            var amount = Money.FromSmallestUnit(msg.Amount, msg.Currency);
 
             var paymentMethod = PaymentMethodVO.BankTransfer("VNPAY");
 

@@ -1,6 +1,7 @@
 using HiveSpace.CatalogService.Application.Products;
 using HiveSpace.CatalogService.Application.Products.Dtos;
 using HiveSpace.CatalogService.Infrastructure.Data;
+using HiveSpace.Domain.Shared.Enumerations;
 using Microsoft.EntityFrameworkCore;
 
 namespace HiveSpace.CatalogService.Infrastructure.DataQueries;
@@ -61,7 +62,15 @@ public class ProductDataQuery(CatalogDbContext dbContext) : IProductDataQuery
                         .ToList()
                 };
             }).ToList(),
-            Skus     = product.Skus.ToList(),
+            Skus     = product.Skus.Select(sku => new ProductSkuDto(
+                sku.Id,
+                sku.SkuNo,
+                string.Join(", ", sku.SkuVariants.Select(v => v.Value)),
+                new ProductMoneyDto(sku.Price.Amount, sku.Price.Currency.GetCode()),
+                sku.Quantity,
+                sku.IsActive,
+                sku.Images.Select(image => new ProductImageDto(image.FileId, image.ImageUrl)).ToList(),
+                string.Join(", ", sku.SkuVariants.Select(variant => $"{variant.VariantName}:{variant.Value}")))).ToList(),
             Variants = product.Variants.ToList(),
             CurrentSeller = currentSeller is null ? null : new CurrentSellerDto(
                 currentSeller.Id,

@@ -32,8 +32,14 @@ public class ApplyPlatformCouponCommandHandler(
         if (coupon.OwnerType != CouponOwnerType.Platform)
             throw new InvalidFieldException(OrderDomainErrorCode.CouponStoreNotApplicable, nameof(request.CouponCode));
 
-        var grandSubtotal = SelectedCartCouponEvaluator.BuildStoreSnapshots(selectedCart).Sum(x => x.Subtotal);
-        var validation = coupon.Validate(userContext.UserId, HiveSpace.Domain.Shared.ValueObjects.Money.FromVND(grandSubtotal));
+        var snapshots = SelectedCartCouponEvaluator.BuildStoreSnapshots(selectedCart);
+        var grandSubtotal = snapshots.Sum(x => x.Subtotal);
+        var currencyCode = SelectedCartCouponEvaluator.ResolveSingleCurrency(
+            snapshots.Select(x => x.Currency),
+            nameof(ApplyPlatformCouponCommandHandler));
+        var validation = coupon.Validate(
+            userContext.UserId,
+            HiveSpace.Domain.Shared.ValueObjects.Money.FromSmallestUnit(grandSubtotal, currencyCode));
         if (!validation.IsValid)
             throw new InvalidFieldException(validation.Errors.First().ErrorCode, nameof(request.CouponCode));
 

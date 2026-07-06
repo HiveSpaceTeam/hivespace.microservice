@@ -2,6 +2,7 @@ using FluentAssertions;
 using HiveSpace.Domain.Shared.ValueObjects;
 using HiveSpace.OrderService.Application.Coupons.Commands.CreateCoupon;
 using HiveSpace.OrderService.Domain.Enumerations;
+using HiveSpace.OrderService.Domain.External;
 using HiveSpace.OrderService.Infrastructure.Repositories;
 using HiveSpace.OrderService.Tests.Domain;
 using HiveSpace.OrderService.Tests.Fixtures;
@@ -24,10 +25,12 @@ public class CreateCouponCommandHandlerTests : IClassFixture<OrderServiceFixture
     [Fact]
     public async Task Handle_AsPlatformUser_PersistsPlatformCoupon()
     {
+        await SeedCurrencyPolicyAsync();
         var userId = Guid.NewGuid();
         var handler = new CreateCouponCommandHandler(
             new SqlCouponRepository(_fixture.DbContext),
-            new FakeUserContext { UserId = userId, Roles = ["Admin"] });
+            new FakeUserContext { UserId = userId, Roles = ["Admin"] },
+            new SqlPlatformCurrencyPolicyRefRepository(_fixture.DbContext));
 
         var command = new CreateCouponCommand
         {
@@ -35,7 +38,7 @@ public class CreateCouponCommandHandlerTests : IClassFixture<OrderServiceFixture
             Name            = "Platform New",
             DiscountType    = DiscountType.FixedAmount,
             DiscountAmount  = 10_000,
-            DiscountCurrency= "VND",
+            CurrencyCode     = "VND",
             Scope           = CouponScope.ItemPrice,
             StartDateTime   = DateTimeOffset.UtcNow.AddMinutes(-1),
             EndDateTime     = DateTimeOffset.UtcNow.AddDays(7)
@@ -53,10 +56,12 @@ public class CreateCouponCommandHandlerTests : IClassFixture<OrderServiceFixture
     [Fact]
     public async Task Handle_AsSellerUser_PersistsStoreCoupon()
     {
+        await SeedCurrencyPolicyAsync();
         var storeId = Guid.NewGuid();
         var handler = new CreateCouponCommandHandler(
             new SqlCouponRepository(_fixture.DbContext),
-            new FakeUserContext { UserId = Guid.NewGuid(), Roles = ["Seller"], StoreId = storeId });
+            new FakeUserContext { UserId = Guid.NewGuid(), Roles = ["Seller"], StoreId = storeId },
+            new SqlPlatformCurrencyPolicyRefRepository(_fixture.DbContext));
 
         var command = new CreateCouponCommand
         {
@@ -64,7 +69,7 @@ public class CreateCouponCommandHandlerTests : IClassFixture<OrderServiceFixture
             Name            = "Store New",
             DiscountType    = DiscountType.FixedAmount,
             DiscountAmount  = 5_000,
-            DiscountCurrency= "VND",
+            CurrencyCode     = "VND",
             Scope           = CouponScope.ItemPrice,
             StartDateTime   = DateTimeOffset.UtcNow.AddMinutes(-1),
             EndDateTime     = DateTimeOffset.UtcNow.AddDays(7)
@@ -80,9 +85,11 @@ public class CreateCouponCommandHandlerTests : IClassFixture<OrderServiceFixture
     [Fact]
     public async Task Handle_WithAllOptionalLimits_SetsUsageAndProductConstraints()
     {
+        await SeedCurrencyPolicyAsync();
         var handler = new CreateCouponCommandHandler(
             new SqlCouponRepository(_fixture.DbContext),
-            new FakeUserContext { UserId = Guid.NewGuid(), Roles = ["Admin"] });
+            new FakeUserContext { UserId = Guid.NewGuid(), Roles = ["Admin"] },
+            new SqlPlatformCurrencyPolicyRefRepository(_fixture.DbContext));
 
         var command = new CreateCouponCommand
         {
@@ -90,7 +97,7 @@ public class CreateCouponCommandHandlerTests : IClassFixture<OrderServiceFixture
             Name                 = "Limited Coupon",
             DiscountType         = DiscountType.FixedAmount,
             DiscountAmount       = 5_000,
-            DiscountCurrency     = "VND",
+            CurrencyCode         = "VND",
             Scope                = CouponScope.ItemPrice,
             StartDateTime        = DateTimeOffset.UtcNow.AddDays(-1),
             EndDateTime          = DateTimeOffset.UtcNow.AddDays(7),
@@ -104,5 +111,57 @@ public class CreateCouponCommandHandlerTests : IClassFixture<OrderServiceFixture
 
         result.Should().NotBeNull();
         result.Code.Should().Be("LIMITS01");
+    }
+
+    [Fact]
+    public async Task Handle_WithUsdSmallestUnitAmounts_PreservesExactCouponMoneyValues()
+    {
+        await SeedCurrencyPolicyAsync("VND", "USD");
+        var handler = new CreateCouponCommandHandler(
+            new SqlCouponRepository(_fixture.DbContext),
+            new FakeUserContext { UserId = Guid.NewGuid(), Roles = ["Admin"] },
+            new SqlPlatformCurrencyPolicyRefRepository(_fixture.DbContext));
+
+        var command = new CreateCouponCommand
+        {
+            Code = "USD1050",
+            Name = "USD Coupon",
+            DiscountType = DiscountType.FixedAmount,
+            DiscountAmount = 1050,
+            CurrencyCode = "USD",
+            MinOrderAmount = 5000,
+            Scope = CouponScope.ItemPrice,
+            StartDateTime = DateTimeOffset.UtcNow.AddDays(-1),
+            EndDateTime = DateTimeOffset.UtcNow.AddDays(7)
+        };
+
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        result.Should().NotBeNull();
+
+        var stored = await _fixture.DbContext.Coupons.SingleAsync(c => c.Code == "USD1050");
+        stored.CurrencyCode.Should().Be("USD");
+        stored.DiscountAmount.Should().NotBeNull();
+        stored.DiscountAmount!.Amount.Should().Be(1050);
+        stored.MinOrderAmount.Amount.Should().Be(5000);
+        stored.DiscountAmount.Currency.Should().Be(HiveSpace.Domain.Shared.Enumerations.Currency.USD);
+        stored.MinOrderAmount.Currency.Should().Be(HiveSpace.Domain.Shared.Enumerations.Currency.USD);
+    }
+
+    private async Task SeedCurrencyPolicyAsync(params string[] enabledCodes)
+    {
+        var codes = enabledCodes.Length == 0 ? ["VND"] : enabledCodes;
+        var existing = await _fixture.DbContext.PlatformCurrencyPolicyRefs.FirstOrDefaultAsync();
+        if (existing is null)
+        {
+            _fixture.DbContext.PlatformCurrencyPolicyRefs.Add(
+                new PlatformCurrencyPolicyRef(Guid.NewGuid(), codes[0], 1, DateTimeOffset.UtcNow, codes));
+        }
+        else
+        {
+            existing.Update(codes[0], existing.Version + 1, DateTimeOffset.UtcNow, codes);
+        }
+
+        await _fixture.DbContext.SaveChangesAsync();
     }
 }

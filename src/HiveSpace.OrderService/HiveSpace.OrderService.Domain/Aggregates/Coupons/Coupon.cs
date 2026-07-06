@@ -1,5 +1,6 @@
 using HiveSpace.Domain.Shared.IdGeneration;
 using HiveSpace.Domain.Shared.Entities;
+using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Domain.Shared.Interfaces;
 using HiveSpace.OrderService.Domain.Enumerations;
@@ -17,6 +18,7 @@ public class Coupon : AggregateRoot<Guid>, IAuditable
 {
     public string Code { get; private set; } = null!;
     public string Name { get; private set; } = null!;
+    public string CurrencyCode { get; private set; } = "VND";
     public DiscountType DiscountType { get; private set; }
     public Money? DiscountAmount { get; private set; }
     public decimal? DiscountPercentage { get; private set; }
@@ -115,6 +117,8 @@ public class Coupon : AggregateRoot<Guid>, IAuditable
 
         var coupon = new Coupon(id ?? IdGenerator.NewId<Guid>(), code, name, discountType, scope, startDateTime, endDateTime, earlySaveDateTime, isHidden, CouponOwnerType.Store, storeOwnerId.ToString());
         coupon.StoreId = storeId;
+        coupon.CurrencyCode = ResolveCurrencyCode(discountAmount, maxDiscountAmount, minOrderAmount);
+        EnsureConsistentCurrency(coupon.CurrencyCode, discountAmount, maxDiscountAmount, minOrderAmount);
         
         if (discountType == DiscountType.FixedAmount)
         {
@@ -130,7 +134,7 @@ public class Coupon : AggregateRoot<Guid>, IAuditable
             coupon.MaxDiscountAmount = maxDiscountAmount;
         }
 
-        coupon.MinOrderAmount = minOrderAmount ?? Money.Zero();
+        coupon.MinOrderAmount = minOrderAmount ?? Money.Zero(CurrencyExtensions.FromCode(coupon.CurrencyCode));
 
         if (discountType == DiscountType.Percentage && maxDiscountAmount != null)
         {
@@ -163,6 +167,8 @@ public class Coupon : AggregateRoot<Guid>, IAuditable
         Guid? id = null)
     {
         var coupon = new Coupon(id ?? IdGenerator.NewId<Guid>(), code, name, discountType, scope, startDateTime, endDateTime, earlySaveDateTime, isHidden, CouponOwnerType.Platform, adminId);
+        coupon.CurrencyCode = ResolveCurrencyCode(discountAmount, maxDiscountAmount, minOrderAmount);
+        EnsureConsistentCurrency(coupon.CurrencyCode, discountAmount, maxDiscountAmount, minOrderAmount);
         
         if (discountType == DiscountType.FixedAmount)
         {
@@ -178,7 +184,7 @@ public class Coupon : AggregateRoot<Guid>, IAuditable
             coupon.MaxDiscountAmount = maxDiscountAmount;
         }
 
-        coupon.MinOrderAmount = minOrderAmount ?? Money.Zero();
+        coupon.MinOrderAmount = minOrderAmount ?? Money.Zero(CurrencyExtensions.FromCode(coupon.CurrencyCode));
 
         if (discountType == DiscountType.Percentage && maxDiscountAmount != null)
         {
@@ -272,6 +278,9 @@ public class Coupon : AggregateRoot<Guid>, IAuditable
         IEnumerable<int>? categoryIds = null)
     {
         var errors = new List<CouponValidationError>();
+
+        if (!string.Equals(orderTotal.Currency.GetCode(), CurrencyCode, StringComparison.OrdinalIgnoreCase))
+            errors.Add(new(OrderDomainErrorCode.CheckoutMixedCurrencyNotAllowed, nameof(orderTotal)));
 
         // Check if active
         if (!IsActive)
@@ -390,23 +399,6 @@ public class Coupon : AggregateRoot<Guid>, IAuditable
         if (_usages.Any(u => u.OrderId == orderId))
             return;
 
-        // Note: Real validation should happen before MarkAsUsed, likely in the Service layer.
-        // We verify liveness and limits here.
-        // Since we pass Money.Zero(), min order amount check will fail if MinOrderAmount > 0.
-        // So we should probably NOT call Validate(0) here or assume the caller has validated.
-        // The user code did calls Validate(userId, Money.Zero()). If MinOrderAmount > 0, this will always fail?
-        // Let's check user code:
-        // public void MarkAsUsed(...) { var validation = Validate(userId, Money.Zero()); }
-        // public CouponValidationResult Validate(...) { if (orderTotal < MinOrderAmount) errors.Add... }
-        // Yes, this seems like a bug in the user's provided code if MinOrderAmount > 0.
-        // But adhering to "create ... from this code", I should perhaps keep it or improve it.
-        // I will remove the MinOrderAmount check from this specific validation call or just trust the caller?
-        // Better: I will assume the caller validated it. But to check usage limits, I need to check limits.
-        // I'll leave it as is but warn myself? No, I should fix it.
-        // I'll skip the Validate call here or create a specialized internal check.
-        // Actually, let's keep it but maybe it expects MinOrderAmount to be 0 for this check? No.
-        // I'll change it to check only limits.
-        
         if (!IsCurrentlyValid())
              throw new InvalidFieldException(OrderDomainErrorCode.CouponInvalid, nameof(Coupon));
 
@@ -473,6 +465,9 @@ public class Coupon : AggregateRoot<Guid>, IAuditable
 
         if (isUpcoming)
         {
+            var newCurrencyCode = ResolveCurrencyCode(discountAmount, maxDiscountAmount, minOrderAmount);
+            EnsureConsistentCurrency(newCurrencyCode, discountAmount, maxDiscountAmount, minOrderAmount);
+
             UpdateName(name);
             UpdateCode(code);
             UpdateStartDateTime(startDateTime);
@@ -503,7 +498,8 @@ public class Coupon : AggregateRoot<Guid>, IAuditable
                 MaxDiscountAmount = maxDiscountAmount;
             }
 
-            MinOrderAmount = minOrderAmount ?? Money.Zero();
+            CurrencyCode = newCurrencyCode;
+            MinOrderAmount = minOrderAmount ?? Money.Zero(CurrencyExtensions.FromCode(CurrencyCode));
 
             // Update Applicable Products if any
             if (applicableProductIds != null)
@@ -666,5 +662,26 @@ public class Coupon : AggregateRoot<Guid>, IAuditable
             return null; // Unlimited
         
         return MaxUsageCount - CurrentUsageCount;
+    }
+
+    private static string ResolveCurrencyCode(Money? discountAmount, Money? maxDiscountAmount, Money? minOrderAmount)
+    {
+        var currencyCode = discountAmount?.Currency.GetCode()
+            ?? maxDiscountAmount?.Currency.GetCode()
+            ?? minOrderAmount?.Currency.GetCode();
+
+        if (string.IsNullOrWhiteSpace(currencyCode))
+            throw new InvalidFieldException(OrderDomainErrorCode.CouponInvalid, nameof(CurrencyCode));
+
+        return currencyCode;
+    }
+
+    private static void EnsureConsistentCurrency(string currencyCode, params Money?[] amounts)
+    {
+        foreach (var amount in amounts.Where(x => x is not null))
+        {
+            if (!string.Equals(amount!.Currency.GetCode(), currencyCode, StringComparison.OrdinalIgnoreCase))
+                throw new InvalidFieldException(OrderDomainErrorCode.CheckoutMixedCurrencyNotAllowed, nameof(CurrencyCode));
+        }
     }
 }

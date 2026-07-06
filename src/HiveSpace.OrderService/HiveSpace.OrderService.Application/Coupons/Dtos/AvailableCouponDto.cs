@@ -11,7 +11,7 @@ public record AvailableCouponDto
     public DateTimeOffset EndDateTime { get; init; }
     public DiscountType DiscountType { get; init; }
     public long? DiscountAmount { get; init; }
-    public string DiscountCurrency { get; init; } = string.Empty;
+    public string CurrencyCode { get; init; } = string.Empty;
     public decimal? DiscountPercentage { get; init; }
     public long? MaxDiscountAmount { get; init; }
     public long MinOrderAmount { get; init; }

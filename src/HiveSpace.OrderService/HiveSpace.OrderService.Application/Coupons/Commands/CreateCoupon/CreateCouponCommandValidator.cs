@@ -44,8 +44,8 @@ public class CreateCouponCommandValidator : AbstractValidator<CreateCouponComman
             RuleFor(x => x.DiscountAmount).GreaterThan(0)
                 .WithState(_ => new Error(OrderDomainErrorCode.CouponInvalidDiscountAmount, nameof(CreateCouponCommand.DiscountAmount)));
         });
-        RuleFor(x => x.DiscountCurrency).NotEmpty()
-            .WithState(_ => new Error(CommonErrorCode.Required, nameof(CreateCouponCommand.DiscountCurrency)));
+        RuleFor(x => x.CurrencyCode).NotEmpty()
+            .WithState(_ => new Error(CommonErrorCode.Required, nameof(CreateCouponCommand.CurrencyCode)));
         
         When(x => x.DiscountType == HiveSpace.OrderService.Domain.Enumerations.DiscountType.Percentage, () =>
         {

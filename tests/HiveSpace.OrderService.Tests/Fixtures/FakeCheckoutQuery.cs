@@ -30,7 +30,8 @@ public sealed class FakeCheckoutQuery : ICheckoutQuery
         long productId = 1L,
         long skuId     = 10L,
         int  quantity  = 1,
-        long price     = 50_000)
+        long price     = 50_000,
+        string currency = "VND")
         => new(
             CartItemId:   Guid.NewGuid(),
             ProductId:    productId,
@@ -39,7 +40,7 @@ public sealed class FakeCheckoutQuery : ICheckoutQuery
             ProductName:  "Test Product",
             ThumbnailUrl: null,
             Price:        price,
-            Currency:     "VND",
+            Currency:     currency,
             SkuName:      "Test SKU",
             SkuImageUrl:  null,
             SkuAttributes:null,

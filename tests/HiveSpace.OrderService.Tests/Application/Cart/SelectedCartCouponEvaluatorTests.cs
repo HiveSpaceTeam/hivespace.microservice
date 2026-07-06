@@ -36,14 +36,14 @@ public class SelectedCartCouponEvaluatorTests
     }
 
     [Fact]
-    public void BuildStoreSnapshots_WithNullCurrency_DefaultsToVND()
+    public void BuildStoreSnapshots_WithNullCurrency_ThrowsInvalidFieldException()
     {
         var row = MakeRow(Guid.NewGuid()) with { Currency = null };
         var result = new CheckoutPreviewRawResult([row], CartExists: true);
 
-        var snapshots = SelectedCartCouponEvaluator.BuildStoreSnapshots(result);
+        var act = () => SelectedCartCouponEvaluator.BuildStoreSnapshots(result);
 
-        snapshots[0].Currency.Should().Be("VND");
+        act.Should().Throw<InvalidFieldException>();
     }
 
     [Fact]
@@ -256,7 +256,8 @@ public class SelectedCartCouponEvaluatorTests
             "admin", "SCEVAL_PCT1", "Percent",
             DiscountType.Percentage, 10m, null,
             CouponScope.ItemPrice,
-            DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddDays(1));
+            DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddDays(1),
+            minOrderAmount: Money.FromVND(1));
         var snapshot = MakeSnapshot([1L]);
 
         var result = SelectedCartCouponEvaluator.EvaluateCoupon(coupon, Guid.NewGuid(), snapshot);

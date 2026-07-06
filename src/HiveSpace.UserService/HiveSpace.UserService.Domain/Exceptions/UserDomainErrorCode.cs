@@ -36,4 +36,8 @@ public class UserDomainErrorCode : DomainErrorCode
     public static readonly UserDomainErrorCode EmailVerificationFailed = new(30, "EmailVerificationFailed", "USR0030");
     public static readonly UserDomainErrorCode RoleNameRequired = new(33, "RoleNameRequired", "USR0033");
     public static readonly UserDomainErrorCode UnknownRoleName = new(34, "UnknownRoleName", "USR0034");
+    public static readonly UserDomainErrorCode PlatformCurrencyUnsupported = new(35, "PlatformCurrencyUnsupported", "USR0035");
+    public static readonly UserDomainErrorCode PlatformDefaultCurrencyDisabled = new(36, "PlatformDefaultCurrencyDisabled", "USR0036");
+    public static readonly UserDomainErrorCode PlatformCurrencySetRequired = new(37, "PlatformCurrencySetRequired", "USR0037");
+    public static readonly UserDomainErrorCode PlatformCurrencyVersionConflict = new(38, "PlatformCurrencyVersionConflict", "USR0038");
 }

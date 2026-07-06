@@ -1,4 +1,5 @@
 using HiveSpace.Infrastructure.Messaging.Extensions;
+using HiveSpace.PaymentService.Domain.Aggregates.External;
 using HiveSpace.PaymentService.Domain.Aggregates.Payments;
 using HiveSpace.PaymentService.Domain.Aggregates.Wallets;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +10,7 @@ namespace HiveSpace.PaymentService.Infrastructure.Data;
 public class PaymentDbContext : DbContext
 {
     public DbSet<Payment> Payments { get; set; } = null!;
+    public DbSet<PlatformCurrencyPolicyRef> PlatformCurrencyPolicyRefs { get; set; } = null!;
     public DbSet<Wallet> Wallets { get; set; } = null!;
     public DbSet<Transaction> Transactions { get; set; } = null!;
 

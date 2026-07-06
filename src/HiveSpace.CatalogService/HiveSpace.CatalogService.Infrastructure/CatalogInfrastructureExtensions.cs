@@ -53,6 +53,7 @@ namespace HiveSpace.CatalogService.Infrastructure
             services.AddScoped<IProductEventPublisher, ProductEventPublisher>();
 
             services.AddScoped<IStoreRefRepository, StoreRefRepository>();
+            services.AddScoped<IPlatformCurrencyPolicyRefRepository, PlatformCurrencyPolicyRefRepository>();
 
             services.AddScoped<ISeeder, CategorySeeder>();
             services.AddScoped<ISeeder, AttributeSeeder>();
