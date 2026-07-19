@@ -7,6 +7,7 @@ using HiveSpace.PaymentService.Domain.Aggregates.Payments;
 using HiveSpace.PaymentService.Domain.Aggregates.Payments.Enumerations;
 using HiveSpace.PaymentService.Domain.Repositories;
 using HiveSpace.PaymentService.Domain.Services;
+using HiveSpace.Testing.Shared.Doubles;
 using NSubstitute;
 using PaymentAggregate = HiveSpace.PaymentService.Domain.Aggregates.Payments.Payment;
 using Xunit;
@@ -28,7 +29,7 @@ public class CreatePaymentAttemptCommandHandlerTests
         var gatewayFactory = Substitute.For<IPaymentGatewayFactory>();
         gatewayFactory.GetGateway(PaymentGateway.VNPay).Returns(gateway);
         var publisher = Substitute.For<IPaymentEventPublisher>();
-        var handler = new CreatePaymentAttemptCommandHandler(repository, gatewayFactory, publisher);
+        var handler = new CreatePaymentAttemptCommandHandler(repository, gatewayFactory, publisher, UserContextFor(payment));
 
         var result = await handler.Handle(
             new CreatePaymentAttemptCommand(
@@ -50,6 +51,11 @@ public class CreatePaymentAttemptCommandHandlerTests
         await publisher.Received(1).PublishPaymentAttemptInitiatedAsync(
             Arg.Is<PaymentAggregate>(p => p.CurrentAttempt!.AttemptNo == 2 && p.ReferenceNo == payment.ReferenceNo),
             Arg.Any<CancellationToken>());
+        Received.InOrder(() =>
+        {
+            publisher.PublishPaymentAttemptInitiatedAsync(Arg.Any<PaymentAggregate>(), Arg.Any<CancellationToken>());
+            repository.SaveChangesAsync(Arg.Any<CancellationToken>());
+        });
     }
 
     [Fact]
@@ -61,7 +67,7 @@ public class CreatePaymentAttemptCommandHandlerTests
         repository.GetByIdAsync(payment.Id, Arg.Any<CancellationToken>()).Returns(payment);
         var gatewayFactory = Substitute.For<IPaymentGatewayFactory>();
         var publisher = Substitute.For<IPaymentEventPublisher>();
-        var handler = new CreatePaymentAttemptCommandHandler(repository, gatewayFactory, publisher);
+        var handler = new CreatePaymentAttemptCommandHandler(repository, gatewayFactory, publisher, UserContextFor(payment));
 
         var result = await handler.Handle(new CreatePaymentAttemptCommand(payment.Id, "COD", "cod-key"), CancellationToken.None);
 
@@ -71,6 +77,11 @@ public class CreatePaymentAttemptCommandHandlerTests
         await publisher.Received(1).PublishPaymentAttemptInitiatedAsync(
             Arg.Is<PaymentAggregate>(p => p.CurrentAttempt!.AttemptNo == 2 && p.MethodCode == "COD"),
             Arg.Any<CancellationToken>());
+        Received.InOrder(() =>
+        {
+            publisher.PublishPaymentAttemptInitiatedAsync(Arg.Any<PaymentAggregate>(), Arg.Any<CancellationToken>());
+            repository.SaveChangesAsync(Arg.Any<CancellationToken>());
+        });
     }
 
     [Fact]
@@ -91,7 +102,8 @@ public class CreatePaymentAttemptCommandHandlerTests
         var handler = new CreatePaymentAttemptCommandHandler(
             repository,
             Substitute.For<IPaymentGatewayFactory>(),
-            publisher);
+            publisher,
+            UserContextFor(payment));
 
         var act = () => handler.Handle(new CreatePaymentAttemptCommand(payment.Id, "COD", "cod-key"), CancellationToken.None);
 
@@ -99,6 +111,29 @@ public class CreatePaymentAttemptCommandHandlerTests
         await publisher.DidNotReceive().PublishPaymentAttemptInitiatedAsync(
             Arg.Any<PaymentAggregate>(),
             Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_AsDifferentBuyer_ThrowsForbiddenException()
+    {
+        var payment = CreatePayment();
+        payment.MarkAttemptFailedOrExpired(payment.CurrentAttemptId!.Value, "Failed", "declined");
+        var repository = Substitute.For<IPaymentRepository>();
+        repository.GetByIdAsync(payment.Id, Arg.Any<CancellationToken>()).Returns(payment);
+        var publisher = Substitute.For<IPaymentEventPublisher>();
+        var handler = new CreatePaymentAttemptCommandHandler(
+            repository,
+            Substitute.For<IPaymentGatewayFactory>(),
+            publisher,
+            new FakeUserContext { UserId = Guid.NewGuid() });
+
+        var act = () => handler.Handle(new CreatePaymentAttemptCommand(payment.Id, "COD", "cod-key"), CancellationToken.None);
+
+        await act.Should().ThrowAsync<ForbiddenException>();
+        await publisher.DidNotReceive().PublishPaymentAttemptInitiatedAsync(
+            Arg.Any<PaymentAggregate>(),
+            Arg.Any<CancellationToken>());
+        await repository.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     private static PaymentAggregate CreatePayment()
@@ -112,4 +147,9 @@ public class CreatePaymentAttemptCommandHandlerTests
             "idem-key",
             [new PaymentLinkedOrder(Guid.NewGuid(), "ORD-01JZXYZABCDEABCDEABCDEABC", Guid.NewGuid(), 100_000, "VND")]);
     }
+
+    private static FakeUserContext UserContextFor(PaymentAggregate payment) => new()
+    {
+        UserId = payment.BuyerId
+    };
 }

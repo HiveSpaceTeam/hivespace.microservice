@@ -52,7 +52,7 @@ public class VNPayGatewayTests
     }
 
     [Fact]
-    public async Task InitiatePaymentAsync_ForCheckoutAttempt_UsesReferenceNoAsTxnRef()
+    public async Task InitiatePaymentAsync_ForCheckoutAttempt_IncludesAttemptNoInTxnRef()
     {
         var gateway = CreateGateway();
         var payment = Payment.CreateCheckout(
@@ -67,7 +67,7 @@ public class VNPayGatewayTests
         var result = await gateway.InitiatePaymentAsync(payment, "https://merchant.test/payment/result", "https://merchant.test/payment/cancel");
         var queryParameters = ParseQueryString(result.PaymentUrl);
 
-        queryParameters["vnp_TxnRef"].Should().Be(payment.ReferenceNo);
+        queryParameters["vnp_TxnRef"].Should().Be($"{payment.ReferenceNo}-A1");
     }
 
     [Fact]

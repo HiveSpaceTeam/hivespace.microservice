@@ -1,4 +1,5 @@
 using HiveSpace.Application.Shared.Handlers;
+using HiveSpace.Core.Contexts;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.PaymentService.Application.Interfaces.Messaging;
 using HiveSpace.PaymentService.Application.Payments.Dtos;
@@ -14,13 +15,17 @@ namespace HiveSpace.PaymentService.Application.Payments.Commands.CreatePaymentAt
 public class CreatePaymentAttemptCommandHandler(
     IPaymentRepository paymentRepository,
     IPaymentGatewayFactory gatewayFactory,
-    IPaymentEventPublisher eventPublisher)
+    IPaymentEventPublisher eventPublisher,
+    IUserContext userContext)
     : ICommandHandler<CreatePaymentAttemptCommand, CreatePaymentAttemptResponse>
 {
     public async Task<CreatePaymentAttemptResponse> Handle(CreatePaymentAttemptCommand request, CancellationToken cancellationToken)
     {
         var payment = await paymentRepository.GetByIdAsync(request.PaymentId, cancellationToken)
             ?? throw new NotFoundException(PaymentDomainErrorCode.PaymentNotFound, nameof(Payment));
+
+        if (!CanCreateAttempt(payment))
+            throw new ForbiddenException(PaymentDomainErrorCode.PaymentAccessForbidden, nameof(Payment));
 
         var methodCode = request.MethodCode.Trim().ToUpperInvariant();
         if (methodCode == PaymentMethodCodes.Stripe)
@@ -49,8 +54,8 @@ public class CreatePaymentAttemptCommandHandler(
             payment.MarkAsProcessing(initiateResult.PaymentUrl);
         }
 
-        await paymentRepository.SaveChangesAsync(cancellationToken);
         await eventPublisher.PublishPaymentAttemptInitiatedAsync(payment, cancellationToken);
+        await paymentRepository.SaveChangesAsync(cancellationToken);
 
         return new CreatePaymentAttemptResponse(
             payment.Id,
@@ -70,6 +75,9 @@ public class CreatePaymentAttemptCommandHandler(
         attempt.CreatedAt,
         attempt.ExpiresAt,
         attempt.CompletedAt);
+
+    private bool CanCreateAttempt(Payment payment) =>
+        userContext.IsAdmin || userContext.IsSystemAdmin || payment.BuyerId == userContext.UserId;
 
     private static bool LinkedOrdersHaveEnteredFulfillment(Payment payment)
     {

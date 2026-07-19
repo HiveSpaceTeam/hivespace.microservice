@@ -22,7 +22,10 @@ public class VNPayGateway(IOptions<VNPayConfiguration> options, ILogger<VNPayGat
         Payment payment, string returnUrl, string cancelUrl, CancellationToken ct = default)
     {
         var createDate = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(7)); // GMT+7 (Vietnam)
-        var txnRef = payment.ReferenceNo ?? payment.Id.ToString("N");
+        var baseTxnRef = payment.ReferenceNo ?? payment.Id.ToString("N");
+        var txnRef = payment.CurrentAttempt is null
+            ? baseTxnRef
+            : $"{baseTxnRef}-A{payment.CurrentAttempt.AttemptNo}";
 
         var vnpParams = new SortedDictionary<string, string>
         {
