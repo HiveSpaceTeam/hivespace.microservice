@@ -1,6 +1,7 @@
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Commands;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Events;
+using HiveSpace.OrderService.Domain.Aggregates.Orders;
 using HiveSpace.OrderService.Domain.Enumerations;
 using HiveSpace.OrderService.Domain.Exceptions;
 using HiveSpace.OrderService.Domain.Repositories;
@@ -23,20 +24,19 @@ public class MarkOrderAsPaidConsumer(
         if (missingId != default)
         {
             logger.LogWarning("Order {OrderId} not found for paid marking", missingId);
-            await context.RespondAsync<MarkOrderAsPaidFailedIntegrationEvent>(new
-            {
-                message.CorrelationId,
-                OrderId = missingId,
-                Reason  = $"Order {missingId} not found"
-            });
-            return;
+            throw new NotFoundException(OrderDomainErrorCode.OrderNotFound, nameof(Order));
         }
 
         foreach (var order in orders)
         {
             try
             {
-                order.MarkAsPaid(message.PaymentId);
+                order.MarkAsPaid(
+                    message.PaymentId,
+                    message.PaymentReferenceNo,
+                    message.MethodCode,
+                    message.PaymentAttemptId,
+                    message.AttemptNo);
             }
             catch (DomainException ex) when (
                 ex.ErrorCode.Code == OrderDomainErrorCode.OrderInvalidStatusForPayment.Code)

@@ -13,6 +13,12 @@ public record OrderDetailDto
     public long    TotalAmount   { get; init; }
     public string  Currency      { get; init; } = null!;
     public string? PaymentMethod { get; init; }
+    public Guid?   PaymentId { get; init; }
+    public string? PaymentReferenceNo { get; init; }
+    public string? PaymentMethodCode { get; init; }
+    public string? PaymentStatus { get; init; }
+    public Guid?   PaymentAttemptId { get; init; }
+    public int?    PaymentAttemptNo { get; init; }
     public bool    IsShippingPaidBySeller { get; init; }
     public Guid?   ShippingId { get; init; }
     public string? RejectionReason { get; init; }

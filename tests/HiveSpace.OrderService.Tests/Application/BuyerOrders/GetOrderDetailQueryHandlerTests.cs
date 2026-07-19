@@ -40,6 +40,37 @@ public class GetOrderDetailQueryHandlerTests : IClassFixture<OrderServiceFixture
     }
 
     [Fact]
+    public async Task Handle_OrderWithLinkedCheckoutPayment_ReturnsOrderCodeAndPaymentReferenceSummary()
+    {
+        var buyerId = Guid.NewGuid();
+        var paymentId = Guid.NewGuid();
+        var attemptId = Guid.NewGuid();
+        var order = Order.Create(buyerId, ValidAddress(), Guid.NewGuid());
+        order.MarkAsPaid(
+            paymentId,
+            "PAY-01HX7K4Q6V6B7Z8M9N0PQRSTVW",
+            "VNPAY",
+            attemptId,
+            2);
+        _fixture.DbContext.Orders.Add(order);
+        await _fixture.DbContext.SaveChangesAsync();
+
+        var handler = new GetOrderByIdQueryHandler(
+            new SqlOrderRepository(_fixture.DbContext),
+            new FakeUserContext { UserId = buyerId });
+
+        var result = await handler.Handle(new GetOrderByIdQuery(order.Id), CancellationToken.None);
+
+        result.OrderCode.Should().Be(order.OrderCode);
+        result.PaymentId.Should().Be(paymentId);
+        result.PaymentReferenceNo.Should().Be("PAY-01HX7K4Q6V6B7Z8M9N0PQRSTVW");
+        result.PaymentMethodCode.Should().Be("VNPAY");
+        result.PaymentStatus.Should().Be(order.Status.Name);
+        result.PaymentAttemptId.Should().Be(attemptId);
+        result.PaymentAttemptNo.Should().Be(2);
+    }
+
+    [Fact]
     public async Task Handle_WithNonExistentOrderId_ThrowsNotFoundException()
     {
         var handler = new GetOrderByIdQueryHandler(

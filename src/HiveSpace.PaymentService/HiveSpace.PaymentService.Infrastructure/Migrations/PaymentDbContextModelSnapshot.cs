@@ -58,8 +58,14 @@ namespace HiveSpace.PaymentService.Infrastructure.Migrations
                     b.Property<Guid>("BuyerId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("CheckoutCorrelationId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("CurrentAttemptId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTimeOffset>("ExpiresAt")
                         .HasColumnType("datetimeoffset");
@@ -82,11 +88,22 @@ namespace HiveSpace.PaymentService.Infrastructure.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<string>("MethodCode")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasDefaultValue("VNPAY");
+
                     b.Property<Guid>("OrderId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTimeOffset?>("PaidAt")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ReferenceNo")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -101,10 +118,132 @@ namespace HiveSpace.PaymentService.Infrastructure.Migrations
                     b.HasIndex("IdempotencyKey")
                         .IsUnique();
 
-                    b.HasIndex("OrderId")
-                        .IsUnique();
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("ReferenceNo")
+                        .IsUnique()
+                        .HasFilter("[ReferenceNo] IS NOT NULL");
 
                     b.ToTable("payments", (string)null);
+                });
+
+            modelBuilder.Entity("HiveSpace.PaymentService.Domain.Aggregates.Payments.PaymentAttempt", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<long>("Amount")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("AttemptNo")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("CompletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CurrencyCode")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("FailureReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("FailureReasonCode")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("GatewayCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("GatewayResponse")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("GatewayTransactionId")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("IdempotencyKey")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("MethodCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<Guid>("PaymentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("RedirectUrl")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GatewayTransactionId");
+
+                    b.HasIndex("PaymentId", "AttemptNo")
+                        .IsUnique();
+
+                    b.ToTable("payment_attempts", (string)null);
+                });
+
+            modelBuilder.Entity("HiveSpace.PaymentService.Domain.Aggregates.Payments.PaymentLinkedOrder", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<long>("Amount")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("CurrencyCode")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)");
+
+                    b.Property<string>("OrderCode")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("PaymentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("StatusSnapshot")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<Guid>("StoreId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("PaymentId", "OrderId")
+                        .IsUnique();
+
+                    b.ToTable("payment_linked_orders", (string)null);
                 });
 
             modelBuilder.Entity("HiveSpace.PaymentService.Domain.Aggregates.Wallets.Transaction", b =>
@@ -451,6 +590,24 @@ namespace HiveSpace.PaymentService.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("HiveSpace.PaymentService.Domain.Aggregates.Payments.PaymentAttempt", b =>
+                {
+                    b.HasOne("HiveSpace.PaymentService.Domain.Aggregates.Payments.Payment", null)
+                        .WithMany("Attempts")
+                        .HasForeignKey("PaymentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("HiveSpace.PaymentService.Domain.Aggregates.Payments.PaymentLinkedOrder", b =>
+                {
+                    b.HasOne("HiveSpace.PaymentService.Domain.Aggregates.Payments.Payment", null)
+                        .WithMany("LinkedOrders")
+                        .HasForeignKey("PaymentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("HiveSpace.PaymentService.Domain.Aggregates.Wallets.Transaction", b =>
                 {
                     b.HasOne("HiveSpace.PaymentService.Domain.Aggregates.Wallets.Wallet", null)
@@ -577,6 +734,13 @@ namespace HiveSpace.PaymentService.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("InboxMessageId", "InboxConsumerId")
                         .HasPrincipalKey("MessageId", "ConsumerId");
+                });
+
+            modelBuilder.Entity("HiveSpace.PaymentService.Domain.Aggregates.Payments.Payment", b =>
+                {
+                    b.Navigation("Attempts");
+
+                    b.Navigation("LinkedOrders");
                 });
 
             modelBuilder.Entity("HiveSpace.PaymentService.Domain.Aggregates.Wallets.Wallet", b =>

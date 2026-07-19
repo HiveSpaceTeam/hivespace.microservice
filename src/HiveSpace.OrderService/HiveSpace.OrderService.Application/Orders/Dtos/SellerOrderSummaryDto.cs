@@ -7,6 +7,10 @@ public record SellerOrderSummaryDto
     public string  BuyerName     { get; init; } = null!;
     public string  Status        { get; init; } = null!;
     public string? PaymentMethod { get; init; }
+    public Guid?   PaymentId { get; init; }
+    public string? PaymentReferenceNo { get; init; }
+    public string? PaymentMethodCode { get; init; }
+    public int?    PaymentAttemptNo { get; init; }
     public long    TotalAmount   { get; init; }
     public DateTimeOffset ActionDateTime { get; init; }
     public DateTimeOffset CreatedAt     { get; init; }

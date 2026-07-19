@@ -40,6 +40,12 @@ public class Order : AggregateRoot<Guid>, IAuditable
     public DateTimeOffset? RejectedAt { get; private set; }
     public DateTimeOffset? ExpiredAt { get; private set; }
 
+    public Guid? PaymentId { get; private set; }
+    public string? PaymentReferenceNo { get; private set; }
+    public string? PaymentMethodCode { get; private set; }
+    public Guid? PaymentAttemptId { get; private set; }
+    public int? PaymentAttemptNo { get; private set; }
+
     // Items owned by this order
     private readonly List<OrderItem> _items = [];
     public IReadOnlyCollection<OrderItem> Items => _items.AsReadOnly();
@@ -85,7 +91,8 @@ public class Order : AggregateRoot<Guid>, IAuditable
         Guid userId,
         DeliveryAddress deliveryAddress,
         Guid storeId,
-        Guid? id = null)
+        Guid? id = null,
+        string? orderCode = null)
     {
         if (userId == Guid.Empty)
             throw new InvalidFieldException(OrderDomainErrorCode.OrderUserRequired, nameof(userId));
@@ -95,9 +102,11 @@ public class Order : AggregateRoot<Guid>, IAuditable
             throw new InvalidFieldException(OrderDomainErrorCode.OrderStoreIdRequired, nameof(storeId));
 
         var orderId = (id.HasValue && id.Value != Guid.Empty) ? id.Value : IdGenerator.NewId<Guid>();
-        var orderCode = GenerateOrderCode();
+        var resolvedOrderCode = string.IsNullOrWhiteSpace(orderCode)
+            ? GenerateOrderCode()
+            : orderCode.Trim().ToUpperInvariant();
 
-        var order = new Order(orderId, orderCode, userId, storeId, deliveryAddress);
+        var order = new Order(orderId, resolvedOrderCode, userId, storeId, deliveryAddress);
         order.AddTracking(OrderTrackingType.Created, ExecutorType.System, null, "Order created");
 
         return order;
@@ -200,26 +209,48 @@ public class Order : AggregateRoot<Guid>, IAuditable
 
     // ── Payment ───────────────────────────────────────────────────────────────
 
-    public void MarkAsPaid(Guid paymentId)
+    public void MarkAsPaid(
+        Guid paymentId,
+        string? paymentReferenceNo = null,
+        string? paymentMethodCode = null,
+        Guid? paymentAttemptId = null,
+        int? paymentAttemptNo = null)
     {
-        if (Status == OrderStatus.Paid) return;
+        if (Status == OrderStatus.Paid)
+        {
+            RecordPaymentSummary(paymentId, paymentReferenceNo, paymentMethodCode, paymentAttemptId, paymentAttemptNo);
+            return;
+        }
 
         if (Status != OrderStatus.Created)
             throw new InvalidFieldException(OrderDomainErrorCode.OrderInvalidStatusForPayment, nameof(Status));
 
+        RecordPaymentSummary(paymentId, paymentReferenceNo, paymentMethodCode, paymentAttemptId, paymentAttemptNo);
         Status = OrderStatus.Paid;
         PaidAt = DateTimeOffset.UtcNow;
         AddTracking(OrderTrackingType.Paid, ExecutorType.System, null, $"Order paid via payment {paymentId}");
     }
 
-    public void MarkAsCOD()
+    public void MarkAsCOD(
+        Guid? paymentId = null,
+        string? paymentReferenceNo = null,
+        string? paymentMethodCode = null,
+        Guid? paymentAttemptId = null,
+        int? paymentAttemptNo = null)
     {
+        if (Status == OrderStatus.COD)
+        {
+            RecordPaymentSummary(paymentId, paymentReferenceNo, paymentMethodCode, paymentAttemptId, paymentAttemptNo);
+            return;
+        }
+
         if (Status != OrderStatus.Created)
             throw new InvalidFieldException(OrderDomainErrorCode.OrderInvalidStatusForCOD, nameof(Status));
 
         if (TotalAmount.ExceedsCODLimit())
             throw new InvalidFieldException(OrderDomainErrorCode.OrderExceedsCODLimit, nameof(TotalAmount));
 
+        RecordPaymentSummary(paymentId, paymentReferenceNo, paymentMethodCode, paymentAttemptId, paymentAttemptNo);
         Status = OrderStatus.COD;
         PaidAt = DateTimeOffset.UtcNow;
         AddTracking(OrderTrackingType.COD, ExecutorType.System, null, "Order marked as COD");
@@ -364,6 +395,25 @@ public class Order : AggregateRoot<Guid>, IAuditable
     {
         if (_discounts.Count > 0)
             throw new InvalidFieldException(OrderDomainErrorCode.DiscountAlreadyApplied, nameof(_discounts));
+    }
+
+    private void RecordPaymentSummary(
+        Guid? paymentId,
+        string? paymentReferenceNo,
+        string? paymentMethodCode,
+        Guid? paymentAttemptId,
+        int? paymentAttemptNo)
+    {
+        if (paymentId is { } id && id != Guid.Empty)
+            PaymentId = id;
+        if (!string.IsNullOrWhiteSpace(paymentReferenceNo))
+            PaymentReferenceNo = paymentReferenceNo.Trim().ToUpperInvariant();
+        if (!string.IsNullOrWhiteSpace(paymentMethodCode))
+            PaymentMethodCode = paymentMethodCode.Trim().ToUpperInvariant();
+        if (paymentAttemptId is { } attemptId && attemptId != Guid.Empty)
+            PaymentAttemptId = attemptId;
+        if (paymentAttemptNo is > 0)
+            PaymentAttemptNo = paymentAttemptNo;
     }
 
     private void AddTracking(string type, ExecutorType executorType, Guid? executorId, string message)

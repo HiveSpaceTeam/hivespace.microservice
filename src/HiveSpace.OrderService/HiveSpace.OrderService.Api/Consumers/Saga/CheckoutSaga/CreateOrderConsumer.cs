@@ -4,6 +4,7 @@ using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Dtos;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Events;
 using HiveSpace.OrderService.Application.Cart;
 using HiveSpace.OrderService.Application.Cart.Dtos;
+using HiveSpace.OrderService.Application.Orders;
 using HiveSpace.OrderService.Domain.Aggregates.Coupons;
 using HiveSpace.OrderService.Domain.Aggregates.Orders;
 using HiveSpace.OrderService.Domain.Enumerations;
@@ -21,7 +22,8 @@ public class CreateOrderConsumer(
     IProductRefRepository productRefRepository,
     ISkuRefRepository skuRefRepository,
     ICouponRepository couponRepository,
-    ILogger<CreateOrderConsumer> logger) : IConsumer<CreateOrder>
+    ILogger<CreateOrderConsumer> logger,
+    IOrderCodeGenerator? orderCodeGenerator = null) : IConsumer<CreateOrder>
 {
     public async Task Consume(ConsumeContext<CreateOrder> context)
     {
@@ -211,7 +213,8 @@ public class CreateOrderConsumer(
                 message.DeliveryAddress.Country,
                 message.DeliveryAddress.Notes ?? string.Empty);
 
-            var order = Order.Create(message.UserId, address, storeId);
+            var orderCode = await (orderCodeGenerator ?? new OrderCodeGenerator(orderRepository)).GenerateAsync(ct);
+            var order = Order.Create(message.UserId, address, storeId, orderCode: orderCode);
 
             foreach (var cartItem in storeGroup)
             {
@@ -308,7 +311,9 @@ public class CreateOrderConsumer(
             message.CorrelationId,
             OrderIds      = createdOrders.Select(o => o.Id).ToList(),
             OrderStoreMap = createdOrders.ToDictionary(o => o.Id, o => o.StoreId),
+            OrderAmountMap = createdOrders.ToDictionary(o => o.Id, o => o.TotalAmount.Amount),
             OrderCodeMap  = createdOrders.ToDictionary(o => o.Id, o => o.OrderCode),
+            CurrencyCode   = checkoutCurrency,
             GrandTotal    = grandTotal,
             Items         = allItemDtos,
             CreatedAt     = createdOrders.First().CreatedAt

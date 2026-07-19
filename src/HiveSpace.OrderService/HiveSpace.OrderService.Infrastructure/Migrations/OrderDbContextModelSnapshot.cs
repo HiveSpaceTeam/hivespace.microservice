@@ -108,6 +108,11 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("CurrencyCode")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)");
+
                     b.Property<int>("CurrentUsageCount")
                         .HasColumnType("int");
 
@@ -253,6 +258,23 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
                     b.Property<DateTimeOffset?>("PaidAt")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<Guid?>("PaymentAttemptId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("PaymentAttemptNo")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("PaymentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("PaymentMethodCode")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<string>("PaymentReferenceNo")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
                     b.Property<DateTimeOffset?>("RejectedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -281,6 +303,8 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
 
                     b.HasIndex("OrderCode")
                         .IsUnique();
+
+                    b.HasIndex("PaymentReferenceNo");
 
                     b.ToTable("orders", (string)null);
                 });
@@ -518,6 +542,16 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<string>("CurrencyCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("CurrentPaymentAttemptId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("CurrentPaymentAttemptNo")
+                        .HasColumnType("int");
+
                     b.Property<string>("CurrentState")
                         .IsRequired()
                         .HasMaxLength(64)
@@ -539,6 +573,14 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
 
                     b.Property<Guid?>("InventoryReservationPendingTokenId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("LinkedPaymentOrders")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OrderAmountMap")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("OrderCodeMap")
                         .IsRequired()
@@ -575,6 +617,12 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTimeOffset?>("PaymentOutcomeAppliedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("PaymentReferenceNo")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid?>("PaymentTimeoutTokenId")
                         .HasColumnType("uniqueidentifier");

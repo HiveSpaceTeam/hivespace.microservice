@@ -1,6 +1,7 @@
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Commands;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Events;
+using HiveSpace.OrderService.Domain.Aggregates.Orders;
 using HiveSpace.OrderService.Domain.Enumerations;
 using HiveSpace.OrderService.Domain.Exceptions;
 using HiveSpace.OrderService.Domain.Repositories;
@@ -23,21 +24,19 @@ public class MarkOrderAsCODConsumer(
         if (missingId != default)
         {
             logger.LogWarning("Order {OrderId} not found for COD marking", missingId);
-            await context.RespondAsync<MarkOrderAsCODFailedIntegrationEvent>(new
-            {
-                message.CorrelationId,
-                OrderId = missingId,
-                Reason  = $"Order {missingId} not found"
-            });
-            return;
+            throw new NotFoundException(OrderDomainErrorCode.OrderNotFound, nameof(Order));
         }
 
         foreach (var order in orders)
         {
             try
             {
-                if (order.Status.Name != OrderStatus.COD.Name)
-                    order.MarkAsCOD();
+                order.MarkAsCOD(
+                    message.PaymentId,
+                    message.PaymentReferenceNo,
+                    message.MethodCode,
+                    message.PaymentAttemptId,
+                    message.AttemptNo);
             }
             catch (DomainException ex) when (
                 ex.ErrorCode.Code == OrderDomainErrorCode.OrderExceedsCODLimit.Code ||

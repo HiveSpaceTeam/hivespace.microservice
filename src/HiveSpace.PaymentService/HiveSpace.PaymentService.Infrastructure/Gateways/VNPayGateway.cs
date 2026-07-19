@@ -22,7 +22,7 @@ public class VNPayGateway(IOptions<VNPayConfiguration> options, ILogger<VNPayGat
         Payment payment, string returnUrl, string cancelUrl, CancellationToken ct = default)
     {
         var createDate = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(7)); // GMT+7 (Vietnam)
-        var txnRef = payment.Id.ToString("N"); // full Guid without dashes — used to resolve payment on webhook
+        var txnRef = payment.ReferenceNo ?? payment.Id.ToString("N");
 
         var vnpParams = new SortedDictionary<string, string>
         {
@@ -32,7 +32,7 @@ public class VNPayGateway(IOptions<VNPayConfiguration> options, ILogger<VNPayGat
             ["vnp_Amount"] = (payment.Amount.Amount * 100).ToString(), // VNPay uses smallest unit * 100
             ["vnp_CurrCode"] = _config.CurrCode,
             ["vnp_TxnRef"] = txnRef,
-            ["vnp_OrderInfo"] = $"Payment for order {payment.OrderId}",
+            ["vnp_OrderInfo"] = $"Payment {txnRef}",
             ["vnp_OrderType"] = "other",
             ["vnp_Locale"] = _config.Locale,
             ["vnp_ReturnUrl"] = returnUrl,
@@ -74,13 +74,18 @@ public class VNPayGateway(IOptions<VNPayConfiguration> options, ILogger<VNPayGat
             throw new InvalidFieldException(PaymentDomainErrorCode.InvalidGatewaySignature, "vnp_SecureHash");
 
         payload.TryGetValue("vnp_ResponseCode", out var responseCode);
+        payload.TryGetValue("vnp_TransactionNo", out var gatewayTransactionId);
         payload.TryGetValue("vnp_TxnRef", out var txnRef);
         var rawResponse = string.Join(";", payload.Select(kv => $"{kv.Key}={kv.Value}"));
 
         var success = responseCode == "00";
         var errorMessage = success ? null : $"VNPay response code: {responseCode}";
 
-        return Task.FromResult(new GatewayVerifyResult(success, txnRef ?? string.Empty, rawResponse, errorMessage));
+        return Task.FromResult(new GatewayVerifyResult(
+            success,
+            string.IsNullOrWhiteSpace(gatewayTransactionId) ? txnRef ?? string.Empty : gatewayTransactionId,
+            rawResponse,
+            errorMessage));
     }
 
     private static string ComputeHmacSha512(string key, string data)

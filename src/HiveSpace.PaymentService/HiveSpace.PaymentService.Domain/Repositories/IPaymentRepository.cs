@@ -7,5 +7,7 @@ public interface IPaymentRepository : IRepository<Payment>
 {
     Task<Payment?> GetByIdAsync(Guid paymentId, CancellationToken ct = default);
     Task<Payment?> GetByIdempotencyKeyAsync(string key, CancellationToken ct = default);
+    Task<Payment?> GetByReferenceNoAsync(string referenceNo, CancellationToken ct = default);
     Task<Payment?> GetByOrderIdAsync(Guid orderId, CancellationToken ct = default);
+    Task<bool> ReferenceNoExistsAsync(string referenceNo, CancellationToken ct = default);
 }

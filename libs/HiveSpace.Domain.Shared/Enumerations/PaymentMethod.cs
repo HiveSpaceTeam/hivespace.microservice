@@ -18,3 +18,10 @@ public class PaymentMethod(int id, string name) : Enumeration(id, name)
 
     public bool IsCashOnDelivery() => this == COD;
 }
+
+public static class PaymentMethodCodes
+{
+    public const string COD = nameof(PaymentMethod.COD);
+    public const string VNPAY = nameof(PaymentMethod.VNPAY);
+    public const string Stripe = "STRIPE";
+}

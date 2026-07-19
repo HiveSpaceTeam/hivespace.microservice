@@ -31,23 +31,28 @@ public class InitiatePaymentConsumerTests
     public async Task Consume_WhenIdempotentKeyExists_ReturnsExistingPayment()
     {
         var correlationId = Guid.NewGuid();
-        var existing = Payment.CreateForOrder(
-            Guid.NewGuid(), Guid.NewGuid(),
+        var buyerId = Guid.NewGuid();
+        var orderId = Guid.NewGuid();
+        var storeId = Guid.NewGuid();
+        var existing = Payment.CreateCheckout(
+            correlationId,
+            "PAY-01JZXYZABCDEABCDEABCDEABC",
+            buyerId,
             HiveSpace.Domain.Shared.ValueObjects.Money.FromVND(100_000),
-            HiveSpace.PaymentService.Domain.ValueObjects.PaymentMethod.BankTransfer("VNPAY"),
-            PaymentGateway.VNPay,
-            "idem-key-123");
+            "VNPAY",
+            "idem-key-123",
+            [new PaymentLinkedOrder(orderId, "ORD-01JZXYZABCDEABCDEABCDEABC", storeId, 100_000, "VND")]);
         var msg = new InitiatePayment
         {
             CorrelationId = correlationId,
-            OrderIds = [Guid.NewGuid()],
-            BuyerId = Guid.NewGuid(),
+            BuyerId = buyerId,
+            MethodCode = "VNPAY",
             Amount = 100_000,
-            Currency = "VND",
-            Gateway = "VNPay",
+            CurrencyCode = "VND",
             ReturnUrl = "https://example.com/return",
             CancelUrl = "https://example.com/cancel",
-            IdempotencyKey = "idem-key-123"
+            IdempotencyKey = "idem-key-123",
+            Orders = [new CheckoutPaymentOrderDto(orderId, "ORD-01JZXYZABCDEABCDEABCDEABC", storeId, 100_000, "VND")]
         };
         var ctx = Substitute.For<ConsumeContext<InitiatePayment>>();
         ctx.Message.Returns(msg);

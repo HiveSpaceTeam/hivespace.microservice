@@ -16,13 +16,19 @@ public class GetPaymentQueryHandler(IPaymentRepository paymentRepository, IUserC
         var payment = await paymentRepository.GetByIdAsync(request.PaymentId, cancellationToken)
             ?? throw new NotFoundException(PaymentDomainErrorCode.PaymentNotFound, nameof(Payment));
 
-        //if (payment.BuyerId != userContext.UserId)
-        //    throw new ForbiddenException(PaymentDomainErrorCode.PaymentAccessForbidden, nameof(Payment));
+        if (!CanRead(payment, userContext))
+            throw new ForbiddenException(PaymentDomainErrorCode.PaymentAccessForbidden, nameof(Payment));
 
-        return ToDto(payment);
+        return ToDto(payment, IncludeAttemptHistory(userContext));
     }
 
-    internal static PaymentDto ToDto(Payment payment) => new(
+    internal static bool CanRead(Payment payment, IUserContext userContext) =>
+        userContext.IsAdmin || userContext.IsSystemAdmin || payment.BuyerId == userContext.UserId;
+
+    internal static bool IncludeAttemptHistory(IUserContext userContext) =>
+        userContext.IsAdmin || userContext.IsSystemAdmin;
+
+    internal static PaymentDto ToDto(Payment payment, bool includeAttemptHistory = false) => new(
         payment.Id,
         payment.OrderId,
         payment.BuyerId,
@@ -33,5 +39,35 @@ public class GetPaymentQueryHandler(IPaymentRepository paymentRepository, IUserC
         payment.GatewayPaymentUrl,
         payment.PaidAt,
         payment.ExpiresAt,
-        payment.CreatedAt);
+        payment.CreatedAt,
+        payment.ReferenceNo,
+        payment.MethodCode,
+        payment.LinkedOrders
+            .Select(order => new PaymentLinkedOrderDto(
+                order.OrderId,
+                order.OrderCode,
+                order.StoreId,
+                new PaymentMoneyDto(order.Amount, order.CurrencyCode, true, null),
+                order.StatusSnapshot))
+            .ToList(),
+        payment.CurrentAttempt is null ? null : ToAttemptDto(payment.CurrentAttempt),
+        includeAttemptHistory
+            ? payment.Attempts
+                .OrderBy(attempt => attempt.AttemptNo)
+                .Select(ToAttemptDto)
+                .ToList()
+            : null);
+
+    private static PaymentAttemptDto ToAttemptDto(PaymentAttempt attempt) => new(
+        attempt.Id,
+        attempt.AttemptNo,
+        attempt.MethodCode,
+        attempt.GatewayCode,
+        attempt.Status.ToString(),
+        attempt.RedirectUrl,
+        attempt.GatewayTransactionId,
+        attempt.FailureReasonCode,
+        attempt.CreatedAt,
+        attempt.ExpiresAt,
+        attempt.CompletedAt);
 }

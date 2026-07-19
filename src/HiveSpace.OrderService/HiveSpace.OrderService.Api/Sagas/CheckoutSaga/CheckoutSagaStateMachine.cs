@@ -8,6 +8,7 @@ using HiveSpace.OrderService.Application.Contracts;
 using HiveSpace.OrderService.Domain.Enumerations;
 using HiveSpace.OrderService.Infrastructure.Sagas;
 using MassTransit;
+using PaymentMethodCodes = HiveSpace.Domain.Shared.Enumerations.PaymentMethodCodes;
 
 namespace HiveSpace.OrderService.Api.Sagas.CheckoutSaga;
 
@@ -29,6 +30,7 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
     public Event<CheckoutInitiated>              CheckoutInitiated  { get; private set; } = null!;
     public Event<InventoryReleasedIntegrationEvent>              InventoryReleasedIntegrationEvent  { get; private set; } = null!;
     public Event<OrderCancelledIntegrationEvent>                 OrderCancelledIntegrationEvent     { get; private set; } = null!;
+    public Event<PaymentAttemptInitiatedIntegrationEvent> PaymentAttemptInitiated { get; private set; } = null!;
     public Event<PaymentSucceededIntegrationEvent> PaymentSucceeded { get; private set; } = null!;
     public Event<PaymentFailedIntegrationEvent>    PaymentFailed    { get; private set; } = null!;
 
@@ -67,6 +69,7 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
         Event(() => CheckoutInitiated,  x => x.CorrelateById(m => m.Message.CorrelationId));
         Event(() => InventoryReleasedIntegrationEvent,  x => x.CorrelateById(m => m.Message.CorrelationId));
         Event(() => OrderCancelledIntegrationEvent,     x => x.CorrelateById(m => m.Message.CorrelationId));
+        Event(() => PaymentAttemptInitiated, x => x.CorrelateById(m => m.Message.CorrelationId));
         Event(() => PaymentSucceeded,   x => x.CorrelateById(m => m.Message.SagaCorrelationId));
         Event(() => PaymentFailed,      x => x.CorrelateById(m => m.Message.SagaCorrelationId));
 
@@ -93,6 +96,7 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
             When(CartClearing.Faulted).Finalize(),
             When(CartClearing.TimeoutExpired).Finalize(),
             When(OrderCancelledIntegrationEvent).Finalize(),
+            When(PaymentAttemptInitiated).Finalize(),
             When(PaymentInitiation.Completed).Finalize(),
             When(PaymentInitiation.Completed2).Finalize(),
             When(PaymentInitiation.Faulted).Finalize(),
@@ -134,7 +138,10 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
                     ctx.Saga.OrderIds      = ctx.Message.OrderIds;
                     ctx.Saga.OrderStoreMap = ctx.Message.OrderStoreMap;
                     ctx.Saga.OrderCodeMap  = ctx.Message.OrderCodeMap;
+                    ctx.Saga.OrderAmountMap = ctx.Message.OrderAmountMap;
+                    ctx.Saga.CurrencyCode   = ctx.Message.CurrencyCode;
                     ctx.Saga.GrandTotal    = ctx.Message.GrandTotal;
+                    ctx.Saga.RefreshLinkedPaymentOrders();
                 })
                 .Request(InventoryReservation, ctx => ctx.Init<ReserveInventory>(new
                 {
@@ -190,32 +197,21 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
                     ctx.Saga.ReservationIds      = ctx.Message.ReservationIds;
                     ctx.Saga.OrderReservationMap = ctx.Message.OrderReservationMap;
                 })
-                .IfElse(
-                    ctx => ctx.Saga.PaymentMethod.IsCashOnDelivery(),
-                    // COD path — mark orders as COD and proceed
-                    codBranch => codBranch
-                        .Request(CODMarking, ctx => ctx.Init<MarkOrderAsCOD>(new
-                        {
-                            ctx.Saga.CorrelationId,
-                            OrderIds = ctx.Saga.OrderIds
-                        }))
-                        .TransitionTo(CODMarking.Pending),
-                    // Online payment path — initiate payment via PaymentService
-                    onlineBranch => onlineBranch
-                        .Request(PaymentInitiation, ctx => ctx.Init<InitiatePayment>(new
-                        {
-                            ctx.Saga.CorrelationId,
-                            OrderIds     = ctx.Saga.OrderIds,
-                            BuyerId      = ctx.Saga.UserId,
-                            Amount       = ctx.Saga.GrandTotal,
-                            Currency     = "VND",
-                            Gateway      = ctx.Saga.PaymentMethod.Name,
-                            ReturnUrl    = _paymentReturnUrl,
-                            CancelUrl    = _paymentReturnUrl,
-                            IdempotencyKey = ctx.Saga.CorrelationId.ToString()
-                        }))
-                        .TransitionTo(PaymentInitiation.Pending)
-                ),
+                .Request(PaymentInitiation, ctx => ctx.Init<InitiatePayment>(new
+                {
+                    ctx.Saga.CorrelationId,
+                    BuyerId      = ctx.Saga.UserId,
+                    MethodCode   = ctx.Saga.PaymentMethod.Name,
+                    Amount       = ctx.Saga.GrandTotal,
+                    CurrencyCode = ctx.Saga.CurrencyCode,
+                    Currency     = ctx.Saga.CurrencyCode,
+                    Gateway      = ctx.Saga.PaymentMethod.Name,
+                    ReturnUrl    = _paymentReturnUrl,
+                    CancelUrl    = _paymentReturnUrl,
+                    Orders       = ctx.Saga.LinkedPaymentOrders,
+                    IdempotencyKey = ctx.Saga.CorrelationId.ToString()
+                }))
+                .TransitionTo(PaymentInitiation.Pending),
 
             When(InventoryReservation.Completed2)   // InventoryReservationFailedIntegrationEvent
                 .Then(ctx =>
@@ -286,30 +282,49 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
             When(PaymentInitiation.Completed)   // PaymentInitiatedIntegrationEvent
                 .Then(ctx =>
                 {
-                    ctx.Saga.PaymentId        = ctx.Message.PaymentId;
-                    ctx.Saga.PaymentUrl       = ctx.Message.PaymentUrl;
-                    ctx.Saga.PaymentExpiresAt = ctx.Message.ExpiresAt;
+                    ctx.Saga.RecordPaymentInitiated(
+                        ctx.Message.PaymentId,
+                        ctx.Message.ReferenceNo,
+                        ctx.Message.PaymentAttemptId,
+                        ctx.Message.AttemptNo,
+                        ctx.Message.RedirectUrl ?? ctx.Message.PaymentUrl,
+                        ctx.Message.ExpiresAt);
                 })
-                .ThenAsync(async ctx =>
-                {
-                    if (ctx.Saga.ResponseAddress is not null)
-                    {
-                        var ep = await ctx.GetSendEndpoint(ctx.Saga.ResponseAddress);
-                        await ep.Send(new CheckoutResponse
+                .IfElse(
+                    ctx => ctx.Message.MethodCode.Equals(PaymentMethodCodes.COD, StringComparison.OrdinalIgnoreCase),
+                    codBranch => codBranch
+                        .Request(CODMarking, ctx => ctx.Init<MarkOrderAsCOD>(new
                         {
-                            OrderIds         = ctx.Saga.OrderIds,
-                            Status           = "AwaitingPayment",
-                            GrandTotal       = ctx.Saga.GrandTotal,
-                            PaymentUrl       = ctx.Saga.PaymentUrl,
-                            PaymentExpiresAt = ctx.Saga.PaymentExpiresAt
-                        }, x => x.RequestId = ctx.Saga.RequestId);
-                    }
-                })
-                .Schedule(PaymentTimeoutSchedule, ctx => ctx.Init<PaymentTimeoutIntegrationEvent>(new
-                {
-                    ctx.Saga.CorrelationId
-                }))
-                .TransitionTo(AwaitingPayment),
+                            ctx.Saga.CorrelationId,
+                            OrderIds = ctx.Saga.OrderIds,
+                            ctx.Saga.PaymentId,
+                            ctx.Saga.PaymentReferenceNo,
+                            MethodCode = ctx.Message.MethodCode,
+                            PaymentAttemptId = ctx.Saga.CurrentPaymentAttemptId,
+                            AttemptNo = ctx.Saga.CurrentPaymentAttemptNo
+                        }))
+                        .TransitionTo(CODMarking.Pending),
+                    onlineBranch => onlineBranch
+                        .ThenAsync(async ctx =>
+                        {
+                            if (ctx.Saga.ResponseAddress is not null)
+                            {
+                                var ep = await ctx.GetSendEndpoint(ctx.Saga.ResponseAddress);
+                                await ep.Send(new CheckoutResponse
+                                {
+                                    OrderIds         = ctx.Saga.OrderIds,
+                                    Status           = "AwaitingPayment",
+                                    GrandTotal       = ctx.Saga.GrandTotal,
+                                    PaymentUrl       = ctx.Saga.PaymentUrl,
+                                    PaymentExpiresAt = ctx.Saga.PaymentExpiresAt
+                                }, x => x.RequestId = ctx.Saga.RequestId);
+                            }
+                        })
+                        .Schedule(PaymentTimeoutSchedule, ctx => ctx.Init<PaymentTimeoutIntegrationEvent>(new
+                        {
+                            ctx.Saga.CorrelationId
+                        }))
+                        .TransitionTo(AwaitingPayment)),
 
             When(PaymentInitiation.Completed2)   // PaymentInitiationFailedIntegrationEvent
                 .Then(ctx =>
@@ -353,22 +368,70 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
 
         // ── AWAITING PAYMENT ──────────────────────────────────────────────────
         During(AwaitingPayment,
+            When(PaymentAttemptInitiated)
+                .Then(ctx =>
+                {
+                    ctx.Saga.RecordPaymentInitiated(
+                        ctx.Message.PaymentId,
+                        ctx.Message.ReferenceNo,
+                        ctx.Message.PaymentAttemptId,
+                        ctx.Message.AttemptNo,
+                        ctx.Message.RedirectUrl,
+                        ctx.Message.ExpiresAt);
+                })
+                .If(ctx => ctx.Message.MethodCode.Equals(PaymentMethodCodes.COD, StringComparison.OrdinalIgnoreCase),
+                    codBranch => codBranch
+                        .Request(CODMarking, ctx => ctx.Init<MarkOrderAsCOD>(new
+                        {
+                            ctx.Saga.CorrelationId,
+                            OrderIds = ctx.Saga.OrderIds,
+                            ctx.Saga.PaymentId,
+                            ctx.Saga.PaymentReferenceNo,
+                            MethodCode = ctx.Message.MethodCode,
+                            PaymentAttemptId = ctx.Saga.CurrentPaymentAttemptId,
+                            AttemptNo = ctx.Saga.CurrentPaymentAttemptNo
+                        }))
+                        .TransitionTo(CODMarking.Pending)),
+
+            When(PaymentSucceeded, ctx => !ctx.Saga.IsCurrentPaymentOutcome(
+                    ctx.Message.PaymentId,
+                    ctx.Message.PaymentAttemptId,
+                    ctx.Message.AttemptNo,
+                    ctx.Message.Orders))
+                .Then(_ => { }),
+
             When(PaymentSucceeded)   // from Kafka
-                .Then(ctx => ctx.Saga.PaymentId = ctx.Message.PaymentId)
+                .Then(ctx =>
+                {
+                    ctx.Saga.PaymentId = ctx.Message.PaymentId;
+                    ctx.Saga.PaymentOutcomeAppliedAt = DateTimeOffset.UtcNow;
+                })
                 .Unschedule(PaymentTimeoutSchedule)
                 .Request(PaymentMarking, ctx => ctx.Init<MarkOrderAsPaid>(new
                 {
                     ctx.Saga.CorrelationId,
                     OrderIds  = ctx.Saga.OrderIds,
-                    PaymentId = ctx.Saga.PaymentId!.Value
+                    PaymentId = ctx.Saga.PaymentId!.Value,
+                    ctx.Saga.PaymentReferenceNo,
+                    MethodCode = ctx.Message.MethodCode,
+                    PaymentAttemptId = ctx.Message.PaymentAttemptId,
+                    AttemptNo = ctx.Message.AttemptNo
                 }))
                 .TransitionTo(PaymentMarking.Pending),
+
+            When(PaymentFailed, ctx => !ctx.Saga.IsCurrentPaymentOutcome(
+                    ctx.Message.PaymentId,
+                    ctx.Message.PaymentAttemptId,
+                    ctx.Message.AttemptNo,
+                    ctx.Message.Orders))
+                .Then(_ => { }),
 
             When(PaymentFailed)   // from Kafka
                 .Then(ctx =>
                 {
                     ctx.Saga.FailureReason            = ctx.Message.Reason;
                     ctx.Saga.FailedAt                 = DateTimeOffset.UtcNow;
+                    ctx.Saga.PaymentOutcomeAppliedAt  = DateTimeOffset.UtcNow;
                     ctx.Saga.PendingInventoryReleases = ctx.Saga.OrderIds.Count;
                 })
                 .Unschedule(PaymentTimeoutSchedule)
@@ -687,6 +750,7 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
             When(CartClearing.TimeoutExpired).Then(_ => {}),
             When(PaymentInitiation.Completed).Then(_ => {}),
             When(PaymentInitiation.Completed2).Then(_ => {}),
+            When(PaymentAttemptInitiated).Then(_ => {}),
             When(PaymentInitiation.Faulted).Then(_ => {}),
             When(PaymentInitiation.TimeoutExpired).Then(_ => {}),
             When(PaymentMarking.Completed).Then(_ => {}),

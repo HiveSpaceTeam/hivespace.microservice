@@ -1,7 +1,11 @@
 using HiveSpace.Domain.Shared.Exceptions;
+using HiveSpace.PaymentService.Api.Models;
+using HiveSpace.PaymentService.Application.Payments.Commands.CreatePaymentAttempt;
 using HiveSpace.PaymentService.Application.Payments.Commands.ProcessPaymentWebhook;
 using HiveSpace.PaymentService.Application.Payments.Queries.GetPayment;
 using HiveSpace.PaymentService.Application.Payments.Queries.GetPaymentByOrderId;
+using HiveSpace.PaymentService.Application.Payments.Queries.GetPaymentByReference;
+using HiveSpace.PaymentService.Application.Payments.Queries.GetPaymentMethods;
 using HiveSpace.PaymentService.Domain.Aggregates.Payments.Enumerations;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -24,14 +28,18 @@ public static class PaymentEndpoints
             var frontendUrl = config["FrontendUrl"]!;
             var payload = request.Query.ToDictionary(kv => kv.Key, kv => kv.Value.ToString());
 
-            // vnp_TxnRef = payment.Id as GUID without dashes (set in VNPayGateway)
-            if (!payload.TryGetValue("vnp_TxnRef", out var txnRef) ||
-                !Guid.TryParseExact(txnRef, "N", out var paymentId))
+            if (!payload.TryGetValue("vnp_TxnRef", out var txnRef))
                 return Results.Redirect($"{frontendUrl}/payment/result?status=error");
+            var (paymentId, referenceNo, attemptNo) = ParsePaymentReference(txnRef);
+            if (Guid.TryParseExact(txnRef, "N", out var parsedPaymentId))
+            {
+                paymentId = parsedPaymentId;
+                referenceNo = null;
+            }
 
             try
             {
-                await sender.Send(new ProcessPaymentWebhookCommand(paymentId, payload, PaymentGateway.VNPay), ct);
+                await sender.Send(new ProcessPaymentWebhookCommand(paymentId, payload, PaymentGateway.VNPay, referenceNo, attemptNo), ct);
             }
             catch
             {
@@ -40,6 +48,12 @@ public static class PaymentEndpoints
 
             try
             {
+                if (paymentId == Guid.Empty)
+                {
+                    var successByReference = payload.TryGetValue("vnp_ResponseCode", out var referenceCode) && referenceCode == "00";
+                    return Results.Redirect($"{frontendUrl}/payment/result?status={(successByReference ? "success" : "failed")}");
+                }
+
                 var payment = await sender.Send(new GetPaymentQuery(paymentId), ct);
                 var success = payload.TryGetValue("vnp_ResponseCode", out var code) && code == "00";
                 var status = success ? "success" : "failed";
@@ -65,16 +79,20 @@ public static class PaymentEndpoints
 
             var payload = request.Query.ToDictionary(kv => kv.Key, kv => kv.Value.ToString());
 
-            // VNPay sends back vnp_TxnRef = payment.Id.ToString("N") (set by VNPayGateway)
-            if (!payload.TryGetValue("vnp_TxnRef", out var txnRef) ||
-                !Guid.TryParseExact(txnRef, "N", out var paymentId))
+            if (!payload.TryGetValue("vnp_TxnRef", out var txnRef))
                 return Results.Ok(new { RspCode = "01", Message = "Order Not Found" });
+            var (paymentId, referenceNo, attemptNo) = ParsePaymentReference(txnRef);
+            if (Guid.TryParseExact(txnRef, "N", out var parsedPaymentId))
+            {
+                paymentId = parsedPaymentId;
+                referenceNo = null;
+            }
 
             // VNPay IPN requires a specific JSON response format.
             // Always return HTTP 200 — VNPay retries if it receives a non-200 or wrong format.
             try
             {
-                await sender.Send(new ProcessPaymentWebhookCommand(paymentId, payload, gatewayEnum), ct);
+                await sender.Send(new ProcessPaymentWebhookCommand(paymentId, payload, gatewayEnum, referenceNo, attemptNo), ct);
                 return Results.Ok(new { RspCode = "00", Message = "Confirm Success" });
             }
             catch (NotFoundException)
@@ -105,6 +123,37 @@ public static class PaymentEndpoints
         .WithName("GetPayment")
         .WithTags("Payments");
 
+        app.MapGet("/api/v1/payments/methods", async (
+            ISender sender,
+            CancellationToken ct) =>
+        {
+            var result = await sender.Send(new GetPaymentMethodsQuery(), ct);
+            return Results.Ok(result);
+        })
+        .RequireAuthorization()
+        .WithName("GetPaymentMethods")
+        .WithTags("Payments");
+
+        app.MapPost("/api/v1/payments/{paymentId:guid}/attempts", async (
+            Guid paymentId,
+            [FromBody] CreatePaymentAttemptRequest request,
+            ISender sender,
+            CancellationToken ct) =>
+        {
+            var result = await sender.Send(
+                new CreatePaymentAttemptCommand(
+                    paymentId,
+                    request.MethodCode,
+                    request.IdempotencyKey,
+                    request.ReturnUrl,
+                    request.CancelUrl),
+                ct);
+            return Results.Created($"/api/v1/payments/{paymentId}", result);
+        })
+        .RequireAuthorization()
+        .WithName("CreatePaymentAttempt")
+        .WithTags("Payments");
+
         app.MapGet("/api/v1/payments/by-order/{orderId:guid}", async (
             Guid orderId,
             ISender sender,
@@ -117,6 +166,34 @@ public static class PaymentEndpoints
         .WithName("GetPaymentByOrder")
         .WithTags("Payments");
 
+        app.MapGet("/api/v1/payments/by-reference/{referenceNo}", async (
+            string referenceNo,
+            ISender sender,
+            CancellationToken ct) =>
+        {
+            var result = await sender.Send(new GetPaymentByReferenceQuery(referenceNo), ct);
+            return Results.Ok(result);
+        })
+        .RequireAuthorization()
+        .WithName("GetPaymentByReference")
+        .WithTags("Payments");
+
         return app;
+    }
+
+    private static (Guid PaymentId, string? ReferenceNo, int? AttemptNo) ParsePaymentReference(string txnRef)
+    {
+        if (Guid.TryParseExact(txnRef, "N", out var paymentId))
+            return (paymentId, null, null);
+
+        var attemptSeparator = txnRef.LastIndexOf("-A", StringComparison.OrdinalIgnoreCase);
+        if (attemptSeparator < 0)
+            return (Guid.Empty, txnRef, null);
+
+        var referenceNo = txnRef[..attemptSeparator];
+        var rawAttemptNo = txnRef[(attemptSeparator + 2)..];
+        return int.TryParse(rawAttemptNo, out var attemptNo)
+            ? (Guid.Empty, referenceNo, attemptNo)
+            : (Guid.Empty, txnRef, null);
     }
 }

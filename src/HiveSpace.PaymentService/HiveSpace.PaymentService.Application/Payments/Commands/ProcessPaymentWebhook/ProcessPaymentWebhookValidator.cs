@@ -8,8 +8,8 @@ public class ProcessPaymentWebhookValidator : AbstractValidator<ProcessPaymentWe
 {
     public ProcessPaymentWebhookValidator()
     {
-        RuleFor(x => x.PaymentId)
-            .NotEmpty()
+        RuleFor(x => x)
+            .Must(x => x.PaymentId != Guid.Empty || !string.IsNullOrWhiteSpace(x.ReferenceNo))
             .WithState(_ => new Error(CommonErrorCode.Required, nameof(ProcessPaymentWebhookCommand.PaymentId)));
 
         RuleFor(x => x.Payload)

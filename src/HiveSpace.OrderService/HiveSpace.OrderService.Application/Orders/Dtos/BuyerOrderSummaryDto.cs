@@ -5,6 +5,10 @@ public record BuyerOrderSummaryDto
     public Guid   Id          { get; init; }
     public string OrderCode   { get; init; } = null!;
     public string Status      { get; init; } = null!;
+    public Guid? PaymentId { get; init; }
+    public string? PaymentReferenceNo { get; init; }
+    public string? PaymentMethodCode { get; init; }
+    public int? PaymentAttemptNo { get; init; }
     public long   TotalAmount { get; init; }
     public string Currency    { get; init; } = null!;
     public DateTimeOffset CreatedAt  { get; init; }

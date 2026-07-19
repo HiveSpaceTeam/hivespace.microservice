@@ -11,4 +11,9 @@ public record PaymentDto(
     string? GatewayPaymentUrl,
     DateTimeOffset? PaidAt,
     DateTimeOffset ExpiresAt,
-    DateTimeOffset CreatedAt);
+    DateTimeOffset CreatedAt,
+    string? ReferenceNo = null,
+    string? MethodCode = null,
+    IReadOnlyList<PaymentLinkedOrderDto>? LinkedOrders = null,
+    PaymentAttemptDto? LatestAttempt = null,
+    IReadOnlyList<PaymentAttemptDto>? AttemptHistory = null);

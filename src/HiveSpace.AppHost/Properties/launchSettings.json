@@ -1,0 +1,15 @@
+{
+  "profiles": {
+    "HiveSpace.AppHost": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "launchUrl": "https://localhost:17000",
+      "applicationUrl": "https://localhost:17000;http://localhost:15000",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

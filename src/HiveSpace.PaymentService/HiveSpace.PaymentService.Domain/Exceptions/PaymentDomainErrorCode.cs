@@ -26,6 +26,18 @@ public class PaymentDomainErrorCode : DomainErrorCode
         new(1008, "PaymentIdempotencyKeyRequired", "PAY1008");
     public static readonly PaymentDomainErrorCode PaymentAccessForbidden =
         new(1009, "PaymentAccessForbidden", "PAY1009");
+    public static readonly PaymentDomainErrorCode PaymentReferenceNoRequired =
+        new(1010, "PaymentReferenceNoRequired", "PAY1010");
+    public static readonly PaymentDomainErrorCode PaymentLinkedOrdersRequired =
+        new(1011, "PaymentLinkedOrdersRequired", "PAY1011");
+    public static readonly PaymentDomainErrorCode PaymentLinkedOrderTotalMismatch =
+        new(1012, "PaymentLinkedOrderTotalMismatch", "PAY1012");
+    public static readonly PaymentDomainErrorCode PaymentLinkedOrderDuplicate =
+        new(1013, "PaymentLinkedOrderDuplicate", "PAY1013");
+    public static readonly PaymentDomainErrorCode PaymentMethodInvalid =
+        new(1014, "PaymentMethodInvalid", "PAY1014");
+    public static readonly PaymentDomainErrorCode PaymentRetryNotAllowed =
+        new(1015, "PaymentRetryNotAllowed", "PAY1015");
 
     // Wallet aggregate errors (PAY2xxx)
     public static readonly PaymentDomainErrorCode WalletNotFound =
