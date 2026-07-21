@@ -43,6 +43,21 @@ public class GetPaymentQueryHandlerTests : IClassFixture<PaymentServiceFixture>
     }
 
     [Fact]
+    public async Task Handle_AsDifferentBuyer_ThrowsForbiddenException()
+    {
+        var payment = PaymentAggregate.CreateForOrder(
+            Guid.NewGuid(), Guid.NewGuid(), Money.FromVND(50_000),
+            PaymentMethod.BankTransfer("VNPAY"), PaymentGateway.VNPay,
+            Guid.NewGuid().ToString("N"));
+        _fixture.DbContext.Payments.Add(payment);
+        await _fixture.DbContext.SaveChangesAsync();
+
+        var act = () => BuildHandler(Guid.NewGuid()).Handle(new GetPaymentQuery(payment.Id), CancellationToken.None);
+
+        await act.Should().ThrowAsync<ForbiddenException>();
+    }
+
+    [Fact]
     public async Task Handle_WithMissingPaymentId_ThrowsNotFoundException()
     {
         var act = () => BuildHandler(Guid.NewGuid()).Handle(new GetPaymentQuery(Guid.NewGuid()), CancellationToken.None);

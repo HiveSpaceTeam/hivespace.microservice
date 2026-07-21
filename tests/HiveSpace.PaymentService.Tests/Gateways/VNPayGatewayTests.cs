@@ -52,6 +52,25 @@ public class VNPayGatewayTests
     }
 
     [Fact]
+    public async Task InitiatePaymentAsync_ForCheckoutAttempt_IncludesAttemptNoInTxnRef()
+    {
+        var gateway = CreateGateway();
+        var payment = Payment.CreateCheckout(
+            Guid.NewGuid(),
+            "PAY-01HX7K4Q6V6B7Z8M9N0PQRSTVW",
+            Guid.NewGuid(),
+            Money.FromVND(15_000),
+            "VNPAY",
+            Guid.NewGuid().ToString("N"),
+            [new PaymentLinkedOrder(Guid.NewGuid(), "ORD-01HX7K4Q6V6B7Z8M9N0PQRSTVW", Guid.NewGuid(), 15_000, "VND")]);
+
+        var result = await gateway.InitiatePaymentAsync(payment, "https://merchant.test/payment/result", "https://merchant.test/payment/cancel");
+        var queryParameters = ParseQueryString(result.PaymentUrl);
+
+        queryParameters["vnp_TxnRef"].Should().Be($"{payment.ReferenceNo}-A1");
+    }
+
+    [Fact]
     public async Task VerifyWebhookAsync_ShouldAcceptValidSignature()
     {
         var gateway = CreateGateway();
@@ -70,7 +89,7 @@ public class VNPayGatewayTests
         var result = await gateway.VerifyWebhookAsync(payload);
 
         result.Success.Should().BeTrue();
-        result.TransactionId.Should().Be(payload["vnp_TxnRef"]);
+        result.TransactionId.Should().Be(payload["vnp_TransactionNo"]);
     }
 
     [Fact]

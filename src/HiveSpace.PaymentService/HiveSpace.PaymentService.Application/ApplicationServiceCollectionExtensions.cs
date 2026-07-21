@@ -1,5 +1,6 @@
 using FluentValidation;
 using HiveSpace.Application.Shared.Behaviors;
+using HiveSpace.PaymentService.Application.Payments;
 using HiveSpace.PaymentService.Application.Payments.Commands.ProcessPaymentWebhook;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -15,6 +16,7 @@ public static class ApplicationServiceCollectionExtensions
             cfg.RegisterServicesFromAssemblyContaining<ProcessPaymentWebhookCommand>();
             cfg.AddOpenBehavior(typeof(ValidationPipelineBehavior<,>));
         });
+        services.AddScoped<IPaymentReferenceNoGenerator, PaymentReferenceNoGenerator>();
         return services;
     }
 }

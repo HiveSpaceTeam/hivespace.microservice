@@ -6,4 +6,6 @@ namespace HiveSpace.PaymentService.Application.Payments.Commands.ProcessPaymentW
 public record ProcessPaymentWebhookCommand(
     Guid PaymentId,
     Dictionary<string, string> Payload,
-    PaymentGateway Gateway) : ICommand;
+    PaymentGateway Gateway,
+    string? ReferenceNo = null,
+    int? AttemptNo = null) : ICommand;

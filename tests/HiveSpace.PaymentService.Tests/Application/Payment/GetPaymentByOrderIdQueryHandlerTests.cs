@@ -6,6 +6,7 @@ using HiveSpace.PaymentService.Domain.Aggregates.Payments.Enumerations;
 using HiveSpace.PaymentService.Domain.ValueObjects;
 using HiveSpace.PaymentService.Infrastructure.Repositories;
 using HiveSpace.PaymentService.Tests.Fixtures;
+using HiveSpace.Testing.Shared.Doubles;
 using Xunit;
 using PaymentAggregate = HiveSpace.PaymentService.Domain.Aggregates.Payments.Payment;
 
@@ -21,14 +22,15 @@ public class GetPaymentByOrderIdQueryHandlerTests : IClassFixture<PaymentService
     public async Task Handle_WithExistingOrderId_ReturnsPaymentDto()
     {
         var orderId = Guid.NewGuid();
+        var buyerId = Guid.NewGuid();
         var payment = PaymentAggregate.CreateForOrder(
-            orderId, Guid.NewGuid(), Money.FromVND(20_000),
+            orderId, buyerId, Money.FromVND(20_000),
             PaymentMethod.BankTransfer("VNPAY"), PaymentGateway.VNPay,
             Guid.NewGuid().ToString("N"));
         _fixture.DbContext.Payments.Add(payment);
         await _fixture.DbContext.SaveChangesAsync();
 
-        var result = await BuildHandler().Handle(new GetPaymentByOrderIdQuery(orderId), CancellationToken.None);
+        var result = await BuildHandler(buyerId).Handle(new GetPaymentByOrderIdQuery(orderId), CancellationToken.None);
 
         result.OrderId.Should().Be(orderId);
         result.Amount.Amount.Should().Be(20_000);
@@ -41,10 +43,10 @@ public class GetPaymentByOrderIdQueryHandlerTests : IClassFixture<PaymentService
     [Fact]
     public async Task Handle_WithMissingOrderId_ThrowsNotFoundException()
     {
-        var act = () => BuildHandler().Handle(new GetPaymentByOrderIdQuery(Guid.NewGuid()), CancellationToken.None);
+        var act = () => BuildHandler(Guid.NewGuid()).Handle(new GetPaymentByOrderIdQuery(Guid.NewGuid()), CancellationToken.None);
         await act.Should().ThrowAsync<NotFoundException>();
     }
 
-    private GetPaymentByOrderIdQueryHandler BuildHandler() =>
-        new(new SqlPaymentRepository(_fixture.DbContext));
+    private GetPaymentByOrderIdQueryHandler BuildHandler(Guid userId) =>
+        new(new SqlPaymentRepository(_fixture.DbContext), new FakeUserContext { UserId = userId });
 }

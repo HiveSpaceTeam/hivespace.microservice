@@ -6,8 +6,10 @@ using HiveSpace.PaymentService.Application.Payments.Commands.ProcessPaymentWebho
 using HiveSpace.PaymentService.Domain.Aggregates.Payments.Enumerations;
 using HiveSpace.PaymentService.Domain.Services;
 using HiveSpace.PaymentService.Domain.ValueObjects;
+using HiveSpace.PaymentService.Domain.Aggregates.Payments;
 using HiveSpace.PaymentService.Infrastructure.Repositories;
 using HiveSpace.PaymentService.Tests.Fixtures;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Xunit;
 using PaymentAggregate = HiveSpace.PaymentService.Domain.Aggregates.Payments.Payment;
@@ -100,6 +102,43 @@ public class ProcessPaymentWebhookCommandHandlerTests : IClassFixture<PaymentSer
     }
 
     [Fact]
+    public async Task Handle_StaleFailedAttemptAfterRetry_DoesNotPublishFailure()
+    {
+        var payment = PaymentAggregate.CreateCheckout(
+            Guid.NewGuid(),
+            "PAY-01HX7K4Q6V6B7Z8M9N0PQRSTVW",
+            Guid.NewGuid(),
+            Money.FromVND(15_000),
+            "VNPAY",
+            Guid.NewGuid().ToString("N"),
+            [new PaymentLinkedOrder(Guid.NewGuid(), "ORD-01HX7K4Q6V6B7Z8M9N0PQRSTVW", Guid.NewGuid(), 15_000, "VND")],
+            "https://pay.test/attempt-1");
+        payment.MarkAttemptFailedOrExpired(payment.CurrentAttemptId!.Value, "Failed", "declined");
+        payment.AddAttempt("VNPAY", "retry-key", "https://pay.test/attempt-2");
+        _fixture.DbContext.Payments.Add(payment);
+        await _fixture.DbContext.SaveChangesAsync();
+
+        var logger = Substitute.For<ILogger<ProcessPaymentWebhookCommandHandler>>();
+        var (handler, publisher, gateway) = BuildHandler(logger);
+        gateway.VerifyWebhookAsync(Arg.Any<Dictionary<string, string>>(), Arg.Any<CancellationToken>())
+            .Returns(new GatewayVerifyResult(false, "late-txn", "failed", "Old attempt failed"));
+
+        await handler.Handle(
+            new ProcessPaymentWebhookCommand(Guid.Empty, [], PaymentGateway.VNPay, payment.ReferenceNo, 1),
+            CancellationToken.None);
+
+        await publisher.DidNotReceive()
+            .PublishPaymentFailedAsync(Arg.Any<PaymentAggregate>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+        payment.CurrentAttempt!.AttemptNo.Should().Be(2);
+        payment.Status.Should().Be(PaymentStatus.Processing);
+        logger.ReceivedCalls()
+            .Any(call =>
+                call.GetMethodInfo().Name == nameof(ILogger.Log) &&
+                call.GetArguments()[0] is LogLevel.Warning)
+            .Should().BeTrue();
+    }
+
+    [Fact]
     public async Task Handle_WhenPaymentNotFound_ThrowsNotFoundException()
     {
         var (handler, _, _) = BuildHandler();
@@ -109,14 +148,15 @@ public class ProcessPaymentWebhookCommandHandlerTests : IClassFixture<PaymentSer
         await act.Should().ThrowAsync<NotFoundException>();
     }
 
-    private (ProcessPaymentWebhookCommandHandler handler, IPaymentEventPublisher publisher, IPaymentGateway gateway) BuildHandler()
+    private (ProcessPaymentWebhookCommandHandler handler, IPaymentEventPublisher publisher, IPaymentGateway gateway) BuildHandler(
+        ILogger<ProcessPaymentWebhookCommandHandler>? logger = null)
     {
         var repository = new SqlPaymentRepository(_fixture.DbContext);
         var publisher = Substitute.For<IPaymentEventPublisher>();
         var gateway = Substitute.For<IPaymentGateway>();
         var factory = Substitute.For<IPaymentGatewayFactory>();
         factory.GetGateway(Arg.Any<PaymentGateway>()).Returns(gateway);
-        return (new ProcessPaymentWebhookCommandHandler(repository, publisher, factory), publisher, gateway);
+        return (new ProcessPaymentWebhookCommandHandler(repository, publisher, factory, logger), publisher, gateway);
     }
 
     private static PaymentAggregate CreateProcessingPayment(string idempotencyKey)

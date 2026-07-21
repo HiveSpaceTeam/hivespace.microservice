@@ -33,6 +33,11 @@ public class OrderEntityConfiguration : IEntityTypeConfiguration<Order>
 
         builder.Property(o => o.RejectionReason).HasMaxLength(500);
 
+        builder.Property(o => o.PaymentReferenceNo).HasMaxLength(64);
+        builder.Property(o => o.PaymentMethodCode).HasMaxLength(32);
+
+        builder.HasIndex(o => o.PaymentReferenceNo);
+
         // OwnsOne DeliveryAddress
         builder.OwnsOne(o => o.DeliveryAddress, address =>
         {

@@ -1,8 +1,6 @@
 using HiveSpace.Core.Contexts;
 using HiveSpace.Core.Exceptions;
 using HiveSpace.Core.Exceptions.Models;
-using HiveSpace.Domain.Shared.Entities;
-using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Commands;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Dtos;
@@ -44,7 +42,7 @@ public static class CheckoutEndpoints
             if (couponState.InvalidatedCoupons.Count > 0)
                 throw PersistedCartCouponState.BuildCheckoutCouponException(couponState.InvalidatedCoupons);
 
-            var paymentMethod = Enumeration.FromValue<PaymentMethod>(request.PaymentMethod ?? PaymentMethod.COD.Id);
+            var paymentMethod = request.GetPaymentMethod();
             var couponSelections = new CheckoutCouponSelectionDto
             {
                 PlatformCouponCodes = couponState.AppliedPlatformCoupons

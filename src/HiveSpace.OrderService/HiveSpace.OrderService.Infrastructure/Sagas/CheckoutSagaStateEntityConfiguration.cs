@@ -1,6 +1,7 @@
 using System.Text.Json;
 using HiveSpace.Domain.Shared.Entities;
 using HiveSpace.Domain.Shared.Enumerations;
+using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Commands;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Dtos;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -72,6 +73,20 @@ public class CheckoutSagaStateEntityConfiguration : IEntityTypeConfiguration<Che
                 v => JsonSerializer.Serialize(v, _jsonOptions),
                 v => JsonSerializer.Deserialize<Dictionary<Guid, string>>(v, _jsonOptions) ?? new(),
                 JsonComparer<Dictionary<Guid, string>>())
+            .HasColumnType("nvarchar(max)");
+
+        builder.Property(s => s.OrderAmountMap)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, _jsonOptions),
+                v => JsonSerializer.Deserialize<Dictionary<Guid, long>>(v, _jsonOptions) ?? new(),
+                JsonComparer<Dictionary<Guid, long>>())
+            .HasColumnType("nvarchar(max)");
+
+        builder.Property(s => s.LinkedPaymentOrders)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, _jsonOptions),
+                v => JsonSerializer.Deserialize<List<CheckoutPaymentOrderDto>>(v, _jsonOptions) ?? new(),
+                JsonComparer<List<CheckoutPaymentOrderDto>>())
             .HasColumnType("nvarchar(max)");
 
         builder.Property(s => s.OrderReservationMap)

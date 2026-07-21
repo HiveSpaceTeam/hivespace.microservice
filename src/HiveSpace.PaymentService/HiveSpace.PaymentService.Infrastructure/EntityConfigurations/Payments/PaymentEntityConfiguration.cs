@@ -13,7 +13,11 @@ public class PaymentEntityConfiguration : IEntityTypeConfiguration<Payment>
         builder.ToTable("payments");
 
         builder.Property(p => p.OrderId).IsRequired();
+        builder.Property(p => p.ReferenceNo).HasMaxLength(30);
         builder.Property(p => p.BuyerId).IsRequired();
+        builder.Property(p => p.CheckoutCorrelationId);
+        builder.Property(p => p.CurrentAttemptId);
+        builder.Property(p => p.MethodCode).HasMaxLength(50).HasDefaultValue("VNPAY");
         builder.Property(p => p.IdempotencyKey).IsRequired().HasMaxLength(200);
         builder.Property(p => p.GatewayTransactionId).HasMaxLength(200);
         builder.Property(p => p.GatewayPaymentUrl).HasMaxLength(2000);
@@ -53,6 +57,17 @@ public class PaymentEntityConfiguration : IEntityTypeConfiguration<Payment>
         });
 
         builder.HasIndex(p => p.IdempotencyKey).IsUnique();
-        builder.HasIndex(p => p.OrderId).IsUnique();
+        builder.HasIndex(p => p.ReferenceNo).IsUnique().HasFilter("[ReferenceNo] IS NOT NULL");
+        builder.HasIndex(p => p.OrderId);
+
+        builder.HasMany(p => p.LinkedOrders)
+            .WithOne()
+            .HasForeignKey(x => x.PaymentId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(p => p.Attempts)
+            .WithOne()
+            .HasForeignKey(x => x.PaymentId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

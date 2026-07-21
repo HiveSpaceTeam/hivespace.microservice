@@ -9,6 +9,7 @@ public interface IOrderRepository : IRepository<Order>
     Task<List<Order>> GetByIdsAsync(IEnumerable<Guid> orderIds, CancellationToken ct = default);
     Task<Order?> GetDetailByIdAsync(Guid orderId, CancellationToken ct = default);
     Task<Order?> GetByOrderCodeAsync(string orderCode, CancellationToken ct = default);
+    Task<bool> OrderCodeExistsAsync(string orderCode, CancellationToken ct = default);
     Task<Order?> GetByIdAndStoreIdAsync(Guid orderId, Guid storeId, CancellationToken ct = default);
     Task<List<OrderCouponUsageEntry>> GetCouponUsageEntriesByOrderIdsAsync(IEnumerable<Guid> orderIds, CancellationToken ct = default);
 }

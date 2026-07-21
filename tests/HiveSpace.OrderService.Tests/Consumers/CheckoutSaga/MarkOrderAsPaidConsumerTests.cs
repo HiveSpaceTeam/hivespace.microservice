@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Commands;
+using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Events;
 using HiveSpace.OrderService.Api.Consumers.Saga.CheckoutSaga;
 using HiveSpace.OrderService.Domain.Aggregates.Orders;
@@ -29,7 +30,7 @@ public class MarkOrderAsPaidConsumerTests
         new("Test User", new PhoneNumber("0901234567"), "123 Main St", "Ward 1", "Hanoi");
 
     [Fact]
-    public async Task Consume_WhenOrderNotFound_RespondsWithFailure()
+    public async Task Consume_WhenOrderNotFound_ThrowsNotFoundException()
     {
         var missingId = Guid.NewGuid();
         var message = new MarkOrderAsPaid { CorrelationId = Guid.NewGuid(), OrderIds = [missingId], PaymentId = Guid.NewGuid() };
@@ -39,9 +40,10 @@ public class MarkOrderAsPaidConsumerTests
         _orderRepository.GetByIdsAsync(Arg.Any<IEnumerable<Guid>>(), Arg.Any<CancellationToken>())
             .Returns(new List<Order>());
 
-        await _consumer.Consume(context);
+        var act = () => _consumer.Consume(context);
 
-        await context.Received(1).RespondAsync<MarkOrderAsPaidFailedIntegrationEvent>(Arg.Any<object>());
+        await act.Should().ThrowAsync<NotFoundException>();
+        await context.DidNotReceive().RespondAsync<MarkOrderAsPaidFailedIntegrationEvent>(Arg.Any<object>());
         await _orderRepository.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 

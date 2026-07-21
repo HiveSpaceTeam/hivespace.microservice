@@ -1,5 +1,6 @@
 using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga;
+using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Commands;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Dtos;
 using MassTransit;
 
@@ -24,6 +25,9 @@ public class CheckoutSagaState : SagaStateMachineInstance
     public List<Guid>             OrderIds      { get; set; } = new();
     public Dictionary<Guid, Guid>   OrderStoreMap { get; set; } = new();   // OrderId → StoreId
     public Dictionary<Guid, string> OrderCodeMap  { get; set; } = new();   // OrderId → OrderCode
+    public Dictionary<Guid, long>   OrderAmountMap { get; set; } = new();
+    public string                   CurrencyCode   { get; set; } = Currency.VND.GetCode();
+    public List<CheckoutPaymentOrderDto> LinkedPaymentOrders { get; set; } = new();
     public long                     GrandTotal    { get; set; }
 
     // Set after ReserveInventory
@@ -32,6 +36,10 @@ public class CheckoutSagaState : SagaStateMachineInstance
 
     // Online payment (set after PaymentInitiation step)
     public Guid?           PaymentId        { get; set; }
+    public string?         PaymentReferenceNo { get; set; }
+    public Guid?           CurrentPaymentAttemptId { get; set; }
+    public int?            CurrentPaymentAttemptNo { get; set; }
+    public DateTimeOffset? PaymentOutcomeAppliedAt { get; set; }
     public string?         PaymentUrl       { get; set; }
     public DateTimeOffset? PaymentExpiresAt { get; set; }
 
@@ -55,4 +63,50 @@ public class CheckoutSagaState : SagaStateMachineInstance
 
     // Schedule token for payment timeout
     public Guid? PaymentTimeoutTokenId { get; set; }
+
+    public void RefreshLinkedPaymentOrders()
+    {
+        LinkedPaymentOrders = OrderIds
+            .Select(orderId => new CheckoutPaymentOrderDto(
+                orderId,
+                OrderCodeMap.GetValueOrDefault(orderId, orderId.ToString()),
+                OrderStoreMap.GetValueOrDefault(orderId),
+                OrderAmountMap.GetValueOrDefault(orderId),
+                CurrencyCode))
+            .ToList();
+    }
+
+    public void RecordPaymentInitiated(
+        Guid paymentId,
+        string referenceNo,
+        Guid attemptId,
+        int attemptNo,
+        string? paymentUrl,
+        DateTimeOffset? expiresAt)
+    {
+        PaymentId = paymentId;
+        PaymentReferenceNo = referenceNo;
+        CurrentPaymentAttemptId = attemptId;
+        CurrentPaymentAttemptNo = attemptNo;
+        PaymentUrl = paymentUrl;
+        PaymentExpiresAt = expiresAt;
+    }
+
+    public bool IsCurrentPaymentOutcome(
+        Guid paymentId,
+        Guid attemptId,
+        int attemptNo,
+        IReadOnlyList<CheckoutPaymentOrderDto> orders)
+    {
+        if (PaymentOutcomeAppliedAt.HasValue)
+            return false;
+        if (PaymentId != paymentId)
+            return false;
+        if (CurrentPaymentAttemptId != attemptId || CurrentPaymentAttemptNo != attemptNo)
+            return false;
+
+        var expected = LinkedPaymentOrders.Select(o => o.OrderId).OrderBy(x => x).ToArray();
+        var actual = orders.Select(o => o.OrderId).OrderBy(x => x).ToArray();
+        return expected.SequenceEqual(actual);
+    }
 }

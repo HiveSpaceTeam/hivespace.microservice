@@ -34,6 +34,9 @@ public class SqlOrderRepository(OrderDbContext db)
             .Include(o => o.Items)
             .FirstOrDefaultAsync(o => o.OrderCode == orderCode, ct);
 
+    public async Task<bool> OrderCodeExistsAsync(string orderCode, CancellationToken ct = default)
+        => await db.Orders.AnyAsync(o => o.OrderCode == orderCode, ct);
+
     public async Task<Order?> GetByIdAndStoreIdAsync(Guid orderId, Guid storeId, CancellationToken ct = default)
         => await db.Orders
             .Include(o => o.Items)
