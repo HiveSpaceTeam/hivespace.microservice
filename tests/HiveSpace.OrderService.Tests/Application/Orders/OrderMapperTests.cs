@@ -64,7 +64,8 @@ public class OrderMapperTests
         dto.OrderCode.Should().Be(order.OrderCode);
         dto.ItemCount.Should().Be(1);
         dto.Items.Should().ContainSingle();
-        dto.TotalAmount.Should().Be(100_000);
+        dto.TotalAmount.Amount.Should().Be(100_000);
+        dto.TotalAmount.CurrencyCode.Should().Be("VND");
     }
 
     [Fact]

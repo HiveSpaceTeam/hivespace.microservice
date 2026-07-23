@@ -1,3 +1,5 @@
+using HiveSpace.Application.Shared.Dtos;
+
 namespace HiveSpace.OrderService.Application.Cart.Dtos;
 
 public record CheckoutPreviewItemDto(
@@ -8,34 +10,31 @@ public record CheckoutPreviewItemDto(
     string? ImageUrl,
     string? SkuName,
     string? SkuAttributes,
-    long    OriginalPrice,
-    long    Price,
-    string  Currency,
+    MoneyResponseDto OriginalPrice,
+    MoneyResponseDto Price,
     int     Quantity,
-    long    LineTotal
+    MoneyResponseDto LineTotal
 );
 
 public record CheckoutPreviewPackageDto(
     Guid    StoreId,
     string? StoreName,
-    long    OriginalShippingFee,
-    long    ShippingFee,
+    MoneyResponseDto OriginalShippingFee,
+    MoneyResponseDto ShippingFee,
     string  ShippingType,
-    string  Currency,
-    long    OriginalSubtotal,
-    long    Subtotal,
-    long    PackageTotal,
+    MoneyResponseDto OriginalSubtotal,
+    MoneyResponseDto Subtotal,
+    MoneyResponseDto PackageTotal,
     AppliedStoreCouponDto? AppliedStoreCoupon,
     List<CheckoutPreviewItemDto> Items
 );
 
 public record CheckoutPreviewResponse(
     List<CheckoutPreviewPackageDto> Packages,
-    long   OriginalSubtotal,
-    long   Subtotal,
-    string Currency,
-    long   TotalShippingFee,
-    long   GrandTotal,
+    MoneyResponseDto OriginalSubtotal,
+    MoneyResponseDto Subtotal,
+    MoneyResponseDto TotalShippingFee,
+    MoneyResponseDto GrandTotal,
     int    TotalItems,
     List<AppliedPlatformCouponDto> PlatformCoupons,
     List<InvalidAppliedCouponDto> InvalidatedCoupons

@@ -1,3 +1,4 @@
+using HiveSpace.Application.Shared.Dtos;
 using HiveSpace.Application.Shared.Handlers;
 using HiveSpace.Core.Models.Pagination;
 using HiveSpace.Domain.Shared.Exceptions;
@@ -29,9 +30,8 @@ public class GetTransactionHistoryQueryHandler(IWalletRepository walletRepositor
                 t.Id,
                 t.Type.ToString(),
                 t.Direction.ToString(),
-                t.Amount.Amount,
-                t.Amount.Currency.ToString(),
-                t.BalanceAfter.Amount,
+                MoneyResponseDto.Valid(t.Amount.Amount, t.Amount.Currency.ToString()),
+                MoneyResponseDto.Valid(t.BalanceAfter.Amount, t.BalanceAfter.Currency.ToString()),
                 t.Reference,
                 t.Description,
                 t.TransactedAt))

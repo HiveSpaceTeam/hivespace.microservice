@@ -1,3 +1,5 @@
+using HiveSpace.Application.Shared.Dtos;
+
 namespace HiveSpace.OrderService.Application.Orders.Dtos;
 
 public record OrderItemSummaryDto
@@ -9,12 +11,10 @@ public record OrderItemSummaryDto
     public string SkuName     { get; init; } = string.Empty;
     public string ImageUrl    { get; init; } = null!;
     public int    Quantity    { get; init; }
-    public long   UnitPrice   { get; init; }
-    public long   LineTotal   { get; init; }
-    public string Currency    { get; init; } = null!;
+    public MoneyResponseDto UnitPrice   { get; init; } = null!;
+    public MoneyResponseDto LineTotal   { get; init; } = null!;
     public bool   IsCOD       { get; init; }
-    public long   SnapshotPrice { get; init; }
-    public string SnapshotCurrency { get; init; } = null!;
+    public MoneyResponseDto SnapshotPrice { get; init; } = null!;
     public DateTimeOffset SnapshotCapturedAt { get; init; }
     public Dictionary<string, string> Attributes { get; init; } = [];
 }

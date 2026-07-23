@@ -1,3 +1,4 @@
+using HiveSpace.Application.Shared.Dtos;
 using HiveSpace.Application.Shared.Handlers;
 using HiveSpace.Core.Contexts;
 using HiveSpace.Domain.Shared.Enumerations;
@@ -58,11 +59,15 @@ public class GetAvailableCouponsQueryHandler(
                         StartDateTime = coupon.StartDateTime,
                         EndDateTime = coupon.EndDateTime,
                         DiscountType = coupon.DiscountType,
-                        DiscountAmount = coupon.DiscountAmount?.Amount,
+                        DiscountAmount = coupon.DiscountAmount is null
+                            ? null
+                            : MoneyResponseDto.Valid(coupon.DiscountAmount.Amount, coupon.DiscountAmount.Currency.ToString()),
                         CurrencyCode = coupon.CurrencyCode,
                         DiscountPercentage = coupon.DiscountType == Domain.Enumerations.DiscountType.Percentage ? coupon.DiscountPercentage : null,
-                        MaxDiscountAmount = coupon.MaxDiscountAmount?.Amount,
-                        MinOrderAmount = coupon.MinOrderAmount.Amount,
+                        MaxDiscountAmount = coupon.MaxDiscountAmount is null
+                            ? null
+                            : MoneyResponseDto.Valid(coupon.MaxDiscountAmount.Amount, coupon.MaxDiscountAmount.Currency.ToString()),
+                        MinOrderAmount = MoneyResponseDto.Valid(coupon.MinOrderAmount.Amount, coupon.MinOrderAmount.Currency.ToString()),
                         Scope = coupon.Scope,
                         IsApplicable = evaluation.IsApplicable
                     };

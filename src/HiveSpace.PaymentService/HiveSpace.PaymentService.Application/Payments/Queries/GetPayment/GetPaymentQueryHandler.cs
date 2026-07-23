@@ -1,3 +1,4 @@
+using HiveSpace.Application.Shared.Dtos;
 using HiveSpace.Application.Shared.Handlers;
 using HiveSpace.Core.Contexts;
 using HiveSpace.Domain.Shared.Exceptions;
@@ -32,7 +33,7 @@ public class GetPaymentQueryHandler(IPaymentRepository paymentRepository, IUserC
         payment.Id,
         payment.OrderId,
         payment.BuyerId,
-        new PaymentMoneyDto(payment.Amount.Amount, payment.Amount.Currency.ToString(), true, null),
+        MoneyResponseDto.Valid(payment.Amount.Amount, payment.Amount.Currency.ToString()),
         payment.Status.ToString(),
         payment.Gateway.ToString(),
         payment.GatewayTransactionId,
@@ -47,7 +48,7 @@ public class GetPaymentQueryHandler(IPaymentRepository paymentRepository, IUserC
                 order.OrderId,
                 order.OrderCode,
                 order.StoreId,
-                new PaymentMoneyDto(order.Amount, order.CurrencyCode, true, null),
+                MoneyResponseDto.Valid(order.Amount, order.CurrencyCode),
                 order.StatusSnapshot))
             .ToList(),
         payment.CurrentAttempt is null ? null : ToAttemptDto(payment.CurrentAttempt),

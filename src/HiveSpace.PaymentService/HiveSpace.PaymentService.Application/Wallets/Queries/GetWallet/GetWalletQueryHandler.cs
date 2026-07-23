@@ -1,3 +1,4 @@
+using HiveSpace.Application.Shared.Dtos;
 using HiveSpace.Application.Shared.Handlers;
 using HiveSpace.Core.Contexts;
 using HiveSpace.Domain.Shared.Exceptions;
@@ -19,11 +20,9 @@ public class GetWalletQueryHandler(IWalletRepository walletRepository, IUserCont
         return new WalletDto(
             wallet.Id,
             wallet.UserId,
-            wallet.AvailableBalance.Amount,
-            wallet.AvailableBalance.Currency.ToString(),
-            wallet.EscrowBalance.Amount,
-            wallet.EscrowBalance.Currency.ToString(),
-            wallet.TotalBalance.Amount,
+            MoneyResponseDto.Valid(wallet.AvailableBalance.Amount, wallet.AvailableBalance.Currency.ToString()),
+            MoneyResponseDto.Valid(wallet.EscrowBalance.Amount, wallet.EscrowBalance.Currency.ToString()),
+            MoneyResponseDto.Valid(wallet.TotalBalance.Amount, wallet.TotalBalance.Currency.ToString()),
             wallet.RewardPoints,
             wallet.Status.ToString());
     }

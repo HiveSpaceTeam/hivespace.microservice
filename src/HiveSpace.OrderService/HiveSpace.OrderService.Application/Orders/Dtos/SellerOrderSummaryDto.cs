@@ -1,3 +1,5 @@
+using HiveSpace.Application.Shared.Dtos;
+
 namespace HiveSpace.OrderService.Application.Orders.Dtos;
 
 public record SellerOrderSummaryDto
@@ -11,7 +13,7 @@ public record SellerOrderSummaryDto
     public string? PaymentReferenceNo { get; init; }
     public string? PaymentMethodCode { get; init; }
     public int?    PaymentAttemptNo { get; init; }
-    public long    TotalAmount   { get; init; }
+    public MoneyResponseDto TotalAmount   { get; init; } = null!;
     public DateTimeOffset ActionDateTime { get; init; }
     public DateTimeOffset CreatedAt     { get; init; }
     public List<SellerOrderItemDto> Items { get; init; } = [];

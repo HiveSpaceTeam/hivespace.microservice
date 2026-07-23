@@ -1,10 +1,12 @@
+using HiveSpace.Application.Shared.Dtos;
+
 namespace HiveSpace.PaymentService.Application.Payments.Dtos;
 
 public record PaymentDto(
     Guid PaymentId,
     Guid OrderId,
     Guid BuyerId,
-    PaymentMoneyDto Amount,
+    MoneyResponseDto Amount,
     string Status,
     string Gateway,
     string? GatewayTransactionId,

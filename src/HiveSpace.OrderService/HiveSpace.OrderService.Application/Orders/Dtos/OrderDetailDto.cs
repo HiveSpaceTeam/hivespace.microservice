@@ -1,3 +1,5 @@
+using HiveSpace.Application.Shared.Dtos;
+
 namespace HiveSpace.OrderService.Application.Orders.Dtos;
 
 public record OrderDetailDto
@@ -7,11 +9,10 @@ public record OrderDetailDto
     public Guid    UserId        { get; init; }
     public Guid    StoreId       { get; init; }
     public string  Status        { get; init; } = null!;
-    public long    SubTotal      { get; init; }
-    public long    TotalDiscount { get; init; }
-    public long    ShippingFee   { get; init; }
-    public long    TotalAmount   { get; init; }
-    public string  Currency      { get; init; } = null!;
+    public MoneyResponseDto SubTotal      { get; init; } = null!;
+    public MoneyResponseDto TotalDiscount { get; init; } = null!;
+    public MoneyResponseDto ShippingFee   { get; init; } = null!;
+    public MoneyResponseDto TotalAmount   { get; init; } = null!;
     public string? PaymentMethod { get; init; }
     public Guid?   PaymentId { get; init; }
     public string? PaymentReferenceNo { get; init; }

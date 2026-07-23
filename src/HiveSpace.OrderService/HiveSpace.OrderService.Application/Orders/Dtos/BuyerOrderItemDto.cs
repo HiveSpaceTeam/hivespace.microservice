@@ -1,3 +1,5 @@
+using HiveSpace.Application.Shared.Dtos;
+
 namespace HiveSpace.OrderService.Application.Orders.Dtos;
 
 public record BuyerOrderItemDto
@@ -7,8 +9,7 @@ public record BuyerOrderItemDto
     public string ProductImage  { get; init; } = null!;
     public string Variation     { get; init; } = null!;
     public int    Quantity      { get; init; }
-    public long   OriginalPrice { get; init; }
-    public long   UnitPrice     { get; init; }
-    public long   LineTotal     { get; init; }
-    public string Currency      { get; init; } = null!;
+    public MoneyResponseDto OriginalPrice { get; init; } = null!;
+    public MoneyResponseDto UnitPrice     { get; init; } = null!;
+    public MoneyResponseDto LineTotal     { get; init; } = null!;
 }
