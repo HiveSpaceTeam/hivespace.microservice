@@ -1,3 +1,4 @@
+using HiveSpace.Application.Shared.Dtos;
 using HiveSpace.OrderService.Application.Orders.Dtos;
 using HiveSpace.OrderService.Domain.Aggregates.Orders;
 
@@ -12,11 +13,10 @@ public static class OrderMapper
         UserId        = order.UserId,
         StoreId       = order.StoreId,
         Status        = order.Status.Name,
-        SubTotal      = order.SubTotal.Amount,
-        TotalDiscount = order.TotalDiscount.Amount,
-        ShippingFee   = order.ShippingFee.Amount,
-        TotalAmount   = order.TotalAmount.Amount,
-        Currency      = order.TotalAmount.Currency.ToString(),
+        SubTotal      = MoneyResponseDto.Valid(order.SubTotal.Amount, order.SubTotal.Currency.ToString()),
+        TotalDiscount = MoneyResponseDto.Valid(order.TotalDiscount.Amount, order.TotalDiscount.Currency.ToString()),
+        ShippingFee   = MoneyResponseDto.Valid(order.ShippingFee.Amount, order.ShippingFee.Currency.ToString()),
+        TotalAmount   = MoneyResponseDto.Valid(order.TotalAmount.Amount, order.TotalAmount.Currency.ToString()),
         PaymentMethod = order.PaymentMethodCode ?? order.Checkouts.FirstOrDefault()?.PaymentMethod.Name,
         PaymentId = order.PaymentId,
         PaymentReferenceNo = order.PaymentReferenceNo,
@@ -40,13 +40,13 @@ public static class OrderMapper
         ConfirmedAt   = order.ConfirmedAt,
         RejectedAt    = order.RejectedAt,
         ExpiredAt     = order.ExpiredAt,
-        Items         = order.Items.Select(i => i.ToSummaryDto(order.TotalAmount.Currency.ToString())).ToList(),
+        Items         = order.Items.Select(i => i.ToSummaryDto()).ToList(),
         Checkouts     = order.Checkouts.Select(c => c.ToDto()).ToList(),
         Discounts     = order.Discounts.Select(d => d.ToDto()).ToList(),
         Trackings     = order.Trackings.OrderBy(t => t.CreatedAt).Select(t => t.ToDto()).ToList()
     };
 
-    public static OrderItemSummaryDto ToSummaryDto(this OrderItem item, string currency) => new()
+    public static OrderItemSummaryDto ToSummaryDto(this OrderItem item) => new()
     {
         Id                = item.Id,
         ProductId         = item.ProductId,
@@ -55,12 +55,10 @@ public static class OrderMapper
         SkuName           = item.ProductSnapshot.SkuName,
         ImageUrl          = item.ProductSnapshot.ImageUrl,
         Quantity          = item.Quantity,
-        UnitPrice         = item.UnitPrice.Amount,
-        LineTotal         = item.LineTotal.Amount,
-        Currency          = currency,
+        UnitPrice         = MoneyResponseDto.Valid(item.UnitPrice.Amount, item.UnitPrice.Currency.ToString()),
+        LineTotal         = MoneyResponseDto.Valid(item.LineTotal.Amount, item.LineTotal.Currency.ToString()),
         IsCOD             = item.IsCOD,
-        SnapshotPrice     = item.ProductSnapshot.Price.Amount,
-        SnapshotCurrency  = item.ProductSnapshot.Currency.ToString(),
+        SnapshotPrice     = MoneyResponseDto.Valid(item.ProductSnapshot.Price.Amount, item.ProductSnapshot.Currency.ToString()),
         SnapshotCapturedAt = item.ProductSnapshot.CapturedAt,
         Attributes        = item.ProductSnapshot.Attributes.ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
     };
@@ -68,8 +66,7 @@ public static class OrderMapper
     public static OrderCheckoutDto ToDto(this Checkout checkout) => new()
     {
         PaymentMethod = checkout.PaymentMethod.Name,
-        Amount = checkout.Amount.Amount,
-        Currency = checkout.Amount.Currency.ToString(),
+        Amount = MoneyResponseDto.Valid(checkout.Amount.Amount, checkout.Amount.Currency.ToString()),
         CreatedAt = checkout.CreatedAt
     };
 
@@ -79,8 +76,7 @@ public static class OrderMapper
         CouponCode = discount.CouponCode,
         CouponOwnerType = discount.CouponOwnerType.ToString(),
         Scope = discount.Scope.ToString(),
-        Amount = discount.DiscountAmount.Amount,
-        Currency = discount.DiscountAmount.Currency.ToString(),
+        Amount = MoneyResponseDto.Valid(discount.DiscountAmount.Amount, discount.DiscountAmount.Currency.ToString()),
         AppliedAt = discount.AppliedAt
     };
 
@@ -96,7 +92,6 @@ public static class OrderMapper
 
     public static BuyerOrderSummaryDto ToBuyerSummaryDto(this Order order)
     {
-        var currency = order.TotalAmount.Currency.ToString();
         return new BuyerOrderSummaryDto
         {
             Id          = order.Id,
@@ -106,25 +101,23 @@ public static class OrderMapper
             PaymentReferenceNo = order.PaymentReferenceNo,
             PaymentMethodCode = order.PaymentMethodCode,
             PaymentAttemptNo = order.PaymentAttemptNo,
-            TotalAmount = order.TotalAmount.Amount,
-            Currency    = currency,
+            TotalAmount = MoneyResponseDto.Valid(order.TotalAmount.Amount, order.TotalAmount.Currency.ToString()),
             CreatedAt   = order.CreatedAt,
             ItemCount   = order.Items.Count,
-            Items       = order.Items.Select(i => i.ToBuyerItemDto(currency)).ToList()
+            Items       = order.Items.Select(i => i.ToBuyerItemDto()).ToList()
         };
     }
 
-    public static BuyerOrderItemDto ToBuyerItemDto(this OrderItem item, string currency) => new()
+    public static BuyerOrderItemDto ToBuyerItemDto(this OrderItem item) => new()
     {
         Id            = item.Id,
         ProductName   = item.ProductSnapshot.ProductName,
         ProductImage  = item.ProductSnapshot.ImageUrl,
         Variation     = item.ProductSnapshot.SkuName,
         Quantity      = item.Quantity,
-        OriginalPrice = item.ProductSnapshot.Price.Amount,
-        UnitPrice     = item.UnitPrice.Amount,
-        LineTotal     = item.LineTotal.Amount,
-        Currency      = currency
+        OriginalPrice = MoneyResponseDto.Valid(item.ProductSnapshot.Price.Amount, item.ProductSnapshot.Currency.ToString()),
+        UnitPrice     = MoneyResponseDto.Valid(item.UnitPrice.Amount, item.UnitPrice.Currency.ToString()),
+        LineTotal     = MoneyResponseDto.Valid(item.LineTotal.Amount, item.LineTotal.Currency.ToString())
     };
 
     public static SellerOrderSummaryDto ToSellerSummaryDto(this Order order) => new()
@@ -138,7 +131,7 @@ public static class OrderMapper
         PaymentReferenceNo = order.PaymentReferenceNo,
         PaymentMethodCode = order.PaymentMethodCode,
         PaymentAttemptNo = order.PaymentAttemptNo,
-        TotalAmount   = order.TotalAmount.Amount,
+        TotalAmount   = MoneyResponseDto.Valid(order.TotalAmount.Amount, order.TotalAmount.Currency.ToString()),
         ActionDateTime = order.UpdatedAt ?? order.CreatedAt,
         CreatedAt     = order.CreatedAt,
         Items         = order.Items.Select(i => i.ToSellerItemDto()).ToList()

@@ -1,3 +1,4 @@
+using HiveSpace.Application.Shared.Dtos;
 using HiveSpace.Application.Shared.Handlers;
 using HiveSpace.Core.Contexts;
 using HiveSpace.OrderService.Application.Cart.Dtos;
@@ -112,42 +113,39 @@ public class GetCheckoutPreviewQueryHandler(
                     ImageUrl: r.SkuImageUrl ?? r.ThumbnailUrl,
                     SkuName: r.SkuName,
                     SkuAttributes: r.SkuAttributes,
-                    OriginalPrice: originalPrice,
-                    Price: discountedPrice,
-                    Currency: r.Currency ?? currency,
+                    OriginalPrice: MoneyResponseDto.Valid(originalPrice, r.Currency ?? currency),
+                    Price: MoneyResponseDto.Valid(discountedPrice, r.Currency ?? currency),
                     Quantity: r.Quantity,
-                    LineTotal: discountedPrice * r.Quantity
+                    LineTotal: MoneyResponseDto.Valid(discountedPrice * r.Quantity, r.Currency ?? currency)
                 );
             }).ToList();
 
-            var pkgSubtotal = items.Sum(it => it.LineTotal);
+            var pkgSubtotal = items.Sum(it => it.LineTotal.Amount);
             var pkgShippingFee = Math.Max(0L, pkgOriginalShipping - pkgShippingDiscount);
 
             packages.Add(new CheckoutPreviewPackageDto(
                 StoreId: group.Key,
                 StoreName: group.First().StoreName,
-                OriginalShippingFee: pkgOriginalShipping,
-                ShippingFee: pkgShippingFee,
+                OriginalShippingFee: MoneyResponseDto.Valid(pkgOriginalShipping, snapshot.Currency),
+                ShippingFee: MoneyResponseDto.Valid(pkgShippingFee, snapshot.Currency),
                 ShippingType: "economy",
-                Currency: snapshot.Currency,
-                OriginalSubtotal: pkgOriginalSubtotal,
-                Subtotal: pkgSubtotal,
-                PackageTotal: pkgSubtotal + pkgShippingFee,
+                OriginalSubtotal: MoneyResponseDto.Valid(pkgOriginalSubtotal, snapshot.Currency),
+                Subtotal: MoneyResponseDto.Valid(pkgSubtotal, snapshot.Currency),
+                PackageTotal: MoneyResponseDto.Valid(pkgSubtotal + pkgShippingFee, snapshot.Currency),
                 AppliedStoreCoupon: appliedStoreCoupon,
                 Items: items
             ));
         }
 
-        var grandSubtotal = packages.Sum(p => p.Subtotal);
-        var grandShipping = packages.Sum(p => p.ShippingFee);
+        var grandSubtotal = packages.Sum(p => p.Subtotal.Amount);
+        var grandShipping = packages.Sum(p => p.ShippingFee.Amount);
 
         return new CheckoutPreviewResponse(
             Packages: packages,
-            OriginalSubtotal: grandOriginalSubtotal,
-            Subtotal: grandSubtotal,
-            Currency: currency,
-            TotalShippingFee: grandShipping,
-            GrandTotal: grandSubtotal + grandShipping,
+            OriginalSubtotal: MoneyResponseDto.Valid(grandOriginalSubtotal, currency),
+            Subtotal: MoneyResponseDto.Valid(grandSubtotal, currency),
+            TotalShippingFee: MoneyResponseDto.Valid(grandShipping, currency),
+            GrandTotal: MoneyResponseDto.Valid(grandSubtotal + grandShipping, currency),
             TotalItems: totalItemCount,
             PlatformCoupons: couponState.AppliedPlatformCoupons,
             InvalidatedCoupons: couponState.InvalidatedCoupons

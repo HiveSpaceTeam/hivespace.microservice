@@ -1,4 +1,5 @@
 using System.Linq;
+using HiveSpace.Application.Shared.Dtos;
 using HiveSpace.OrderService.Application.Coupons.Dtos;
 using HiveSpace.OrderService.Domain.Aggregates.Coupons;
 using HiveSpace.OrderService.Domain.Aggregates.Coupons.Specifications;
@@ -20,12 +21,15 @@ public static class CouponMapper
             EndDateTime = coupon.EndDateTime,
             EarlySaveDateTime = coupon.EarlySaveDateTime,
             DiscountType = coupon.DiscountType,
-            DiscountAmount = coupon.DiscountAmount?.Amount,
+            DiscountAmount = coupon.DiscountAmount is null
+                ? null
+                : MoneyResponseDto.Valid(coupon.DiscountAmount.Amount, coupon.DiscountAmount.Currency.ToString()),
             CurrencyCode = coupon.CurrencyCode,
-            IsMoneyValid = true,
             DiscountPercentage = coupon.DiscountType == DiscountType.Percentage ? coupon.DiscountPercentage : null,
-            MaxDiscountAmount = coupon.MaxDiscountAmount?.Amount,
-            MinOrderAmount = coupon.MinOrderAmount.Amount,
+            MaxDiscountAmount = coupon.MaxDiscountAmount is null
+                ? null
+                : MoneyResponseDto.Valid(coupon.MaxDiscountAmount.Amount, coupon.MaxDiscountAmount.Currency.ToString()),
+            MinOrderAmount = MoneyResponseDto.Valid(coupon.MinOrderAmount.Amount, coupon.MinOrderAmount.Currency.ToString()),
             Scope = coupon.Scope,
             MaxUsageCount = coupon.MaxUsageCount,
             CurrentUsageCount = coupon.CurrentUsageCount,
@@ -55,12 +59,15 @@ public static class CouponMapper
             StartDateTime = coupon.StartDateTime,
             EndDateTime = coupon.EndDateTime,
             DiscountType = coupon.DiscountType,
-            DiscountAmount = coupon.DiscountAmount?.Amount,
+            DiscountAmount = coupon.DiscountAmount is null
+                ? null
+                : MoneyResponseDto.Valid(coupon.DiscountAmount.Amount, coupon.DiscountAmount.Currency.ToString()),
             CurrencyCode = coupon.CurrencyCode,
-            IsMoneyValid = true,
             DiscountPercentage = coupon.DiscountType == DiscountType.Percentage ? coupon.DiscountPercentage : null,
-            MaxDiscountAmount = coupon.MaxDiscountAmount?.Amount,
-            MinOrderAmount = coupon.MinOrderAmount.Amount,
+            MaxDiscountAmount = coupon.MaxDiscountAmount is null
+                ? null
+                : MoneyResponseDto.Valid(coupon.MaxDiscountAmount.Amount, coupon.MaxDiscountAmount.Currency.ToString()),
+            MinOrderAmount = MoneyResponseDto.Valid(coupon.MinOrderAmount.Amount, coupon.MinOrderAmount.Currency.ToString()),
             MaxUsageCount = coupon.MaxUsageCount,
             CurrentUsageCount = coupon.CurrentUsageCount,
             IsHidden = coupon.IsHidden,

@@ -28,7 +28,8 @@ public class GetWalletBalanceQueryHandlerTests : IClassFixture<PaymentServiceFix
         var result = await BuildHandler(userId).Handle(new GetWalletQuery(userId), CancellationToken.None);
 
         result.UserId.Should().Be(userId);
-        result.AvailableBalance.Should().Be(100_000);
+        result.AvailableBalance.Amount.Should().Be(100_000);
+        result.AvailableBalance.CurrencyCode.Should().Be("VND");
     }
 
     [Fact]

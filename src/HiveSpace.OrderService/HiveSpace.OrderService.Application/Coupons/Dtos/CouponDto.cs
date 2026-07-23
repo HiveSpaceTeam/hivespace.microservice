@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HiveSpace.Application.Shared.Dtos;
 using HiveSpace.OrderService.Domain.Enumerations;
 
 namespace HiveSpace.OrderService.Application.Coupons.Dtos;
@@ -14,13 +15,11 @@ public record CouponDto
     public DateTimeOffset? EarlySaveDateTime { get; init; }
     
     public DiscountType DiscountType { get; init; }
-    public long? DiscountAmount { get; init; }
+    public MoneyResponseDto? DiscountAmount { get; init; }
     public string CurrencyCode { get; init; } = string.Empty;
-    public bool IsMoneyValid { get; init; } = true;
-    public string? MoneyIssueCode { get; init; }
     public decimal? DiscountPercentage { get; init; }
-    public long? MaxDiscountAmount { get; init; }
-    public long MinOrderAmount { get; init; }
+    public MoneyResponseDto? MaxDiscountAmount { get; init; }
+    public MoneyResponseDto MinOrderAmount { get; init; } = null!;
     
     public CouponScope Scope { get; init; }
     public int MaxUsageCount { get; init; }

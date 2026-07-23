@@ -61,7 +61,8 @@ public class GetCheckoutPreviewQueryHandlerTests : IClassFixture<OrderServiceFix
 
         result.Should().NotBeNull();
         result.Packages.Should().ContainSingle();
-        result.GrandTotal.Should().BePositive();
+        result.GrandTotal.Amount.Should().BePositive();
+        result.GrandTotal.CurrencyCode.Should().Be("VND");
     }
 
     [Fact]
@@ -98,7 +99,8 @@ public class GetCheckoutPreviewQueryHandlerTests : IClassFixture<OrderServiceFix
             new GetCheckoutPreviewQuery(), CancellationToken.None);
 
         result.Should().NotBeNull();
-        result.GrandTotal.Should().Be(75_000);
+        result.GrandTotal.Amount.Should().Be(75_000);
+        result.GrandTotal.CurrencyCode.Should().Be("VND");
     }
 
     [Fact]
@@ -174,7 +176,7 @@ public class GetCheckoutPreviewQueryHandlerTests : IClassFixture<OrderServiceFix
         result.InvalidatedCoupons.Should().BeEmpty();
         result.Packages.Should().ContainSingle()
             .Which.AppliedStoreCoupon.Should().NotBeNull();
-        result.Packages[0].Subtotal.Should().BeLessThan(result.Packages[0].OriginalSubtotal);
+        result.Packages[0].Subtotal.Amount.Should().BeLessThan(result.Packages[0].OriginalSubtotal.Amount);
     }
 
     [Fact]

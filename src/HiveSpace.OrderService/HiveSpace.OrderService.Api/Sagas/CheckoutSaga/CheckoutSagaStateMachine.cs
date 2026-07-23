@@ -1,3 +1,4 @@
+using HiveSpace.Application.Shared.Dtos;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Commands;
 using HiveSpace.Infrastructure.Messaging.Shared.CheckoutSaga.Events;
 using HiveSpace.Infrastructure.Messaging.Shared.WorkflowHandoff;
@@ -314,7 +315,7 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
                                 {
                                     OrderIds         = ctx.Saga.OrderIds,
                                     Status           = "AwaitingPayment",
-                                    GrandTotal       = ctx.Saga.GrandTotal,
+                                    GrandTotal       = MoneyResponseDto.Valid(ctx.Saga.GrandTotal, ctx.Saga.CurrencyCode),
                                     PaymentUrl       = ctx.Saga.PaymentUrl,
                                     PaymentExpiresAt = ctx.Saga.PaymentExpiresAt
                                 }, x => x.RequestId = ctx.Saga.RequestId);
@@ -635,7 +636,7 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
                                 {
                                     OrderIds   = ctx.Saga.OrderIds,
                                     Status     = status,
-                                    GrandTotal = ctx.Saga.GrandTotal
+                                    GrandTotal = MoneyResponseDto.Valid(ctx.Saga.GrandTotal, ctx.Saga.CurrencyCode)
                                 }, x => x.RequestId = ctx.Saga.RequestId);
                             }
 
@@ -684,7 +685,7 @@ public class CheckoutSagaStateMachine : MassTransitStateMachine<CheckoutSagaStat
                                 {
                                     OrderIds   = ctx.Saga.OrderIds,
                                     Status     = status,
-                                    GrandTotal = ctx.Saga.GrandTotal
+                                    GrandTotal = MoneyResponseDto.Valid(ctx.Saga.GrandTotal, ctx.Saga.CurrencyCode)
                                 }, x => x.RequestId = ctx.Saga.RequestId);
                             }
 

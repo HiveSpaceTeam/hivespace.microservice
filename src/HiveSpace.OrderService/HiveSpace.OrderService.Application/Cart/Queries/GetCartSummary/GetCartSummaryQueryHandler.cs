@@ -1,3 +1,4 @@
+using HiveSpace.Application.Shared.Dtos;
 using HiveSpace.Application.Shared.Handlers;
 using HiveSpace.Core.Contexts;
 using HiveSpace.OrderService.Application.Cart.Dtos;
@@ -105,8 +106,8 @@ public class GetCartSummaryQueryHandler(
                 {
                     return group.Select(item => item with
                     {
-                        OriginalPrice = item.OriginalPrice ?? item.Price,
-                        Price = item.OriginalPrice ?? item.Price
+                        OriginalPriceAmount = item.OriginalPriceAmount ?? item.PriceAmount,
+                        PriceAmount = item.OriginalPriceAmount ?? item.PriceAmount
                     });
                 }
 
@@ -117,7 +118,7 @@ public class GetCartSummaryQueryHandler(
 
                 return group.Select(item =>
                 {
-                    var originalPrice = item.OriginalPrice ?? item.Price ?? 0L;
+                    var originalPrice = item.OriginalPriceAmount ?? item.PriceAmount ?? 0L;
                     var discountedPrice = originalPrice;
 
                     if (item.IsSelected && selectedItemIds.Contains(item.CartItemId))
@@ -137,8 +138,8 @@ public class GetCartSummaryQueryHandler(
 
                     return item with
                     {
-                        OriginalPrice = originalPrice,
-                        Price = discountedPrice
+                        OriginalPriceAmount = originalPrice,
+                        PriceAmount = discountedPrice
                     };
                 });
             })
@@ -151,10 +152,16 @@ public class GetCartSummaryQueryHandler(
         Guid userId)
     {
         if (snapshots.Count == 0)
-            return new CartSummaryTotalsResponse(0L, 0L, 0L);
+            return new CartSummaryTotalsResponse(
+                MoneyResponseDto.Invalid(issueCode: "missing_currency"),
+                MoneyResponseDto.Invalid(issueCode: "missing_currency"),
+                MoneyResponseDto.Invalid(issueCode: "missing_currency"));
 
         var grandSubTotal = snapshots.Sum(x => x.Subtotal);
         var grandShipping = snapshots.Sum(x => x.ShippingFee);
+        var currencyCode = SelectedCartCouponEvaluator.ResolveSingleCurrency(
+            snapshots.Select(x => x.Currency),
+            nameof(GetCartSummaryQueryHandler));
 
         var coupons = couponState.CouponsByCode.Values.ToList();
         var storeDiscount = snapshots.Sum(snapshot => GetStoreDiscount(snapshot.StoreId, snapshot, couponState, coupons, userId));
@@ -164,13 +171,13 @@ public class GetCartSummaryQueryHandler(
             coupons,
             userId,
             grandSubTotal,
-            SelectedCartCouponEvaluator.ResolveSingleCurrency(snapshots.Select(x => x.Currency), nameof(GetCartSummaryQueryHandler)));
+            currencyCode);
 
         var discountAmount = storeDiscount + platformDiscount;
         return new CartSummaryTotalsResponse(
-            DiscountAmount: discountAmount,
-            SubTotal: grandSubTotal,
-            Total: Math.Max(0L, grandSubTotal + grandShipping - discountAmount));
+            DiscountAmount: MoneyResponseDto.Valid(discountAmount, currencyCode),
+            SubTotal: MoneyResponseDto.Valid(grandSubTotal, currencyCode),
+            Total: MoneyResponseDto.Valid(Math.Max(0L, grandSubTotal + grandShipping - discountAmount), currencyCode));
     }
 
     private static long GetStoreDiscount(

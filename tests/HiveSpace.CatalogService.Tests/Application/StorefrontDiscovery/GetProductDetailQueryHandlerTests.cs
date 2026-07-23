@@ -1,4 +1,5 @@
 using FluentAssertions;
+using HiveSpace.Application.Shared.Dtos;
 using HiveSpace.CatalogService.Application.Products.Dtos;
 using HiveSpace.CatalogService.Application.Products.Queries.GetProductDetail;
 using HiveSpace.CatalogService.Tests.Fakes;
@@ -27,7 +28,7 @@ public class GetProductDetailQueryHandlerTests : IClassFixture<CatalogServiceFix
                     10,
                     "SKU-USD",
                     "USD SKU",
-                    new ProductMoneyDto(2_505, "USD", true, null),
+                    MoneyResponseDto.Valid(2_505, "USD"),
                     3,
                     true,
                     [new ProductImageDto("file-1", "https://cdn.example.com/sku-1.png")],

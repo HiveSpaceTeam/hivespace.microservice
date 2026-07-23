@@ -1,10 +1,12 @@
+using HiveSpace.Application.Shared.Dtos;
+
 namespace HiveSpace.CatalogService.Application.Products.Dtos;
 
 public record ProductSkuDto(
     int Id,
     string SkuNo,
     string SkuName,
-    ProductMoneyDto Price,
+    MoneyResponseDto Price,
     int Quantity,
     bool IsActive,
     List<ProductImageDto> Images,

@@ -200,7 +200,8 @@ public class GetCartSummaryQueryHandlerTests : IClassFixture<OrderServiceFixture
 
         var result = await handler.Handle(new GetCartSummaryQuery(1, 20), CancellationToken.None);
 
-        result.Summary.DiscountAmount.Should().Be(5_000);
+        result.Summary.DiscountAmount.Amount.Should().Be(5_000);
+        result.Summary.DiscountAmount.CurrencyCode.Should().Be("VND");
         result.Stores.Should().ContainSingle()
             .Which.AppliedStoreCoupon.Should().NotBeNull();
     }
@@ -250,7 +251,8 @@ public class GetCartSummaryQueryHandlerTests : IClassFixture<OrderServiceFixture
         var result = await handler.Handle(new GetCartSummaryQuery(1, 20), CancellationToken.None);
 
         result.Should().NotBeNull();
-        result.Summary.DiscountAmount.Should().Be(5_000);
+        result.Summary.DiscountAmount.Amount.Should().Be(5_000);
+        result.Summary.DiscountAmount.CurrencyCode.Should().Be("VND");
     }
 
     private sealed class FakeCartDataQueryWithItems(params CartItemDto[] items) : ICartDataQuery

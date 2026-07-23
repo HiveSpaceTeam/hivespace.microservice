@@ -1,8 +1,10 @@
+using HiveSpace.Application.Shared.Dtos;
+
 namespace HiveSpace.PaymentService.Application.Payments.Dtos;
 
 public record PaymentLinkedOrderDto(
     Guid OrderId,
     string OrderCode,
     Guid StoreId,
-    PaymentMoneyDto Amount,
+    MoneyResponseDto Amount,
     string? StatusSnapshot);

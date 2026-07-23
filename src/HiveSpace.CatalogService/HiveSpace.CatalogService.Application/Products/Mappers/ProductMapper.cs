@@ -1,3 +1,4 @@
+using HiveSpace.Application.Shared.Dtos;
 using HiveSpace.CatalogService.Application.Products.Dtos;
 using HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate;
 using HiveSpace.Domain.Shared.Enumerations;
@@ -10,12 +11,10 @@ public static class ProductMapper
     {
         var sku = product.Skus.FirstOrDefault();
         var price = sku is null
-            ? new ProductMoneyDto(0L, null, false, "missing_currency")
-            : new ProductMoneyDto(
+            ? MoneyResponseDto.Invalid(issueCode: "missing_currency")
+            : MoneyResponseDto.Valid(
                 sku.Price.Amount,
-                sku.Price.Currency.GetCode(),
-                true,
-                null);
+                sku.Price.Currency.GetCode());
 
         return new ProductSummaryDto(
             Id: product.Id,
