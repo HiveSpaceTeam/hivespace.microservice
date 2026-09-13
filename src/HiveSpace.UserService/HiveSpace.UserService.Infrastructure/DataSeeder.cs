@@ -16,29 +16,49 @@ public static partial class DataSeeder
     public static readonly Guid SysAdminId = new Guid("33333333-3333-3333-3333-333333333333");
     public static readonly Guid AdminId = new Guid("44444444-4444-4444-4444-444444444444");
 
-    public static async Task EnsureSeedDataAsync(WebApplication app, CancellationToken ct = default)
+    public static async Task InitializeAsync(
+        WebApplication app,
+        bool autoMigrate,
+        bool seedSampleData,
+        CancellationToken ct = default)
     {
         await using var scope = app.Services.CreateAsyncScope();
         var context      = scope.ServiceProvider.GetRequiredService<UserDbContext>();
         var storeManager = scope.ServiceProvider.GetRequiredService<StoreManager>();
-        var eventPublisher = scope.ServiceProvider.GetRequiredService<IPlatformCurrencyConfigEventPublisher>();
+        var userEventPublisher = scope.ServiceProvider.GetRequiredService<IUserEventPublisher>();
+        var platformCurrencyEventPublisher = scope.ServiceProvider.GetRequiredService<IPlatformCurrencyConfigEventPublisher>();
+        var storeEventPublisher = scope.ServiceProvider.GetRequiredService<IStoreEventPublisher>();
         var logger       = scope.ServiceProvider.GetRequiredService<ILogger<UserDbContext>>();
 
-        var pending = (await context.Database.GetPendingMigrationsAsync(ct)).ToList();
-        if (pending.Count > 0)
+        if (autoMigrate)
         {
-            logger.LogInformation("Applying {Count} pending migration(s): {Migrations}",
-                pending.Count, string.Join(", ", pending));
-            await context.Database.MigrateAsync(ct);
-            logger.LogInformation("Migrations applied successfully.");
+            var pending = (await context.Database.GetPendingMigrationsAsync(ct)).ToList();
+            if (pending.Count > 0)
+            {
+                logger.LogInformation("Applying {Count} pending migration(s): {Migrations}",
+                    pending.Count, string.Join(", ", pending));
+                await context.Database.MigrateAsync(ct);
+                logger.LogInformation("Migrations applied successfully.");
+            }
+        }
+        else
+        {
+            logger.LogInformation("Automatic migration disabled for UserService.");
         }
 
-        await SeedAliceAsync(context, logger, ct);
-        await SeedBobAsync(context, logger, ct);
-        await SeedSystemAdminAsync(context, logger, ct);
-        await SeedAdminAsync(context, logger, ct);
-        await SeedPlatformCurrencyPolicyAsync(context, eventPublisher, logger, ct);
-        await SeedSellersAsync(storeManager, context, logger, ct);
+        await SeedPlatformCurrencyPolicyAsync(context, platformCurrencyEventPublisher, logger, ct);
+
+        if (!seedSampleData)
+        {
+            logger.LogInformation("Sample data seeding disabled for UserService.");
+            return;
+        }
+
+        await SeedAliceAsync(context, userEventPublisher, logger, ct);
+        await SeedBobAsync(context, userEventPublisher, logger, ct);
+        await SeedSystemAdminAsync(context, userEventPublisher, logger, ct);
+        await SeedAdminAsync(context, userEventPublisher, logger, ct);
+        await SeedSellersAsync(storeManager, context, userEventPublisher, storeEventPublisher, logger, ct);
     }
 
     internal static async Task SeedPlatformCurrencyPolicyAsync(
@@ -47,22 +67,36 @@ public static partial class DataSeeder
         ILogger logger,
         CancellationToken ct)
     {
-        if (await context.PlatformConfigs.AnyAsync(x => x.ConfigType == PlatformConfig.CurrencyConfigType, ct))
-            return;
+        var config = await context.PlatformConfigs
+            .SingleOrDefaultAsync(x => x.ConfigType == PlatformConfig.CurrencyConfigType, ct);
+        PlatformCurrency[] currencies;
 
-        var config = PlatformConfig.CreateCurrencyPolicy("VND");
-        var currencies = new[]
+        if (config is null)
         {
-            PlatformCurrency.CreateCurrency("VND", true, 0),
-            PlatformCurrency.CreateCurrency("USD", false, 1),
-            PlatformCurrency.CreateCurrency("EUR", false, 2)
-        };
+            config = PlatformConfig.CreateCurrencyPolicy("VND");
+            currencies =
+            [
+                PlatformCurrency.CreateCurrency("VND", true, 0),
+                PlatformCurrency.CreateCurrency("USD", false, 1),
+                PlatformCurrency.CreateCurrency("EUR", false, 2)
+            ];
 
-        context.PlatformConfigs.Add(config);
-        context.PlatformCurrencies.AddRange(currencies);
+            context.PlatformConfigs.Add(config);
+            context.PlatformCurrencies.AddRange(currencies);
+            await eventPublisher.PublishPolicyUpdatedAsync(config, currencies, ct);
+            await context.SaveChangesAsync(ct);
+            logger.LogInformation("Seeded platform currency policy.");
+            return;
+        }
+        else
+        {
+            currencies = await context.PlatformCurrencies
+                .OrderBy(x => x.SortOrder)
+                .ToArrayAsync(ct);
+            logger.LogDebug("Platform currency policy already exists. Replaying sync event.");
+        }
 
         await eventPublisher.PublishPolicyUpdatedAsync(config, currencies, ct);
         await context.SaveChangesAsync(ct);
-        logger.LogInformation("Seeded platform currency policy.");
     }
 }

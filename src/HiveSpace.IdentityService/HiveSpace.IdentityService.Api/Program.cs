@@ -5,12 +5,15 @@ var builder = WebApplication.CreateBuilder(args);
 var app = builder.ConfigureServices();
 app.ConfigurePipeline();
 
-if (app.Environment.IsDevelopment())
+if (!app.Environment.IsProduction())
 {
+    var autoMigrate = app.Configuration.GetValue("Database:AutoMigrate", true);
+    var seedSampleData = app.Configuration.GetValue("Seeding:SampleDataEnabled", false);
     var logger = app.Services.GetRequiredService<ILogger<Program>>();
-    logger.LogInformation("Applying IdentityService migrations and seed data");
-    await DataSeeder.EnsureSeedDataAsync(app);
-    logger.LogInformation("IdentityService migrations and seed data are ready");
+    logger.LogInformation("Initializing IdentityService database. AutoMigrate: {AutoMigrate}, SampleDataEnabled: {SampleDataEnabled}",
+        autoMigrate, seedSampleData);
+    await DataSeeder.InitializeAsync(app, autoMigrate, seedSampleData);
+    logger.LogInformation("IdentityService database initialization is ready");
 }
 
 app.Run();

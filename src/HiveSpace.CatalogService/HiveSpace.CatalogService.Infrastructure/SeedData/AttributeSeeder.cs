@@ -9,6 +9,7 @@ namespace HiveSpace.CatalogService.Infrastructure.SeedData;
 internal sealed class AttributeSeeder(CatalogDbContext db, ILogger<AttributeSeeder> logger) : ISeeder
 {
     public int Order => 2;
+    public SeedKind Kind => SeedKind.SampleData;
 
     public async Task SeedAsync(CancellationToken ct = default)
     {
@@ -21,9 +22,9 @@ internal sealed class AttributeSeeder(CatalogDbContext db, ILogger<AttributeSeed
 
         static AttributeType FreeText() => new(AttributeValueType.String, InputType.Textbox);
 
-        var warrantyGroup    = new AttributeDefinition("Bảo hành",            FreeText());
-        var bookSpecsGroup   = new AttributeDefinition("Thông tin sách",      FreeText());
-        var deviceSpecsGroup = new AttributeDefinition("Thông tin thiết bị",  FreeText());
+        var warrantyGroup    = new AttributeDefinition("Báº£o hÃ nh",            FreeText());
+        var bookSpecsGroup   = new AttributeDefinition("ThÃ´ng tin sÃ¡ch",      FreeText());
+        var deviceSpecsGroup = new AttributeDefinition("ThÃ´ng tin thiáº¿t bá»‹",  FreeText());
 
         const int seededCount = 21;
 
@@ -37,32 +38,32 @@ internal sealed class AttributeSeeder(CatalogDbContext db, ILogger<AttributeSeed
 
         var warrantyAttrs = new List<AttributeDefinition>
         {
-            new("Thời gian bảo hành", FreeText(), parentId: warrantyGroup.Id),
-            new("Hình thức bảo hành", FreeText(), parentId: warrantyGroup.Id),
-            new("Nơi bảo hành",       FreeText(), parentId: warrantyGroup.Id),
+            new("Thá»i gian báº£o hÃ nh", FreeText(), parentId: warrantyGroup.Id),
+            new("HÃ¬nh thá»©c báº£o hÃ nh", FreeText(), parentId: warrantyGroup.Id),
+            new("NÆ¡i báº£o hÃ nh",       FreeText(), parentId: warrantyGroup.Id),
         };
 
         var bookAttrs = new List<AttributeDefinition>
         {
-            new("Công ty phát hành", FreeText(), parentId: bookSpecsGroup.Id),
-            new("Loại bìa",          FreeText(), parentId: bookSpecsGroup.Id),
-            new("Số trang",          FreeText(), parentId: bookSpecsGroup.Id),
-            new("Nhà xuất bản",      FreeText(), parentId: bookSpecsGroup.Id),
-            new("Ngày xuất bản",     FreeText(), parentId: bookSpecsGroup.Id),
+            new("CÃ´ng ty phÃ¡t hÃ nh", FreeText(), parentId: bookSpecsGroup.Id),
+            new("Loáº¡i bÃ¬a",          FreeText(), parentId: bookSpecsGroup.Id),
+            new("Sá»‘ trang",          FreeText(), parentId: bookSpecsGroup.Id),
+            new("NhÃ  xuáº¥t báº£n",      FreeText(), parentId: bookSpecsGroup.Id),
+            new("NgÃ y xuáº¥t báº£n",     FreeText(), parentId: bookSpecsGroup.Id),
         };
 
         var deviceAttrs = new List<AttributeDefinition>
         {
-            new("Thương hiệu",         FreeText(), parentId: deviceSpecsGroup.Id),
-            new("Xuất xứ (Made in)",   FreeText(), parentId: deviceSpecsGroup.Id),
-            new("Có thuế VAT",         FreeText(), parentId: deviceSpecsGroup.Id),
-            new("Hệ điều hành",        FreeText(), parentId: deviceSpecsGroup.Id),
-            new("Kích thước màn hình", FreeText(), parentId: deviceSpecsGroup.Id),
-            new("Dung lượng pin",      FreeText(), parentId: deviceSpecsGroup.Id),
-            new("Loại màn hình",       FreeText(), parentId: deviceSpecsGroup.Id),
-            new("Camera trước",        FreeText(), parentId: deviceSpecsGroup.Id),
+            new("ThÆ°Æ¡ng hiá»‡u",         FreeText(), parentId: deviceSpecsGroup.Id),
+            new("Xuáº¥t xá»© (Made in)",   FreeText(), parentId: deviceSpecsGroup.Id),
+            new("CÃ³ thuáº¿ VAT",         FreeText(), parentId: deviceSpecsGroup.Id),
+            new("Há»‡ Ä‘iá»u hÃ nh",        FreeText(), parentId: deviceSpecsGroup.Id),
+            new("KÃ­ch thÆ°á»›c mÃ n hÃ¬nh", FreeText(), parentId: deviceSpecsGroup.Id),
+            new("Dung lÆ°á»£ng pin",      FreeText(), parentId: deviceSpecsGroup.Id),
+            new("Loáº¡i mÃ n hÃ¬nh",       FreeText(), parentId: deviceSpecsGroup.Id),
+            new("Camera trÆ°á»›c",        FreeText(), parentId: deviceSpecsGroup.Id),
             new("Camera sau",          FreeText(), parentId: deviceSpecsGroup.Id),
-            new("Chip xử lý (CPU)",    FreeText(), parentId: deviceSpecsGroup.Id),
+            new("Chip xá»­ lÃ½ (CPU)",    FreeText(), parentId: deviceSpecsGroup.Id),
         };
 
             await db.Attributes.AddRangeAsync([..warrantyAttrs, ..bookAttrs, ..deviceAttrs], ct);

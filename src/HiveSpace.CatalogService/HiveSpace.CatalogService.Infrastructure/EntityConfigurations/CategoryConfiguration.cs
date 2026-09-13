@@ -11,6 +11,8 @@ public class CategoryConfiguration : IEntityTypeConfiguration<Category>
         entity.ToTable("categories");
         entity.HasKey(c => c.Id);
         entity.Property(c => c.Id).ValueGeneratedNever();
+        entity.Property(c => c.Name).HasMaxLength(255);
+        entity.HasIndex(c => new { c.Name, c.ParentId }).IsUnique().HasFilter(null);
         entity.Property(c => c.ImageFileId).HasColumnName("image_file_id").HasMaxLength(100);
         entity.Property(c => c.ImageUrl).HasColumnName("image_url").HasMaxLength(500);
 

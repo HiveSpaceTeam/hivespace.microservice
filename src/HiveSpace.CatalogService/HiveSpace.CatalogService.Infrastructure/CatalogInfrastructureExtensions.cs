@@ -1,10 +1,14 @@
 using HiveSpace.CatalogService.Application.Categories;
+using HiveSpace.CatalogService.Application.CatalogImports.Jobs;
 using HiveSpace.CatalogService.Application.Interfaces.Messaging;
+using HiveSpace.CatalogService.Application.CatalogImports.Ports;
 using HiveSpace.CatalogService.Application.Products;
+using HiveSpace.CatalogService.Domain.CatalogImports;
 using HiveSpace.CatalogService.Domain.Repositories;
 using HiveSpace.CatalogService.Domain.Repositories.External;
 using HiveSpace.CatalogService.Infrastructure.Data;
 using HiveSpace.CatalogService.Infrastructure.DataQueries;
+using HiveSpace.CatalogService.Infrastructure.CatalogImports;
 using HiveSpace.CatalogService.Infrastructure.Messaging.Publishers;
 using HiveSpace.CatalogService.Infrastructure.Repositories;
 using HiveSpace.CatalogService.Infrastructure.Repositories.Externals;
@@ -47,10 +51,13 @@ namespace HiveSpace.CatalogService.Infrastructure
             services.AddScoped<IProductRepository, SqlProductRepository>();
             services.AddScoped<ICategoryRepository, SqlCategoryRepository>();
             services.AddScoped<IAttributeRepository, SqlAttributeRepository>();
+            services.AddScoped<ICatalogImportBundleRepository, SqlCatalogImportBundleRepository>();
+            services.AddScoped<CatalogImportValidator>();
             services.AddScoped<ICategoryDataQuery, CategoryDataQuery>();
             services.AddScoped<IProductDataQuery, ProductDataQuery>();
 
             services.AddScoped<IProductEventPublisher, ProductEventPublisher>();
+            services.AddScoped<ICatalogImportJobLifecyclePublisher, CatalogImportJobLifecyclePublisher>();
 
             services.AddScoped<IStoreRefRepository, StoreRefRepository>();
             services.AddScoped<IPlatformCurrencyPolicyRefRepository, PlatformCurrencyPolicyRefRepository>();
@@ -58,10 +65,30 @@ namespace HiveSpace.CatalogService.Infrastructure
             services.AddScoped<ISeeder, CategorySeeder>();
             services.AddScoped<ISeeder, AttributeSeeder>();
             services.AddScoped<ISeeder, CategoryAttributeSeeder>();
-            services.AddScoped<ISeeder, StoreSeeder>();
             services.AddScoped<ISeeder, BookstoreSeeder>();
             services.AddScoped<ISeeder, HomeLivingSeeder>();
             services.AddScoped<ISeeder, MobileTabletSeeder>();
+
+            services.AddHttpClient<ICatalogImportServiceTokenProvider, CatalogImportServiceTokenProvider>((provider, client) =>
+            {
+                var configuration = provider.GetRequiredService<IConfiguration>();
+                client.BaseAddress = new Uri(configuration["ServiceUrls:IdentityService"] ?? "http://localhost:5001");
+                client.Timeout = TimeSpan.FromSeconds(15);
+            });
+
+            services.AddHttpClient<IImportedSellerAccountClient, ImportedSellerAccountClient>((provider, client) =>
+            {
+                var configuration = provider.GetRequiredService<IConfiguration>();
+                client.BaseAddress = new Uri(configuration["ServiceUrls:IdentityService"] ?? "http://localhost:5001");
+                client.Timeout = TimeSpan.FromSeconds(15);
+            });
+
+            services.AddHttpClient<IImportedSellerStoreClient, ImportedSellerStoreClient>((provider, client) =>
+            {
+                var configuration = provider.GetRequiredService<IConfiguration>();
+                client.BaseAddress = new Uri(configuration["ServiceUrls:UserService"] ?? "http://localhost:5007");
+                client.Timeout = TimeSpan.FromSeconds(15);
+            });
         }
 
     }

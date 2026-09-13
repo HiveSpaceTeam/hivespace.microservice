@@ -11,7 +11,26 @@ public class SqlAttributeRepository(CatalogDbContext context) : IAttributeReposi
         => await context.Attributes.FindAsync(id);
 
     public async Task<List<AttributeDefinition>> GetAllAsync()
-        => await context.Attributes.ToListAsync();
+        => await context.Attributes
+            .Include(x => x.Values)
+            .ToListAsync();
+
+    public async Task<List<AttributeDefinition>> GetByNamesAsync(IReadOnlyCollection<string> names)
+    {
+        var normalizedNames = names
+            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .Select(name => name.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        if (normalizedNames.Count == 0)
+            return [];
+
+        return await context.Attributes
+            .Include(x => x.Values)
+            .Where(x => normalizedNames.Contains(x.Name))
+            .ToListAsync();
+    }
 
     public async Task AddAsync(AttributeDefinition attribute)
         => await context.Attributes.AddAsync(attribute);

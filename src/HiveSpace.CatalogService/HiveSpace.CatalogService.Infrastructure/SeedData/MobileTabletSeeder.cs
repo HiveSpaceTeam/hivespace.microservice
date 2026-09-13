@@ -1,3 +1,4 @@
+using HiveSpace.CatalogService.Application.Interfaces.Messaging;
 using HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate;
 using HiveSpace.Domain.Shared.ValueObjects;
 using HiveSpace.CatalogService.Domain.Enums;
@@ -9,9 +10,13 @@ using Microsoft.Extensions.Logging;
 
 namespace HiveSpace.CatalogService.Infrastructure.SeedData;
 
-internal sealed class MobileTabletSeeder(CatalogDbContext db, ILogger<MobileTabletSeeder> logger) : ISeeder
+internal sealed class MobileTabletSeeder(
+    CatalogDbContext db,
+    IProductEventPublisher productEventPublisher,
+    ILogger<MobileTabletSeeder> logger) : ISeeder
 {
-    public int Order => 6;
+public int Order => 6;
+    public SeedKind Kind => SeedKind.SampleData;
     private const int ProductIdStart = 1021;
     private const int SkuIdStart = 10021;
 
@@ -32,7 +37,12 @@ internal sealed class MobileTabletSeeder(CatalogDbContext db, ILogger<MobileTabl
 
         if (anyExists)
         {
-            logger.LogDebug("Điện Thoại - Máy Tính Bảng products already seeded. Skipping.");
+            logger.LogDebug("Điện Thoại - Máy Tính Bảng products already seeded. Replaying sync events.");
+            await ProductSeedReplayPublisher.ReplayAsync(
+                db,
+                productEventPublisher,
+                Enumerable.Range(ProductIdStart, 9).Select(id => (long)id),
+                ct);
             return;
         }
 
@@ -94,6 +104,11 @@ internal sealed class MobileTabletSeeder(CatalogDbContext db, ILogger<MobileTabl
 
             await tx.CommitAsync(ct);
         });
+        await ProductSeedReplayPublisher.ReplayAsync(
+            db,
+            productEventPublisher,
+            Enumerable.Range(ProductIdStart, products.Count).Select(id => (long)id),
+            ct);
         logger.LogInformation("Seeded {Count} products for Điện Thoại - Máy Tính Bảng.", products.Count);
     }
 
@@ -653,7 +668,7 @@ internal sealed class MobileTabletSeeder(CatalogDbContext db, ILogger<MobileTabl
             description:      description,
             shortDescription: shortDescription,
             status:           ProductStatus.Available,
-            sellerId:         SeedConstants.TikiSellerId,
+            storeId:         SeedConstants.TikiStoreId,
             condition:        ProductCondition.New,
             featured:         false,
             categories:       categories,

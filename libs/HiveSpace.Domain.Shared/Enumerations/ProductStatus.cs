@@ -4,6 +4,7 @@
     {
         Available,
         SoldOut,
+        Draft,
         Unpublish,
         Removed
     }

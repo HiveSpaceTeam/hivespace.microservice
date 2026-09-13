@@ -30,4 +30,17 @@ public class CatalogDomainErrorCode(int id, string name, string code) : DomainEr
     public static readonly CatalogDomainErrorCode InvalidImageUrl  = new(3041, "InvalidImageUrl",  "CAT3041");
     public static readonly CatalogDomainErrorCode PlatformCurrencyPolicyMissing = new(3042, "PlatformCurrencyPolicyMissing", "CAT3042");
     public static readonly CatalogDomainErrorCode PlatformCurrencyDisabled = new(3043, "PlatformCurrencyDisabled", "CAT3043");
+
+    // Catalog imports
+    public static readonly CatalogDomainErrorCode InvalidCatalogImportBundle = new(3050, "InvalidCatalogImportBundle", "CAT3050");
+    public static readonly CatalogDomainErrorCode CatalogImportBundleNotFound = new(3051, "CatalogImportBundleNotFound", "CAT3051");
+    public static readonly CatalogDomainErrorCode InvalidImportedSeller = new(3052, "InvalidImportedSeller", "CAT3052");
+    public static readonly CatalogDomainErrorCode InvalidImportedCategory = new(3053, "InvalidImportedCategory", "CAT3053");
+    public static readonly CatalogDomainErrorCode InvalidImportedProduct = new(3054, "InvalidImportedProduct", "CAT3054");
+    public static readonly CatalogDomainErrorCode InvalidImportedSku = new(3055, "InvalidImportedSku", "CAT3055");
+    public static readonly CatalogDomainErrorCode InvalidImportedAttribute = new(3056, "InvalidImportedAttribute", "CAT3056");
+    public static readonly CatalogDomainErrorCode InvalidImportedImage = new(3057, "InvalidImportedImage", "CAT3057");
+    public static readonly CatalogDomainErrorCode InvalidImportValidationIssue = new(3058, "InvalidImportValidationIssue", "CAT3058");
+    public static readonly CatalogDomainErrorCode InvalidCatalogImportJob = new(3059, "InvalidCatalogImportJob", "CAT3059");
+    public static readonly CatalogDomainErrorCode CatalogImportJobNotFound = new(3060, "CatalogImportJobNotFound", "CAT3060");
 }

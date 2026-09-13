@@ -1,4 +1,5 @@
 using HiveSpace.Core;
+using HiveSpace.Core.Extensions;
 using HiveSpace.Infrastructure.Messaging.Extensions;
 using HiveSpace.UserService.Api.Consumers;
 using HiveSpace.UserService.Api.Endpoints;
@@ -42,7 +43,7 @@ internal static class HostingExtensions
 
         if (messagingOptions?.EnableRabbitMq == true)
         {
-            builder.Services.AddMassTransitWithRabbitMq<UserDbContext>(configuration, cfg =>
+            builder.Services.AddMassTransitWithRabbitMq<UserDbContext>(configuration, "user", cfg =>
             {
                 cfg.AddConsumer<MediaAssetProcessedConsumer>()
                     .Endpoint(e => e.Name = "user-media-asset-processed");
@@ -62,8 +63,6 @@ internal static class HostingExtensions
         
         if (app.Environment.IsDevelopment())
         {
-            app.UseDeveloperExceptionPage();
-            
             app.UseSwagger();
             app.MapScalarApiReference(options => options
                 .WithTitle("HiveSpace UserService API")
@@ -76,11 +75,14 @@ internal static class HostingExtensions
         // Add culture middleware before authentication to ensure language is set correctly
         app.UseMiddleware<CultureMiddleware>();
 
+        app.UseHiveSpaceExceptionHandler();
+
         app.UseAuthentication();
         app.UseAuthorization();
 
         app.MapUserEndpoints();
         app.MapAdminConfigurationEndpoints();
+        app.MapAdminStoreEndpoints();
         app.MapStoreEndpoints();
         app.MapUserAddressEndpoints();
         app.MapDefaultEndpoints();

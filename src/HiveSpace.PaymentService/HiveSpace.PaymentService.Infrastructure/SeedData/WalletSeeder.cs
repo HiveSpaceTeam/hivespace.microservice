@@ -9,7 +9,8 @@ namespace HiveSpace.PaymentService.Infrastructure.SeedData;
 
 internal sealed class WalletSeeder(PaymentDbContext db, ILogger<WalletSeeder> logger) : ISeeder
 {
-    public int Order => 1;
+public int Order => 1;
+    public SeedKind Kind => SeedKind.SampleData;
 
     // Matches seeded user IDs in UserService / OrderService
     private static readonly Guid AliceId = new("11111111-1111-1111-1111-111111111111");

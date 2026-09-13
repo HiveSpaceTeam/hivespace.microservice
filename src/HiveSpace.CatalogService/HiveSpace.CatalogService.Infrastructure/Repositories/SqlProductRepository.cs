@@ -1,5 +1,6 @@
 using HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate;
 using HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.Specifications;
+using HiveSpace.CatalogService.Domain.CatalogImports;
 using HiveSpace.CatalogService.Domain.Repositories;
 using HiveSpace.CatalogService.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -62,10 +63,10 @@ namespace HiveSpace.CatalogService.Infrastructure.Repositories
             return await query.FirstOrDefaultAsync(cancellationToken);
         }
 
-        public async Task<(IReadOnlyList<Product> Items, int Total)> GetPagedAsync(string keyword, int pageIndex, int pageSize, string sort, Guid sellerId, CancellationToken cancellationToken = default)
+        public async Task<(IReadOnlyList<Product> Items, int Total)> GetPagedAsync(string keyword, int pageIndex, int pageSize, string sort, Guid storeId, CancellationToken cancellationToken = default)
         {
             var baseQuery = context.Products
-                .Where(new ProductOwnedBySellerSpecification(sellerId));
+                .Where(new ProductOwnedByStoreSpecification(storeId));
 
             if (!string.IsNullOrWhiteSpace(keyword))
             {
@@ -120,6 +121,17 @@ namespace HiveSpace.CatalogService.Infrastructure.Repositories
 
             var items = await pagedQuery.ToListAsync(cancellationToken);
             return (items, total);
+        }
+
+        public async Task<IReadOnlyList<Product>> FindSimilarByTitleAsync(string title, CancellationToken cancellationToken = default)
+        {
+            var candidates = await context.Products
+                .AsNoTracking()
+                .ToListAsync(cancellationToken);
+
+            return candidates
+                .Where(product => CatalogImportSimilarity.IsSimilarName(product.Name, title))
+                .ToList();
         }
     }
 }

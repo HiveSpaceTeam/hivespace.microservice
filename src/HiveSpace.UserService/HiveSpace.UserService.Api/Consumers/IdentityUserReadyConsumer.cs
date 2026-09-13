@@ -1,5 +1,6 @@
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Infrastructure.Messaging.Shared.Events.Users;
+using HiveSpace.UserService.Application.Interfaces.Messaging;
 using HiveSpace.UserService.Domain.Aggregates.User;
 using HiveSpace.UserService.Domain.Exceptions;
 using HiveSpace.UserService.Infrastructure.Data;
@@ -8,7 +9,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HiveSpace.UserService.Api.Consumers;
 
-public class IdentityUserReadyConsumer(UserDbContext dbContext) : IConsumer<IdentityUserReadyIntegrationEvent>
+public class IdentityUserReadyConsumer(
+    UserDbContext dbContext,
+    IUserEventPublisher userEventPublisher) : IConsumer<IdentityUserReadyIntegrationEvent>
 {
     public async Task Consume(ConsumeContext<IdentityUserReadyIntegrationEvent> context)
     {
@@ -43,6 +46,7 @@ public class IdentityUserReadyConsumer(UserDbContext dbContext) : IConsumer<Iden
                 : new DateTimeOffset(DateTime.SpecifyKind(message.ReadyAt, DateTimeKind.Utc)));
 
         dbContext.Users.Add(profile);
+        await userEventPublisher.PublishUserCreatedAsync(profile, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 }

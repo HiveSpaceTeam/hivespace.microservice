@@ -8,36 +8,37 @@ namespace HiveSpace.CatalogService.Infrastructure.SeedData;
 
 internal sealed class CategorySeeder(CatalogDbContext db, ILogger<CategorySeeder> logger) : ISeeder
 {
-    public int Order => 1;
+public int Order => 1;
+    public SeedKind Kind => SeedKind.SampleData;
 
     private static readonly IReadOnlyList<(string Name, string ImageFileId, string ImageUrl)> CategorySeeds =
     [
-        ("Nhà Sách Tiki",                       "caaa0001-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/ed/20/60/afa9b3b474bf7ad70f10dd6443211d5f.png"),
-        ("Nhà Cửa - Đời Sống",                  "caaa0002-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/f6/22/46/7e2185d2cf1bca72d5aeac385a865b2b.png"),
-        ("Điện Thoại - Máy Tính Bảng",           "caaa0003-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/54/c0/ff/fe98a4afa2d3e5142dc8096addc4e40b.png"),
-        ("Đồ Chơi - Mẹ & Bé",                   "caaa0004-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/13/64/43/226301adcc7660ffcf44a61bb6df99b7.png"),
-        ("Thiết Bị Số - Phụ Kiện Số",            "caaa0005-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/75/34/29/78e428fdd90408587181005f5cc3de32.png"),
-        ("Điện Gia Dụng",                        "caaa0006-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/61/d4/ea/e6ea3ffc1fcde3b6224d2bb691ea16a2.png"),
-        ("Làm Đẹp - Sức Khỏe",                  "caaa0007-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/73/0e/89/bf5095601d17f9971d7a08a1ffe98a42.png"),
-        ("Ô Tô - Xe Máy - Xe Đạp",              "caaa0008-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/69/f5/36/c6cd9e2849854630ed74ff1678db8f19.png"),
-        ("Thời Trang Nữ",                        "caaa0009-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/55/5b/80/48cbaafe144c25d5065786ecace86d38.png"),
-        ("Bách Hóa Online",                      "caaa000a-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/40/0f/9b/62a58fd19f540c70fce804e2a9bb5b2d.png"),
-        ("Thể Thao - Dã Ngoại",                  "caaa000b-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/0b/5e/3d/00941c9eb338ea62a47d5b1e042843d8.png"),
-        ("Thời Trang Nam",                       "caaa000c-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/00/5d/97/78713d34afa9b55826f4dc97c5e431ee.png"),
-        ("Cross Border - Hàng Quốc Tế",          "caaa000d-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/3c/e4/99/eeee1801c838468d94af9997ec2bbe42.png"),
-        ("Laptop - Máy Vi Tính - Linh Kiện",     "caaa000e-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/92/b5/c0/3ffdb7dbfafd5f8330783e1df20747f6.png"),
-        ("Giày - Dép Nam",                       "caaa000f-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/d6/7f/6c/5d53b60efb9448b6a1609c825c29fa40.png"),
-        ("Điện Tử - Điện Lạnh",                  "caaa0010-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/c8/82/d4/64c561c4ced585c74b9c292208e4995a.png"),
-        ("Giày - Dép Nữ",                        "caaa0011-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/cf/ed/e1/5a6b58f21fbcad0d201480c987f8defe.png"),
-        ("Máy Ảnh - Máy Quay Phim",              "caaa0012-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/2d/7c/45/e4976f3fa4061ab310c11d2a1b759e5b.png"),
-        ("Phụ Kiện Thời Trang",                  "caaa0013-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/ca/53/64/49c6189a0e1c1bf7cb91b01ff6d3fe43.png"),
+        ("NhÃ  SÃ¡ch Tiki",                       "caaa0001-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/ed/20/60/afa9b3b474bf7ad70f10dd6443211d5f.png"),
+        ("NhÃ  Cá»­a - Äá»i Sá»‘ng",                  "caaa0002-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/f6/22/46/7e2185d2cf1bca72d5aeac385a865b2b.png"),
+        ("Äiá»‡n Thoáº¡i - MÃ¡y TÃ­nh Báº£ng",           "caaa0003-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/54/c0/ff/fe98a4afa2d3e5142dc8096addc4e40b.png"),
+        ("Äá»“ ChÆ¡i - Máº¹ & BÃ©",                   "caaa0004-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/13/64/43/226301adcc7660ffcf44a61bb6df99b7.png"),
+        ("Thiáº¿t Bá»‹ Sá»‘ - Phá»¥ Kiá»‡n Sá»‘",            "caaa0005-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/75/34/29/78e428fdd90408587181005f5cc3de32.png"),
+        ("Äiá»‡n Gia Dá»¥ng",                        "caaa0006-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/61/d4/ea/e6ea3ffc1fcde3b6224d2bb691ea16a2.png"),
+        ("LÃ m Äáº¹p - Sá»©c Khá»e",                  "caaa0007-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/73/0e/89/bf5095601d17f9971d7a08a1ffe98a42.png"),
+        ("Ã” TÃ´ - Xe MÃ¡y - Xe Äáº¡p",              "caaa0008-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/69/f5/36/c6cd9e2849854630ed74ff1678db8f19.png"),
+        ("Thá»i Trang Ná»¯",                        "caaa0009-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/55/5b/80/48cbaafe144c25d5065786ecace86d38.png"),
+        ("BÃ¡ch HÃ³a Online",                      "caaa000a-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/40/0f/9b/62a58fd19f540c70fce804e2a9bb5b2d.png"),
+        ("Thá»ƒ Thao - DÃ£ Ngoáº¡i",                  "caaa000b-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/0b/5e/3d/00941c9eb338ea62a47d5b1e042843d8.png"),
+        ("Thá»i Trang Nam",                       "caaa000c-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/00/5d/97/78713d34afa9b55826f4dc97c5e431ee.png"),
+        ("Cross Border - HÃ ng Quá»‘c Táº¿",          "caaa000d-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/3c/e4/99/eeee1801c838468d94af9997ec2bbe42.png"),
+        ("Laptop - MÃ¡y Vi TÃ­nh - Linh Kiá»‡n",     "caaa000e-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/92/b5/c0/3ffdb7dbfafd5f8330783e1df20747f6.png"),
+        ("GiÃ y - DÃ©p Nam",                       "caaa000f-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/d6/7f/6c/5d53b60efb9448b6a1609c825c29fa40.png"),
+        ("Äiá»‡n Tá»­ - Äiá»‡n Láº¡nh",                  "caaa0010-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/c8/82/d4/64c561c4ced585c74b9c292208e4995a.png"),
+        ("GiÃ y - DÃ©p Ná»¯",                        "caaa0011-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/cf/ed/e1/5a6b58f21fbcad0d201480c987f8defe.png"),
+        ("MÃ¡y áº¢nh - MÃ¡y Quay Phim",              "caaa0012-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/2d/7c/45/e4976f3fa4061ab310c11d2a1b759e5b.png"),
+        ("Phá»¥ Kiá»‡n Thá»i Trang",                  "caaa0013-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/ca/53/64/49c6189a0e1c1bf7cb91b01ff6d3fe43.png"),
         ("NGON",                                  "caaa0014-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/1e/8c/08/d8b02f8a0d958c74539316e8cd437cbd.png"),
-        ("Đồng Hồ và Trang Sức",                 "caaa0015-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/8b/d4/a8/5924758b5c36f3b1c43b6843f52d6dd2.png"),
-        ("Balo và Vali",                          "caaa0016-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/3e/c0/30/1110651bd36a3e0d9b962cf135c818ee.png"),
-        ("Voucher - Dịch Vụ",                    "caaa0017-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/0a/c9/7b/8e466bdf6d4a5f5e14665ce56e58631d.png"),
-        ("Túi Thời Trang Nữ",                    "caaa0018-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/31/a7/94/6524d2ecbec216816d91b6066452e3f2.png"),
-        ("Túi Thời Trang Nam",                   "caaa0019-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/9b/31/af/669e6a133118e5439d6c175e27c1f963.png"),
-        ("Chăm Sóc Nhà Cửa",                     "caaa001a-0000-0000-0000-000000000000", "https://salt.tikicdn.com/cache/280x280/ts/product/62/d5/9d/6be83773e4836bcbcdaf99a1750b2a28.png"),
+        ("Äá»“ng Há»“ vÃ  Trang Sá»©c",                 "caaa0015-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/8b/d4/a8/5924758b5c36f3b1c43b6843f52d6dd2.png"),
+        ("Balo vÃ  Vali",                          "caaa0016-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/3e/c0/30/1110651bd36a3e0d9b962cf135c818ee.png"),
+        ("Voucher - Dá»‹ch Vá»¥",                    "caaa0017-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/0a/c9/7b/8e466bdf6d4a5f5e14665ce56e58631d.png"),
+        ("TÃºi Thá»i Trang Ná»¯",                    "caaa0018-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/31/a7/94/6524d2ecbec216816d91b6066452e3f2.png"),
+        ("TÃºi Thá»i Trang Nam",                   "caaa0019-0000-0000-0000-000000000000", "https://salt.tikicdn.com/ts/category/9b/31/af/669e6a133118e5439d6c175e27c1f963.png"),
+        ("ChÄƒm SÃ³c NhÃ  Cá»­a",                     "caaa001a-0000-0000-0000-000000000000", "https://salt.tikicdn.com/cache/280x280/ts/product/62/d5/9d/6be83773e4836bcbcdaf99a1750b2a28.png"),
     ];
 
     public async Task SeedAsync(CancellationToken ct = default)

@@ -1,6 +1,7 @@
 using HiveSpace.Application.Shared.Handlers;
 using HiveSpace.Core.Contexts;
 using HiveSpace.Domain.Shared.Exceptions;
+using HiveSpace.UserService.Application.Interfaces.Messaging;
 using HiveSpace.UserService.Application.Users.Dtos;
 using HiveSpace.UserService.Domain.Aggregates.User;
 using HiveSpace.UserService.Domain.Exceptions;
@@ -10,7 +11,8 @@ namespace HiveSpace.UserService.Application.Users.Commands.UpdateUserProfile;
 
 public class UpdateUserProfileCommandHandler(
     IUserContext userContext,
-    IUserRepository userRepository)
+    IUserRepository userRepository,
+    IUserEventPublisher userEventPublisher)
     : ICommandHandler<UpdateUserProfileCommand>
 {
     public async Task Handle(UpdateUserProfileCommand request, CancellationToken cancellationToken)
@@ -38,6 +40,7 @@ public class UpdateUserProfileCommandHandler(
         if (payload.AvatarFileId != null)
             user.SetAvatar(payload.AvatarFileId);
 
+        await userEventPublisher.PublishUserUpdatedAsync(user, cancellationToken);
         await userRepository.SaveChangesAsync(cancellationToken);
     }
 }

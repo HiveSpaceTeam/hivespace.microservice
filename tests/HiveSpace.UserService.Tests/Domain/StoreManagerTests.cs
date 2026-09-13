@@ -115,6 +115,9 @@ public class StoreManagerTests
         public Task<bool> StoreNameExistsAsync(string storeName, CancellationToken cancellationToken = default)
             => Task.FromResult(nameExists);
 
+        public Task<IReadOnlyList<Store>> ListStoreNameCandidatesAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult<IReadOnlyList<Store>>([]);
+
         public IQueryable<Store> GetQueryable() => throw new NotImplementedException();
         public Task<List<Store>> GetListAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<Store>());
         public Task<List<Store>> GetListAsync(Specification<Store> specification, CancellationToken cancellationToken = default) => Task.FromResult(new List<Store>());

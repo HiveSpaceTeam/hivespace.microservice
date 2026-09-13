@@ -32,15 +32,16 @@ public class ProductDataQuery(CatalogDbContext dbContext) : IProductDataQuery
             .ToDictionaryAsync(ad => ad.Id, cancellationToken);
 
         var currentSeller = await dbContext.StoreRef
-            .Where(s => s.OwnerId == product.SellerId)
+            .Where(s => s.Id == product.StoreId)
             .FirstOrDefaultAsync(cancellationToken);
 
         return new ProductDetailDto
         {
             Id           = product.Id,
-            SellerId     = product.SellerId,
+            StoreId      = product.StoreId,
             Name         = product.Name,
             Description  = product.Description,
+            ShortDescription = product.ShortDescription,
             ThumbnailUrl = product.ThumbnailUrl,
             Categories   = product.Categories.ToList(),
             Images       = product.Images.Select(i => new ProductImageDto(i.FileId, i.ImageUrl)).ToList(),

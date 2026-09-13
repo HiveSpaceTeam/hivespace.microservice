@@ -10,7 +10,8 @@ internal sealed class UserPreferenceSeeder(
     NotificationDbContext         db,
     ILogger<UserPreferenceSeeder> logger) : ISeeder
 {
-    public int Order => 3;
+public int Order => 3;
+    public SeedKind Kind => SeedKind.BootstrapData;
 
     private static readonly Guid[] SellerIds =
     [

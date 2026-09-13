@@ -44,7 +44,7 @@ public class CreateProductCommandHandler(
             description:      payload.Description,
             shortDescription: null,
             status:           ProductStatus.Available,
-            sellerId:         userContext.StoreId ?? Guid.Empty,
+            storeId:          userContext.StoreId ?? Guid.Empty,
             condition:        ProductCondition.New,
             featured:         false,
             categories:       ProductFactory.CreateProductCategories(payload.Category),

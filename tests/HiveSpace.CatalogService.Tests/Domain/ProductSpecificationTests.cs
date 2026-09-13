@@ -9,9 +9,9 @@ namespace HiveSpace.CatalogService.Tests.Domain;
 
 public class ProductSpecificationTests
 {
-    private static Product NewProduct(ProductStatus status, Guid? sellerId = null) =>
+    private static Product NewProduct(ProductStatus status, Guid? storeId = null) =>
         Product.CreateProduct("Spec Test", "spec-slug", "Desc", "Short",
-            status, sellerId ?? Guid.NewGuid(), ProductCondition.New, false,
+            status, storeId ?? Guid.NewGuid(), ProductCondition.New, false,
             [], [], [], [], [], DateTimeOffset.UtcNow, "creator");
 
     [Fact]
@@ -33,20 +33,20 @@ public class ProductSpecificationTests
     }
 
     [Fact]
-    public void ProductOwnedBySellerSpecification_MatchingSellerId_ReturnsTrue()
+    public void ProductOwnedByStoreSpecification_MatchingStoreId_ReturnsTrue()
     {
-        var sellerId = Guid.NewGuid();
-        var product = NewProduct(ProductStatus.Available, sellerId);
-        var spec = new ProductOwnedBySellerSpecification(sellerId);
+        var storeId = Guid.NewGuid();
+        var product = NewProduct(ProductStatus.Available, storeId);
+        var spec = new ProductOwnedByStoreSpecification(storeId);
         var predicate = spec.ToExpression().Compile();
         predicate(product).Should().BeTrue();
     }
 
     [Fact]
-    public void ProductOwnedBySellerSpecification_DifferentSellerId_ReturnsFalse()
+    public void ProductOwnedByStoreSpecification_DifferentStoreId_ReturnsFalse()
     {
         var product = NewProduct(ProductStatus.Available, Guid.NewGuid());
-        var spec = new ProductOwnedBySellerSpecification(Guid.NewGuid());
+        var spec = new ProductOwnedByStoreSpecification(Guid.NewGuid());
         var predicate = spec.ToExpression().Compile();
         predicate(product).Should().BeFalse();
     }

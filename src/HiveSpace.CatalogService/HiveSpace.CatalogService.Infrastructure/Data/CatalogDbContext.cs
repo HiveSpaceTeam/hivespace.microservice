@@ -2,6 +2,7 @@ using HiveSpace.CatalogService.Domain.Aggregates.AttributeAggregate;
 using HiveSpace.CatalogService.Domain.Aggregates.CategoryAggregate;
 using HiveSpace.CatalogService.Domain.Aggregates.External;
 using HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate;
+using HiveSpace.CatalogService.Domain.CatalogImports;
 using HiveSpace.CatalogService.Infrastructure.EntityConfigurations;
 using HiveSpace.Infrastructure.Messaging.Extensions;
 using HiveSpace.Infrastructure.Persistence;
@@ -21,6 +22,10 @@ namespace HiveSpace.CatalogService.Infrastructure.Data
         public DbSet<Sku> Skus { get; set; }
         public DbSet<ProductAttribute> ProductAttributes { get; set; }
         public DbSet<AttributeValue> AttributeValues { get; set; }
+        public DbSet<CatalogImportBundle> CatalogImportBundles { get; set; }
+        public DbSet<CatalogImportJob> CatalogImportJobs { get; set; }
+        public DbSet<ExternalCategoryLink> ExternalCategoryLinks { get; set; }
+        public DbSet<ExternalCategoryAttributeLink> ExternalCategoryAttributeLinks { get; set; }
 
         #endregion
 
@@ -41,6 +46,19 @@ namespace HiveSpace.CatalogService.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new SkuConfiguration());
             modelBuilder.ApplyConfiguration(new ProductVariantConfiguration());
             modelBuilder.ApplyConfiguration(new AttributeValueConfiguration());
+            modelBuilder.ApplyConfiguration(new CatalogImportBundleConfiguration());
+            modelBuilder.ApplyConfiguration(new CatalogImportJobConfiguration());
+            modelBuilder.ApplyConfiguration(new ExternalCategoryLinkConfiguration());
+            modelBuilder.ApplyConfiguration(new ExternalCategoryAttributeLinkConfiguration());
+            modelBuilder.ApplyConfiguration(new ImportedSellerConfiguration());
+            modelBuilder.ApplyConfiguration(new ImportedCategoryMappingConfiguration());
+            modelBuilder.ApplyConfiguration(new ImportedProductConfiguration());
+            modelBuilder.ApplyConfiguration(new ImportedSkuConfiguration());
+            modelBuilder.ApplyConfiguration(new ImportedAttributeConfiguration());
+            modelBuilder.ApplyConfiguration(new ImportedImageReferenceConfiguration());
+            modelBuilder.ApplyConfiguration(new ImportValidationIssueConfiguration());
+            modelBuilder.ApplyConfiguration(new ImportDuplicateGroupConfiguration());
+            modelBuilder.ApplyConfiguration(new SellerOwnershipLinkConfiguration());
 
             modelBuilder.ApplyConfiguration(new StoreRefValueConfiguration());
             modelBuilder.ApplyConfiguration(new PlatformCurrencyPolicyRefConfiguration());

@@ -12,7 +12,7 @@ namespace HiveSpace.CatalogService.Domain.Repositories
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
         Task<(IReadOnlyList<Product> Items, int Total)> GetPagedAsync(string keyword, int pageIndex, int pageSize, string sort, Guid sellerId, CancellationToken cancellationToken = default);
         Task<(IReadOnlyList<Product> Items, int Total)> GetSummariesPagedAsync(string keyword, int pageIndex, int pageSize, string sort, CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<Product>> FindSimilarByTitleAsync(string title, CancellationToken cancellationToken = default);
     }
 }
-
 

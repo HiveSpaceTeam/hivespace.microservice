@@ -39,6 +39,11 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.CategoryAggregate
             ImageUrl = url;
         }
 
+        public void SetImageFileId(string fileId)
+        {
+            ImageFileId = fileId;
+        }
+
         public void AddAttribute(int attributeId)
         {
             var categoryAttribute = new CategoryAttribute(attributeId, Id);

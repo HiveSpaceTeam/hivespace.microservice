@@ -11,7 +11,8 @@ internal sealed class NotificationTemplateSeeder(
     NotificationDbContext           db,
     ILogger<NotificationTemplateSeeder> logger) : ISeeder
 {
-    public int Order => 1;
+public int Order => 1;
+    public SeedKind Kind => SeedKind.BootstrapData;
 
     private static readonly (string EventType, NotificationChannel Channel, Culture Locale, string Subject, string Body)[] Seeds =
     [

@@ -8,6 +8,7 @@ namespace HiveSpace.CatalogService.Infrastructure.SeedData;
 internal sealed class CategoryAttributeSeeder(CatalogDbContext db, ILogger<CategoryAttributeSeeder> logger) : ISeeder
 {
     public int Order => 3;
+    public SeedKind Kind => SeedKind.SampleData;
 
     private static readonly IReadOnlyDictionary<string, string[]> CategoryAttributeSeeds =
         new Dictionary<string, string[]>
@@ -45,19 +46,55 @@ internal sealed class CategoryAttributeSeeder(CatalogDbContext db, ILogger<Categ
 
     public async Task SeedAsync(CancellationToken ct = default)
     {
-        var categories = await db.Categories
+        var categoryRows = await db.Categories
             .Include(c => c.CategoryAttributes)
             .Where(c => CategoryAttributeSeeds.Keys.Contains(c.Name))
-            .ToDictionaryAsync(c => c.Name, ct);
+            .OrderBy(c => c.Id)
+            .ToListAsync(ct);
+
+        var duplicateCategoryNames = categoryRows
+            .GroupBy(c => c.Name)
+            .Where(g => g.Count() > 1)
+            .ToList();
+
+        foreach (var duplicateCategory in duplicateCategoryNames)
+        {
+            logger.LogWarning(
+                "Found {Count} category rows named '{CategoryName}' while seeding category attributes. Using the lowest category id.",
+                duplicateCategory.Count(),
+                duplicateCategory.Key);
+        }
+
+        var categories = categoryRows
+            .GroupBy(c => c.Name)
+            .ToDictionary(g => g.Key, g => g.First());
 
         var attributeNames = CategoryAttributeSeeds.Values
             .SelectMany(names => names)
             .Distinct()
             .ToList();
 
-        var attributes = await db.Attributes
+        var attributeRows = await db.Attributes
             .Where(a => a.ParentId != null && attributeNames.Contains(a.Name))
-            .ToDictionaryAsync(a => a.Name, a => a.Id, ct);
+            .OrderBy(a => a.Id)
+            .ToListAsync(ct);
+
+        var duplicateAttributeNames = attributeRows
+            .GroupBy(a => a.Name)
+            .Where(g => g.Count() > 1)
+            .ToList();
+
+        foreach (var duplicateAttribute in duplicateAttributeNames)
+        {
+            logger.LogWarning(
+                "Found {Count} attribute rows named '{AttributeName}' while seeding category attributes. Using the lowest attribute id.",
+                duplicateAttribute.Count(),
+                duplicateAttribute.Key);
+        }
+
+        var attributes = attributeRows
+            .GroupBy(a => a.Name)
+            .ToDictionary(g => g.Key, g => g.First().Id);
 
         var addedCount = 0;
 

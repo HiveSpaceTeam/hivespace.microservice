@@ -213,7 +213,7 @@ internal static class ServiceCollectionExtensions
         if (messagingOptions?.EnableRabbitMq != true)
             return services;
 
-        services.AddMassTransitWithRabbitMq<IdentityDbContext>(configuration, cfg =>
+        services.AddMassTransitWithRabbitMq<IdentityDbContext>(configuration, "identity", cfg =>
         {
             cfg.AddConsumer<StoreCreatedConsumer>()
                 .Endpoint(e => e.Name = "identity-store-created");

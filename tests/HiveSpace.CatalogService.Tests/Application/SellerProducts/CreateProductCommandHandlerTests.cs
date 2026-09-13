@@ -43,7 +43,7 @@ public class CreateProductCommandHandlerTests : IClassFixture<CatalogServiceFixt
         var stored = await _fixture.DbContext.Products.FirstOrDefaultAsync(p => p.Id == productId);
         stored.Should().NotBeNull();
         stored!.Name.Should().Be("New Phone");
-        stored.SellerId.Should().Be(sellerId);
+        stored.StoreId.Should().Be(sellerId);
     }
 
     [Fact]
@@ -71,8 +71,8 @@ public class CreateProductCommandHandlerTests : IClassFixture<CatalogServiceFixt
 
         var productA = await _fixture.DbContext.Products.FindAsync(idA);
         var productB = await _fixture.DbContext.Products.FindAsync(idB);
-        productA!.SellerId.Should().Be(sellerA);
-        productB!.SellerId.Should().Be(sellerB);
+        productA!.StoreId.Should().Be(sellerA);
+        productB!.StoreId.Should().Be(sellerB);
     }
 
     [Fact]
@@ -151,7 +151,7 @@ public class CreateProductCommandHandlerTests : IClassFixture<CatalogServiceFixt
 
         var stored = await _fixture.DbContext.Products.FindAsync(productId);
         stored.Should().NotBeNull();
-        stored!.SellerId.Should().Be(Guid.Empty);
+        stored!.StoreId.Should().Be(Guid.Empty);
     }
 
     [Fact]
