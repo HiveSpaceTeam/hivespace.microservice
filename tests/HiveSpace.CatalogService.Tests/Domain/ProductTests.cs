@@ -24,7 +24,7 @@ public class ProductTests
             [], [], [], [], [], DateTimeOffset.UtcNow, "creator");
         product.Name.Should().Be("Widget");
         product.Status.Should().Be(ProductStatus.Available);
-        product.SellerId.Should().Be(sellerId);
+        product.StoreId.Should().Be(sellerId);
     }
 
     [Fact]

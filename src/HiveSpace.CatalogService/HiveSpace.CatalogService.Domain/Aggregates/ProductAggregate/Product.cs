@@ -13,7 +13,7 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
     public class Product : AggregateRoot<int>, IAuditable
     {
         #region Properties
-        public Guid SellerId { get; private set; }
+        public Guid StoreId { get; private set; }
         public string Name { get; private set; }
         public string Slug { get; private set; }
         public string Description { get; private set; }
@@ -74,7 +74,7 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
             string description,
             string? shortDescription,
             ProductStatus status,
-            Guid sellerId,
+            Guid storeId,
             ProductCondition condition,
             bool featured,
             List<ProductCategory> categories,
@@ -94,7 +94,7 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate
                 Description      = description,
                 ShortDescription = shortDescription,
                 Status           = status,
-                SellerId         = sellerId,
+                StoreId          = storeId,
                 Condition        = condition,
                 Featured         = featured,
                 CreatedAt        = createdAt,

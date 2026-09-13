@@ -16,7 +16,11 @@ public static partial class DataSeeder
     public static readonly Guid SysAdminId = new Guid("33333333-3333-3333-3333-333333333333");
     public static readonly Guid AdminId = new Guid("44444444-4444-4444-4444-444444444444");
 
-    public static async Task EnsureSeedDataAsync(WebApplication app, CancellationToken ct = default)
+    public static async Task InitializeAsync(
+        WebApplication app,
+        bool autoMigrate,
+        bool seedSampleData,
+        CancellationToken ct = default)
     {
         await using var scope = app.Services.CreateAsyncScope();
         var context = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
@@ -24,16 +28,30 @@ public static partial class DataSeeder
         var roleMgr = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
         var logger  = scope.ServiceProvider.GetRequiredService<ILogger<IdentityDbContext>>();
 
-        var pending = (await context.Database.GetPendingMigrationsAsync(ct)).ToList();
-        if (pending.Count > 0)
+        if (autoMigrate)
         {
-            logger.LogInformation("Applying {Count} pending migration(s): {Migrations}",
-                pending.Count, string.Join(", ", pending));
-            await context.Database.MigrateAsync(ct);
-            logger.LogInformation("Migrations applied successfully.");
+            var pending = (await context.Database.GetPendingMigrationsAsync(ct)).ToList();
+            if (pending.Count > 0)
+            {
+                logger.LogInformation("Applying {Count} pending migration(s): {Migrations}",
+                    pending.Count, string.Join(", ", pending));
+                await context.Database.MigrateAsync(ct);
+                logger.LogInformation("Migrations applied successfully.");
+            }
+        }
+        else
+        {
+            logger.LogInformation("Automatic migration disabled for IdentityService.");
         }
 
         await SeedRolesAsync(roleMgr, logger, ct);
+
+        if (!seedSampleData)
+        {
+            logger.LogInformation("Sample data seeding disabled for IdentityService.");
+            return;
+        }
+
         await SeedUsersAsync(userMgr, logger, ct);
     }
 }

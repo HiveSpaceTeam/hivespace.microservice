@@ -119,7 +119,7 @@ internal static class ServiceCollectionExtensions
         var messagingOptions = configuration.GetSection(MessagingOptions.SectionName).Get<MessagingOptions>();
         if (messagingOptions?.EnableRabbitMq != true) return;
 
-        services.AddMassTransitWithRabbitMq<NotificationDbContext>(configuration, cfg =>
+        services.AddMassTransitWithRabbitMq<NotificationDbContext>(configuration, "notification", cfg =>
         {
             cfg.AddConsumer<NotifySellerNewOrderConsumer>();
             cfg.AddConsumer<NotifyBuyerOrderConfirmedConsumer>();

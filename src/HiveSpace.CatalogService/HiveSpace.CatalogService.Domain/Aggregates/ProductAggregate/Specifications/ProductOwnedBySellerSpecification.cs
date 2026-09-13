@@ -3,8 +3,8 @@ using HiveSpace.Domain.Shared.Specifications;
 
 namespace HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate.Specifications;
 
-public class ProductOwnedBySellerSpecification(Guid sellerId) : Specification<Product>
+public class ProductOwnedByStoreSpecification(Guid storeId) : Specification<Product>
 {
     public override Expression<Func<Product, bool>> ToExpression()
-        => product => product.SellerId == sellerId;
+        => product => product.StoreId == storeId;
 }

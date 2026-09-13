@@ -187,7 +187,7 @@ public static partial class DataSeeder
                 StoreId          = new Guid("b2c3d4e5-f6a7-8901-bcde-f12345678901"),
                 Username         = "tiki",
                 Email            = "tiki@gmail.com",
-                FullName         = "Tiki Trading",
+                FullName         = "HiveSpace Store",
                 Phone            = "+84901000001",
                 Password         = "TikiTrading123$",
                 GivenName        = "Tiki",

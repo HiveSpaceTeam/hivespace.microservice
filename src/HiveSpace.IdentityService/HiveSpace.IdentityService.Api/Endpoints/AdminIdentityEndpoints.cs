@@ -1,11 +1,13 @@
 using HiveSpace.Core.Contexts;
 using HiveSpace.IdentityService.Core.Features.AdminIdentity.Commands.CreateAdmin;
 using HiveSpace.IdentityService.Core.Features.AdminIdentity.Commands.DeleteUser;
+using HiveSpace.IdentityService.Core.Features.AdminIdentity.Commands.ProvisionImportedSellerAccount;
 using HiveSpace.IdentityService.Core.Features.AdminIdentity.Commands.SetUserStatus;
 using HiveSpace.IdentityService.Core.Features.AdminIdentity.Queries.GetAdmins;
 using HiveSpace.IdentityService.Core.Features.AdminIdentity.Queries.GetUsers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using HiveSpace.Infrastructure.Authorization;
 
 namespace HiveSpace.IdentityService.Api.Endpoints;
 
@@ -94,6 +96,25 @@ internal static class AdminIdentityEndpoints
         .WithSummary("Delete identity user")
         .WithDescription("Deactivates an identity-owned user account.");
 
+        app.MapPost("/api/v1/admins/imported-seller-accounts", async (
+            ProvisionImportedSellerAccountRequest request,
+            ISender sender,
+            CancellationToken ct) =>
+        {
+            var result = await sender.Send(new ProvisionImportedSellerAccountCommand(
+                request.SourceSystem,
+                request.ExternalSellerId,
+                request.DisplayName,
+                request.SourceUrl), ct);
+
+            return Results.Ok(result);
+        })
+        .RequireAuthorization(HiveSpaceAuthorizeAttribute.CatalogImportProvisioning.Policy)
+        .WithName("ProvisionImportedSellerAccount")
+        .WithTags("Admin Identity")
+        .WithSummary("Provision imported seller account")
+        .WithDescription("Creates or matches an identity-owned seller account for a catalog import seller without issuing browser session state.");
+
         return app;
     }
 }
@@ -106,3 +127,9 @@ internal record CreateAdminRequest(
     bool IsSystemAdmin = false);
 
 internal record SetUserStatusRequest(Guid UserId, bool IsActive, int ResponseType);
+
+internal record ProvisionImportedSellerAccountRequest(
+    string SourceSystem,
+    string ExternalSellerId,
+    string DisplayName,
+    string? SourceUrl);

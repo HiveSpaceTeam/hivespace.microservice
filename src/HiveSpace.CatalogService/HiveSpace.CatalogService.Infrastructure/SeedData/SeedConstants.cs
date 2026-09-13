@@ -2,7 +2,7 @@ namespace HiveSpace.CatalogService.Infrastructure.SeedData;
 
 internal static class SeedConstants
 {
-    internal static readonly Guid TikiSellerId       = new("a1b2c3d4-e5f6-7890-abcd-ef1234567890");
-    internal static readonly Guid GiverSellerId      = new("c3d4e5f6-a7b8-9012-cdef-012345678901");
-    internal static readonly Guid PhuongDongSellerId = new("d4e5f6a7-b8c9-0123-def0-123456789012");
+    internal static readonly Guid TikiStoreId       = new("b2c3d4e5-f6a7-8901-bcde-f12345678901");
+    internal static readonly Guid GiverStoreId      = new("e5f6a7b8-c9d0-1234-ef01-234567890123");
+    internal static readonly Guid PhuongDongStoreId = new("f6a7b8c9-d0e1-2345-f012-345678901234");
 }

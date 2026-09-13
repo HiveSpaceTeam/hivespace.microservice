@@ -50,4 +50,22 @@ public class StoreSyncConsumerTests
 
         await _userRefs.Received(1).UpsertAsync(Arg.Is<UserRef>(u => u.StoreId == storeId), Arg.Any<CancellationToken>());
     }
+
+    [Fact]
+    public async Task Consume_WhenStoreUpdated_UpdatesStoreAndUpserts()
+    {
+        var ownerId = Guid.NewGuid();
+        var storeId = Guid.NewGuid();
+        var userRef = UserRef.Create(ownerId, "owner@example.com", "Owner");
+        var msg = new StoreUpdatedIntegrationEvent(storeId, ownerId, "Shop B", null, "logo.jpg", null, "123 St");
+        var ctx = Substitute.For<ConsumeContext<StoreUpdatedIntegrationEvent>>();
+        ctx.Message.Returns(msg);
+        ctx.CancellationToken.Returns(CancellationToken.None);
+        _userRefs.GetByIdAsync(ownerId, Arg.Any<CancellationToken>()).Returns(userRef);
+
+        await _consumer.Consume(ctx);
+
+        await _userRefs.Received(1).UpsertAsync(Arg.Is<UserRef>(u => u.StoreId == storeId && u.StoreName == "Shop B"), Arg.Any<CancellationToken>());
+    }
+
 }

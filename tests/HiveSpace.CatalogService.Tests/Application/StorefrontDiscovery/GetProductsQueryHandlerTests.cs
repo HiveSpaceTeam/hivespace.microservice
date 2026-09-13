@@ -35,7 +35,7 @@ public class GetProductsQueryHandlerTests : IClassFixture<CatalogServiceFixture>
             CancellationToken.None);
 
         result.Items.Should().HaveCountGreaterThanOrEqualTo(2);
-        result.Items.Should().OnlyContain(p => p.SellerId == sellerId);
+        result.Items.Should().OnlyContain(p => p.StoreId == sellerId);
     }
 
     [Fact]
@@ -56,7 +56,7 @@ public class GetProductsQueryHandlerTests : IClassFixture<CatalogServiceFixture>
             new GetProductsQuery(new ProductSearchRequestDto(Page: 1, PageSize: 10)),
             CancellationToken.None);
 
-        result.Items.Should().NotContain(p => p.SellerId == otherSellerId);
+        result.Items.Should().NotContain(p => p.StoreId == otherSellerId);
     }
 
     [Fact]

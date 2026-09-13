@@ -7,4 +7,5 @@ public interface IStoreRepository : IRepository<Store>
 {
     Task<Store?> GetByOwnerIdAsync(Guid ownerId, CancellationToken cancellationToken = default);
     Task<bool> StoreNameExistsAsync(string storeName, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Store>> ListStoreNameCandidatesAsync(CancellationToken cancellationToken = default);
 }

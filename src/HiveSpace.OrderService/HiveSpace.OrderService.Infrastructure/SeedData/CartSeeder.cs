@@ -8,7 +8,8 @@ namespace HiveSpace.OrderService.Infrastructure.SeedData;
 
 internal sealed class CartSeeder(OrderDbContext db, ILogger<CartSeeder> logger) : ISeeder
 {
-    public int Order => 4;
+public int Order => 4;
+    public SeedKind Kind => SeedKind.SampleData;
 
     private static readonly Guid AliceId     = new Guid("11111111-1111-1111-1111-111111111111");
     private static readonly Guid BobId       = new Guid("22222222-2222-2222-2222-222222222222");

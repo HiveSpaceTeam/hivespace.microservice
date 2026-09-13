@@ -16,7 +16,8 @@ namespace HiveSpace.OrderService.Infrastructure.SeedData;
 
 internal sealed class OrderSeeder(OrderDbContext db, ILogger<OrderSeeder> logger) : ISeeder
 {
-    public int Order => 5; // After CartSeeder
+public int Order => 5; // After CartSeeder
+    public SeedKind Kind => SeedKind.SampleData;
 
     private static readonly Guid AliceId = new("11111111-1111-1111-1111-111111111111");
     private static readonly Guid BobId   = new("22222222-2222-2222-2222-222222222222");
@@ -55,6 +56,15 @@ internal sealed class OrderSeeder(OrderDbContext db, ILogger<OrderSeeder> logger
             [PDStoreId] = "PDESONG01",
         };
 
+    private static readonly (long ProductId, long SkuId)[] RequiredProductSkus =
+    [
+        (1001, 10001), (1002, 10002), (1003, 10003), (1004, 10004),
+        (1005, 10005), (1006, 10006), (1007, 10007), (1008, 10008),
+        (1009, 10009), (1010, 10010), (1011, 10011), (1012, 10012),
+        (1013, 10013), (1014, 10014), (1016, 10016), (1017, 10017),
+        (1018, 10018), (1019, 10019),
+    ];
+
     public async Task SeedAsync(CancellationToken ct = default)
     {
         var strategy = db.Database.CreateExecutionStrategy();
@@ -68,9 +78,18 @@ internal sealed class OrderSeeder(OrderDbContext db, ILogger<OrderSeeder> logger
                 .Where(c => OngoingCouponCodesByStore.Values.Contains(c.Code))
                 .ToDictionaryAsync(c => c.Code, ct);
 
-            if (productRefs.Count == 0 || skuRefs.Count == 0)
+            var unavailablePairs = RequiredProductSkus
+                .Where(pair => !productRefs.ContainsKey(pair.ProductId)
+                    || !skuRefs.TryGetValue(pair.SkuId, out var sku)
+                    || sku.ProductId != pair.ProductId)
+                .Select(pair => $"{pair.ProductId}/{pair.SkuId}")
+                .ToArray();
+
+            if (unavailablePairs.Length > 0)
             {
-                logger.LogWarning("No ProductRefs or SkuRefs found. Skipping order seeding.");
+                logger.LogWarning(
+                    "Skipping order seeding. Required product/SKU pairs are missing or mismatched: {ProductSkuPairs}. Existing orders are preserved.",
+                    string.Join(", ", unavailablePairs));
                 return;
             }
 
@@ -131,9 +150,8 @@ internal sealed class OrderSeeder(OrderDbContext db, ILogger<OrderSeeder> logger
 
             await db.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
+            logger.LogInformation("Seeded Orders via OrderSeeder.");
         });
-
-        logger.LogInformation("Seeded Orders via OrderSeeder.");
     }
 
     private static OrderAggregate BuildReadyToShipOrder(

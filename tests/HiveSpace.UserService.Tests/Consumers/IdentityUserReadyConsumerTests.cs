@@ -1,6 +1,7 @@
 using FluentAssertions;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Infrastructure.Messaging.Shared.Events.Users;
+using HiveSpace.UserService.Application.Interfaces.Messaging;
 using HiveSpace.UserService.Api.Consumers;
 using HiveSpace.UserService.Domain.Aggregates.User;
 using HiveSpace.UserService.Infrastructure.Data;
@@ -22,7 +23,8 @@ public class IdentityUserReadyConsumerTests
     public async Task Consume_WhenUserIdEmpty_ThrowsInvalidFieldException()
     {
         var db = CreateDb();
-        var consumer = new IdentityUserReadyConsumer(db);
+        var publisher = Substitute.For<IUserEventPublisher>();
+        var consumer = new IdentityUserReadyConsumer(db, publisher);
         var msg = new IdentityUserReadyIntegrationEvent { UserId = Guid.Empty, Email = "test@example.com" };
         var ctx = Substitute.For<ConsumeContext<IdentityUserReadyIntegrationEvent>>();
         ctx.Message.Returns(msg);
@@ -37,7 +39,8 @@ public class IdentityUserReadyConsumerTests
     public async Task Consume_WhenEmailEmpty_ThrowsInvalidFieldException()
     {
         var db = CreateDb();
-        var consumer = new IdentityUserReadyConsumer(db);
+        var publisher = Substitute.For<IUserEventPublisher>();
+        var consumer = new IdentityUserReadyConsumer(db, publisher);
         var msg = new IdentityUserReadyIntegrationEvent { UserId = Guid.NewGuid(), Email = "  " };
         var ctx = Substitute.For<ConsumeContext<IdentityUserReadyIntegrationEvent>>();
         ctx.Message.Returns(msg);
@@ -57,7 +60,8 @@ public class IdentityUserReadyConsumerTests
         db.Users.Add(existing);
         await db.SaveChangesAsync();
 
-        var consumer = new IdentityUserReadyConsumer(db);
+        var publisher = Substitute.For<IUserEventPublisher>();
+        var consumer = new IdentityUserReadyConsumer(db, publisher);
         var msg = new IdentityUserReadyIntegrationEvent { UserId = userId, Email = "existing@example.com", UserName = "existinguser", FullName = "Existing User" };
         var ctx = Substitute.For<ConsumeContext<IdentityUserReadyIntegrationEvent>>();
         ctx.Message.Returns(msg);
@@ -72,7 +76,8 @@ public class IdentityUserReadyConsumerTests
     public async Task Consume_WhenNewUser_CreatesUserProfile()
     {
         var db = CreateDb();
-        var consumer = new IdentityUserReadyConsumer(db);
+        var publisher = Substitute.For<IUserEventPublisher>();
+        var consumer = new IdentityUserReadyConsumer(db, publisher);
         var userId = Guid.NewGuid();
         var msg = new IdentityUserReadyIntegrationEvent { UserId = userId, Email = "newuser@example.com", UserName = "newuser", FullName = "New User" };
         var ctx = Substitute.For<ConsumeContext<IdentityUserReadyIntegrationEvent>>();
@@ -82,13 +87,15 @@ public class IdentityUserReadyConsumerTests
         await consumer.Consume(ctx);
 
         db.Users.Should().ContainSingle(u => u.Id == userId);
+        await publisher.Received(1).PublishUserCreatedAsync(Arg.Is<User>(u => u.Id == userId), Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task Consume_WhenUserNameIsNull_UsesEmailAsUserName()
     {
         var db = CreateDb();
-        var consumer = new IdentityUserReadyConsumer(db);
+        var publisher = Substitute.For<IUserEventPublisher>();
+        var consumer = new IdentityUserReadyConsumer(db, publisher);
         var userId = Guid.NewGuid();
         var msg = new IdentityUserReadyIntegrationEvent { UserId = userId, Email = "fallback@example.com", UserName = null, FullName = "Test User" };
         var ctx = Substitute.For<ConsumeContext<IdentityUserReadyIntegrationEvent>>();
@@ -104,7 +111,8 @@ public class IdentityUserReadyConsumerTests
     public async Task Consume_WhenFullNameIsNull_UsesUserNameAsFullName()
     {
         var db = CreateDb();
-        var consumer = new IdentityUserReadyConsumer(db);
+        var publisher = Substitute.For<IUserEventPublisher>();
+        var consumer = new IdentityUserReadyConsumer(db, publisher);
         var userId = Guid.NewGuid();
         var msg = new IdentityUserReadyIntegrationEvent { UserId = userId, Email = "user@example.com", UserName = "testuser", FullName = null };
         var ctx = Substitute.For<ConsumeContext<IdentityUserReadyIntegrationEvent>>();
@@ -120,7 +128,8 @@ public class IdentityUserReadyConsumerTests
     public async Task Consume_WhenReadyAtIsSet_UsesProvidedTimestampAsCreatedAt()
     {
         var db = CreateDb();
-        var consumer = new IdentityUserReadyConsumer(db);
+        var publisher = Substitute.For<IUserEventPublisher>();
+        var consumer = new IdentityUserReadyConsumer(db, publisher);
         var userId = Guid.NewGuid();
         var readyAt = new DateTime(2025, 3, 10, 8, 0, 0);
         var msg = new IdentityUserReadyIntegrationEvent

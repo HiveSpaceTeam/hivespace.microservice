@@ -8,7 +8,7 @@ namespace HiveSpace.NotificationService.Api.Consumers.Sync;
 
 public class UserSyncConsumer(
     IUserRefRepository         userRefs,
-    ILogger<UserSyncConsumer>  logger) : IConsumer<UserCreatedIntegrationEvent>, IConsumer<UserUpdatedIntegrationEvent>
+    ILogger<UserSyncConsumer>  logger) : IConsumer<UserCreatedIntegrationEvent>, IConsumer<UserUpdatedIntegrationEvent>, IConsumer<IdentityUserReadyIntegrationEvent>
 {
     public async Task Consume(ConsumeContext<UserCreatedIntegrationEvent> context)
     {
@@ -38,5 +38,32 @@ public class UserSyncConsumer(
                 msg.UserName, msg.AvatarUrl);
             await userRefs.UpsertAsync(userRef, context.CancellationToken);
         }
+    }
+
+    public async Task Consume(ConsumeContext<IdentityUserReadyIntegrationEvent> context)
+    {
+        var msg = context.Message;
+        logger.LogInformation("Syncing UserRef from identity-ready event for UserId={UserId}", msg.UserId);
+
+        var existing = await userRefs.GetByIdAsync(msg.UserId, context.CancellationToken);
+        if (existing is not null)
+        {
+            existing.Update(
+                msg.Email,
+                msg.FullName ?? existing.FullName,
+                existing.PhoneNumber,
+                existing.Locale,
+                msg.UserName ?? existing.UserName,
+                existing.AvatarUrl);
+            await userRefs.UpsertAsync(existing, context.CancellationToken);
+            return;
+        }
+
+        var userRef = UserRef.Create(
+            msg.UserId,
+            msg.Email,
+            msg.FullName ?? msg.UserName ?? msg.Email,
+            userName: msg.UserName);
+        await userRefs.UpsertAsync(userRef, context.CancellationToken);
     }
 }

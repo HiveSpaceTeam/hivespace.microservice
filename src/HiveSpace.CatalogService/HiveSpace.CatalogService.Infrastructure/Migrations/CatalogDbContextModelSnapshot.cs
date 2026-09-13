@@ -109,7 +109,8 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<int?>("ParentId")
                         .HasColumnType("int");
@@ -118,6 +119,9 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Name", "ParentId")
+                        .IsUnique();
 
                     b.ToTable("categories", (string)null);
                 });
@@ -216,9 +220,6 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<Guid>("SellerId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("ShortDescription")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
@@ -230,6 +231,9 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
+
+                    b.Property<Guid>("StoreId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("ThumbnailFileId")
                         .HasMaxLength(100)
@@ -301,6 +305,778 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                     b.HasIndex("ProductId");
 
                     b.ToTable("skus", (string)null);
+                });
+
+            modelBuilder.Entity("HiveSpace.CatalogService.Domain.CatalogImports.CatalogImportBundle", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("BlockedProducts")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CheckpointId")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<DateTimeOffset>("CrawledAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("DuplicateCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ReadyProducts")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SchemaVersion")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<string>("SourceFileName")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<string>("SourceFingerprint")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("SourceSystem")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("SourceType")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<string>("SourceUrl")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("SourceValue")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("SubmittedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("SubmittedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("TotalProducts")
+                        .HasColumnType("int");
+
+                    b.Property<int>("WarningCount")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SourceFingerprint")
+                        .IsUnique();
+
+                    b.ToTable("catalog_import_bundles", (string)null);
+                });
+
+            modelBuilder.Entity("HiveSpace.CatalogService.Domain.CatalogImports.CatalogImportJob", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("id");
+
+                    b.Property<int>("BlockedCount")
+                        .HasColumnType("int")
+                        .HasColumnName("blocked_count");
+
+                    b.Property<Guid?>("BundleId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("bundle_id");
+
+                    b.Property<DateTimeOffset?>("CompletedAt")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("completed_at");
+
+                    b.Property<int>("ConflictCount")
+                        .HasColumnType("int")
+                        .HasColumnName("conflict_count");
+
+                    b.Property<string>("CorrelationId")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasColumnName("correlation_id");
+
+                    b.Property<int>("CreatedCount")
+                        .HasColumnType("int")
+                        .HasColumnName("created_count");
+
+                    b.Property<int>("DuplicateCount")
+                        .HasColumnType("int")
+                        .HasColumnName("duplicate_count");
+
+                    b.Property<string>("ErrorSummary")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)")
+                        .HasColumnName("error_summary");
+
+                    b.Property<int>("FailedCount")
+                        .HasColumnType("int")
+                        .HasColumnName("failed_count");
+
+                    b.Property<DateTimeOffset>("LastActivityAt")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("last_activity_at");
+
+                    b.Property<int>("MatchedCount")
+                        .HasColumnType("int")
+                        .HasColumnName("matched_count");
+
+                    b.Property<int>("OperationType")
+                        .HasColumnType("int")
+                        .HasColumnName("operation_type");
+
+                    b.Property<int>("ProcessedCount")
+                        .HasColumnType("int")
+                        .HasColumnName("processed_count");
+
+                    b.Property<string>("RequestPayloadJson")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("request_payload_json");
+
+                    b.Property<DateTimeOffset>("RequestedAt")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("requested_at");
+
+                    b.Property<Guid>("RequestedByUserId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("requested_by_user_id");
+
+                    b.Property<string>("ResultSummaryJson")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("result_summary_json");
+
+                    b.Property<int>("SkippedCount")
+                        .HasColumnType("int")
+                        .HasColumnName("skipped_count");
+
+                    b.Property<string>("SourceFileName")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)")
+                        .HasColumnName("source_file_name");
+
+                    b.Property<string>("SourceFingerprint")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasColumnName("source_fingerprint");
+
+                    b.Property<string>("SourceSystem")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasColumnName("source_system");
+
+                    b.Property<DateTimeOffset?>("StartedAt")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("started_at");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int")
+                        .HasColumnName("status");
+
+                    b.Property<int>("TotalCount")
+                        .HasColumnType("int")
+                        .HasColumnName("total_count");
+
+                    b.Property<int>("WarningCount")
+                        .HasColumnType("int")
+                        .HasColumnName("warning_count");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Status")
+                        .HasFilter("[status] = 1");
+
+                    b.HasIndex("OperationType", "SourceSystem", "SourceFingerprint")
+                        .HasFilter("[source_fingerprint] IS NOT NULL");
+
+                    b.ToTable("catalog_import_jobs", (string)null);
+                });
+
+            modelBuilder.Entity("HiveSpace.CatalogService.Domain.CatalogImports.ExternalCategoryAttributeLink", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ExternalAttributeName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("ExternalCategoryId")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<int>("HiveSpaceAttributeDefinitionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("HiveSpaceCategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("InputType")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<bool>("IsRequired")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset>("ProvisionedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("ProvisionedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("SelectableValuesJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SourceAttributeId")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("SourceFingerprint")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("SourceSystem")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SourceSystem", "ExternalCategoryId", "SourceAttributeId")
+                        .IsUnique();
+
+                    b.ToTable("external_category_attribute_links", (string)null);
+                });
+
+            modelBuilder.Entity("HiveSpace.CatalogService.Domain.CatalogImports.ExternalCategoryLink", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ConflictReason")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)")
+                        .HasColumnName("conflict_reason");
+
+                    b.Property<string>("ExternalCategoryId")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasColumnName("external_category_id");
+
+                    b.Property<string>("ExternalCategoryName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)")
+                        .HasColumnName("external_category_name");
+
+                    b.Property<string>("ExternalParentCategoryId")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasColumnName("external_parent_category_id");
+
+                    b.Property<int>("HiveSpaceCategoryId")
+                        .HasColumnType("int")
+                        .HasColumnName("hive_space_category_id");
+
+                    b.Property<string>("PathJson")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("path_json");
+
+                    b.Property<DateTimeOffset>("ProvisionedAt")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("provisioned_at");
+
+                    b.Property<Guid>("ProvisionedByUserId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("provisioned_by_user_id");
+
+                    b.Property<int>("ProvisioningStatus")
+                        .HasColumnType("int")
+                        .HasColumnName("provisioning_status");
+
+                    b.Property<string>("SourceFingerprint")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasColumnName("source_fingerprint");
+
+                    b.Property<string>("SourceSystem")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasColumnName("source_system");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SourceSystem", "ExternalCategoryId")
+                        .IsUnique();
+
+                    b.ToTable("external_category_links", (string)null);
+                });
+
+            modelBuilder.Entity("HiveSpace.CatalogService.Domain.CatalogImports.ImportDuplicateGroup", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BundleId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("DuplicateKey")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("ExternalProductIdsJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MemberImportedProductIdsJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("RepresentativeImportedProductId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("ResolutionStatus")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BundleId", "DuplicateKey")
+                        .IsUnique();
+
+                    b.ToTable("catalog_import_duplicate_groups", (string)null);
+                });
+
+            modelBuilder.Entity("HiveSpace.CatalogService.Domain.CatalogImports.ImportValidationIssue", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BundleId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("EntitySourceId")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("EntityType")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("Field")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MetadataJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReasonCode")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<int>("Severity")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BundleId", "EntityType", "EntitySourceId");
+
+                    b.ToTable("catalog_import_validation_issues", (string)null);
+                });
+
+            modelBuilder.Entity("HiveSpace.CatalogService.Domain.CatalogImports.ImportedAttribute", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ExternalAttributeName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("ExternalAttributeValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("HiveSpaceAttributeDefinitionId")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("ImportedProductId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("MatchStatus")
+                        .HasColumnType("int");
+
+                    b.Property<string>("MatchedAttributeValueIdsJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SourceAttributeId")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("SourceValueId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ImportedProductId");
+
+                    b.ToTable("catalog_import_attributes", (string)null);
+                });
+
+            modelBuilder.Entity("HiveSpace.CatalogService.Domain.CatalogImports.ImportedCategoryMapping", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BundleId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ExternalCategoryId")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("ExternalCategoryName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("ExternalParentCategoryId")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<int?>("HiveSpaceCategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("MappedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("MappedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("MappingStatus")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PathJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BundleId", "ExternalCategoryId")
+                        .IsUnique();
+
+                    b.ToTable("catalog_import_category_mappings", (string)null);
+                });
+
+            modelBuilder.Entity("HiveSpace.CatalogService.Domain.CatalogImports.ImportedImageReference", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ExternalUrl")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<Guid>("ImportedProductId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("ImportedSkuId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("MediaFileId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("MediaStatus")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("SourceImageId")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ImportedProductId");
+
+                    b.ToTable("catalog_import_image_references", (string)null);
+                });
+
+            modelBuilder.Entity("HiveSpace.CatalogService.Domain.CatalogImports.ImportedProduct", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BundleId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ExternalCategoryIdsJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ExternalProductId")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("ExternalProductUrl")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("ExternalSellerId")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<int>("ImportStatus")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ImportedProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ReadinessStatus")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ThumbnailImageExternalUrl")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BundleId", "ExternalProductId");
+
+                    b.ToTable("catalog_import_products", (string)null);
+                });
+
+            modelBuilder.Entity("HiveSpace.CatalogService.Domain.CatalogImports.ImportedSeller", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BundleId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ConflictReason")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("ExternalSellerId")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("ExternalSellerSlug")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<Guid?>("HiveSpaceStoreId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("HiveSpaceUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("LogoUrl")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("MetadataJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ProvisioningStatus")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SourceUrl")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<Guid?>("SuggestedHiveSpaceStoreId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("SuggestedHiveSpaceUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BundleId", "ExternalSellerId")
+                        .IsUnique();
+
+                    b.ToTable("catalog_import_sellers", (string)null);
+                });
+
+            modelBuilder.Entity("HiveSpace.CatalogService.Domain.CatalogImports.ImportedSku", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CurrencyCode")
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
+
+                    b.Property<string>("ExternalSkuId")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("ImageUrlsJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("ImportedProductId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsActiveCandidate")
+                        .HasColumnType("bit");
+
+                    b.Property<long?>("PriceAmount")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("ReadinessStatus")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SkuNumber")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("SourceRawPrice")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<int?>("StockQuantity")
+                        .HasColumnType("int");
+
+                    b.Property<string>("VariantSelectionsJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ImportedProductId", "ExternalSkuId");
+
+                    b.ToTable("catalog_import_skus", (string)null);
+                });
+
+            modelBuilder.Entity("HiveSpace.CatalogService.Domain.CatalogImports.SellerOwnershipLink", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ApprovalReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTimeOffset?>("ApprovedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("ApprovedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BundleId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ExternalSellerId")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<Guid?>("HiveSpaceStoreId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("HiveSpaceUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ImportedSellerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("LinkStatus")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SourceSystem")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BundleId");
+
+                    b.HasIndex("SourceSystem", "ExternalSellerId", "LinkStatus");
+
+                    b.ToTable("catalog_import_seller_ownership_links", (string)null);
                 });
 
             modelBuilder.Entity("HiveSpace.Infrastructure.Persistence.Idempotence.IncomingRequest", b =>
@@ -829,6 +1605,87 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                     b.Navigation("SkuVariants");
                 });
 
+            modelBuilder.Entity("HiveSpace.CatalogService.Domain.CatalogImports.ImportDuplicateGroup", b =>
+                {
+                    b.HasOne("HiveSpace.CatalogService.Domain.CatalogImports.CatalogImportBundle", null)
+                        .WithMany("DuplicateGroups")
+                        .HasForeignKey("BundleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("HiveSpace.CatalogService.Domain.CatalogImports.ImportValidationIssue", b =>
+                {
+                    b.HasOne("HiveSpace.CatalogService.Domain.CatalogImports.CatalogImportBundle", null)
+                        .WithMany("ValidationIssues")
+                        .HasForeignKey("BundleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("HiveSpace.CatalogService.Domain.CatalogImports.ImportedAttribute", b =>
+                {
+                    b.HasOne("HiveSpace.CatalogService.Domain.CatalogImports.ImportedProduct", null)
+                        .WithMany("Attributes")
+                        .HasForeignKey("ImportedProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("HiveSpace.CatalogService.Domain.CatalogImports.ImportedCategoryMapping", b =>
+                {
+                    b.HasOne("HiveSpace.CatalogService.Domain.CatalogImports.CatalogImportBundle", null)
+                        .WithMany("CategoryMappings")
+                        .HasForeignKey("BundleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("HiveSpace.CatalogService.Domain.CatalogImports.ImportedImageReference", b =>
+                {
+                    b.HasOne("HiveSpace.CatalogService.Domain.CatalogImports.ImportedProduct", null)
+                        .WithMany("Images")
+                        .HasForeignKey("ImportedProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("HiveSpace.CatalogService.Domain.CatalogImports.ImportedProduct", b =>
+                {
+                    b.HasOne("HiveSpace.CatalogService.Domain.CatalogImports.CatalogImportBundle", null)
+                        .WithMany("Products")
+                        .HasForeignKey("BundleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("HiveSpace.CatalogService.Domain.CatalogImports.ImportedSeller", b =>
+                {
+                    b.HasOne("HiveSpace.CatalogService.Domain.CatalogImports.CatalogImportBundle", null)
+                        .WithMany("Sellers")
+                        .HasForeignKey("BundleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("HiveSpace.CatalogService.Domain.CatalogImports.ImportedSku", b =>
+                {
+                    b.HasOne("HiveSpace.CatalogService.Domain.CatalogImports.ImportedProduct", null)
+                        .WithMany("Skus")
+                        .HasForeignKey("ImportedProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("HiveSpace.CatalogService.Domain.CatalogImports.SellerOwnershipLink", b =>
+                {
+                    b.HasOne("HiveSpace.CatalogService.Domain.CatalogImports.CatalogImportBundle", null)
+                        .WithMany("SellerOwnershipLinks")
+                        .HasForeignKey("BundleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.OutboxMessage", b =>
                 {
                     b.HasOne("MassTransit.EntityFrameworkCoreIntegration.OutboxState", null)
@@ -851,6 +1708,30 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                     b.Navigation("Skus");
 
                     b.Navigation("Variants");
+                });
+
+            modelBuilder.Entity("HiveSpace.CatalogService.Domain.CatalogImports.CatalogImportBundle", b =>
+                {
+                    b.Navigation("CategoryMappings");
+
+                    b.Navigation("DuplicateGroups");
+
+                    b.Navigation("Products");
+
+                    b.Navigation("SellerOwnershipLinks");
+
+                    b.Navigation("Sellers");
+
+                    b.Navigation("ValidationIssues");
+                });
+
+            modelBuilder.Entity("HiveSpace.CatalogService.Domain.CatalogImports.ImportedProduct", b =>
+                {
+                    b.Navigation("Attributes");
+
+                    b.Navigation("Images");
+
+                    b.Navigation("Skus");
                 });
 #pragma warning restore 612, 618
         }

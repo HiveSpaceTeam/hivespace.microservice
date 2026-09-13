@@ -23,7 +23,7 @@ internal static class ServiceCollectionExtensions
         var messagingOptions = configuration.GetSection(MessagingOptions.SectionName).Get<MessagingOptions>();
         if (messagingOptions?.EnableRabbitMq != true) return;
 
-        services.AddMassTransitWithRabbitMq<PaymentDbContext>(configuration, cfg =>
+        services.AddMassTransitWithRabbitMq<PaymentDbContext>(configuration, "payment", cfg =>
         {
             cfg.AddConsumer<InitiatePaymentConsumer>();
             cfg.AddConsumer<PlatformCurrencyPolicySyncConsumer>();

@@ -1,6 +1,7 @@
 using HiveSpace.CatalogService.Api.Consumers;
 using HiveSpace.CatalogService.Api.Consumers.Saga.Checkout;
 using HiveSpace.CatalogService.Api.Consumers.Sync;
+using HiveSpace.CatalogService.Api.CatalogImports;
 using HiveSpace.CatalogService.Api.Endpoints;
 using HiveSpace.CatalogService.Infrastructure;
 using HiveSpace.CatalogService.Infrastructure.Data;
@@ -29,6 +30,7 @@ namespace HiveSpace.CatalogService.Api.Extensions
             builder.Services.AddCoreServices();
             builder.Services.AddAppAuthentication(builder.Configuration);
             builder.Services.AddPersistenceInfrastructure<CatalogDbContext>();
+            builder.Services.AddHostedService<CatalogImportJobHostedService>();
 
             var messagingOptions = builder.Configuration
                 .GetSection(MessagingOptions.SectionName)
@@ -36,7 +38,7 @@ namespace HiveSpace.CatalogService.Api.Extensions
 
             if (messagingOptions?.EnableRabbitMq == true)
             {
-                builder.Services.AddMassTransitWithRabbitMq<CatalogDbContext>(builder.Configuration, cfg =>
+                builder.Services.AddMassTransitWithRabbitMq<CatalogDbContext>(builder.Configuration, "catalog", cfg =>
                 {
                     cfg.AddConsumer<StoreRefSyncConsumer>();
                     cfg.AddConsumer<PlatformCurrencyPolicySyncConsumer>();
@@ -97,6 +99,7 @@ namespace HiveSpace.CatalogService.Api.Extensions
             app.MapDefaultEndpoints();
             app.MapProductEndpoints();
             app.MapCategoryEndpoints();
+            app.MapCatalogImportEndpoints();
 
             return app;
         }

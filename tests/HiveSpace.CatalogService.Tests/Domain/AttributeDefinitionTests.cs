@@ -47,4 +47,20 @@ public class AttributeDefinitionTests
         value.IsActive.Should().BeFalse();
         value.SortOrder.Should().Be(2);
     }
+
+    [Fact]
+    public void AddValue_WithoutExplicitId_CreatesValueForTrackedAttribute()
+    {
+        var type = new AttributeType(AttributeValueType.SingleSelect, InputType.Dropdown);
+        var attr = new AttributeDefinition(7, "Color", type);
+
+        var value = attr.AddValue("red", "Red", sortOrder: 1);
+
+        value.Id.Should().Be(0);
+        value.AttributeId.Should().Be(7);
+        value.Name.Should().Be("red");
+        value.DisplayName.Should().Be("Red");
+        value.SortOrder.Should().Be(1);
+        attr.Values.Should().ContainSingle();
+    }
 }

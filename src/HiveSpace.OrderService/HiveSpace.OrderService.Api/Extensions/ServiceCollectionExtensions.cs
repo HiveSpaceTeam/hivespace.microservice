@@ -37,7 +37,7 @@ internal static class ServiceCollectionExtensions
         var messagingOptions = configuration.GetSection(MessagingOptions.SectionName).Get<MessagingOptions>();
         if (messagingOptions?.EnableRabbitMq != true) return;
 
-        services.AddMassTransitWithRabbitMq<OrderDbContext>(configuration, cfg =>
+        services.AddMassTransitWithRabbitMq<OrderDbContext>(configuration, "order", cfg =>
         {
             cfg.AddSagaStateMachine<CheckoutSagaStateMachine, CheckoutSagaState>()
                .EntityFrameworkRepository(r =>
@@ -61,6 +61,7 @@ internal static class ServiceCollectionExtensions
             cfg.AddConsumer<CancelOrderConsumer, CancelOrderConsumerDefinition>();
             cfg.AddConsumer<StoreRefSyncConsumer>();
             cfg.AddConsumer<ProductRefSyncConsumer>();
+            cfg.AddConsumer<ImportedProductsReplicaSyncConsumer>();
             cfg.AddConsumer<PlatformCurrencyPolicySyncConsumer>();
         });
     }

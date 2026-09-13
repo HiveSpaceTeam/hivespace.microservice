@@ -12,7 +12,8 @@ internal sealed class FulfillmentSagaStateSeeder(
     OrderDbContext                          db,
     ILogger<FulfillmentSagaStateSeeder>     logger) : ISeeder
 {
-    public int Order => 6; // After OrderSeeder
+public int Order => 6; // After OrderSeeder
+    public SeedKind Kind => SeedKind.SampleData;
 
     private static readonly Guid AliceId      = new("11111111-1111-1111-1111-111111111111");
     private static readonly Guid BobId        = new("22222222-2222-2222-2222-222222222222");

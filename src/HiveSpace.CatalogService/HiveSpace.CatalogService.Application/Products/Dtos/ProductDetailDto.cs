@@ -5,9 +5,10 @@ namespace HiveSpace.CatalogService.Application.Products.Dtos;
 public record ProductDetailDto
 {
     public int Id { get; init; }
-    public Guid SellerId { get; init; }
+    public Guid StoreId { get; init; }
     public string Name { get; init; } = default!;
     public string Description { get; init; } = default!;
+    public string? ShortDescription { get; init; }
     public string? ThumbnailUrl { get; init; }
     public List<ProductCategory> Categories { get; init; } = [];
     public List<ProductImageDto> Images { get; init; } = [];

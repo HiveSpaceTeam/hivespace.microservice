@@ -51,4 +51,21 @@ public class StoreRefSyncConsumerTests
 
         await _storeRefs.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
+
+    [Fact]
+    public async Task Consume_WhenStoreUpdatedEventArrives_UpdatesExistingStoreRef()
+    {
+        var storeId = Guid.NewGuid();
+        var now = DateTimeOffset.UtcNow;
+        var existing = new StoreRef(storeId, Guid.NewGuid(), "Old Shop", null, null, "Old St", now, now);
+        var msg = new StoreUpdatedIntegrationEvent(storeId, Guid.NewGuid(), "New Shop", null, "logo.jpg", null, "New St");
+        var ctx = Substitute.For<ConsumeContext<StoreUpdatedIntegrationEvent>>();
+        ctx.Message.Returns(msg);
+        ctx.CancellationToken.Returns(CancellationToken.None);
+        _storeRefs.GetByIdAsync(storeId, Arg.Any<CancellationToken>()).Returns(existing);
+
+        await _consumer.Consume(ctx);
+
+        await _storeRefs.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
 }

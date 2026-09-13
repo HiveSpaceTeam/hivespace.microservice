@@ -1,3 +1,4 @@
+using HiveSpace.CatalogService.Application.Interfaces.Messaging;
 using HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate;
 using HiveSpace.Domain.Shared.ValueObjects;
 using HiveSpace.CatalogService.Domain.Enums;
@@ -9,9 +10,13 @@ using Microsoft.Extensions.Logging;
 
 namespace HiveSpace.CatalogService.Infrastructure.SeedData;
 
-internal sealed class HomeLivingSeeder(CatalogDbContext db, ILogger<HomeLivingSeeder> logger) : ISeeder
+internal sealed class HomeLivingSeeder(
+    CatalogDbContext db,
+    IProductEventPublisher productEventPublisher,
+    ILogger<HomeLivingSeeder> logger) : ISeeder
 {
-    public int Order => 5;
+public int Order => 5;
+    public SeedKind Kind => SeedKind.SampleData;
     private const int ProductIdStart = 1011;
     private const int SkuIdStart = 10011;
 
@@ -29,7 +34,12 @@ internal sealed class HomeLivingSeeder(CatalogDbContext db, ILogger<HomeLivingSe
             .AnyAsync(ct);
         if (anyExists)
         {
-            logger.LogDebug("Nhà Cửa - Đời Sống products already seeded. Skipping.");
+            logger.LogDebug("Nhà Cửa - Đời Sống products already seeded. Replaying sync events.");
+            await ProductSeedReplayPublisher.ReplayAsync(
+                db,
+                productEventPublisher,
+                Enumerable.Range(ProductIdStart, 10).Select(id => (long)id),
+                ct);
             return;
         }
 
@@ -130,6 +140,11 @@ internal sealed class HomeLivingSeeder(CatalogDbContext db, ILogger<HomeLivingSe
 
             await tx.CommitAsync(ct);
         });
+        await ProductSeedReplayPublisher.ReplayAsync(
+            db,
+            productEventPublisher,
+            Enumerable.Range(ProductIdStart, products.Count).Select(id => (long)id),
+            ct);
         logger.LogInformation("Seeded {Count} products for Nhà Cửa - Đời Sống.", products.Count);
     }
 
@@ -160,7 +175,7 @@ internal sealed class HomeLivingSeeder(CatalogDbContext db, ILogger<HomeLivingSe
         return BuildFull("Cốc giữ nhiệt inox 304 Elmich EL8345 dung tích 480ML - Hàng Chính Hãng",
             "coc-giu-nhiet-inox-304-elmich-el8345-dung-tich-480ml-hang-chinh-hang",
             "Cốc giữ nhiệt inox 304 Elmich EL8345 480ml, nắp chống tràn, nhiều màu.",
-            "9916475726151", 149000m, SeedConstants.TikiSellerId, categoryId, images, attributes, description, now);
+            "9916475726151", 149000m, SeedConstants.TikiStoreId, categoryId, images, attributes, description, now);
     }
 
     // ── Product 2: Bình giữ nhiệt Elmich EL8295 ─────────────────────────────────
@@ -193,7 +208,7 @@ internal sealed class HomeLivingSeeder(CatalogDbContext db, ILogger<HomeLivingSe
         return BuildFull("Bình giữ nhiệt inox 304 Elmich EL8295 dung tích 500ml",
             "binh-giu-nhiet-inox-304-elmich-el8295-dung-tich-500ml",
             "Bình giữ nhiệt inox 304 Elmich EL8295 500ml, giữ nhiệt 12 giờ, nhiều màu.",
-            "6994556055959", 147000m, SeedConstants.TikiSellerId, categoryId, images, attributes, description, now);
+            "6994556055959", 147000m, SeedConstants.TikiStoreId, categoryId, images, attributes, description, now);
     }
 
     // ── Product 3: Chảo chống dính Elmich EL5972 ─────────────────────────────────
@@ -229,7 +244,7 @@ internal sealed class HomeLivingSeeder(CatalogDbContext db, ILogger<HomeLivingSe
         return BuildFull("Chảo chống dính Elmich EL5972",
             "chao-chong-dinh-elmich-el5972-xanh-mint",
             "Chảo chống dính Elmich EL5972 xanh mint, dùng được bếp từ, 3 màu - 2 size.",
-            "9396908958144", 212000m, SeedConstants.TikiSellerId, categoryId, images, attributes, description, now);
+            "9396908958144", 212000m, SeedConstants.TikiStoreId, categoryId, images, attributes, description, now);
     }
 
     // ── Product 4: Bình giữ nhiệt gia đình Elmich EL8299 ────────────────────────
@@ -265,7 +280,7 @@ internal sealed class HomeLivingSeeder(CatalogDbContext db, ILogger<HomeLivingSe
         return BuildFull("Bình giữ nhiệt gia đình inox 304 Elmich EL8299 dung tích 900ml - Hàng chính hãng",
             "binh-giu-nhiet-gia-dinh-inox-304-elmich-el8299-dung-tich-900ml-hang-chinh-hang",
             "Bình giữ nhiệt gia đình Elmich EL8299 900ml, inox 304, giữ nhiệt 18 giờ.",
-            "8600614472713", 358000m, SeedConstants.TikiSellerId, categoryId, images, attributes, description, now);
+            "8600614472713", 358000m, SeedConstants.TikiStoreId, categoryId, images, attributes, description, now);
     }
 
     // ── Product 5: Bộ nồi Elmich Trimax Classic EL-2110OL ────────────────────────
@@ -295,7 +310,7 @@ internal sealed class HomeLivingSeeder(CatalogDbContext db, ILogger<HomeLivingSe
         return BuildFull("Bộ nồi Inox dập nguyên khối Elmich Trimax Classic EL-2110OL Size 18, 20, 24, chảo 26cm",
             "bo-noi-inox-dap-nguyen-khoi-elmich-trimax-classic-el-2110ol-size-18-20-24-chao-26cm",
             "Bộ nồi inox Elmich Trimax Classic, 4 món, đáy 3 lớp dùng được bếp từ.",
-            "2566430088910", 2059000m, SeedConstants.TikiSellerId, categoryId, images, attributes, description, now);
+            "2566430088910", 2059000m, SeedConstants.TikiStoreId, categoryId, images, attributes, description, now);
     }
 
     // ── Product 6: Miếng rửa chén Scrub Daddy ────────────────────────────────────
@@ -321,7 +336,7 @@ internal sealed class HomeLivingSeeder(CatalogDbContext db, ILogger<HomeLivingSe
         return BuildFull("Miếng rửa chén bọt biển Scrub Daddy nguyên bản, miếng xốp lau chùi đa năng",
             "mieng-rua-chen-bot-bien-scrub-daddy-nguyen-ban-mieng-xop-lau-chui-da-nang",
             "Miếng rửa chén Scrub Daddy FlexTexture, không mùi, không trầy xước, 4 màu.",
-            "7715635354376", 119000m, SeedConstants.TikiSellerId, categoryId, images, attributes, description, now);
+            "7715635354376", 119000m, SeedConstants.TikiStoreId, categoryId, images, attributes, description, now);
     }
 
     // ── Image helpers ─────────────────────────────────────────────────────────────
@@ -351,7 +366,7 @@ internal sealed class HomeLivingSeeder(CatalogDbContext db, ILogger<HomeLivingSe
 
     private static Product BuildFull(
         string name, string slug, string shortDescription, string skuNo, decimal price,
-        Guid sellerId, int categoryId, List<ProductImage> images, List<ProductAttribute> attributes,
+        Guid storeId, int categoryId, List<ProductImage> images, List<ProductAttribute> attributes,
         string description, DateTimeOffset now)
     {
         var categories = new List<ProductCategory> { new(categoryId) };
@@ -367,7 +382,7 @@ internal sealed class HomeLivingSeeder(CatalogDbContext db, ILogger<HomeLivingSe
             description:      description,
             shortDescription: shortDescription,
             status:           ProductStatus.Available,
-            sellerId:         sellerId,
+            storeId:         storeId,
             condition:        ProductCondition.New,
             featured:         false,
             categories:       categories,
@@ -402,7 +417,7 @@ internal sealed class HomeLivingSeeder(CatalogDbContext db, ILogger<HomeLivingSe
             description:      description,
             shortDescription: shortDescription,
             status:           ProductStatus.Available,
-            sellerId:         SeedConstants.TikiSellerId,
+            storeId:         SeedConstants.TikiStoreId,
             condition:        ProductCondition.New,
             featured:         false,
             categories:       categories,

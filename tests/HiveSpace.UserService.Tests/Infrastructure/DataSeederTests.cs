@@ -34,6 +34,34 @@ public class DataSeederTests : IClassFixture<UserServiceFixture>
         publisher.PublishedCurrencies.Should().Equal("VND", "USD", "EUR");
     }
 
+    [Fact]
+    public async Task SeedPlatformCurrencyPolicyAsync_WhenExisting_RepublishesCurrentPolicy()
+    {
+        var publisher = new FakePublisher();
+        _fixture.DbContext.PlatformCurrencies.RemoveRange(_fixture.DbContext.PlatformCurrencies);
+        _fixture.DbContext.PlatformConfigs.RemoveRange(_fixture.DbContext.PlatformConfigs);
+        await _fixture.DbContext.SaveChangesAsync();
+        var config = PlatformConfig.CreateCurrencyPolicy("VND");
+        var currencies = new[]
+        {
+            PlatformCurrency.CreateCurrency("VND", true, 0),
+            PlatformCurrency.CreateCurrency("USD", true, 1)
+        };
+
+        _fixture.DbContext.PlatformConfigs.Add(config);
+        _fixture.DbContext.PlatformCurrencies.AddRange(currencies);
+        await _fixture.DbContext.SaveChangesAsync();
+
+        await DataSeeder.SeedPlatformCurrencyPolicyAsync(
+            _fixture.DbContext,
+            publisher,
+            NullLogger.Instance,
+            CancellationToken.None);
+
+        publisher.PublishedConfigId.Should().Be(config.Id);
+        publisher.PublishedCurrencies.Should().Equal("VND", "USD");
+    }
+
     private sealed class FakePublisher : IPlatformCurrencyConfigEventPublisher
     {
         public Guid PublishedConfigId { get; private set; }

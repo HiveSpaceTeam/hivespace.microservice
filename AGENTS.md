@@ -119,6 +119,8 @@ after implementation to inspect measured coverage for the affected service.
 
 Dependency endpoints and secrets belong under compact lowercase `ConnectionStrings` keys such as `rabbitmq`, `kafka`, `redis`, `azureservicebus`, and service database keys like `orderdb`; keep only broker enablement flags (`Messaging:EnableRabbitMq`, `Messaging:EnableKafka`, `Messaging:EnableAzureServiceBus`) and non-secret tuning under `Messaging`.
 
+Startup database initialization now uses two switches in non-production services: `Database:AutoMigrate` controls automatic EF Core migration, and `Seeding:SampleDataEnabled` controls optional sample/demo seeding. Cross-service `ReferenceData` and service-owned `BootstrapData` seeders run independently of the sample-data toggle.
+
 Expected startup warnings: Duende IdentityServer license and MediatR license reminders - development use is permitted.
 
 ## Architecture
@@ -192,6 +194,8 @@ When adding or changing a shared skill:
 2. Sync the skill copies into `.agents/skills/` and `.claude/skills/`
 3. Update both `AGENTS.md` and `CLAUDE.md` if the workflow or expectations changed
 
+Use `.agents/skills/ui-api-debug-playwright/SKILL.md` for local browser-first debugging of the admin, seller, and buyer apps with Playwright and seeded accounts from `src/SEEDED_ACCOUNTS.md`.
+
 When adding or changing shared hook behavior:
 
 1. Update the implementation in `scripts/agent/`
@@ -236,7 +240,7 @@ Required flow:
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **hivespace.microservice** (10443 symbols, 33459 relationships, 251 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **hivespace.microservice** (11218 symbols, 35544 relationships, 246 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 

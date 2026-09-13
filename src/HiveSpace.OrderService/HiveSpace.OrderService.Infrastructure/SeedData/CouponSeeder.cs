@@ -15,7 +15,8 @@ internal sealed class CouponSeeder(OrderDbContext db, ILogger<CouponSeeder> logg
     private const int SqlUniqueIndexViolationErrorCode = 2601;
     private const int SqlUniqueConstraintViolationErrorCode = 2627;
 
-    public int Order => 3;
+public int Order => 3;
+    public SeedKind Kind => SeedKind.SampleData;
 
     private static readonly StoreCouponSeed[] Stores =
     [

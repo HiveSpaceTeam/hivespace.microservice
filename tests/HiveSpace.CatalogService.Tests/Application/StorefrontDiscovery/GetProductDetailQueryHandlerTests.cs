@@ -21,7 +21,8 @@ public class GetProductDetailQueryHandlerTests : IClassFixture<CatalogServiceFix
             Id = 1,
             Name = "Blue Widget",
             Description = "A great widget",
-            SellerId = Guid.NewGuid(),
+            ShortDescription = "Short widget",
+        StoreId = Guid.NewGuid(),
             Skus =
             [
                 new ProductSkuDto(
@@ -41,6 +42,7 @@ public class GetProductDetailQueryHandlerTests : IClassFixture<CatalogServiceFix
 
         result.Should().NotBeNull();
         result.Name.Should().Be("Blue Widget");
+        result.ShortDescription.Should().Be("Short widget");
         result.Skus.Should().ContainSingle();
         result.Skus[0].Price.CurrencyCode.Should().Be("USD");
         result.Skus[0].Price.IsValid.Should().BeTrue();

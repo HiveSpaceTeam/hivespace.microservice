@@ -1,6 +1,7 @@
 using FluentAssertions;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Testing.Shared.Doubles;
+using HiveSpace.UserService.Application.Interfaces.Messaging;
 using HiveSpace.UserService.Application.Users.Commands.UpdateUserProfile;
 using HiveSpace.UserService.Application.Users.Dtos;
 using HiveSpace.UserService.Domain.Aggregates.User;
@@ -26,7 +27,8 @@ public class UpdateUserProfileCommandHandlerTests : IClassFixture<UserServiceFix
 
         var handler = new UpdateUserProfileCommandHandler(
             new FakeUserContext { UserId = user.Id },
-            new SqlUserRepository(_fixture.DbContext));
+            new SqlUserRepository(_fixture.DbContext),
+            new UserEventPublisherFake());
 
         await handler.Handle(new UpdateUserProfileCommand(new UpdateUserProfileRequestDto(FullName: "New Name")), CancellationToken.None);
 
@@ -43,7 +45,8 @@ public class UpdateUserProfileCommandHandlerTests : IClassFixture<UserServiceFix
 
         var handler = new UpdateUserProfileCommandHandler(
             new FakeUserContext { UserId = user.Id },
-            new SqlUserRepository(_fixture.DbContext));
+            new SqlUserRepository(_fixture.DbContext),
+            new UserEventPublisherFake());
 
         await handler.Handle(new UpdateUserProfileCommand(new UpdateUserProfileRequestDto()), CancellationToken.None);
 
@@ -60,7 +63,8 @@ public class UpdateUserProfileCommandHandlerTests : IClassFixture<UserServiceFix
 
         var handler = new UpdateUserProfileCommandHandler(
             new FakeUserContext { UserId = user.Id },
-            new SqlUserRepository(_fixture.DbContext));
+            new SqlUserRepository(_fixture.DbContext),
+            new UserEventPublisherFake());
 
         await handler.Handle(new UpdateUserProfileCommand(new UpdateUserProfileRequestDto(UserName: "newusername")), CancellationToken.None);
 
@@ -78,7 +82,8 @@ public class UpdateUserProfileCommandHandlerTests : IClassFixture<UserServiceFix
 
         var handler = new UpdateUserProfileCommandHandler(
             new FakeUserContext { UserId = userB.Id },
-            new SqlUserRepository(_fixture.DbContext));
+            new SqlUserRepository(_fixture.DbContext),
+            new UserEventPublisherFake());
 
         var act = () => handler.Handle(
             new UpdateUserProfileCommand(new UpdateUserProfileRequestDto(UserName: userA.UserName)),
@@ -96,7 +101,8 @@ public class UpdateUserProfileCommandHandlerTests : IClassFixture<UserServiceFix
 
         var handler = new UpdateUserProfileCommandHandler(
             new FakeUserContext { UserId = user.Id },
-            new SqlUserRepository(_fixture.DbContext));
+            new SqlUserRepository(_fixture.DbContext),
+            new UserEventPublisherFake());
 
         await handler.Handle(new UpdateUserProfileCommand(new UpdateUserProfileRequestDto(PhoneNumber: "15551234567")), CancellationToken.None);
 
@@ -114,7 +120,8 @@ public class UpdateUserProfileCommandHandlerTests : IClassFixture<UserServiceFix
         var dob = DateTimeOffset.UtcNow.AddYears(-25);
         var handler = new UpdateUserProfileCommandHandler(
             new FakeUserContext { UserId = user.Id },
-            new SqlUserRepository(_fixture.DbContext));
+            new SqlUserRepository(_fixture.DbContext),
+            new UserEventPublisherFake());
 
         await handler.Handle(new UpdateUserProfileCommand(new UpdateUserProfileRequestDto(DateOfBirth: dob)), CancellationToken.None);
 
@@ -131,7 +138,8 @@ public class UpdateUserProfileCommandHandlerTests : IClassFixture<UserServiceFix
 
         var handler = new UpdateUserProfileCommandHandler(
             new FakeUserContext { UserId = user.Id },
-            new SqlUserRepository(_fixture.DbContext));
+            new SqlUserRepository(_fixture.DbContext),
+            new UserEventPublisherFake());
 
         var act = () => handler.Handle(
             new UpdateUserProfileCommand(new UpdateUserProfileRequestDto(AvatarFileId: "avatar-file-123")),
@@ -145,7 +153,8 @@ public class UpdateUserProfileCommandHandlerTests : IClassFixture<UserServiceFix
     {
         var handler = new UpdateUserProfileCommandHandler(
             new FakeUserContext { UserId = Guid.NewGuid() },
-            new SqlUserRepository(_fixture.DbContext));
+            new SqlUserRepository(_fixture.DbContext),
+            new UserEventPublisherFake());
 
         var act = () => handler.Handle(
             new UpdateUserProfileCommand(new UpdateUserProfileRequestDto(FullName: "Test")),
@@ -156,4 +165,10 @@ public class UpdateUserProfileCommandHandlerTests : IClassFixture<UserServiceFix
 
     private static User NewUser(string email, string fullName) =>
         User.CreateProfile(Guid.NewGuid(), Email.Create(email), email, fullName);
+
+    private sealed class UserEventPublisherFake : IUserEventPublisher
+    {
+        public Task PublishUserCreatedAsync(User user, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task PublishUserUpdatedAsync(User user, CancellationToken cancellationToken = default) => Task.CompletedTask;
+    }
 }

@@ -4,9 +4,9 @@
 
 | File | Role |
 |------|------|
-| `Program.cs` | Entry point only — calls `ConfigureServices()` + `ConfigurePipeline()` + optional dev seeding. No inline service registrations. |
+| `Program.cs` | Entry point only - calls `ConfigureServices()` + `ConfigurePipeline()` + optional non-production database initialization. No inline service registrations. |
 | `Extensions/HostingExtensions.cs` | `ConfigureServices()` orchestrates `AddApp*()` calls; `ConfigurePipeline()` builds the middleware stack. |
-| `Extensions/ServiceCollectionExtensions.cs` | `AddApp*()` thin wrappers — delegate to shared lib helpers, add service-specific extras only. Never re-implement what a shared helper already does. |
+| `Extensions/ServiceCollectionExtensions.cs` | `AddApp*()` thin wrappers - delegate to shared lib helpers, add service-specific extras only. Never re-implement what a shared helper already does. |
 
 ## Shared Startup Helpers
 
@@ -24,14 +24,14 @@ These helpers live in shared libs and must be used instead of re-implementing th
 | `services.AddHiveSpaceControllers()` | `HiveSpace.Core` | `AddControllers` + `CustomExceptionFilter`. Use only for `UserService` or an explicitly approved controller exception. Returns `IMvcBuilder` for chaining `.AddJsonOptions()`. |
 | `app.UseHiveSpaceExceptionHandler()` | `HiveSpace.Core.Extensions` | `UseExceptionHandler` + `ExceptionResponseFactory` JSON response. Call in every service's `ConfigurePipeline`. |
 
-## `ServiceCollectionExtensions.cs` — Thin Wrapper Pattern
+## `ServiceCollectionExtensions.cs` - Thin Wrapper Pattern
 
 ```csharp
-// ✅ Correct — one-liner that delegates scope to shared helper
+// Correct - one-liner that delegates scope to shared helper
 public static void AddAppAuthentication(this IServiceCollection services, IConfiguration configuration)
     => services.AddHiveSpaceJwtBearerAuthentication(configuration, "catalog.fullaccess");
 
-// ✅ Correct — callback for service-specific JwtBearerOptions
+// Correct - callback for service-specific JwtBearerOptions
 public static void AddAppAuthentication(this IServiceCollection services, IConfiguration configuration)
 {
     services.AddHiveSpaceJwtBearerAuthentication(configuration, "notification.fullaccess", options =>
@@ -41,7 +41,7 @@ public static void AddAppAuthentication(this IServiceCollection services, IConfi
     });
 }
 
-// ✅ Correct — delegates base, adds Enumeration JSON converters on top
+// Correct - delegates base, adds Enumeration JSON converters on top
 public static void AddAppApiControllers(this IServiceCollection services)
 {
     services.AddHiveSpaceControllers()
@@ -51,7 +51,7 @@ public static void AddAppApiControllers(this IServiceCollection services)
             });
 }
 
-// ❌ Wrong — re-implements what AddHiveSpaceJwtBearerAuthentication already does
+// Wrong - re-implements what AddHiveSpaceJwtBearerAuthentication already does
 public static void AddAppAuthentication(this IServiceCollection services, IConfiguration configuration)
 {
     services.AddAuthentication("Bearer").AddJwtBearer("Bearer", options => { /* ... */ });
@@ -59,7 +59,7 @@ public static void AddAppAuthentication(this IServiceCollection services, IConfi
 }
 ```
 
-## `HostingExtensions.cs` — Canonical Pipeline
+## `HostingExtensions.cs` - Canonical Pipeline
 
 ```csharp
 public static WebApplication ConfigureServices(this WebApplicationBuilder builder)
@@ -103,63 +103,92 @@ public static WebApplication ConfigurePipeline(this WebApplication app)
 
 ## Database Migration & Seeding
 
-**Mandatory rule**: every service that owns a database MUST wire migration-at-startup in `Program.cs`. Place the call after `ConfigurePipeline()` and before `app.Run()`, guarded by `IsDevelopment()`.
+**Mandatory rule**: every service that owns a database MUST wire startup database initialization in `Program.cs`. Place the call after `ConfigurePipeline()` and before `app.Run()`, guarded for non-production environments.
 
 ```csharp
 app.ConfigurePipeline();
 
-if (app.Environment.IsDevelopment())
-    await DataSeeder.EnsureSeedDataAsync(app);
+if (!app.Environment.IsProduction())
+{
+    var autoMigrate = app.Configuration.GetValue("Database:AutoMigrate", true);
+    var seedSampleData = app.Configuration.GetValue("Seeding:SampleDataEnabled", false);
+    await DataSeeder.InitializeAsync(app, autoMigrate, seedSampleData);
+}
 
 app.Run();
 ```
 
 ### Standard `DataSeeder` pattern (services with seed data)
 
-`DataSeeder.EnsureSeedDataAsync` lives in the Infrastructure project. It must:
+`DataSeeder.InitializeAsync` lives in the Infrastructure project. It must:
 1. Resolve the service's `DbContext` from a scoped `IServiceProvider`
-2. Call `GetPendingMigrationsAsync` — apply with `MigrateAsync` only if the list is non-empty
-3. Iterate registered `ISeeder` implementations ordered by `ISeeder.Order`, calling `SeedAsync` on each
+2. Apply pending migrations only when `Database:AutoMigrate` is enabled
+3. Always run reference/config seeders
+4. Run sample/demo seeders only when `Seeding:SampleDataEnabled` is enabled
 
 ```csharp
-public static async Task EnsureSeedDataAsync(WebApplication app, CancellationToken cancellationToken = default)
+public static async Task InitializeAsync(
+    WebApplication app,
+    bool autoMigrate,
+    bool seedSampleData,
+    CancellationToken cancellationToken = default)
 {
     await using var scope = app.Services.CreateAsyncScope();
     var db     = scope.ServiceProvider.GetRequiredService<TDbContext>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<TDbContext>>();
 
-    var pending = (await db.Database.GetPendingMigrationsAsync(cancellationToken)).ToList();
-    if (pending.Count > 0)
+    if (autoMigrate)
     {
-        logger.LogInformation("Applying {Count} pending migration(s): {Migrations}",
-            pending.Count, string.Join(", ", pending));
-        await db.Database.MigrateAsync(cancellationToken);
-        logger.LogInformation("Migrations applied successfully.");
+        var pending = (await db.Database.GetPendingMigrationsAsync(cancellationToken)).ToList();
+        if (pending.Count > 0)
+        {
+            logger.LogInformation("Applying {Count} pending migration(s): {Migrations}",
+                pending.Count, string.Join(", ", pending));
+            await db.Database.MigrateAsync(cancellationToken);
+            logger.LogInformation("Migrations applied successfully.");
+        }
     }
 
     var seeders = scope.ServiceProvider
         .GetRequiredService<IEnumerable<ISeeder>>()
         .OrderBy(s => s.Order);
 
-    foreach (var seeder in seeders)
+    foreach (var seeder in seeders.Where(s => s.Kind == SeedKind.ReferenceData))
+        await seeder.SeedAsync(cancellationToken);
+
+    foreach (var seeder in seeders.Where(s => s.Kind == SeedKind.BootstrapData))
+        await seeder.SeedAsync(cancellationToken);
+
+    if (!seedSampleData)
+        return;
+
+    foreach (var seeder in seeders.Where(s => s.Kind == SeedKind.SampleData))
         await seeder.SeedAsync(cancellationToken);
 }
 ```
 
 ### Migration-only variant (no seed data)
 
-For services that have a database but no reference data to seed (e.g. MediaService), omit the `ISeeder` loop — keep only the migration block above.
+For services that have a database but no seed data (e.g. MediaService), keep only the migration block and gate it with `Database:AutoMigrate`.
+
+### Seeder classification
+
+Use `ISeeder.Kind` to distinguish:
+
+- `SeedKind.ReferenceData` - data mirrored from another service, such as `StoreRef` or shared policy refs
+- `SeedKind.BootstrapData` - foundational data owned by the current service that must always run during non-production startup initialization
+- `SeedKind.SampleData` - optional demo/test/business sample data controlled by `Seeding:SampleDataEnabled`
 
 ### Per-service summary
 
 | Service | DataSeeder location | Has ISeeder plugins |
 |---------|--------------------|--------------------|
-| UserService | `HiveSpace.UserService.Infrastructure/DataSeeder.cs` | No — seeds via private methods (Identity users, stores) |
+| UserService | `HiveSpace.UserService.Infrastructure/DataSeeder.cs` | No - seeds via private methods |
 | CatalogService | `HiveSpace.CatalogService.Infrastructure/DataSeeder.cs` | Yes |
 | OrderService | `HiveSpace.OrderService.Infrastructure/DataSeeder.cs` | Yes |
 | PaymentService | `HiveSpace.PaymentService.Infrastructure/DataSeeder.cs` | Yes |
-| NotificationService | `HiveSpace.NotificationService.Core/Persistence/DataSeeder.cs` | Yes |
-| MediaService | `HiveSpace.MediaService.Core/Infrastructure/DataSeeder.cs` | No — migration-only |
+| NotificationService | `HiveSpace.NotificationService.Core/DataSeeder.cs` | Yes |
+| MediaService | `HiveSpace.MediaService.Core/DataSeeder.cs` | No - migration-only |
 
 ## Local Runtime Configuration
 

@@ -75,6 +75,7 @@ public static class Config
         AddSpaClient(clients, clientsSection.GetSection("adminportal").Get<ClientConfig>());
         AddSpaClient(clients, clientsSection.GetSection("sellercenter").Get<ClientConfig>());
         AddSpaClient(clients, clientsSection.GetSection("storefront").Get<ClientConfig>());
+        AddServiceClient(clients, clientsSection.GetSection("catalogservice").Get<ClientConfig>());
 
         return clients;
     }
@@ -128,5 +129,23 @@ public static class Config
         }
 
         clients.Add(client);
+    }
+
+    private static void AddServiceClient(ICollection<Client> clients, ClientConfig? clientConfig)
+    {
+        if (clientConfig is null) return;
+
+        clients.Add(new Client
+        {
+            ClientId = clientConfig.ClientId,
+            ClientName = clientConfig.ClientName,
+            ClientSecrets = string.IsNullOrWhiteSpace(clientConfig.ClientSecret)
+                ? []
+                : [new Secret(clientConfig.ClientSecret.Sha256())],
+            RequireClientSecret = true,
+            AllowedGrantTypes = GrantTypes.ClientCredentials,
+            AllowedScopes = clientConfig.AllowedScopes,
+            AccessTokenLifetime = clientConfig.AccessTokenLifetime
+        });
     }
 }

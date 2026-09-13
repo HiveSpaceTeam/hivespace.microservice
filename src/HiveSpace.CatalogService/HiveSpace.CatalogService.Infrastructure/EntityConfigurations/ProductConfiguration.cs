@@ -37,7 +37,7 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
             builder.Property(p => p.Condition)
                 .IsRequired();
 
-            builder.Property(p => p.SellerId)
+            builder.Property(p => p.StoreId)
                 .IsRequired();
 
             builder.Property(p => p.BrandId);

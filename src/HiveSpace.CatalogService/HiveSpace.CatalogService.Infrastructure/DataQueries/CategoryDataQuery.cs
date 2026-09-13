@@ -18,7 +18,7 @@ public class CategoryDataQuery(CatalogDbContext dbContext) : ICategoryDataQuery
     public async Task<List<CategoryDto>> GetHomepageCategoriesAsync(CancellationToken cancellationToken = default)
     {
         return await dbContext.Categories
-            .Where(c => c.ImageFileId != null)
+            .Where(c => c.ParentId == null && (c.ImageFileId != null || c.ImageUrl != null))
             .Select(c => new CategoryDto(c.Id, c.Name, c.Name, c.ImageFileId, c.ImageUrl))
             .ToListAsync(cancellationToken);
     }

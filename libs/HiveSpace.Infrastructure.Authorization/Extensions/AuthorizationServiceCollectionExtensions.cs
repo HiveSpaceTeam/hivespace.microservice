@@ -75,6 +75,15 @@ public static class AuthorizationServiceCollectionExtensions
                     return role == "Admin" || role == "SystemAdmin" || role == "Seller" || role == "Buyer";
                 })
                 .Build());
+
+            options.AddPolicy("RequireCatalogImportProvisioning", ScopedPolicy()
+                .RequireAssertion(ctx =>
+                {
+                    var role = ctx.User.FindFirst("role")?.Value;
+                    var clientId = ctx.User.FindFirst("client_id")?.Value;
+                    return role == "SystemAdmin" || clientId == "catalog-service";
+                })
+                .Build());
         });
     }
 

@@ -1,4 +1,5 @@
 using HiveSpace.UserService.Domain.Aggregates.User;
+using HiveSpace.UserService.Application.Interfaces.Messaging;
 using HiveSpace.Domain.Shared.Enumerations;
 using HiveSpace.UserService.Domain.Enums;
 using HiveSpace.UserService.Infrastructure.Data;
@@ -14,69 +15,82 @@ public static partial class DataSeeder
 
     private static async Task SeedSystemAdminAsync(
         UserDbContext context,
+        IUserEventPublisher userEventPublisher,
         ILogger logger, CancellationToken ct)
     {
-        var exists = await context.Users.AnyAsync(u => u.Id == SysAdminId, ct);
-        if (exists)
+        var systemAdmin = await context.Users.SingleOrDefaultAsync(u => u.Id == SysAdminId, ct);
+        if (systemAdmin is null)
         {
-            logger.LogDebug("sysadmin profile already exists");
+            systemAdmin = User.CreateProfile(
+                id: SysAdminId,
+                email: Email.Create("sysadmin@hivespace.com"),
+                userName: "sysadmin",
+                fullName: "System Administrator",
+                avatarUrl: SystemAdminAvatarUrl,
+                phoneNumber: PhoneNumber.CreateOrDefault("+84911111111"),
+                dateOfBirth: DateOfBirth.CreateOrDefault(new DateTime(1980, 3, 10)),
+                gender: Gender.Male,
+                createdAt: DateTimeOffset.UtcNow
+            );
+            systemAdmin.UpdateTheme(Theme.Light);
+            systemAdmin.UpdateCulture(Culture.Vi);
+
+            context.Users.Add(systemAdmin);
+            await userEventPublisher.PublishUserCreatedAsync(systemAdmin, ct);
+            await context.SaveChangesAsync(ct);
+            logger.LogDebug("sysadmin profile created");
             return;
         }
+        else
+        {
+            logger.LogDebug("sysadmin profile already exists; replaying sync event");
+        }
 
-        var systemAdmin = User.CreateProfile(
-            id: SysAdminId,
-            email: Email.Create("sysadmin@hivespace.com"),
-            userName: "sysadmin",
-            fullName: "System Administrator",
-            avatarUrl: SystemAdminAvatarUrl,
-            phoneNumber: PhoneNumber.CreateOrDefault("+84911111111"),
-            dateOfBirth: DateOfBirth.CreateOrDefault(new DateTime(1980, 3, 10)),
-            gender: Gender.Male,
-            createdAt: DateTimeOffset.UtcNow
-        );
-        systemAdmin.UpdateTheme(Theme.Light);
-        systemAdmin.UpdateCulture(Culture.Vi);
-
-        context.Users.Add(systemAdmin);
-        await context.SaveChangesAsync(ct);
-        
-        logger.LogDebug("sysadmin profile created");
+        await userEventPublisher.PublishUserCreatedAsync(systemAdmin, ct);
     }
 
     private static async Task SeedAdminAsync(
         UserDbContext context,
+        IUserEventPublisher userEventPublisher,
         ILogger logger, CancellationToken ct)
     {
-        var exists = await context.Users.AnyAsync(u => u.Id == AdminId, ct);
-        if (exists)
+        var admin = await context.Users
+            .Include(u => u.Addresses)
+            .SingleOrDefaultAsync(u => u.Id == AdminId, ct);
+        if (admin is null)
         {
-            logger.LogDebug("admin profile already exists");
+            admin = User.CreateProfile(
+                id: AdminId,
+                email: Email.Create("admin@hivespace.com"),
+                userName: "admin",
+                fullName: "Admin User",
+                avatarUrl: AdminAvatarUrl,
+                phoneNumber: PhoneNumber.CreateOrDefault("+84922222222"),
+                dateOfBirth: DateOfBirth.CreateOrDefault(new DateTime(1985, 8, 22)),
+                gender: Gender.Female,
+                createdAt: DateTimeOffset.UtcNow
+            );
+            admin.UpdateTheme(Theme.Light);
+            admin.UpdateCulture(Culture.Vi);
+
+            admin.AddAddress(
+                fullName: "Admin User", phoneNumber: "+84922222222",
+                street: "100 Admin Plaza", commune: "Central",
+                province: "New York", country: "USA",
+                zipCode: "10001", addressType: AddressType.Work,
+                setAsDefault: true);
+
+            context.Users.Add(admin);
+            await userEventPublisher.PublishUserCreatedAsync(admin, ct);
+            await context.SaveChangesAsync(ct);
+            logger.LogDebug("admin profile created with sample address");
             return;
         }
+        else
+        {
+            logger.LogDebug("admin profile already exists; replaying sync event");
+        }
 
-        var admin = User.CreateProfile(
-            id: AdminId,
-            email: Email.Create("admin@hivespace.com"),
-            userName: "admin",
-            fullName: "Admin User",
-            avatarUrl: AdminAvatarUrl,
-            phoneNumber: PhoneNumber.CreateOrDefault("+84922222222"),
-            dateOfBirth: DateOfBirth.CreateOrDefault(new DateTime(1985, 8, 22)),
-            gender: Gender.Female,
-            createdAt: DateTimeOffset.UtcNow
-        );
-        admin.UpdateTheme(Theme.Light);
-        admin.UpdateCulture(Culture.Vi);
-
-        admin.AddAddress(
-            fullName: "Admin User", phoneNumber: "+84922222222",
-            street: "100 Admin Plaza", commune: "Central",
-            province: "New York", country: "USA",
-            zipCode: "10001", addressType: AddressType.Work,
-            setAsDefault: true);
-
-        context.Users.Add(admin);
-        await context.SaveChangesAsync(ct);
-        logger.LogDebug("admin profile created with sample address");
+        await userEventPublisher.PublishUserCreatedAsync(admin, ct);
     }
 }

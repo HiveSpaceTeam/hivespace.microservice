@@ -23,4 +23,11 @@ public class SqlStoreRepository : BaseRepository<Store, Guid>, IStoreRepository
         return await _context.Set<Store>()
             .AnyAsync(s => s.StoreName == storeName, cancellationToken);
     }
+
+    public async Task<IReadOnlyList<Store>> ListStoreNameCandidatesAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.Set<Store>()
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+    }
 }

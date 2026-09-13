@@ -14,10 +14,12 @@ public static class RabbitMqExtensions
     public static IServiceCollection AddMassTransitWithRabbitMq<TDbContext>(
         this IServiceCollection services,
         IConfiguration configuration,
+        string servicePrefix,
         Action<IBusRegistrationConfigurator>? configure = null)
         where TDbContext : DbContext
     {
         services.AddMessagingCore(configuration);
+        ValidateServicePrefix(servicePrefix);
 
         // Configure Quartz
         services.AddQuartz();
@@ -47,7 +49,7 @@ public static class RabbitMqExtensions
             //    });
             //}
 
-            bus.SetKebabCaseEndpointNameFormatter();
+            bus.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter(servicePrefix, false));
             bus.AddEntityFrameworkOutbox<TDbContext>(o =>
             {
                 var rabbitMqOptions = configuration.GetSection(RabbitMqOptions.SectionName).Get<RabbitMqOptions>() ?? new RabbitMqOptions();
@@ -114,6 +116,12 @@ public static class RabbitMqExtensions
 
     private static int GetPositiveOrDefault(int value, int defaultValue)
         => value > 0 ? value : defaultValue;
+
+    private static void ValidateServicePrefix(string servicePrefix)
+    {
+        if (string.IsNullOrWhiteSpace(servicePrefix))
+            throw new ArgumentException("Service prefix is required.", nameof(servicePrefix));
+    }
 
     private static (string UserName, string Password)? ParseCredentials(Uri uri)
     {

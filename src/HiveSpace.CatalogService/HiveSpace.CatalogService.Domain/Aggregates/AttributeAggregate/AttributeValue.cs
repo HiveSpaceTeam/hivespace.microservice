@@ -25,5 +25,19 @@ namespace HiveSpace.CatalogService.Domain.Aggregates.AttributeAggregate
             IsActive = isActive;
             SortOrder = sortOrder;
         }
+
+        public AttributeValue(int id, int attributeId, string name, string displayName, int? parentValueId, bool isActive, int sortOrder)
+            : this(attributeId, name, displayName, parentValueId, isActive, sortOrder)
+        {
+            Id = id;
+        }
+
+        public void Update(string name, string displayName, bool isActive, int sortOrder)
+        {
+            Name = name;
+            DisplayName = displayName;
+            IsActive = isActive;
+            SortOrder = sortOrder;
+        }
     }
 }

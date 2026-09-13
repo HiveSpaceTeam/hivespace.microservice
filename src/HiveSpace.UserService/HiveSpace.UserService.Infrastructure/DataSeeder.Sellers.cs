@@ -1,6 +1,7 @@
 using HiveSpace.UserService.Domain.Aggregates.Store;
 using HiveSpace.UserService.Domain.Aggregates.User;
 using HiveSpace.Domain.Shared.Enumerations;
+using HiveSpace.UserService.Application.Interfaces.Messaging;
 using HiveSpace.UserService.Domain.Enums;
 using HiveSpace.UserService.Domain.Services;
 using HiveSpace.UserService.Infrastructure.Data;
@@ -17,7 +18,11 @@ public static partial class DataSeeder
 
     private static async Task SeedSellersAsync(
         StoreManager storeManager,
-        UserDbContext context, ILogger logger, CancellationToken ct)
+        UserDbContext context,
+        IUserEventPublisher userEventPublisher,
+        IStoreEventPublisher storeEventPublisher,
+        ILogger logger,
+        CancellationToken ct)
     {
         var sellerSeeds = new[]
         {
@@ -27,12 +32,12 @@ public static partial class DataSeeder
                 StoreId          = new Guid("b2c3d4e5-f6a7-8901-bcde-f12345678901"),
                 Username         = "tiki",
                 Email            = "tiki@gmail.com",
-                FullName         = "Tiki Trading",
+                FullName         = "HiveSpace Store",
                 Phone            = "+84901000001",
                 DateOfBirth      = new DateTime(1988, 12, 5),
                 Gender           = Gender.Male,
                 AvatarUrl        = TikiAvatarUrl,
-                StoreName        = "Tiki Trading",
+                StoreName        = "HiveSpace Seed Store",
                 StoreDescription = "OFFICIAL_STORE • 4.7 ★ (5.5tr+ đánh giá) • 513.1k+ người theo dõi",
                 LogoUrl          = "https://vcdn.tikicdn.com/ts/seller/d1/3f/ae/13ce3d83ab6b6c5e77e6377ad61dc4a5.jpg",
                 StoreAddress     = "https://tiki.vn/cua-hang/tiki-trading",
@@ -106,6 +111,7 @@ public static partial class DataSeeder
                     setAsDefault: true);
 
                 context.Users.Add(seller);
+                await userEventPublisher.PublishUserCreatedAsync(seller, ct);
                 await context.SaveChangesAsync(ct);
             }
             else
@@ -116,6 +122,8 @@ public static partial class DataSeeder
                     await context.SaveChangesAsync(ct);
                 }
             }
+
+            await userEventPublisher.PublishUserCreatedAsync(seller, ct);
 
             var store = await context.Stores.FirstOrDefaultAsync(s => s.Id == seed.StoreId, ct)
                      ?? await context.Stores.FirstOrDefaultAsync(s => s.OwnerId == seed.SellerId, ct);
@@ -132,6 +140,7 @@ public static partial class DataSeeder
 
                 registration.Store.SetLogoUrl(seed.LogoUrl);
                 context.Stores.Add(registration.Store);
+                await storeEventPublisher.PublishStoreCreatedAsync(registration.Store, ct);
                 await context.SaveChangesAsync(ct);
                 logger.LogDebug("Created store {StoreName} for seller {Username}.", seed.StoreName, seed.Username);
             }
@@ -140,6 +149,10 @@ public static partial class DataSeeder
                 logger.LogWarning(
                     "Store mismatch for {Username}. Existing store ID/OwnerId is {StoreId}/{OwnerId}, expected {ExpectedStoreId}/{ExpectedOwnerId}.",
                     seed.Username, store.Id, store.OwnerId, seed.StoreId, seed.SellerId);
+            }
+            else
+            {
+                await storeEventPublisher.PublishStoreCreatedAsync(store, ct);
             }
 
             logger.LogDebug("Seller seed ensured for {Username} (SellerId={SellerId}, StoreId={StoreId}).",

@@ -1,3 +1,4 @@
+using HiveSpace.CatalogService.Application.Interfaces.Messaging;
 using HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate;
 using HiveSpace.Domain.Shared.ValueObjects;
 using HiveSpace.CatalogService.Domain.Enums;
@@ -9,9 +10,13 @@ using Microsoft.Extensions.Logging;
 
 namespace HiveSpace.CatalogService.Infrastructure.SeedData;
 
-internal sealed class BookstoreSeeder(CatalogDbContext db, ILogger<BookstoreSeeder> logger) : ISeeder
+internal sealed class BookstoreSeeder(
+    CatalogDbContext db,
+    IProductEventPublisher productEventPublisher,
+    ILogger<BookstoreSeeder> logger) : ISeeder
 {
-    public int Order => 4;
+public int Order => 4;
+    public SeedKind Kind => SeedKind.SampleData;
     private const int ProductIdStart = 1001;
     private const int SkuIdStart = 10001;
 
@@ -29,7 +34,12 @@ internal sealed class BookstoreSeeder(CatalogDbContext db, ILogger<BookstoreSeed
             .AnyAsync(ct);
         if (anyExists)
         {
-            logger.LogDebug("Nhà Sách Tiki products already seeded. Skipping.");
+            logger.LogDebug("Nhà Sách Tiki products already seeded. Replaying sync events.");
+            await ProductSeedReplayPublisher.ReplayAsync(
+                db,
+                productEventPublisher,
+                Enumerable.Range(ProductIdStart, 10).Select(id => (long)id),
+                ct);
             return;
         }
 
@@ -90,6 +100,11 @@ internal sealed class BookstoreSeeder(CatalogDbContext db, ILogger<BookstoreSeed
 
             await tx.CommitAsync(ct);
         });
+        await ProductSeedReplayPublisher.ReplayAsync(
+            db,
+            productEventPublisher,
+            Enumerable.Range(ProductIdStart, products.Count).Select(id => (long)id),
+            ct);
         logger.LogInformation("Seeded {Count} products for Nhà Sách Tiki.", products.Count);
     }
 
@@ -136,7 +151,7 @@ internal sealed class BookstoreSeeder(CatalogDbContext db, ILogger<BookstoreSeed
             shortDescription: "3 bí quyết đơn giản để thăng tiến và hạnh phúc trong công việc.",
             skuNo:            "3251356516650",
             price:            149000m,
-            sellerId:         SeedConstants.GiverSellerId,
+            storeId:         SeedConstants.GiverStoreId,
             categoryId:       categoryId,
             images:           images,
             attributes:       attributes,
@@ -189,7 +204,7 @@ internal sealed class BookstoreSeeder(CatalogDbContext db, ILogger<BookstoreSeed
             shortDescription: "Hướng dẫn quản lý tài chính cá nhân, hướng về an tâm tài chính.",
             skuNo:            "7847043795900",
             price:            143200m,
-            sellerId:         SeedConstants.GiverSellerId,
+            storeId:         SeedConstants.GiverStoreId,
             categoryId:       categoryId,
             images:           images,
             attributes:       attributes,
@@ -229,7 +244,7 @@ internal sealed class BookstoreSeeder(CatalogDbContext db, ILogger<BookstoreSeed
             shortDescription: "Combo 2 cuốn kinh điển về hôn nhân và tình yêu.",
             skuNo:            "5143054723374",
             price:            250500m,
-            sellerId:         SeedConstants.PhuongDongSellerId,
+            storeId:         SeedConstants.PhuongDongStoreId,
             categoryId:       categoryId,
             images:           images,
             attributes:       attributes,
@@ -268,7 +283,7 @@ internal sealed class BookstoreSeeder(CatalogDbContext db, ILogger<BookstoreSeed
             shortDescription: "Trọn bộ 3 cuốn Osho về tình yêu, đàn ông và phụ nữ.",
             skuNo:            "2352229843300",
             price:            302700m,
-            sellerId:         SeedConstants.PhuongDongSellerId,
+            storeId:         SeedConstants.PhuongDongStoreId,
             categoryId:       categoryId,
             images:           images,
             attributes:       attributes,
@@ -330,7 +345,7 @@ internal sealed class BookstoreSeeder(CatalogDbContext db, ILogger<BookstoreSeed
             shortDescription: "Combo lập trình cho bé: Làm quen Python và Scratch qua từng bước thực hành.",
             skuNo:            "8070440105711",
             price:            156000m,
-            sellerId:         SeedConstants.GiverSellerId,
+            storeId:         SeedConstants.GiverStoreId,
             categoryId:       categoryId,
             images:           images,
             attributes:       attributes,
@@ -374,7 +389,7 @@ internal sealed class BookstoreSeeder(CatalogDbContext db, ILogger<BookstoreSeed
             shortDescription: "Tuyển tập vấn đáp Phật pháp nhẹ nhàng, sâu lắng từ thầy Thích Pháp Hòa.",
             skuNo:            "8836034836300",
             price:            105840m,
-            sellerId:         SeedConstants.GiverSellerId,
+            storeId:         SeedConstants.GiverStoreId,
             categoryId:       categoryId,
             images:           images,
             attributes:       attributes,
@@ -411,7 +426,7 @@ internal sealed class BookstoreSeeder(CatalogDbContext db, ILogger<BookstoreSeed
             shortDescription: "Conan tập 107 — Ran, Shinichi và những vụ án hỏa hoạn bí ẩn tại Nagano.",
             skuNo:            "8740385161745",
             price:            25000m,
-            sellerId:         SeedConstants.PhuongDongSellerId,
+            storeId:         SeedConstants.PhuongDongStoreId,
             categoryId:       categoryId,
             images:           images,
             attributes:       attributes,
@@ -463,7 +478,7 @@ internal sealed class BookstoreSeeder(CatalogDbContext db, ILogger<BookstoreSeed
             shortDescription: "Sách tô màu song ngữ Việt-Anh, kích thích phát triển trí não cho bé 1-5 tuổi.",
             skuNo:            "9586614921348",
             price:            12320m,
-            sellerId:         SeedConstants.PhuongDongSellerId,
+            storeId:         SeedConstants.PhuongDongStoreId,
             categoryId:       categoryId,
             images:           images,
             attributes:       attributes,
@@ -499,7 +514,7 @@ internal sealed class BookstoreSeeder(CatalogDbContext db, ILogger<BookstoreSeed
             shortDescription: "Manga kinh dị tâm lý kiệt tác của Naoki Urasawa — phiên bản deluxe cao cấp.",
             skuNo:            "8273928944021",
             price:            118750m,
-            sellerId:         SeedConstants.PhuongDongSellerId,
+            storeId:         SeedConstants.PhuongDongStoreId,
             categoryId:       categoryId,
             images:           images,
             attributes:       attributes,
@@ -536,7 +551,7 @@ internal sealed class BookstoreSeeder(CatalogDbContext db, ILogger<BookstoreSeed
             shortDescription: "Tiểu thuyết đam mỹ cổ trang nổi tiếng của Đường Tửu Khanh.",
             skuNo:            "9736885668230",
             price:            118800m,
-            sellerId:         SeedConstants.GiverSellerId,
+            storeId:         SeedConstants.GiverStoreId,
             categoryId:       categoryId,
             images:           images,
             attributes:       attributes,
@@ -574,7 +589,7 @@ internal sealed class BookstoreSeeder(CatalogDbContext db, ILogger<BookstoreSeed
 
     private static Product BuildFull(
         string name, string slug, string shortDescription, string skuNo, decimal price,
-        Guid sellerId, int categoryId, List<ProductImage> images, List<ProductAttribute> attributes,
+        Guid storeId, int categoryId, List<ProductImage> images, List<ProductAttribute> attributes,
         string description, DateTimeOffset now)
     {
         var categories = new List<ProductCategory> { new(categoryId) };
@@ -590,7 +605,7 @@ internal sealed class BookstoreSeeder(CatalogDbContext db, ILogger<BookstoreSeed
             description:      description,
             shortDescription: shortDescription,
             status:           ProductStatus.Available,
-            sellerId:         sellerId,
+            storeId:         storeId,
             condition:        ProductCondition.New,
             featured:         false,
             categories:       categories,
@@ -607,4 +622,3 @@ internal sealed class BookstoreSeeder(CatalogDbContext db, ILogger<BookstoreSeed
         return product;
     }
 }
-

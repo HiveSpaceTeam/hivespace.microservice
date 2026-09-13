@@ -81,8 +81,6 @@ public static class OrderInfrastructureExtension
         services.AddScoped<IPlatformCurrencyPolicyRefRepository, SqlPlatformCurrencyPolicyRefRepository>();
         services.AddScoped<IOrderRepository, SqlOrderRepository>();
 
-        services.AddScoped<ISeeder, StoreRefSeeder>();
-        services.AddScoped<ISeeder, ProductRefSeeder>();
         services.AddScoped<ISeeder, CouponSeeder>();
         services.AddScoped<ISeeder, CartSeeder>();
         services.AddScoped<ISeeder, OrderSeeder>();

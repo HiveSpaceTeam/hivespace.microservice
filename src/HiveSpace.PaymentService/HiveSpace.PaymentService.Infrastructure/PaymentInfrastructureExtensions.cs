@@ -53,7 +53,6 @@ public static class PaymentInfrastructureExtensions
         services.AddScoped<IPaymentRepository, SqlPaymentRepository>();
         services.AddScoped<IPlatformCurrencyPolicyRefRepository, SqlPlatformCurrencyPolicyRefRepository>();
         services.AddScoped<IWalletRepository, SqlWalletRepository>();
-        services.AddScoped<ISeeder, PlatformCurrencyPolicyRefSeeder>();
         services.AddScoped<ISeeder, WalletSeeder>();
         services.AddScoped<IPaymentEventPublisher, PaymentEventPublisher>();
     }
