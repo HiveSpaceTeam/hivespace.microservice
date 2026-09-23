@@ -9,12 +9,14 @@ public class CatalogImportJobConfiguration : IEntityTypeConfiguration<CatalogImp
 {
     public void Configure(EntityTypeBuilder<CatalogImportJob> builder)
     {
-        builder.ToTable("catalog_import_jobs");
+        builder.ToTable("catalog_import_jobs", table =>
+            table.HasCheckConstraint("CK_catalog_import_jobs_attempt_positive", "[attempt] >= 1"));
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.Id).HasColumnName("id");
         builder.Property(x => x.OperationType).IsRequired().HasColumnName("operation_type");
         builder.Property(x => x.Status).IsRequired().HasColumnName("status");
+        builder.Property(x => x.Attempt).IsRequired().HasColumnName("attempt");
         builder.Property(x => x.SourceSystem).IsRequired().HasMaxLength(64).HasColumnName("source_system");
         builder.Property(x => x.SourceFingerprint).HasMaxLength(128).HasColumnName("source_fingerprint");
         builder.Property(x => x.SourceFileName).HasMaxLength(512).HasColumnName("source_file_name");

@@ -12,7 +12,7 @@ namespace HiveSpace.CatalogService.Application.CatalogImports.Commands.ImportRea
 
 public class ImportReadyProductsCommandHandler(
     ICatalogImportBundleRepository importRepository,
-    ICatalogImportJobLifecyclePublisher lifecyclePublisher)
+    ICatalogImportJobScheduler jobScheduler)
     : ICommandHandler<ImportReadyProductsCommand, CatalogImportJobSubmissionDto>
 {
     public async Task<CatalogImportJobSubmissionDto> Handle(
@@ -55,7 +55,7 @@ public class ImportReadyProductsCommandHandler(
                 request.ProductIds)));
 
         importRepository.AddJob(job);
-        await lifecyclePublisher.PublishQueuedAsync(job, cancellationToken);
+        await jobScheduler.ScheduleAsync(job, cancellationToken);
         await importRepository.SaveChangesAsync(cancellationToken);
 
         return CatalogImportJobMapper.ToSubmissionDto(job);

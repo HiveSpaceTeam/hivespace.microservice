@@ -46,13 +46,12 @@ public class ImportReadyProductsCommandHandlerTests
 
         var submission = await new ImportReadyProductsCommandHandler(
             repository,
-            new NullCatalogImportJobLifecyclePublisher())
+            new NullCatalogImportJobScheduler())
             .Handle(new ImportReadyProductsCommand(bundle.Id, [bundle.Products.First().Id], nameof(ProductStatus.Unpublish), Guid.NewGuid()), CancellationToken.None);
 
         await new CatalogImportJobProcessor(
             repository,
             new ValidateCatalogImportBundleCommandHandlerTests.CategoryRepositoryFake(),
-            new NullCatalogImportJobLifecyclePublisher(),
             productRepository: productRepository,
             productEventPublisher: new RecordingProductEventPublisher())
             .ProcessJobAsync(submission.JobId, CancellationToken.None);
@@ -71,13 +70,12 @@ public class ImportReadyProductsCommandHandlerTests
 
         var submission = await new ImportReadyProductsCommandHandler(
             repository,
-            new NullCatalogImportJobLifecyclePublisher())
+            new NullCatalogImportJobScheduler())
             .Handle(new ImportReadyProductsCommand(bundle.Id, [bundle.Products.First().Id], nameof(ProductStatus.Draft), Guid.NewGuid()), CancellationToken.None);
 
         await new CatalogImportJobProcessor(
             repository,
             new ValidateCatalogImportBundleCommandHandlerTests.CategoryRepositoryFake(),
-            new NullCatalogImportJobLifecyclePublisher(),
             productRepository: productRepository,
             productEventPublisher: new RecordingProductEventPublisher())
             .ProcessJobAsync(submission.JobId, CancellationToken.None);
@@ -96,13 +94,12 @@ public class ImportReadyProductsCommandHandlerTests
 
         var submission = await new ImportReadyProductsCommandHandler(
             repository,
-            new NullCatalogImportJobLifecyclePublisher())
+            new NullCatalogImportJobScheduler())
             .Handle(new ImportReadyProductsCommand(bundle.Id, [bundle.Products.First().Id], nameof(ProductStatus.Available), Guid.NewGuid()), CancellationToken.None);
 
         await new CatalogImportJobProcessor(
             repository,
             new ValidateCatalogImportBundleCommandHandlerTests.CategoryRepositoryFake(),
-            new NullCatalogImportJobLifecyclePublisher(),
             productRepository: productRepository,
             productEventPublisher: new RecordingProductEventPublisher())
             .ProcessJobAsync(submission.JobId, CancellationToken.None);
@@ -169,13 +166,12 @@ public class ImportReadyProductsCommandHandlerTests
 
         var submission = await new ImportReadyProductsCommandHandler(
             repository,
-            new NullCatalogImportJobLifecyclePublisher())
+            new NullCatalogImportJobScheduler())
             .Handle(new ImportReadyProductsCommand(bundle.Id, null, "Draft", Guid.NewGuid()), CancellationToken.None);
 
         await new CatalogImportJobProcessor(
             repository,
             new ValidateCatalogImportBundleCommandHandlerTests.CategoryRepositoryFake(),
-            new NullCatalogImportJobLifecyclePublisher(),
             productRepository: productRepository,
             productEventPublisher: productEventPublisher)
             .ProcessJobAsync(submission.JobId, CancellationToken.None);
@@ -197,7 +193,7 @@ public class ImportReadyProductsCommandHandlerTests
 
         var submission = await new ImportReadyProductsCommandHandler(
             repository,
-            new NullCatalogImportJobLifecyclePublisher())
+            new NullCatalogImportJobScheduler())
             .Handle(new ImportReadyProductsCommand(bundle.Id, null, "Draft", Guid.NewGuid()), CancellationToken.None);
 
         var job = await repository.GetJobByIdAsync(submission.JobId, CancellationToken.None);
@@ -215,7 +211,7 @@ public class ImportReadyProductsCommandHandlerTests
 
         var submission = await new ImportReadyProductsCommandHandler(
             repository,
-            new NullCatalogImportJobLifecyclePublisher())
+            new NullCatalogImportJobScheduler())
             .Handle(new ImportReadyProductsCommand(bundle.Id, [], "Draft", Guid.NewGuid()), CancellationToken.None);
 
         var job = await repository.GetJobByIdAsync(submission.JobId, CancellationToken.None);
@@ -234,7 +230,7 @@ public class ImportReadyProductsCommandHandlerTests
 
         var submission = await new ImportReadyProductsCommandHandler(
             repository,
-            new NullCatalogImportJobLifecyclePublisher())
+            new NullCatalogImportJobScheduler())
             .Handle(new ImportReadyProductsCommand(bundle.Id, null, "Draft", Guid.NewGuid()), CancellationToken.None);
 
         bundle.AddCategoryLink("9999", null, "Late mapped category", 2);
@@ -244,7 +240,6 @@ public class ImportReadyProductsCommandHandlerTests
         await new CatalogImportJobProcessor(
             repository,
             new ValidateCatalogImportBundleCommandHandlerTests.CategoryRepositoryFake(),
-            new NullCatalogImportJobLifecyclePublisher(),
             productRepository: productRepository,
             productEventPublisher: new RecordingProductEventPublisher())
             .ProcessJobAsync(submission.JobId, CancellationToken.None);
@@ -261,13 +256,12 @@ public class ImportReadyProductsCommandHandlerTests
         var repository = new ValidateCatalogImportBundleCommandHandlerTests.CatalogImportBundleRepositoryFake(bundle);
         var submission = await new ImportReadyProductsCommandHandler(
             repository,
-            new NullCatalogImportJobLifecyclePublisher())
+            new NullCatalogImportJobScheduler())
             .Handle(new ImportReadyProductsCommand(bundle.Id, [bundle.Products.First().Id], "Draft", Guid.NewGuid()), CancellationToken.None);
 
         await new CatalogImportJobProcessor(
             repository,
             new ValidateCatalogImportBundleCommandHandlerTests.CategoryRepositoryFake(),
-            new NullCatalogImportJobLifecyclePublisher(),
             productRepository: productRepository,
             productEventPublisher: productEventPublisher)
             .ProcessJobAsync(submission.JobId, CancellationToken.None);

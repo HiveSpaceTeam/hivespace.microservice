@@ -10,7 +10,7 @@ namespace HiveSpace.CatalogService.Application.CatalogImports.Commands.RetryCata
 
 public class RetryCatalogImportJobCommandHandler(
     ICatalogImportBundleRepository repository,
-    ICatalogImportJobLifecyclePublisher lifecyclePublisher)
+    ICatalogImportJobScheduler jobScheduler)
     : ICommandHandler<RetryCatalogImportJobCommand, CatalogImportJobSubmissionDto>
 {
     public async Task<CatalogImportJobSubmissionDto> Handle(
@@ -33,7 +33,7 @@ public class RetryCatalogImportJobCommandHandler(
         }
 
         job.Requeue();
-        await lifecyclePublisher.PublishQueuedAsync(job, cancellationToken);
+        await jobScheduler.ScheduleAsync(job, cancellationToken);
         await repository.SaveChangesAsync(cancellationToken);
 
         return CatalogImportJobMapper.ToSubmissionDto(job);

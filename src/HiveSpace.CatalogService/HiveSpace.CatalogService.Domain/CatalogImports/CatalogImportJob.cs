@@ -9,6 +9,7 @@ public class CatalogImportJob
     public Guid Id { get; private set; }
     public CatalogImportJobOperationType OperationType { get; private set; }
     public CatalogImportJobStatus Status { get; private set; }
+    public int Attempt { get; private set; }
     public string SourceSystem { get; private set; } = string.Empty;
     public string? SourceFingerprint { get; private set; }
     public string? SourceFileName { get; private set; }
@@ -59,6 +60,7 @@ public class CatalogImportJob
             Id = Guid.NewGuid(),
             OperationType = operationType,
             Status = CatalogImportJobStatus.Pending,
+            Attempt = 1,
             SourceSystem = sourceSystem.Trim(),
             SourceFingerprint = Normalize(sourceFingerprint),
             SourceFileName = Normalize(sourceFileName),
@@ -72,10 +74,14 @@ public class CatalogImportJob
     }
 
     public void Requeue()
+        => PrepareRetry();
+
+    public void PrepareRetry()
     {
         if (Status != CatalogImportJobStatus.Failed)
             throw new ConflictException(CatalogDomainErrorCode.InvalidCatalogImportJob, nameof(Status));
 
+        Attempt++;
         Status = CatalogImportJobStatus.Pending;
         LastActivityAt = DateTimeOffset.UtcNow;
         StartedAt = null;
@@ -93,6 +99,9 @@ public class CatalogImportJob
         ResultSummaryJson = null;
         ErrorSummary = null;
     }
+
+    public bool CanProcessAttempt(int attempt)
+        => Status == CatalogImportJobStatus.Pending && Attempt == attempt;
 
     public void Start()
     {

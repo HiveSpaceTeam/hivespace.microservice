@@ -5,7 +5,6 @@ using HiveSpace.MediaService.Core.DomainModels;
 using HiveSpace.MediaService.Core.Features.Media.Dtos;
 using HiveSpace.MediaService.Core.Interfaces;
 using HiveSpace.MediaService.Core.Interfaces.Messaging;
-using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using SixLabors.ImageSharp;
@@ -22,10 +21,7 @@ public class ImageProcessingFunction(
     IMediaEventPublisher mediaEventPublisher
     )
 {
-    private const string QueueName = "image-processing-queue";
-
-    [Function(nameof(ImageProcessingFunction))]
-    public async Task Run([QueueTrigger(QueueName, Connection = "ConnectionStrings:AzureQueueStorage")] string message)
+    public async Task Run(string message)
     {
         logger.LogInformation("Processing queue message: {Message}", message);
 
@@ -36,6 +32,11 @@ public class ImageProcessingFunction(
             return;
         }
 
+        await ProcessAsync(queueMessage);
+    }
+
+    public async Task ProcessAsync(QueueMessagePayload queueMessage)
+    {
         var mediaAsset = await dbContext.MediaAssets.FindAsync(queueMessage.MediaAssetId);
         if (mediaAsset is null || mediaAsset.EntityId is null)
         {

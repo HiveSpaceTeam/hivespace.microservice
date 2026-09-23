@@ -1,9 +1,12 @@
+using HiveSpace.Core.Functions.Queueing;
+using HiveSpace.Infrastructure.Messaging.Extensions;
+using HiveSpace.MediaService.Api.Infrastructure.Messaging;
 using HiveSpace.MediaService.Core.Infrastructure.Configuration;
-using HiveSpace.MediaService.Core.Persistence;
 using HiveSpace.MediaService.Core.Infrastructure.Messaging.Publishers;
 using HiveSpace.MediaService.Core.Infrastructure.Storage;
 using HiveSpace.MediaService.Core.Interfaces;
 using HiveSpace.MediaService.Core.Interfaces.Messaging;
+using HiveSpace.MediaService.Core.Persistence;
 using HiveSpace.MediaService.Core.Persistence.Repositories;
 using HiveSpace.MediaService.Core.Services;
 using Microsoft.EntityFrameworkCore;
@@ -13,14 +16,32 @@ namespace HiveSpace.MediaService.Api.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddAppServices(this IServiceCollection services)
+    public static IServiceCollection AddAppServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddSingleton<StorageConfiguration>();
         services.AddScoped<IStorageService, AzureBlobStorageService>();
-        services.AddScoped<IQueueService, AzureQueueService>();
+        services.AddFunctionQueueMode(configuration);
+        services.AddScoped<IQueueService, MediaProcessingQueueService>();
         services.AddScoped<IMediaAssetRepository, MediaAssetRepository>();
         services.AddScoped<IMediaCleanupService, MediaCleanupService>();
         services.AddScoped<IMediaEventPublisher, MediaEventPublisher>();
+
+        var queueMode = FunctionQueueModeOptions
+            .FromConfiguration(configuration)
+            .GetRequiredMode();
+
+        if (queueMode.IsRabbitMqMode())
+        {
+            services.AddMassTransitWithRabbitMq<MediaDbContext>(
+                configuration,
+                "media-api");
+        }
+        else if (queueMode.IsAzureServiceBusMode())
+        {
+            services.AddMassTransitWithAzureServiceBus<MediaDbContext>(
+                configuration,
+                "media-api");
+        }
 
         return services;
     }

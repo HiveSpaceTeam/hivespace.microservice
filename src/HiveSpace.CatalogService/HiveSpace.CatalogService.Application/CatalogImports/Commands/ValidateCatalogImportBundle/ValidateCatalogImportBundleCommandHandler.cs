@@ -13,7 +13,7 @@ namespace HiveSpace.CatalogService.Application.CatalogImports.Commands.ValidateC
 public class ValidateCatalogImportBundleCommandHandler(
     ICatalogImportBundleRepository repository,
     IUserContext userContext,
-    ICatalogImportJobLifecyclePublisher lifecyclePublisher)
+    ICatalogImportJobScheduler jobScheduler)
     : ICommandHandler<ValidateCatalogImportBundleCommand, CatalogImportJobSubmissionDto>
 {
     public async Task<CatalogImportJobSubmissionDto> Handle(
@@ -40,7 +40,7 @@ public class ValidateCatalogImportBundleCommandHandler(
             bundleId: bundle.Id);
 
         repository.AddJob(job);
-        await lifecyclePublisher.PublishQueuedAsync(job, cancellationToken);
+        await jobScheduler.ScheduleAsync(job, cancellationToken);
         await repository.SaveChangesAsync(cancellationToken);
 
         return CatalogImportJobMapper.ToSubmissionDto(job);

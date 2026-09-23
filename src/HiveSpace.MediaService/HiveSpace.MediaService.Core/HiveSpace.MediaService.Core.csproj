@@ -15,7 +15,6 @@
     </PackageReference>
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
     <PackageReference Include="MediatR" />
-    <PackageReference Include="MassTransit.RabbitMQ" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\libs\HiveSpace.Core\HiveSpace.Core.csproj" />

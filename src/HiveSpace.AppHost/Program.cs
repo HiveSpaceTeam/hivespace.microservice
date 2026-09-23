@@ -29,6 +29,11 @@ var mediaFuncPath = Path.GetFullPath(Path.Combine(
     "..",
     "HiveSpace.MediaService",
     "HiveSpace.MediaService.Func"));
+var catalogFuncPath = Path.GetFullPath(Path.Combine(
+    builder.AppHostDirectory,
+    "..",
+    "HiveSpace.CatalogService",
+    "HiveSpace.CatalogService.Func"));
 
 var mssql = builder.AddSqlServer("sql-server", sqlPassword, port: 1433)
     .WithDataVolume()
@@ -89,6 +94,7 @@ var catalog = builder.AddProject<Projects.HiveSpace_CatalogService_Api>("catalog
     .WithReference(catalogDb)
     .WithReference(rabbitMq, "RabbitMq")
     .WithEnvironment("Authentication__Authority", identityEndpoint)
+    .WithEnvironment("HIVESPACE_FUNCTION_QUEUE_MODE", "RabbitMQ")
     .WaitFor(catalogDb)
     .WaitFor(rabbitMq)
     .WaitFor(identity);
@@ -99,6 +105,7 @@ var media = builder.AddProject<Projects.HiveSpace_MediaService_Api>("media-servi
     .WithReference(blobStorage, "AzureBlobStorage")
     .WithReference(queueStorage, "AzureQueueStorage")
     .WithEnvironment("Authentication__Authority", identityEndpoint)
+    .WithEnvironment("HIVESPACE_FUNCTION_QUEUE_MODE", "RabbitMQ")
     .WaitFor(mediaDb)
     .WaitFor(rabbitMq)
     .WaitFor(storage)
@@ -111,10 +118,23 @@ builder.AddExecutable("media-func", "func", mediaFuncPath, "start", "--port", "7
     .WithReference(queueStorage, "AzureQueueStorage")
     .WithEnvironment("FUNCTIONS_WORKER_RUNTIME", "dotnet-isolated")
     .WithEnvironment("AzureWebJobsStorage", "UseDevelopmentStorage=true")
+    .WithEnvironment("HIVESPACE_FUNCTION_QUEUE_MODE", "RabbitMQ")
     .WithEnvironment("Messaging__EnableRabbitMq", "true")
     .WaitFor(storage)
     .WaitFor(rabbitMq)
     .WaitFor(mediaDb);
+
+// builder.AddExecutable("catalog-func", "func", catalogFuncPath, "start", "--port", "7073", "--no-build", "--verbose", "--script-root", "bin\\Debug\\net8.0")
+//     .WithReference(rabbitMq, "RabbitMq")
+//     .WithReference(catalogDb)
+//     .WithEnvironment("FUNCTIONS_WORKER_RUNTIME", "dotnet-isolated")
+//     .WithEnvironment("AzureWebJobsStorage", "UseDevelopmentStorage=true")
+//     .WithEnvironment("HIVESPACE_FUNCTION_QUEUE_MODE", "RabbitMQ")
+//     .WithEnvironment("AzureWebJobs.CatalogImportRabbitMqFunction.Disabled", "false")
+//     .WithEnvironment("AzureWebJobs.CatalogImportServiceBusFunction.Disabled", "true")
+//     .WithEnvironment("Messaging__EnableRabbitMq", "true")
+//     .WaitFor(rabbitMq)
+//     .WaitFor(catalogDb);
 
 var order = builder.AddProject<Projects.HiveSpace_OrderService_Api>("order-service", httpLaunchProfile)
     .WithReference(orderDb)

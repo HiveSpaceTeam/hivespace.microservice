@@ -31,11 +31,11 @@ public class GetCatalogImportBundleDetailQueryHandlerTests : IClassFixture<Catal
             "sha256:categories",
             Guid.NewGuid()));
         await repository.SaveChangesAsync(CancellationToken.None);
-        var submit = new SubmitCatalogImportBundleCommandHandler(repository, new FakeUserContext { UserId = Guid.NewGuid() }, new NullCatalogImportJobLifecyclePublisher());
+        var submit = new SubmitCatalogImportBundleCommandHandler(repository, new FakeUserContext { UserId = Guid.NewGuid() }, new NullCatalogImportJobScheduler());
         var submitted = await submit.Handle(
             new SubmitCatalogImportBundleCommand(SubmitCatalogImportBundleCommandHandlerTestsHelper.CreateRequest("sha256:detail")),
             CancellationToken.None);
-        await new CatalogImportJobProcessor(repository, new SqlCategoryRepository(_fixture.DbContext), new NullCatalogImportJobLifecyclePublisher())
+        await new CatalogImportJobProcessor(repository, new SqlCategoryRepository(_fixture.DbContext))
             .ProcessJobAsync(submitted.JobId, CancellationToken.None);
         var processedJob = await repository.GetJobByIdAsync(submitted.JobId, CancellationToken.None);
 

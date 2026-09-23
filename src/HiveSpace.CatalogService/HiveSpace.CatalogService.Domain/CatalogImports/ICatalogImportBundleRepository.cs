@@ -4,6 +4,9 @@ public interface ICatalogImportBundleRepository
 {
     void Add(CatalogImportBundle bundle);
     void AddJob(CatalogImportJob job);
+    void AddQueueOutboxMessage(CatalogImportQueueOutboxMessage message)
+    {
+    }
     void AddExternalCategoryLink(ExternalCategoryLink link);
     void AddExternalCategoryAttributeLink(ExternalCategoryAttributeLink link);
     Task<CatalogImportBundle?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
@@ -24,6 +27,24 @@ public interface ICatalogImportBundleRepository
         var job = await GetJobByIdAsync(jobId, cancellationToken);
         if (job is null || job.Status != Enums.CatalogImportJobStatus.Pending)
             return false;
+
+        job.Start();
+        await SaveChangesAsync(cancellationToken);
+        return true;
+    }
+    async Task<bool> TryStartJobAsync(
+        Guid jobId,
+        Enums.CatalogImportJobOperationType operationType,
+        int attempt,
+        CancellationToken cancellationToken = default)
+    {
+        var job = await GetJobByIdAsync(jobId, cancellationToken);
+        if (job is null
+            || job.OperationType != operationType
+            || !job.CanProcessAttempt(attempt))
+        {
+            return false;
+        }
 
         job.Start();
         await SaveChangesAsync(cancellationToken);

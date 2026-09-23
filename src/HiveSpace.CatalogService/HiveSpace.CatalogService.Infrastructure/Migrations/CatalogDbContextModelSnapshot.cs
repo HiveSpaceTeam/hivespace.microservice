@@ -392,6 +392,10 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("id");
 
+                    b.Property<int>("Attempt")
+                        .HasColumnType("int")
+                        .HasColumnName("attempt");
+
                     b.Property<int>("BlockedCount")
                         .HasColumnType("int")
                         .HasColumnName("blocked_count");
@@ -506,7 +510,83 @@ namespace HiveSpace.CatalogService.Infrastructure.Migrations
                     b.HasIndex("OperationType", "SourceSystem", "SourceFingerprint")
                         .HasFilter("[source_fingerprint] IS NOT NULL");
 
-                    b.ToTable("catalog_import_jobs", (string)null);
+                    b.ToTable("catalog_import_jobs", t =>
+                        {
+                            t.HasCheckConstraint("CK_catalog_import_jobs_attempt_positive", "[attempt] >= 1");
+                        });
+                });
+
+            modelBuilder.Entity("HiveSpace.CatalogService.Domain.CatalogImports.CatalogImportQueueOutboxMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("id");
+
+                    b.Property<int>("Attempt")
+                        .HasColumnType("int")
+                        .HasColumnName("attempt");
+
+                    b.Property<string>("CorrelationId")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasColumnName("correlation_id");
+
+                    b.Property<DateTimeOffset?>("DispatchedAt")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("dispatched_at");
+
+                    b.Property<int>("FailureCount")
+                        .HasColumnType("int")
+                        .HasColumnName("failure_count");
+
+                    b.Property<Guid>("JobId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("job_id");
+
+                    b.Property<DateTimeOffset?>("LastAttemptAt")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("last_attempt_at");
+
+                    b.Property<string>("LastError")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)")
+                        .HasColumnName("last_error");
+
+                    b.Property<int>("OperationType")
+                        .HasColumnType("int")
+                        .HasColumnName("operation_type");
+
+                    b.Property<string>("PayloadJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("payload_json");
+
+                    b.Property<DateTimeOffset>("QueuedAt")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("queued_at");
+
+                    b.Property<Guid>("RequestedByUserId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("requested_by_user_id");
+
+                    b.Property<Guid?>("SourceBundleId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("source_bundle_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("JobId", "Attempt")
+                        .HasDatabaseName("IX_catalog_import_queue_outbox_messages_job_attempt");
+
+                    b.HasIndex("DispatchedAt", "QueuedAt")
+                        .HasDatabaseName("IX_catalog_import_queue_outbox_messages_pending");
+
+                    b.ToTable("catalog_import_queue_outbox_messages", t =>
+                        {
+                            t.HasCheckConstraint("CK_catalog_import_queue_outbox_messages_attempt_positive", "[attempt] >= 1");
+                        });
                 });
 
             modelBuilder.Entity("HiveSpace.CatalogService.Domain.CatalogImports.ExternalCategoryAttributeLink", b =>

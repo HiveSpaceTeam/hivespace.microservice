@@ -176,13 +176,13 @@ public class ValidateCatalogImportBundleCommandHandlerTests
         var first = await new ValidateCatalogImportBundleCommandHandler(
             repository,
             new FakeUserContext { UserId = Guid.NewGuid() },
-            new NullCatalogImportJobLifecyclePublisher())
+            new NullCatalogImportJobScheduler())
             .Handle(new ValidateCatalogImportBundleCommand(bundle.Id), CancellationToken.None);
 
         var second = await new ValidateCatalogImportBundleCommandHandler(
             repository,
             new FakeUserContext { UserId = Guid.NewGuid() },
-            new NullCatalogImportJobLifecyclePublisher())
+            new NullCatalogImportJobScheduler())
             .Handle(new ValidateCatalogImportBundleCommand(bundle.Id), CancellationToken.None);
 
         second.JobId.Should().Be(first.JobId);
@@ -204,7 +204,7 @@ public class ValidateCatalogImportBundleCommandHandlerTests
         var next = await new ValidateCatalogImportBundleCommandHandler(
             repository,
             new FakeUserContext { UserId = Guid.NewGuid() },
-            new NullCatalogImportJobLifecyclePublisher())
+            new NullCatalogImportJobScheduler())
             .Handle(new ValidateCatalogImportBundleCommand(bundle.Id), CancellationToken.None);
 
         next.JobId.Should().NotBe(completed.Id);
@@ -236,7 +236,7 @@ public class ValidateCatalogImportBundleCommandHandlerTests
 
         var result = await new RetryCatalogImportJobCommandHandler(
             repository,
-            new NullCatalogImportJobLifecyclePublisher())
+            new NullCatalogImportJobScheduler())
             .Handle(new RetryCatalogImportJobCommand(failed.Id), CancellationToken.None);
 
         result.JobId.Should().Be(active.Id);
@@ -252,13 +252,12 @@ public class ValidateCatalogImportBundleCommandHandlerTests
         var submission = await new ValidateCatalogImportBundleCommandHandler(
             repository,
             new FakeUserContext { UserId = Guid.NewGuid() },
-            new NullCatalogImportJobLifecyclePublisher())
+            new NullCatalogImportJobScheduler())
             .Handle(new ValidateCatalogImportBundleCommand(bundleId), CancellationToken.None);
 
         await new CatalogImportJobProcessor(
             repository,
             new CategoryRepositoryFake(),
-            new NullCatalogImportJobLifecyclePublisher(),
             new AttributeRepositoryFake(),
             productRepository,
             currencyPolicyRepository)

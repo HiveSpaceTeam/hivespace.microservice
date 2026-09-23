@@ -17,7 +17,7 @@ public static class HostingExtensions
         builder.Services.AddAppOpenApi();
         builder.Services.AddAppDatabase(builder.Configuration);
         builder.Services.AddCoreServices();
-        builder.Services.AddAppServices();
+        builder.Services.AddAppServices(builder.Configuration);
         builder.Services.AddAppAuthentication(builder.Configuration);
         builder.Services.AddApplication();
 

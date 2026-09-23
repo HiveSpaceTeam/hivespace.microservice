@@ -24,6 +24,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Data
         public DbSet<AttributeValue> AttributeValues { get; set; }
         public DbSet<CatalogImportBundle> CatalogImportBundles { get; set; }
         public DbSet<CatalogImportJob> CatalogImportJobs { get; set; }
+        public DbSet<CatalogImportQueueOutboxMessage> CatalogImportQueueOutboxMessages { get; set; }
         public DbSet<ExternalCategoryLink> ExternalCategoryLinks { get; set; }
         public DbSet<ExternalCategoryAttributeLink> ExternalCategoryAttributeLinks { get; set; }
 
@@ -48,6 +49,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new AttributeValueConfiguration());
             modelBuilder.ApplyConfiguration(new CatalogImportBundleConfiguration());
             modelBuilder.ApplyConfiguration(new CatalogImportJobConfiguration());
+            modelBuilder.ApplyConfiguration(new CatalogImportQueueOutboxMessageConfiguration());
             modelBuilder.ApplyConfiguration(new ExternalCategoryLinkConfiguration());
             modelBuilder.ApplyConfiguration(new ExternalCategoryAttributeLinkConfiguration());
             modelBuilder.ApplyConfiguration(new ImportedSellerConfiguration());

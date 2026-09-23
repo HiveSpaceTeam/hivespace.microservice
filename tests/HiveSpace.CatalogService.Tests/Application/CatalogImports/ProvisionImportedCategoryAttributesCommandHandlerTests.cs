@@ -31,13 +31,12 @@ public class ProvisionImportedCategoryAttributesCommandHandlerTests
             "sha256:categories",
             Guid.NewGuid()));
 
-        var result = await new ProvisionImportedCategoryAttributesCommandHandler(repository, new NullCatalogImportJobLifecyclePublisher())
+        var result = await new ProvisionImportedCategoryAttributesCommandHandler(repository, new NullCatalogImportJobScheduler())
             .Handle(new ProvisionImportedCategoryAttributesCommand(CreateRequest("sha256:attrs-1"), Guid.NewGuid()), CancellationToken.None);
 
         await new CatalogImportJobProcessor(
             repository,
             categoryRepository,
-            new NullCatalogImportJobLifecyclePublisher(),
             attributeRepository)
             .ProcessJobAsync(result.JobId, CancellationToken.None);
 
@@ -57,7 +56,7 @@ public class ProvisionImportedCategoryAttributesCommandHandlerTests
     public async Task Handle_WithExistingFingerprint_ReturnsExistingJob()
     {
         var repository = new CatalogImportBundleRepositoryFake();
-        var handler = new ProvisionImportedCategoryAttributesCommandHandler(repository, new NullCatalogImportJobLifecyclePublisher());
+        var handler = new ProvisionImportedCategoryAttributesCommandHandler(repository, new NullCatalogImportJobScheduler());
         var request = CreateRequest("sha256:attrs-2");
 
         var first = await handler.Handle(new ProvisionImportedCategoryAttributesCommand(request, Guid.NewGuid()), CancellationToken.None);

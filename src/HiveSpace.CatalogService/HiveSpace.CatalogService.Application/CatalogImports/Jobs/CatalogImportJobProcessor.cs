@@ -1,6 +1,7 @@
 using HiveSpace.CatalogService.Application.CatalogImports.Dtos;
 using HiveSpace.CatalogService.Application.CatalogImports.Commands.ImportReadyProducts;
 using HiveSpace.CatalogService.Application.CatalogImports.Ports;
+using HiveSpace.CatalogService.Application.CatalogImports.Queueing;
 using HiveSpace.CatalogService.Application.Interfaces.Messaging;
 using HiveSpace.CatalogService.Domain.Aggregates.External;
 using HiveSpace.CatalogService.Domain.Aggregates.ProductAggregate;
@@ -24,7 +25,6 @@ namespace HiveSpace.CatalogService.Application.CatalogImports.Jobs;
 public class CatalogImportJobProcessor(
     ICatalogImportBundleRepository repository,
     ICategoryRepository categoryRepository,
-    ICatalogImportJobLifecyclePublisher lifecyclePublisher,
     IAttributeRepository? attributeRepository = null,
     IProductRepository? productRepository = null,
     IPlatformCurrencyPolicyRefRepository? currencyPolicyRepository = null,
@@ -37,17 +37,7 @@ public class CatalogImportJobProcessor(
 {
     private const int CategoryAttributeHeartbeatInterval = 100;
     private const int ValidateBundleHeartbeatInterval = 25;
-    private static readonly TimeSpan LifecyclePublishTimeout = TimeSpan.FromSeconds(10);
     private readonly ILogger<CatalogImportJobProcessor> _logger = logger ?? NullLogger<CatalogImportJobProcessor>.Instance;
-
-    public async Task<int> ProcessPendingJobsAsync(int limit, CancellationToken cancellationToken = default)
-    {
-        var jobs = await repository.GetPendingJobsAsync(limit, cancellationToken);
-        foreach (var job in jobs)
-            await ProcessJobAsync(job.Id, cancellationToken);
-
-        return jobs.Count;
-    }
 
     public async Task<int> RecoverStaleRunningJobsAsync(
         TimeSpan staleAfter,
@@ -66,7 +56,6 @@ public class CatalogImportJobProcessor(
 
                 job.Fail("Catalog import job stalled while running and was marked failed. Retry the job.");
                 await repository.SaveChangesAsync(cancellationToken);
-                await TryPublishFailedAsync(job, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -91,34 +80,7 @@ public class CatalogImportJobProcessor(
             if (job.Status == CatalogImportJobStatus.Pending)
                 job.Start();
 
-            await TryPublishStartedAsync(job, cancellationToken);
-
-            switch (job.OperationType)
-            {
-                case CatalogImportJobOperationType.SubmitBundle:
-                    await ProcessSubmitBundleAsync(job, cancellationToken);
-                    break;
-                case CatalogImportJobOperationType.ProvisionCategories:
-                    await ProcessProvisionCategoriesAsync(job, cancellationToken);
-                    break;
-                case CatalogImportJobOperationType.ProvisionCategoryAttributes:
-                    await ProcessProvisionCategoryAttributesAsync(job, cancellationToken);
-                    break;
-                case CatalogImportJobOperationType.ValidateBundle:
-                    await ProcessValidateBundleAsync(job, cancellationToken);
-                    break;
-                case CatalogImportJobOperationType.ProvisionSellers:
-                    await ProcessProvisionSellersAsync(job, cancellationToken);
-                    break;
-                case CatalogImportJobOperationType.ImportReadyProducts:
-                    await ProcessImportReadyProductsAsync(job, cancellationToken);
-                    break;
-                default:
-                    throw new InvalidFieldException(CatalogDomainErrorCode.InvalidCatalogImportJob, nameof(job.OperationType));
-            }
-
-            await repository.SaveChangesAsync(cancellationToken);
-            await TryPublishCompletedAsync(job, cancellationToken);
+            await ProcessStartedJobAsync(job, cancellationToken);
         }
         catch (DomainException ex)
         {
@@ -138,6 +100,150 @@ public class CatalogImportJobProcessor(
         }
     }
 
+    public async Task ProcessQueuedJobAsync(
+        CatalogImportQueueWorkItem workItem,
+        CancellationToken cancellationToken = default)
+    {
+        var job = await repository.GetJobByIdAsync(workItem.JobId, cancellationToken)
+            ?? throw new NotFoundException(CatalogDomainErrorCode.CatalogImportJobNotFound, nameof(CatalogImportJob));
+
+        if (job.OperationType != workItem.OperationType)
+        {
+            _logger.LogInformation(
+                "Skipped catalog import job {JobId} queued attempt {Attempt} because operation {OperationType} does not match persisted operation {PersistedOperationType}",
+                workItem.JobId,
+                workItem.Attempt,
+                workItem.OperationType,
+                job.OperationType);
+            return;
+        }
+
+        if (job.Attempt != workItem.Attempt)
+        {
+            _logger.LogInformation(
+                "Skipped catalog import job {JobId} queued attempt {Attempt} because persisted attempt is {PersistedAttempt}",
+                workItem.JobId,
+                workItem.Attempt,
+                job.Attempt);
+            return;
+        }
+
+        if (job.Status == CatalogImportJobStatus.Running)
+        {
+            _logger.LogInformation(
+                "Skipped catalog import job {JobId} queued attempt {Attempt} because it is already running",
+                workItem.JobId,
+                workItem.Attempt);
+            return;
+        }
+
+        if (!job.CanProcessAttempt(workItem.Attempt))
+        {
+            _logger.LogInformation(
+                "Skipped catalog import job {JobId} queued attempt {Attempt} because persisted status is {Status}",
+                workItem.JobId,
+                workItem.Attempt,
+                job.Status);
+            return;
+        }
+
+        var started = await repository.TryStartJobAsync(
+            workItem.JobId,
+            workItem.OperationType,
+            workItem.Attempt,
+            cancellationToken);
+        if (!started)
+        {
+            _logger.LogInformation(
+                "Skipped catalog import job {JobId} queued attempt {Attempt} because it could not be claimed",
+                workItem.JobId,
+                workItem.Attempt);
+            return;
+        }
+
+        await ProcessClaimedQueuedJobAsync(workItem, cancellationToken);
+    }
+
+    public async Task ProcessClaimedQueuedJobAsync(
+        CatalogImportQueueWorkItem workItem,
+        CancellationToken cancellationToken = default)
+    {
+        var job = await repository.GetJobByIdAsync(workItem.JobId, cancellationToken)
+            ?? throw new NotFoundException(CatalogDomainErrorCode.CatalogImportJobNotFound, nameof(CatalogImportJob));
+
+        if (job.OperationType != workItem.OperationType || job.Attempt != workItem.Attempt)
+        {
+            _logger.LogInformation(
+                "Skipped claimed catalog import job {JobId} queued attempt {Attempt} because persisted metadata changed",
+                workItem.JobId,
+                workItem.Attempt);
+            return;
+        }
+
+        if (job.Status != CatalogImportJobStatus.Running && job.Status != CatalogImportJobStatus.Pending)
+        {
+            _logger.LogInformation(
+                "Skipped claimed catalog import job {JobId} queued attempt {Attempt} because persisted status is {Status}",
+                workItem.JobId,
+                workItem.Attempt,
+                job.Status);
+            return;
+        }
+
+        try
+        {
+            if (job.Status == CatalogImportJobStatus.Pending)
+                job.Start();
+
+            await ProcessStartedJobAsync(job, cancellationToken);
+        }
+        catch (DomainException ex)
+        {
+            await FailJobAsync(job, ex.Message, cancellationToken);
+        }
+        catch (JsonException)
+        {
+            await FailJobAsync(job, "Catalog import job payload is invalid.", cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Catalog import job {JobId} failed unexpectedly", job.Id);
+            await FailJobAsync(
+                job,
+                "Catalog import job failed due to an unexpected infrastructure error.",
+                cancellationToken);
+        }
+    }
+
+    private async Task ProcessStartedJobAsync(CatalogImportJob job, CancellationToken cancellationToken)
+    {
+        switch (job.OperationType)
+        {
+            case CatalogImportJobOperationType.SubmitBundle:
+                await ProcessSubmitBundleAsync(job, cancellationToken);
+                break;
+            case CatalogImportJobOperationType.ProvisionCategories:
+                await ProcessProvisionCategoriesAsync(job, cancellationToken);
+                break;
+            case CatalogImportJobOperationType.ProvisionCategoryAttributes:
+                await ProcessProvisionCategoryAttributesAsync(job, cancellationToken);
+                break;
+            case CatalogImportJobOperationType.ValidateBundle:
+                await ProcessValidateBundleAsync(job, cancellationToken);
+                break;
+            case CatalogImportJobOperationType.ProvisionSellers:
+                await ProcessProvisionSellersAsync(job, cancellationToken);
+                break;
+            case CatalogImportJobOperationType.ImportReadyProducts:
+                await ProcessImportReadyProductsAsync(job, cancellationToken);
+                break;
+            default:
+                throw new InvalidFieldException(CatalogDomainErrorCode.InvalidCatalogImportJob, nameof(job.OperationType));
+        }
+
+        await repository.SaveChangesAsync(cancellationToken);
+    }
+
     private async Task ProcessSubmitBundleAsync(CatalogImportJob job, CancellationToken cancellationToken)
     {
         var payload = Deserialize<CatalogImportBundleRequestDto>(job.RequestPayloadJson, nameof(CatalogImportBundleRequestDto));
@@ -145,7 +251,6 @@ public class CatalogImportJobProcessor(
         if (existing is not null)
         {
             job.UpdateProgress(existing.TotalProducts, existing.TotalProducts, skipped: existing.TotalProducts, blocked: existing.BlockedProducts, warnings: existing.WarningCount, duplicates: existing.DuplicateCount);
-            await lifecyclePublisher.PublishProgressedAsync(job, cancellationToken);
             job.Complete(CreateResultSummary(new
             {
                 bundleId = existing.Id,
@@ -186,7 +291,6 @@ public class CatalogImportJobProcessor(
             blocked: bundle.BlockedProducts,
             warnings: bundle.WarningCount,
             duplicates: bundle.DuplicateCount);
-        await TryPublishProgressedAsync(job, cancellationToken);
         job.Complete(CreateResultSummary(new
         {
             bundleId = bundle.Id,
@@ -325,7 +429,6 @@ public class CatalogImportJobProcessor(
             matched: summary.Matched,
             failed: summary.Failed,
             conflicts: summary.Conflict);
-        await TryPublishProgressedAsync(job, cancellationToken);
         job.Complete(CreateResultSummary(new CategoryProvisioningResultDto(
             "Completed",
             payload.Crawl.SourceFingerprint,
@@ -623,7 +726,6 @@ public class CatalogImportJobProcessor(
             matched: matched,
             failed: failed);
         await repository.SaveChangesAsync(cancellationToken);
-        await TryPublishProgressedAsync(job, cancellationToken);
         return processed;
     }
 
@@ -690,7 +792,6 @@ public class CatalogImportJobProcessor(
             blocked: bundle.BlockedProducts,
             warnings: bundle.WarningCount,
             duplicates: bundle.DuplicateCount);
-        await TryPublishProgressedAsync(job, cancellationToken);
         job.Complete(CreateResultSummary(new ValidateCatalogImportBundleResultDto(
             bundle.Id,
             bundle.Status.ToString(),
@@ -709,7 +810,6 @@ public class CatalogImportJobProcessor(
     {
         job.UpdateProgress(total, processed);
         await repository.SaveJobProgressAsync(job.Id, total, processed, cancellationToken);
-        await TryPublishProgressedAsync(job, cancellationToken);
     }
 
     private async Task ProcessProvisionSellersAsync(CatalogImportJob job, CancellationToken cancellationToken)
@@ -724,8 +824,6 @@ public class CatalogImportJobProcessor(
 
         job.UpdateProgress(bundle.Sellers.Count, processed);
         await repository.SaveChangesAsync(cancellationToken);
-        await TryPublishProgressedAsync(job, cancellationToken);
-
         foreach (var seller in bundle.Sellers)
         {
             if (seller.HasActiveOwnership)
@@ -782,12 +880,15 @@ public class CatalogImportJobProcessor(
 
             var createdOwnership = account.Outcome == ImportedSellerProvisioningOutcome.Created
                 || store.Outcome == ImportedSellerProvisioningOutcome.Created;
-            await EnsureStoreRefAsync(
-                bundle,
-                seller,
-                account.UserId.Value,
-                store.StoreId.Value,
-                cancellationToken);
+            if (store.Outcome == ImportedSellerProvisioningOutcome.Matched)
+            {
+                await EnsureStoreRefAsync(
+                    bundle,
+                    seller,
+                    account.UserId.Value,
+                    store.StoreId.Value,
+                    cancellationToken);
+            }
             seller.MarkProvisioned(account.UserId.Value, store.StoreId.Value, createdOwnership);
             if (createdOwnership)
                 created++;
@@ -807,7 +908,6 @@ public class CatalogImportJobProcessor(
             skipped: skipped,
             failed: failed,
             conflicts: conflicts);
-        await TryPublishProgressedAsync(job, cancellationToken);
         job.Complete(CreateResultSummary(result), bundle.Id);
     }
 
@@ -832,7 +932,6 @@ public class CatalogImportJobProcessor(
             failed: failed,
             conflicts: conflicts);
         await repository.SaveChangesAsync(cancellationToken);
-        await TryPublishProgressedAsync(job, cancellationToken);
     }
 
     private async Task ProcessImportReadyProductsAsync(CatalogImportJob job, CancellationToken cancellationToken)
@@ -886,7 +985,6 @@ public class CatalogImportJobProcessor(
             skipped: skipped,
             blocked: blocked,
             failed: failed);
-        await TryPublishProgressedAsync(job, cancellationToken);
         job.Complete(CreateResultSummary(result), bundle.Id);
     }
 
@@ -899,94 +997,6 @@ public class CatalogImportJobProcessor(
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to persist failed state for catalog import job {JobId}", job.Id);
-        }
-
-        await TryPublishFailedAsync(job, cancellationToken);
-    }
-
-    private async Task TryPublishStartedAsync(CatalogImportJob job, CancellationToken cancellationToken)
-    {
-        try
-        {
-            await PublishWithTimeoutAsync(
-                token => lifecyclePublisher.PublishStartedAsync(job, token),
-                "started",
-                job,
-                cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to publish started event for catalog import job {JobId}", job.Id);
-        }
-    }
-
-    private async Task TryPublishProgressedAsync(CatalogImportJob job, CancellationToken cancellationToken)
-    {
-        try
-        {
-            await PublishWithTimeoutAsync(
-                token => lifecyclePublisher.PublishProgressedAsync(job, token),
-                "progress",
-                job,
-                cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to publish progress event for catalog import job {JobId}", job.Id);
-        }
-    }
-
-    private async Task TryPublishCompletedAsync(CatalogImportJob job, CancellationToken cancellationToken)
-    {
-        try
-        {
-            await PublishWithTimeoutAsync(
-                token => lifecyclePublisher.PublishCompletedAsync(job, token),
-                "completed",
-                job,
-                cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to publish completed event for catalog import job {JobId}", job.Id);
-        }
-    }
-
-    private async Task TryPublishFailedAsync(CatalogImportJob job, CancellationToken cancellationToken)
-    {
-        try
-        {
-            await PublishWithTimeoutAsync(
-                token => lifecyclePublisher.PublishFailedAsync(job, token),
-                "failed",
-                job,
-                cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to publish failed event for catalog import job {JobId}", job.Id);
-        }
-    }
-
-    private async Task PublishWithTimeoutAsync(
-        Func<CancellationToken, Task> publish,
-        string lifecycleStage,
-        CatalogImportJob job,
-        CancellationToken cancellationToken)
-    {
-        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        timeout.CancelAfter(LifecyclePublishTimeout);
-
-        try
-        {
-            await publish(timeout.Token);
-        }
-        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
-        {
-            _logger.LogWarning(
-                "Timed out publishing {LifecycleStage} event for catalog import job {JobId}",
-                lifecycleStage,
-                job.Id);
         }
     }
 

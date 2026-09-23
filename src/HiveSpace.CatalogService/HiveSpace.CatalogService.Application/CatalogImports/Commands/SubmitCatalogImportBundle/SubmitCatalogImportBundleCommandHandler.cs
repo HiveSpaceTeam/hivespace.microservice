@@ -12,7 +12,7 @@ namespace HiveSpace.CatalogService.Application.CatalogImports.Commands.SubmitCat
 public class SubmitCatalogImportBundleCommandHandler(
     ICatalogImportBundleRepository repository,
     IUserContext userContext,
-    ICatalogImportJobLifecyclePublisher lifecyclePublisher)
+    ICatalogImportJobScheduler jobScheduler)
     : ICommandHandler<SubmitCatalogImportBundleCommand, CatalogImportJobSubmissionDto>
 {
     public async Task<CatalogImportJobSubmissionDto> Handle(
@@ -26,7 +26,16 @@ public class SubmitCatalogImportBundleCommandHandler(
             payload.Crawl.SourceFingerprint,
             cancellationToken);
         if (existingJob is not null)
+        {
+            if (existingJob.Status == CatalogImportJobStatus.Failed)
+            {
+                existingJob.Requeue();
+                await jobScheduler.ScheduleAsync(existingJob, cancellationToken);
+                await repository.SaveChangesAsync(cancellationToken);
+            }
+
             return CatalogImportJobMapper.ToSubmissionDto(existingJob);
+        }
 
         var existingBundle = await repository.GetBySourceFingerprintAsync(payload.Crawl.SourceFingerprint, cancellationToken);
         var job = CatalogImportJob.Create(
@@ -39,7 +48,7 @@ public class SubmitCatalogImportBundleCommandHandler(
             requestPayloadJson: JsonSerializer.Serialize(payload));
 
         repository.AddJob(job);
-        await lifecyclePublisher.PublishQueuedAsync(job, cancellationToken);
+        await jobScheduler.ScheduleAsync(job, cancellationToken);
         await repository.SaveChangesAsync(cancellationToken);
 
         return CatalogImportJobMapper.ToSubmissionDto(job);

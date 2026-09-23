@@ -10,7 +10,7 @@ namespace HiveSpace.CatalogService.Application.CatalogImports.Commands.Provision
 
 public class ProvisionImportedCategoryAttributesCommandHandler(
     ICatalogImportBundleRepository repository,
-    ICatalogImportJobLifecyclePublisher lifecyclePublisher)
+    ICatalogImportJobScheduler jobScheduler)
     : ICommandHandler<ProvisionImportedCategoryAttributesCommand, CatalogImportJobSubmissionDto>
 {
     public async Task<CatalogImportJobSubmissionDto> Handle(
@@ -35,7 +35,7 @@ public class ProvisionImportedCategoryAttributesCommandHandler(
             requestPayloadJson: JsonSerializer.Serialize(payload));
 
         repository.AddJob(job);
-        await lifecyclePublisher.PublishQueuedAsync(job, cancellationToken);
+        await jobScheduler.ScheduleAsync(job, cancellationToken);
         await repository.SaveChangesAsync(cancellationToken);
 
         return CatalogImportJobMapper.ToSubmissionDto(job);
