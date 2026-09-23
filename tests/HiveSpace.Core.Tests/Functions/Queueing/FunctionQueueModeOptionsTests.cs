@@ -39,7 +39,7 @@ public class FunctionQueueModeOptionsTests
     }
 
     [Fact]
-    public void Validate_WithMissingMode_Fails()
+    public void Validate_WithMissingMode_DefaultsToRabbitMq()
     {
         var options = new FunctionQueueModeOptions
         {
@@ -48,9 +48,8 @@ public class FunctionQueueModeOptionsTests
 
         var result = options.Validate();
 
-        result.Succeeded.Should().BeFalse();
-        result.Errors.Should().ContainSingle(error =>
-            error.Source == FunctionQueueModeOptions.SettingName);
+        result.Succeeded.Should().BeTrue();
+        result.Mode.Should().Be(FunctionQueueMode.RabbitMQ);
     }
 
     [Fact]
@@ -187,6 +186,20 @@ public class FunctionQueueModeOptionsTests
 
         options.Mode.Should().Be("RabbitMQ");
         options.RabbitMQ.ConnectionString.Should().Be("amqp://legacy");
+    }
+
+    [Fact]
+    public void FromConfiguration_WithMissingMode_DefaultsToRabbitMq()
+    {
+        var configuration = BuildConfiguration(new Dictionary<string, string?>
+        {
+            ["ConnectionStrings:rabbitmq"] = "amqp://legacy"
+        });
+
+        var options = FunctionQueueModeOptions.FromConfiguration(configuration);
+
+        options.Mode.Should().Be(FunctionQueueModeOptions.DefaultMode);
+        options.Validate().Mode.Should().Be(FunctionQueueMode.RabbitMQ);
     }
 
     [Fact]

@@ -38,7 +38,7 @@ public class MediaFunctionQueueModeTests
     }
 
     [Fact]
-    public void Validate_WithMissingMode_Fails()
+    public void Validate_WithMissingMode_DefaultsToRabbitMq()
     {
         var options = FunctionQueueModeOptions.FromConfiguration(BuildConfiguration(new Dictionary<string, string?>
         {
@@ -47,9 +47,8 @@ public class MediaFunctionQueueModeTests
 
         var result = options.Validate();
 
-        result.Succeeded.Should().BeFalse();
-        result.Errors.Should().ContainSingle(error =>
-            error.Source == FunctionQueueModeOptions.SettingName);
+        result.Succeeded.Should().BeTrue();
+        result.Mode.Should().Be(FunctionQueueMode.RabbitMQ);
     }
 
     [Fact]

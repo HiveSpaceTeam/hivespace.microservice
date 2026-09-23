@@ -44,6 +44,7 @@ public sealed class FunctionQueueModeOptions
 {
     public const string SectionName = "FunctionQueueMode";
     public const string SettingName = "HIVESPACE_FUNCTION_QUEUE_MODE";
+    public const string DefaultMode = nameof(FunctionQueueMode.RabbitMQ);
     public const string RabbitMqConnectionStringName = "RabbitMq";
     public const string AzureServiceBusConnectionStringName = "AzureServiceBus";
     public const string CatalogImportRabbitMqFunctionDisabledSetting = "AzureWebJobs.CatalogImportRabbitMqFunction.Disabled";
@@ -64,7 +65,8 @@ public sealed class FunctionQueueModeOptions
 
         options.Mode = FirstNonEmpty(
             configuration[SettingName],
-            section[nameof(Mode)]);
+            section[nameof(Mode)],
+            DefaultMode);
 
         options.RabbitMQ.ConnectionStringName = FirstNonEmpty(
             rabbitMqSection[nameof(FunctionQueueBackendOptions.ConnectionStringName)],
@@ -90,13 +92,9 @@ public sealed class FunctionQueueModeOptions
 
     public FunctionQueueModeValidationResult Validate()
     {
-        if (string.IsNullOrWhiteSpace(Mode))
-        {
-            return FunctionQueueModeValidationResult.Failure(
-                new Error(CommonErrorCode.ConfigurationMissing, SettingName));
-        }
+        var effectiveMode = FirstNonEmpty(Mode, DefaultMode);
 
-        if (!Enum.TryParse<FunctionQueueMode>(Mode, ignoreCase: true, out var mode))
+        if (!Enum.TryParse<FunctionQueueMode>(effectiveMode, ignoreCase: true, out var mode))
         {
             return FunctionQueueModeValidationResult.Failure(
                 new Error(CommonErrorCode.InvalidArgument, SettingName));
