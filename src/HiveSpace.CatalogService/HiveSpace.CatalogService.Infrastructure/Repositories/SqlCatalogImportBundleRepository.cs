@@ -17,6 +17,11 @@ public class SqlCatalogImportBundleRepository(CatalogDbContext context) : ICatal
         context.CatalogImportJobs.Add(job);
     }
 
+    public void AddQueueOutboxMessage(CatalogImportQueueOutboxMessage message)
+    {
+        context.CatalogImportQueueOutboxMessages.Add(message);
+    }
+
     public void AddExternalCategoryLink(ExternalCategoryLink categoryLink)
     {
         context.ExternalCategoryLinks.Add(categoryLink);
@@ -94,6 +99,60 @@ public class SqlCatalogImportBundleRepository(CatalogDbContext context) : ICatal
         var startedAt = DateTimeOffset.UtcNow;
         var updated = await context.CatalogImportJobs
             .Where(x => x.Id == jobId && x.Status == CatalogImportJobStatus.Pending)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(x => x.Status, CatalogImportJobStatus.Running)
+                .SetProperty(x => x.StartedAt, startedAt)
+                .SetProperty(x => x.LastActivityAt, startedAt)
+                .SetProperty(x => x.ErrorSummary, (string?)null),
+                cancellationToken);
+
+        if (updated != 1)
+            return false;
+
+        var trackedEntry = context.ChangeTracker
+            .Entries<CatalogImportJob>()
+            .FirstOrDefault(x => x.Entity.Id == jobId);
+
+        if (trackedEntry is not null)
+        {
+            trackedEntry.Property(x => x.Status).CurrentValue = CatalogImportJobStatus.Running;
+            trackedEntry.Property(x => x.StartedAt).CurrentValue = startedAt;
+            trackedEntry.Property(x => x.LastActivityAt).CurrentValue = startedAt;
+            trackedEntry.Property(x => x.ErrorSummary).CurrentValue = null;
+            trackedEntry.State = EntityState.Unchanged;
+        }
+
+        return true;
+    }
+
+    public async Task<bool> TryStartJobAsync(
+        Guid jobId,
+        CatalogImportJobOperationType operationType,
+        int attempt,
+        CancellationToken cancellationToken = default)
+    {
+        if (!context.Database.IsRelational())
+        {
+            var job = await GetJobByIdAsync(jobId, cancellationToken);
+            if (job is null
+                || job.OperationType != operationType
+                || !job.CanProcessAttempt(attempt))
+            {
+                return false;
+            }
+
+            job.Start();
+            await SaveChangesAsync(cancellationToken);
+            return true;
+        }
+
+        var startedAt = DateTimeOffset.UtcNow;
+        var updated = await context.CatalogImportJobs
+            .Where(x =>
+                x.Id == jobId
+                && x.OperationType == operationType
+                && x.Attempt == attempt
+                && x.Status == CatalogImportJobStatus.Pending)
             .ExecuteUpdateAsync(setters => setters
                 .SetProperty(x => x.Status, CatalogImportJobStatus.Running)
                 .SetProperty(x => x.StartedAt, startedAt)

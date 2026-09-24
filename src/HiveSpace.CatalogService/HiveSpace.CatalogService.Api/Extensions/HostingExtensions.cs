@@ -1,12 +1,13 @@
 using HiveSpace.CatalogService.Api.Consumers;
 using HiveSpace.CatalogService.Api.Consumers.Saga.Checkout;
 using HiveSpace.CatalogService.Api.Consumers.Sync;
-using HiveSpace.CatalogService.Api.CatalogImports;
 using HiveSpace.CatalogService.Api.Endpoints;
 using HiveSpace.CatalogService.Infrastructure;
+using HiveSpace.CatalogService.Infrastructure.CatalogImports.Queueing;
 using HiveSpace.CatalogService.Infrastructure.Data;
 using HiveSpace.Core;
 using HiveSpace.Core.Extensions;
+using HiveSpace.Core.Functions.Queueing;
 using HiveSpace.Core.Middlewares;
 using HiveSpace.Infrastructure.Messaging.Configurations;
 using HiveSpace.Infrastructure.Messaging.Extensions;
@@ -30,15 +31,32 @@ namespace HiveSpace.CatalogService.Api.Extensions
             builder.Services.AddCoreServices();
             builder.Services.AddAppAuthentication(builder.Configuration);
             builder.Services.AddPersistenceInfrastructure<CatalogDbContext>();
-            builder.Services.AddHostedService<CatalogImportJobHostedService>();
+            builder.Services.AddFunctionQueueMode(builder.Configuration);
+            builder.Services.AddHostedService<CatalogImportQueueOutboxDispatcher>();
 
             var messagingOptions = builder.Configuration
                 .GetSection(MessagingOptions.SectionName)
                 .Get<MessagingOptions>();
+            var queueMode = FunctionQueueModeOptions
+                .FromConfiguration(builder.Configuration)
+                .GetRequiredMode();
 
-            if (messagingOptions?.EnableRabbitMq == true)
+            if (queueMode.IsRabbitMqMode() && messagingOptions?.EnableRabbitMq == true)
             {
                 builder.Services.AddMassTransitWithRabbitMq<CatalogDbContext>(builder.Configuration, "catalog", cfg =>
+                {
+                    cfg.AddConsumer<StoreRefSyncConsumer>();
+                    cfg.AddConsumer<PlatformCurrencyPolicySyncConsumer>();
+                    cfg.AddConsumer<ReserveInventoryConsumer>();
+                    cfg.AddConsumer<ConfirmInventoryConsumer>();
+                    cfg.AddConsumer<ReleaseInventoryConsumer>();
+                    cfg.AddConsumer<MediaAssetProcessedConsumer>()
+                        .Endpoint(e => e.Name = "catalog-media-asset-processed");
+                });
+            }
+            else if (queueMode.IsAzureServiceBusMode())
+            {
+                builder.Services.AddMassTransitWithAzureServiceBus<CatalogDbContext>(builder.Configuration, "catalog", cfg =>
                 {
                     cfg.AddConsumer<StoreRefSyncConsumer>();
                     cfg.AddConsumer<PlatformCurrencyPolicySyncConsumer>();

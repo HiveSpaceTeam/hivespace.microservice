@@ -38,7 +38,7 @@ public class ProvisionImportedSellersCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WithCreatedStore_BackfillsMissingStoreRef()
+    public async Task Handle_WithCreatedStore_DoesNotBackfillStoreRef()
     {
         var bundle = CreateBundle("provision-store-ref-created");
         var repository = new CatalogImportBundleRepositoryFake(bundle);
@@ -51,11 +51,11 @@ public class ProvisionImportedSellersCommandHandlerTests
 
         await ExecuteProvisionAsync(repository, accountClient, storeClient, bundle.Id, storeRefs);
 
-        storeRefs.Stores.Should().ContainSingle(store =>
-            store.Id == storeId
-            && store.OwnerId == accountClient.Response.UserId!.Value
-            && store.StoreName == "Tiki Trading"
-            && store.LogoUrl == "https://cdn.example.com/sellers/tiki-trading.png");
+        storeRefs.Stores.Should().BeEmpty();
+
+        var storedSeller = bundle.Sellers.Single(x => x.ExternalSellerId == "seller-1");
+        storedSeller.HiveSpaceUserId.Should().Be(accountClient.Response.UserId);
+        storedSeller.HiveSpaceStoreId.Should().Be(storeId);
     }
 
     [Fact]
@@ -144,13 +144,13 @@ public class ProvisionImportedSellersCommandHandlerTests
         var first = await new ProvisionImportedSellersCommandHandler(
             repository,
             new FakeUserContext { UserId = Guid.NewGuid() },
-            new NullCatalogImportJobLifecyclePublisher())
+            new NullCatalogImportJobScheduler())
             .Handle(new ProvisionImportedSellersCommand(bundle.Id), CancellationToken.None);
 
         var second = await new ProvisionImportedSellersCommandHandler(
             repository,
             new FakeUserContext { UserId = Guid.NewGuid() },
-            new NullCatalogImportJobLifecyclePublisher())
+            new NullCatalogImportJobScheduler())
             .Handle(new ProvisionImportedSellersCommand(bundle.Id), CancellationToken.None);
 
         second.JobId.Should().Be(first.JobId);
@@ -190,13 +190,12 @@ public class ProvisionImportedSellersCommandHandlerTests
         var submission = await new ProvisionImportedSellersCommandHandler(
             repository,
             new FakeUserContext { UserId = Guid.NewGuid() },
-            new NullCatalogImportJobLifecyclePublisher())
+            new NullCatalogImportJobScheduler())
             .Handle(new ProvisionImportedSellersCommand(bundleId), CancellationToken.None);
 
         await new CatalogImportJobProcessor(
             repository,
             new ValidateCatalogImportBundleCommandHandlerTests.CategoryRepositoryFake(),
-            new NullCatalogImportJobLifecyclePublisher(),
             new ValidateCatalogImportBundleCommandHandlerTests.AttributeRepositoryFake(),
             accountClient: accountClient,
             storeClient: storeClient,

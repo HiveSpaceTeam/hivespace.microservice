@@ -2,6 +2,7 @@ using FluentAssertions;
 using HiveSpace.CatalogService.Application.CatalogImports.Commands.ProvisionImportedCategories;
 using HiveSpace.CatalogService.Application.CatalogImports.Dtos;
 using HiveSpace.CatalogService.Application.CatalogImports.Jobs;
+using HiveSpace.CatalogService.Application.CatalogImports.Queueing;
 using HiveSpace.CatalogService.Domain.Aggregates.AttributeAggregate;
 using HiveSpace.CatalogService.Domain.Aggregates.CategoryAggregate;
 using HiveSpace.CatalogService.Domain.CatalogImports;
@@ -15,26 +16,6 @@ namespace HiveSpace.CatalogService.Tests.Application.CatalogImports;
 public class CatalogImportJobProcessorTests
 {
     [Fact]
-    public async Task ProcessJobAsync_WhenProgressPublishThrows_CompletesJob()
-    {
-        var repository = new CatalogImportBundleRepositoryFake();
-        var categoryRepository = new CategoryRepositoryFake();
-        var job = CreateProvisionCategoriesJob();
-        repository.AddJob(job);
-
-        await new CatalogImportJobProcessor(
-            repository,
-            categoryRepository,
-            new ThrowingLifecyclePublisher(throwOnProgressed: true),
-            new AttributeRepositoryFake())
-            .ProcessJobAsync(job.Id, CancellationToken.None);
-
-        job.Status.Should().Be(CatalogImportJobStatus.Completed);
-        job.ProcessedCount.Should().Be(1);
-        repository.SaveChangesCallCount.Should().BeGreaterThanOrEqualTo(2);
-    }
-
-    [Fact]
     public async Task ProcessJobAsync_WhenJobClaimFails_LeavesJobUnchanged()
     {
         var repository = new CatalogImportBundleRepositoryFake { TryStartJobResult = false };
@@ -44,7 +25,6 @@ public class CatalogImportJobProcessorTests
         await new CatalogImportJobProcessor(
             repository,
             new CategoryRepositoryFake(),
-            new NullCatalogImportJobLifecyclePublisher(),
             new AttributeRepositoryFake())
             .ProcessJobAsync(job.Id, CancellationToken.None);
 
@@ -62,7 +42,6 @@ public class CatalogImportJobProcessorTests
         await new CatalogImportJobProcessor(
             repository,
             new CategoryRepositoryFake(),
-            new NullCatalogImportJobLifecyclePublisher(),
             new AttributeRepositoryFake())
             .ProcessJobAsync(job.Id, CancellationToken.None);
 
@@ -71,23 +50,80 @@ public class CatalogImportJobProcessorTests
     }
 
     [Fact]
-    public async Task ProcessJobAsync_WhenCompletedPublishThrows_CompletesJob()
+    public async Task ProcessQueuedJobAsync_WhenPendingJobMatchesWorkItem_ClaimsAndCompletesJob()
     {
-        var repository = new CatalogImportBundleRepositoryFake();
-        var categoryRepository = new CategoryRepositoryFake();
+        var repository = new CatalogImportBundleRepositoryFake { TryStartMutatesJob = false };
         var job = CreateProvisionCategoriesJob();
         repository.AddJob(job);
+        var workItem = CreateWorkItem(job);
 
         await new CatalogImportJobProcessor(
             repository,
-            categoryRepository,
-            new ThrowingLifecyclePublisher(throwOnCompleted: true),
+            new CategoryRepositoryFake(),
             new AttributeRepositoryFake())
-            .ProcessJobAsync(job.Id, CancellationToken.None);
+            .ProcessQueuedJobAsync(workItem, CancellationToken.None);
 
         job.Status.Should().Be(CatalogImportJobStatus.Completed);
-        job.CompletedAt.Should().NotBeNull();
-        repository.CategoryLinks.Should().ContainSingle(x => x.ExternalCategoryId == "1846");
+        job.ProcessedCount.Should().Be(1);
+        repository.TryStartJobWithAttemptCallCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task ProcessQueuedJobAsync_WhenAttemptIsStale_LeavesJobUnchanged()
+    {
+        var repository = new CatalogImportBundleRepositoryFake();
+        var job = CreateProvisionCategoriesJob();
+        repository.AddJob(job);
+        var workItem = CreateWorkItem(job) with { Attempt = job.Attempt + 1 };
+
+        await new CatalogImportJobProcessor(
+            repository,
+            new CategoryRepositoryFake(),
+            new AttributeRepositoryFake())
+            .ProcessQueuedJobAsync(workItem, CancellationToken.None);
+
+        job.Status.Should().Be(CatalogImportJobStatus.Pending);
+        repository.TryStartJobWithAttemptCallCount.Should().Be(0);
+        repository.SaveChangesCallCount.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task ProcessQueuedJobAsync_WhenOperationMismatches_LeavesJobUnchanged()
+    {
+        var repository = new CatalogImportBundleRepositoryFake();
+        var job = CreateProvisionCategoriesJob();
+        repository.AddJob(job);
+        var workItem = CreateWorkItem(job) with { OperationType = CatalogImportJobOperationType.ValidateBundle };
+
+        await new CatalogImportJobProcessor(
+            repository,
+            new CategoryRepositoryFake(),
+            new AttributeRepositoryFake())
+            .ProcessQueuedJobAsync(workItem, CancellationToken.None);
+
+        job.Status.Should().Be(CatalogImportJobStatus.Pending);
+        repository.TryStartJobWithAttemptCallCount.Should().Be(0);
+        repository.SaveChangesCallCount.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task ProcessQueuedJobAsync_WhenJobIsTerminal_LeavesJobUnchanged()
+    {
+        var repository = new CatalogImportBundleRepositoryFake();
+        var job = CreateProvisionCategoriesJob();
+        job.Start();
+        job.Complete("{}");
+        repository.AddJob(job);
+        var workItem = CreateWorkItem(job);
+
+        await new CatalogImportJobProcessor(
+            repository,
+            new CategoryRepositoryFake(),
+            new AttributeRepositoryFake())
+            .ProcessQueuedJobAsync(workItem, CancellationToken.None);
+
+        job.Status.Should().Be(CatalogImportJobStatus.Completed);
+        repository.TryStartJobWithAttemptCallCount.Should().Be(0);
     }
 
     [Fact]
@@ -102,7 +138,6 @@ public class CatalogImportJobProcessorTests
         var recovered = await new CatalogImportJobProcessor(
             repository,
             new CategoryRepositoryFake(),
-            new NullCatalogImportJobLifecyclePublisher(),
             new AttributeRepositoryFake())
             .RecoverStaleRunningJobsAsync(TimeSpan.FromMinutes(5), 5, CancellationToken.None);
 
@@ -122,7 +157,6 @@ public class CatalogImportJobProcessorTests
         var recovered = await new CatalogImportJobProcessor(
             repository,
             new CategoryRepositoryFake(),
-            new NullCatalogImportJobLifecyclePublisher(),
             new AttributeRepositoryFake())
             .RecoverStaleRunningJobsAsync(TimeSpan.FromMinutes(5), 5, CancellationToken.None);
 
@@ -179,7 +213,6 @@ public class CatalogImportJobProcessorTests
         await new CatalogImportJobProcessor(
             repository,
             categoryRepository,
-            new NullCatalogImportJobLifecyclePublisher(),
             attributeRepository)
             .ProcessJobAsync(job.Id, CancellationToken.None);
 
@@ -204,7 +237,6 @@ public class CatalogImportJobProcessorTests
         await new CatalogImportJobProcessor(
             repository,
             new CategoryRepositoryFake(),
-            new NullCatalogImportJobLifecyclePublisher(),
             new AttributeRepositoryFake())
             .ProcessJobAsync(job.Id, CancellationToken.None);
 
@@ -232,7 +264,6 @@ public class CatalogImportJobProcessorTests
         await new CatalogImportJobProcessor(
             repository,
             new CategoryRepositoryFake(),
-            new NullCatalogImportJobLifecyclePublisher(),
             new AttributeRepositoryFake(),
             productRepository: new ValidateCatalogImportBundleCommandHandlerTests.ProductRepositoryFake(),
             currencyPolicyRepository: new ValidateCatalogImportBundleCommandHandlerTests.PlatformCurrencyPolicyRefRepositoryFake(enabled: true))
@@ -261,9 +292,19 @@ public class CatalogImportJobProcessorTests
                         ["Nha sach Tiki"],
                         "1846",
                         "https://cdn.example.com/categories/1846.png",
-                        "category-file-1846",
-                        null)
+                    "category-file-1846",
+                    null)
                 ])));
+
+    private static CatalogImportQueueWorkItem CreateWorkItem(CatalogImportJob job)
+        => new(
+            job.Id,
+            job.OperationType,
+            job.Attempt,
+            Guid.NewGuid().ToString("N"),
+            DateTimeOffset.UtcNow,
+            job.RequestedByUserId,
+            job.BundleId);
 
     private static void SetProperty(object target, string propertyName, object? value)
     {
@@ -280,6 +321,7 @@ public class CatalogImportJobProcessorTests
         public List<Guid> PreparedValidationIssueReplacementBundleIds { get; } = [];
         public List<Guid> DetachedDeletedValidationIssueBundleIds { get; } = [];
         public int SaveChangesCallCount { get; private set; }
+        public int TryStartJobWithAttemptCallCount { get; private set; }
         public bool TryStartJobResult { get; init; } = true;
         public bool TryStartMutatesJob { get; init; } = true;
 
@@ -336,6 +378,30 @@ public class CatalogImportJobProcessorTests
             var job = Jobs.FirstOrDefault(x => x.Id == jobId);
             if (job is null || job.Status != CatalogImportJobStatus.Pending)
                 return Task.FromResult(false);
+
+            if (TryStartMutatesJob)
+                job.Start();
+            SaveChangesCallCount++;
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> TryStartJobAsync(
+            Guid jobId,
+            CatalogImportJobOperationType operationType,
+            int attempt,
+            CancellationToken cancellationToken = default)
+        {
+            TryStartJobWithAttemptCallCount++;
+            if (!TryStartJobResult)
+                return Task.FromResult(false);
+
+            var job = Jobs.FirstOrDefault(x => x.Id == jobId);
+            if (job is null
+                || job.OperationType != operationType
+                || !job.CanProcessAttempt(attempt))
+            {
+                return Task.FromResult(false);
+            }
 
             if (TryStartMutatesJob)
                 job.Start();
@@ -516,29 +582,5 @@ public class CatalogImportJobProcessorTests
 
         public Task<int> SaveChangesAsync()
             => Task.FromResult(1);
-    }
-
-    private sealed class ThrowingLifecyclePublisher(
-        bool throwOnProgressed = false,
-        bool throwOnCompleted = false) : ICatalogImportJobLifecyclePublisher
-    {
-        public Task PublishQueuedAsync(CatalogImportJob job, CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
-
-        public Task PublishStartedAsync(CatalogImportJob job, CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
-
-        public Task PublishProgressedAsync(CatalogImportJob job, CancellationToken cancellationToken = default)
-            => throwOnProgressed
-                ? Task.FromException(new InvalidOperationException("Progress publish failed"))
-                : Task.CompletedTask;
-
-        public Task PublishCompletedAsync(CatalogImportJob job, CancellationToken cancellationToken = default)
-            => throwOnCompleted
-                ? Task.FromException(new InvalidOperationException("Completed publish failed"))
-                : Task.CompletedTask;
-
-        public Task PublishFailedAsync(CatalogImportJob job, CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
     }
 }

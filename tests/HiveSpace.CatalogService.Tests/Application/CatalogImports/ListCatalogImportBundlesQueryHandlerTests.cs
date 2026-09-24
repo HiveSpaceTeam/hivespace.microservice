@@ -30,10 +30,10 @@ public class ListCatalogImportBundlesQueryHandlerTests : IClassFixture<CatalogSe
             "sha256:categories",
             Guid.NewGuid()));
         await repository.SaveChangesAsync(CancellationToken.None);
-        var submit = new SubmitCatalogImportBundleCommandHandler(repository, new FakeUserContext { UserId = Guid.NewGuid() }, new NullCatalogImportJobLifecyclePublisher());
+        var submit = new SubmitCatalogImportBundleCommandHandler(repository, new FakeUserContext { UserId = Guid.NewGuid() }, new NullCatalogImportJobScheduler());
         var request = SubmitCatalogImportBundleCommandHandlerTestsHelper.CreateRequest("sha256:list");
         var job = await submit.Handle(new SubmitCatalogImportBundleCommand(request), CancellationToken.None);
-        await new CatalogImportJobProcessor(repository, new SqlCategoryRepository(_fixture.DbContext), new NullCatalogImportJobLifecyclePublisher())
+        await new CatalogImportJobProcessor(repository, new SqlCategoryRepository(_fixture.DbContext))
             .ProcessJobAsync(job.JobId, CancellationToken.None);
 
         var handler = new ListCatalogImportBundlesQueryHandler(repository);

@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\HiveSpace.Testing.Shared\HiveSpace.Testing.Shared.csproj" />
+    <ProjectReference Include="..\..\libs\HiveSpace.Core\HiveSpace.Core.csproj" />
     <ProjectReference Include="..\..\src\HiveSpace.MediaService\HiveSpace.MediaService.Core\HiveSpace.MediaService.Core.csproj" />
   </ItemGroup>
 

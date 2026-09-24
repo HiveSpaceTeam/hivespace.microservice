@@ -18,9 +18,11 @@
     <PackageReference Include="SixLabors.ImageSharp" />
     <!-- Messaging -->
     <PackageReference Include="MassTransit.RabbitMQ" />
+    <PackageReference Include="MassTransit.Azure.ServiceBus.Core" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\HiveSpace.MediaService.Core\HiveSpace.MediaService.Core.csproj" />
+    <ProjectReference Include="..\..\..\libs\HiveSpace.Infrastructure.Messaging\HiveSpace.Infrastructure.Messaging.csproj" />
     <ProjectReference Include="..\..\..\libs\HiveSpace.Infrastructure.Messaging.Shared\HiveSpace.Infrastructure.Messaging.Shared.csproj" />
   </ItemGroup>
   <ItemGroup>

@@ -18,9 +18,9 @@ public class ProvisionImportedCategoriesCommandHandlerTests
         var categoryRepository = new CategoryRepositoryFake();
         var payload = CreateRequest("sha256:categories-1");
 
-        var result = await new ProvisionImportedCategoriesCommandHandler(repository, new NullCatalogImportJobLifecyclePublisher())
+        var result = await new ProvisionImportedCategoriesCommandHandler(repository, new NullCatalogImportJobScheduler())
             .Handle(new ProvisionImportedCategoriesCommand(payload, Guid.NewGuid()), CancellationToken.None);
-        await new CatalogImportJobProcessor(repository, categoryRepository, new NullCatalogImportJobLifecyclePublisher())
+        await new CatalogImportJobProcessor(repository, categoryRepository)
             .ProcessJobAsync(result.JobId, CancellationToken.None);
         var job = await repository.GetJobByIdAsync(result.JobId, CancellationToken.None);
 
@@ -44,10 +44,10 @@ public class ProvisionImportedCategoriesCommandHandlerTests
         var repository = new CatalogImportBundleRepositoryFake();
         var categoryRepository = new CategoryRepositoryFake();
         var payload = CreateRequest("sha256:categories-2");
-        var handler = new ProvisionImportedCategoriesCommandHandler(repository, new NullCatalogImportJobLifecyclePublisher());
+        var handler = new ProvisionImportedCategoriesCommandHandler(repository, new NullCatalogImportJobScheduler());
 
         var first = await handler.Handle(new ProvisionImportedCategoriesCommand(payload, Guid.NewGuid()), CancellationToken.None);
-        await new CatalogImportJobProcessor(repository, categoryRepository, new NullCatalogImportJobLifecyclePublisher())
+        await new CatalogImportJobProcessor(repository, categoryRepository)
             .ProcessJobAsync(first.JobId, CancellationToken.None);
         var result = await handler.Handle(new ProvisionImportedCategoriesCommand(payload, Guid.NewGuid()), CancellationToken.None);
 
@@ -72,9 +72,9 @@ public class ProvisionImportedCategoriesCommandHandlerTests
             "sha256:previous",
             Guid.NewGuid()));
 
-        var result = await new ProvisionImportedCategoriesCommandHandler(repository, new NullCatalogImportJobLifecyclePublisher())
+        var result = await new ProvisionImportedCategoriesCommandHandler(repository, new NullCatalogImportJobScheduler())
             .Handle(new ProvisionImportedCategoriesCommand(CreateRequest("sha256:categories-4"), Guid.NewGuid()), CancellationToken.None);
-        await new CatalogImportJobProcessor(repository, categoryRepository, new NullCatalogImportJobLifecyclePublisher())
+        await new CatalogImportJobProcessor(repository, categoryRepository)
             .ProcessJobAsync(result.JobId, CancellationToken.None);
 
         categoryRepository.Categories.Should().ContainSingle(x =>
@@ -90,9 +90,9 @@ public class ProvisionImportedCategoriesCommandHandlerTests
         var categoryRepository = new CategoryRepositoryFake();
         categoryRepository.Categories.Add(new Category(10, "Nha sach Tiki", isActive: true));
 
-        var result = await new ProvisionImportedCategoriesCommandHandler(repository, new NullCatalogImportJobLifecyclePublisher())
+        var result = await new ProvisionImportedCategoriesCommandHandler(repository, new NullCatalogImportJobScheduler())
             .Handle(new ProvisionImportedCategoriesCommand(CreateRequest("sha256:categories-3"), Guid.NewGuid()), CancellationToken.None);
-        await new CatalogImportJobProcessor(repository, categoryRepository, new NullCatalogImportJobLifecyclePublisher())
+        await new CatalogImportJobProcessor(repository, categoryRepository)
             .ProcessJobAsync(result.JobId, CancellationToken.None);
         var job = await repository.GetJobByIdAsync(result.JobId, CancellationToken.None);
 
@@ -106,7 +106,7 @@ public class ProvisionImportedCategoriesCommandHandlerTests
         var repository = new CatalogImportBundleRepositoryFake();
         var categoryRepository = new CategoryRepositoryFake();
 
-        var result = await new ProvisionImportedCategoriesCommandHandler(repository, new NullCatalogImportJobLifecyclePublisher())
+        var result = await new ProvisionImportedCategoriesCommandHandler(repository, new NullCatalogImportJobScheduler())
             .Handle(new ProvisionImportedCategoriesCommand(CreateRequest(
                 "sha256:categories-parent-child",
                 [
@@ -129,7 +129,7 @@ public class ProvisionImportedCategoriesCommandHandlerTests
                         null,
                         null)
                 ]), Guid.NewGuid()), CancellationToken.None);
-        await new CatalogImportJobProcessor(repository, categoryRepository, new NullCatalogImportJobLifecyclePublisher())
+        await new CatalogImportJobProcessor(repository, categoryRepository)
             .ProcessJobAsync(result.JobId, CancellationToken.None);
 
         categoryRepository.Categories.Should().ContainSingle(x => x.Id == 1 && x.ParentId == null && x.Name == "Books");
@@ -142,7 +142,7 @@ public class ProvisionImportedCategoriesCommandHandlerTests
         var repository = new CatalogImportBundleRepositoryFake();
         var categoryRepository = new CategoryRepositoryFake();
 
-        var result = await new ProvisionImportedCategoriesCommandHandler(repository, new NullCatalogImportJobLifecyclePublisher())
+        var result = await new ProvisionImportedCategoriesCommandHandler(repository, new NullCatalogImportJobScheduler())
             .Handle(new ProvisionImportedCategoriesCommand(CreateRequest(
                 "sha256:categories-chain",
                 [
@@ -150,7 +150,7 @@ public class ProvisionImportedCategoriesCommandHandlerTests
                     new CategoryProvisioningCategoryDto("100", null, "Books", ["Books"], null, null, null, null),
                     new CategoryProvisioningCategoryDto("101", "100", "Fiction", ["Books", "Fiction"], null, null, null, null)
                 ]), Guid.NewGuid()), CancellationToken.None);
-        await new CatalogImportJobProcessor(repository, categoryRepository, new NullCatalogImportJobLifecyclePublisher())
+        await new CatalogImportJobProcessor(repository, categoryRepository)
             .ProcessJobAsync(result.JobId, CancellationToken.None);
 
         categoryRepository.Categories.Should().ContainSingle(x => x.Id == 1 && x.ParentId == null && x.Name == "Books");
@@ -164,7 +164,7 @@ public class ProvisionImportedCategoriesCommandHandlerTests
         var repository = new CatalogImportBundleRepositoryFake();
         var categoryRepository = new CategoryRepositoryFake();
 
-        var result = await new ProvisionImportedCategoriesCommandHandler(repository, new NullCatalogImportJobLifecyclePublisher())
+        var result = await new ProvisionImportedCategoriesCommandHandler(repository, new NullCatalogImportJobScheduler())
             .Handle(new ProvisionImportedCategoriesCommand(CreateRequest(
                 "sha256:categories-missing-parent",
                 [
@@ -178,7 +178,7 @@ public class ProvisionImportedCategoriesCommandHandlerTests
                         null,
                         null)
                 ]), Guid.NewGuid()), CancellationToken.None);
-        await new CatalogImportJobProcessor(repository, categoryRepository, new NullCatalogImportJobLifecyclePublisher())
+        await new CatalogImportJobProcessor(repository, categoryRepository)
             .ProcessJobAsync(result.JobId, CancellationToken.None);
         var job = await repository.GetJobByIdAsync(result.JobId, CancellationToken.None);
 

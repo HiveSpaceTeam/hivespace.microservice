@@ -24,6 +24,7 @@
     <ProjectReference Include="..\HiveSpace.IdentityService\HiveSpace.IdentityService.Api\HiveSpace.IdentityService.Api.csproj" IsAspireProjectResource="true" />
     <ProjectReference Include="..\HiveSpace.UserService\HiveSpace.UserService.Api\HiveSpace.UserService.Api.csproj" IsAspireProjectResource="true" />
     <ProjectReference Include="..\HiveSpace.CatalogService\HiveSpace.CatalogService.Api\HiveSpace.CatalogService.Api.csproj" IsAspireProjectResource="true" />
+    <ProjectReference Include="..\HiveSpace.CatalogService\HiveSpace.CatalogService.Func\HiveSpace.CatalogService.Func.csproj" IsAspireProjectResource="true" />
     <ProjectReference Include="..\HiveSpace.MediaService\HiveSpace.MediaService.Api\HiveSpace.MediaService.Api.csproj" IsAspireProjectResource="true" />
     <ProjectReference Include="..\HiveSpace.MediaService\HiveSpace.MediaService.Func\HiveSpace.MediaService.Func.csproj" IsAspireProjectResource="true" />
     <ProjectReference Include="..\HiveSpace.OrderService\HiveSpace.OrderService.Api\HiveSpace.OrderService.Api.csproj" IsAspireProjectResource="true" />

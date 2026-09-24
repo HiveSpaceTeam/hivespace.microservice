@@ -1,5 +1,6 @@
 using HiveSpace.CatalogService.Application.Categories;
 using HiveSpace.CatalogService.Application.CatalogImports.Jobs;
+using HiveSpace.CatalogService.Application.CatalogImports.Queueing;
 using HiveSpace.CatalogService.Application.Interfaces.Messaging;
 using HiveSpace.CatalogService.Application.CatalogImports.Ports;
 using HiveSpace.CatalogService.Application.Products;
@@ -9,6 +10,7 @@ using HiveSpace.CatalogService.Domain.Repositories.External;
 using HiveSpace.CatalogService.Infrastructure.Data;
 using HiveSpace.CatalogService.Infrastructure.DataQueries;
 using HiveSpace.CatalogService.Infrastructure.CatalogImports;
+using HiveSpace.CatalogService.Infrastructure.CatalogImports.Queueing;
 using HiveSpace.CatalogService.Infrastructure.Messaging.Publishers;
 using HiveSpace.CatalogService.Infrastructure.Repositories;
 using HiveSpace.CatalogService.Infrastructure.Repositories.Externals;
@@ -57,7 +59,9 @@ namespace HiveSpace.CatalogService.Infrastructure
             services.AddScoped<IProductDataQuery, ProductDataQuery>();
 
             services.AddScoped<IProductEventPublisher, ProductEventPublisher>();
-            services.AddScoped<ICatalogImportJobLifecyclePublisher, CatalogImportJobLifecyclePublisher>();
+            services.AddScoped<ICatalogImportJobScheduler, CatalogImportJobScheduler>();
+            services.AddScoped<ICatalogImportQueuePublisher, CatalogImportQueuePublisher>();
+            services.AddScoped<ICatalogImportJobExecutionGate, CatalogImportJobExecutionGate>();
 
             services.AddScoped<IStoreRefRepository, StoreRefRepository>();
             services.AddScoped<IPlatformCurrencyPolicyRefRepository, PlatformCurrencyPolicyRefRepository>();

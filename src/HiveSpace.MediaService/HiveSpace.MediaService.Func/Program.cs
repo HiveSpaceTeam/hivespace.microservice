@@ -1,4 +1,8 @@
 using HiveSpace.Infrastructure.Messaging.Configurations;
+using HiveSpace.Infrastructure.Messaging.Extensions;
+using HiveSpace.Core.Functions.Queueing;
+using HiveSpace.MediaService.Func.Consumers;
+using HiveSpace.MediaService.Func.Infrastructure.Messaging;
 using HiveSpace.MediaService.Core.Infrastructure.Messaging.Publishers;
 using HiveSpace.MediaService.Core.Infrastructure.Configuration;
 using HiveSpace.MediaService.Core.Persistence;
@@ -43,10 +47,11 @@ var connectionString = connectionStringBuilder.ConnectionString;
 
 // Register Configuration
 builder.Services.AddSingleton<StorageConfiguration>();
+builder.Services.AddFunctionQueueMode(configuration);
 
 // Register Core Services
 builder.Services.AddScoped<IStorageService, AzureBlobStorageService>();
-builder.Services.AddScoped<IQueueService, AzureQueueService>();
+builder.Services.AddScoped<IQueueService, MediaProcessingQueueService>();
 builder.Services.AddScoped<IMediaAssetRepository, MediaAssetRepository>();
 builder.Services.AddScoped<IMediaCleanupService, MediaCleanupService>();
 builder.Services.AddScoped<IMediaEventPublisher, MediaEventPublisher>();
@@ -62,23 +67,23 @@ builder.Services.AddDbContext<MediaDbContext>((_, options) =>
         .CommandTimeout(120));
 });
 
-var messagingOptions = configuration
-    .GetSection(MessagingOptions.SectionName)
-    .Get<MessagingOptions>();
+var queueMode = FunctionQueueModeOptions
+    .FromConfiguration(configuration)
+    .GetRequiredMode();
 
-if (messagingOptions?.EnableRabbitMq == true)
+if (queueMode.IsRabbitMqMode())
 {
-    var rabbitMqConnectionString = MessagingConnectionStrings.GetRequired(
+    builder.Services.AddMassTransitWithRabbitMq<MediaDbContext>(
         configuration,
-        MessagingConnectionStrings.RabbitMq);
-
-    builder.Services.AddMassTransit(x =>
-    {
-        x.UsingRabbitMq((_, cfg) =>
-        {
-            cfg.Host(new Uri(rabbitMqConnectionString));
-        });
-    });
+        "media-func",
+        cfg => cfg.AddConsumer<MediaProcessingQueueConsumer>());
+}
+else if (queueMode.IsAzureServiceBusMode())
+{
+    builder.Services.AddMassTransitWithAzureServiceBus<MediaDbContext>(
+        configuration,
+        "media-func",
+        cfg => cfg.AddConsumer<MediaProcessingQueueConsumer>());
 }
 
 builder.Build().Run();

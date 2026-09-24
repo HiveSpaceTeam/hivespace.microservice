@@ -13,7 +13,7 @@ namespace HiveSpace.CatalogService.Application.CatalogImports.Commands.Provision
 public class ProvisionImportedSellersCommandHandler(
     ICatalogImportBundleRepository repository,
     IUserContext userContext,
-    ICatalogImportJobLifecyclePublisher lifecyclePublisher)
+    ICatalogImportJobScheduler jobScheduler)
     : ICommandHandler<ProvisionImportedSellersCommand, CatalogImportJobSubmissionDto>
 {
     public async Task<CatalogImportJobSubmissionDto> Handle(
@@ -40,7 +40,7 @@ public class ProvisionImportedSellersCommandHandler(
             bundleId: bundle.Id);
 
         repository.AddJob(job);
-        await lifecyclePublisher.PublishQueuedAsync(job, cancellationToken);
+        await jobScheduler.ScheduleAsync(job, cancellationToken);
         await repository.SaveChangesAsync(cancellationToken);
 
         return CatalogImportJobMapper.ToSubmissionDto(job);

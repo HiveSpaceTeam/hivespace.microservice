@@ -28,6 +28,23 @@ public class CatalogImportJobTests
     }
 
     [Fact]
+    public void Create_ValidRequest_InitializesAttemptAndCorrelation()
+    {
+        var requester = Guid.NewGuid();
+
+        var job = CatalogImportJob.Create(
+            CatalogImportJobOperationType.ProvisionCategories,
+            "tiki",
+            requester,
+            "sha256:categories",
+            correlationId: " import-correlation ");
+
+        job.Attempt.Should().Be(1);
+        job.CorrelationId.Should().Be("import-correlation");
+        job.CanProcessAttempt(1).Should().BeTrue();
+    }
+
+    [Fact]
     public void Start_FromPending_SetsRunningAndStartedAt()
     {
         var job = CreateJob();
@@ -134,6 +151,7 @@ public class CatalogImportJobTests
 
         job.Requeue();
 
+        job.Attempt.Should().Be(2);
         job.Status.Should().Be(CatalogImportJobStatus.Pending);
         job.StartedAt.Should().BeNull();
         job.CompletedAt.Should().BeNull();
@@ -149,6 +167,62 @@ public class CatalogImportJobTests
         job.ConflictCount.Should().Be(0);
         job.ResultSummaryJson.Should().BeNull();
         job.ErrorSummary.Should().BeNull();
+    }
+
+    [Fact]
+    public void PrepareRetry_FromFailedJob_IncrementsAttemptAndClearsProgress()
+    {
+        var job = CreateJob();
+        job.Start();
+        job.UpdateProgress(total: 10, processed: 8, created: 2, failed: 1);
+        job.Fail("Retryable provisioning failure.");
+
+        job.PrepareRetry();
+
+        job.Attempt.Should().Be(2);
+        job.Status.Should().Be(CatalogImportJobStatus.Pending);
+        job.StartedAt.Should().BeNull();
+        job.CompletedAt.Should().BeNull();
+        job.TotalCount.Should().Be(0);
+        job.ProcessedCount.Should().Be(0);
+        job.CreatedCount.Should().Be(0);
+        job.FailedCount.Should().Be(0);
+        job.ErrorSummary.Should().BeNull();
+    }
+
+    [Fact]
+    public void CanProcessAttempt_WithMatchingAttemptAndPendingStatus_ReturnsTrue()
+    {
+        var job = CreateJob();
+
+        var result = job.CanProcessAttempt(1);
+
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public void CanProcessAttempt_WithStaleAttempt_ReturnsFalse()
+    {
+        var job = CreateJob();
+        job.Start();
+        job.Fail("Retryable provisioning failure.");
+        job.PrepareRetry();
+
+        var result = job.CanProcessAttempt(1);
+
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public void CanProcessAttempt_WithTerminalStatus_ReturnsFalse()
+    {
+        var job = CreateJob();
+        job.Start();
+        job.Complete();
+
+        var result = job.CanProcessAttempt(1);
+
+        result.Should().BeFalse();
     }
 
     [Fact]
