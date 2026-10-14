@@ -18,6 +18,6 @@ public class NotificationDbContext(DbContextOptions<NotificationDbContext> optio
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(NotificationDbContext).Assembly);
-        modelBuilder.AddEntityOutBox();
+        modelBuilder.AddMassTransitInboxOutboxEntities();
     }
 }

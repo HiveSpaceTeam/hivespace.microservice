@@ -65,7 +65,7 @@ namespace HiveSpace.CatalogService.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new StoreRefValueConfiguration());
             modelBuilder.ApplyConfiguration(new PlatformCurrencyPolicyRefConfiguration());
             modelBuilder.AddPersistenceBuilder();
-            modelBuilder.AddEntityOutBox();
+            modelBuilder.AddMassTransitInboxOutboxEntities();
         }
     }
 }

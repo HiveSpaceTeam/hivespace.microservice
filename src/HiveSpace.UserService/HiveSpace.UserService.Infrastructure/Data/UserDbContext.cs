@@ -1,4 +1,6 @@
 using HiveSpace.Infrastructure.Messaging.Extensions;
+using HiveSpace.Infrastructure.Persistence;
+using HiveSpace.Infrastructure.Persistence.Idempotence;
 using HiveSpace.UserService.Domain.Aggregates.Configuration;
 using HiveSpace.UserService.Domain.Aggregates.Store;
 using HiveSpace.UserService.Domain.Aggregates.User;
@@ -13,6 +15,7 @@ public class UserDbContext : DbContext
     public DbSet<Store> Stores { get; set; }
     public DbSet<PlatformConfig> PlatformConfigs { get; set; }
     public DbSet<PlatformCurrency> PlatformCurrencies { get; set; }
+    public DbSet<IncomingRequest> IncomingRequests { get; set; } = null!;
     public UserDbContext(DbContextOptions<UserDbContext> options) : base(options)
     {
     }
@@ -24,8 +27,9 @@ public class UserDbContext : DbContext
         // Only apply configurations from Infrastructure assembly (not Domain)
         builder.ApplyConfigurationsFromAssembly(typeof(UserDbContext).Assembly);
 
-        // Add MassTransit outbox entities
-        MassTransitExtensions.AddEntityOutBox(builder);
+        builder.AddPersistenceBuilder();
+
+        builder.AddMassTransitInboxOutboxEntities();
 
         // Configure table names following the Identity Service pattern
         builder.Entity<Address>().ToTable("addresses");

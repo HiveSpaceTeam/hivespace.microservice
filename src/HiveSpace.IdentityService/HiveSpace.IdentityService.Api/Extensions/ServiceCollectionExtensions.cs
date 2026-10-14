@@ -1,4 +1,3 @@
-using HiveSpace.IdentityService.Api.Consumers;
 using HiveSpace.IdentityService.Api.Configs;
 using HiveSpace.IdentityService.Api.Middleware;
 using HiveSpace.IdentityService.Api.Services;
@@ -203,6 +202,7 @@ internal static class ServiceCollectionExtensions
         services.AddScoped<IPendingGoogleLinkStore, PendingGoogleLinkCookieStore>();
         services.AddScoped<IAccountSessionIssuer, AccountSessionIssuer>();
         services.AddHostedService<OtpChallengeCleanupService>();
+        services.AddGrpc(options => options.Interceptors.Add<HiveSpace.Infrastructure.Messaging.Shared.Grpc.CorrelationGrpcInterceptor>());
 
         return services;
     }
@@ -215,8 +215,6 @@ internal static class ServiceCollectionExtensions
 
         services.AddMassTransitWithRabbitMq<IdentityDbContext>(configuration, "identity", cfg =>
         {
-            cfg.AddConsumer<StoreCreatedConsumer>()
-                .Endpoint(e => e.Name = "identity-store-created");
         });
 
         return services;

@@ -80,19 +80,8 @@ namespace HiveSpace.CatalogService.Infrastructure
                 client.Timeout = TimeSpan.FromSeconds(15);
             });
 
-            services.AddHttpClient<IImportedSellerAccountClient, ImportedSellerAccountClient>((provider, client) =>
-            {
-                var configuration = provider.GetRequiredService<IConfiguration>();
-                client.BaseAddress = new Uri(configuration["ServiceUrls:IdentityService"] ?? "http://localhost:5001");
-                client.Timeout = TimeSpan.FromSeconds(15);
-            });
-
-            services.AddHttpClient<IImportedSellerStoreClient, ImportedSellerStoreClient>((provider, client) =>
-            {
-                var configuration = provider.GetRequiredService<IConfiguration>();
-                client.BaseAddress = new Uri(configuration["ServiceUrls:UserService"] ?? "http://localhost:5007");
-                client.Timeout = TimeSpan.FromSeconds(15);
-            });
+            services.AddScoped<IImportedSellerAccountClient, ImportedSellerAccountGrpcClient>();
+            services.AddScoped<IImportedSellerStoreClient, ImportedSellerStoreGrpcClient>();
         }
 
     }

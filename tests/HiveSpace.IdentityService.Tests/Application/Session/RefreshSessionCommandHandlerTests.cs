@@ -18,13 +18,15 @@ public class RefreshSessionCommandHandlerTests
     public async Task Handle_WithValidSession_ReturnsSessionResponse()
     {
         var userId = Guid.NewGuid();
+        var storeId = Guid.NewGuid();
         var user = new ApplicationUser
         {
             Id = userId,
             Email = "refresh@hivespace.local",
             RoleName = "Buyer",
             Status = UserStatus.Active,
-            EmailConfirmed = true
+            EmailConfirmed = true,
+            StoreId = storeId
         };
         var session = ValidSession(userId, "stamp-abc");
         var issued = new TokenCookieIssueResult("session-new", DateTimeOffset.UtcNow.AddHours(1), DateTimeOffset.UtcNow.AddDays(7));
@@ -47,6 +49,7 @@ public class RefreshSessionCommandHandlerTests
 
         result.Should().NotBeNull();
         result.CsrfToken.Should().Be("csrf-xyz");
+        result.User.StoreId.Should().Be(storeId);
     }
 
     [Fact]

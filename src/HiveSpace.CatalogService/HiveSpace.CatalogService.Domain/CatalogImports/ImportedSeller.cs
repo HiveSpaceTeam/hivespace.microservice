@@ -83,6 +83,14 @@ public class ImportedSeller
             : ImportedSellerProvisioningStatus.Matched;
     }
 
+    public void RetainIdentityAccount(Guid userId)
+    {
+        if (userId == Guid.Empty)
+            throw new InvalidFieldException(CatalogDomainErrorCode.InvalidImportedSeller, nameof(HiveSpaceUserId));
+
+        HiveSpaceUserId = userId;
+    }
+
     public void MarkConflict(string reason)
     {
         ProvisioningStatus = ImportedSellerProvisioningStatus.Conflict;

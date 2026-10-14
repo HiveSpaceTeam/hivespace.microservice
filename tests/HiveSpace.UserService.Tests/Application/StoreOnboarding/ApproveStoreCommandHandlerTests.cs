@@ -1,9 +1,11 @@
 using FluentAssertions;
 using HiveSpace.Domain.Shared.Exceptions;
 using HiveSpace.Testing.Shared.Doubles;
+using HiveSpace.Infrastructure.Persistence.Transaction;
 using HiveSpace.UserService.Application.Interfaces.Messaging;
 using HiveSpace.UserService.Application.Stores.Commands.CreateStore;
 using HiveSpace.UserService.Application.Stores.Dtos;
+using HiveSpace.UserService.Application.Stores.IdentityProvisioning;
 using HiveSpace.UserService.Domain.Aggregates.Store;
 using HiveSpace.UserService.Domain.Aggregates.User;
 using HiveSpace.UserService.Domain.Exceptions;
@@ -12,6 +14,7 @@ using HiveSpace.UserService.Domain.Services;
 using HiveSpace.UserService.Infrastructure.Repositories;
 using HiveSpace.UserService.Tests.Fixtures;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Xunit;
 
 namespace HiveSpace.UserService.Tests.Application.StoreOnboarding;
@@ -29,7 +32,8 @@ public class CreateStoreCommandHandlerTests : IClassFixture<UserServiceFixture>
         _fixture.DbContext.Users.Add(user);
         await _fixture.DbContext.SaveChangesAsync();
 
-        var handler = CreateHandler(user.Id);
+        var storeEventPublisher = new StoreEventPublisherFake();
+        var handler = CreateHandler(user.Id, storeEventPublisher: storeEventPublisher);
 
         var result = await handler.Handle(
             new CreateStoreCommand(new CreateStoreRequestDto("Submit Store", "desc", "logo-submit", "123 Seller St")),
@@ -38,6 +42,7 @@ public class CreateStoreCommandHandlerTests : IClassFixture<UserServiceFixture>
         var stored = await _fixture.DbContext.Stores.SingleAsync(s => s.Id == result.StoreId);
         stored.StoreName.Should().Be("Submit Store");
         stored.OwnerId.Should().Be(user.Id);
+        storeEventPublisher.StoreCreatedCalls.Should().Be(1);
     }
 
     [Fact]
@@ -70,10 +75,36 @@ public class CreateStoreCommandHandlerTests : IClassFixture<UserServiceFixture>
         await act.Should().ThrowAsync<UserStoreExistsException>();
     }
 
+    [Fact]
+    public async Task Handle_WhenIdentityProvisioningFails_DoesNotPersistStore()
+    {
+        var user = NewUser("store-provisioning-failed@hivespace.local");
+        _fixture.DbContext.Users.Add(user);
+        await _fixture.DbContext.SaveChangesAsync();
+
+        var storeEventPublisher = new StoreEventPublisherFake();
+        var handler = CreateHandler(
+            user.Id,
+            new FailedIdentitySellerProvisioningClient(),
+            storeEventPublisher);
+
+        var act = () => handler.Handle(
+            new CreateStoreCommand(new CreateStoreRequestDto("Provisioning Failed Store", null, "logo-c", "123 Seller St")),
+            CancellationToken.None);
+
+        await act.Should().ThrowAsync<ConflictException>();
+        var exists = await _fixture.DbContext.Stores.AnyAsync(s => s.OwnerId == user.Id);
+        exists.Should().BeFalse();
+        storeEventPublisher.StoreCreatedCalls.Should().Be(0);
+    }
+
     private static User NewUser(string email) =>
         User.CreateProfile(Guid.NewGuid(), Email.Create(email), email, "Store Owner");
 
-    private CreateStoreCommandHandler CreateHandler(Guid userId)
+    private CreateStoreCommandHandler CreateHandler(
+        Guid userId,
+        IIdentitySellerProvisioningClient? provisioningClient = null,
+        StoreEventPublisherFake? storeEventPublisher = null)
     {
         IUserRepository userRepository = new SqlUserRepository(_fixture.DbContext);
         IStoreRepository storeRepository = new SqlStoreRepository(_fixture.DbContext);
@@ -83,12 +114,84 @@ public class CreateStoreCommandHandlerTests : IClassFixture<UserServiceFixture>
             new FakeUserContext { UserId = userId },
             storeManager,
             storeRepository,
-            new StoreEventPublisherFake());
+            provisioningClient ?? new SuccessfulIdentitySellerProvisioningClient(),
+            storeEventPublisher ?? new StoreEventPublisherFake(),
+            new FakeTransactionService(_fixture.DbContext));
     }
 
     private sealed class StoreEventPublisherFake : IStoreEventPublisher
     {
-        public Task PublishStoreCreatedAsync(Store store, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public int StoreCreatedCalls { get; private set; }
+
+        public Task PublishStoreCreatedAsync(Store store, CancellationToken cancellationToken = default)
+        {
+            StoreCreatedCalls++;
+            return Task.CompletedTask;
+        }
+
         public Task PublishStoreUpdatedAsync(Store store, CancellationToken cancellationToken = default) => Task.CompletedTask;
+    }
+
+    private sealed class SuccessfulIdentitySellerProvisioningClient : IIdentitySellerProvisioningClient
+    {
+        public Task<IdentitySellerProvisioningResult> ProvisionSellerIdentityAsync(
+            Guid userId,
+            Guid storeId,
+            string storeName,
+            string correlationId,
+            CancellationToken cancellationToken = default)
+            => Task.FromResult(new IdentitySellerProvisioningResult(
+                IdentitySellerProvisioningOutcome.Created,
+                userId,
+                storeId,
+                null,
+                null));
+    }
+
+    private sealed class FailedIdentitySellerProvisioningClient : IIdentitySellerProvisioningClient
+    {
+        public Task<IdentitySellerProvisioningResult> ProvisionSellerIdentityAsync(
+            Guid userId,
+            Guid storeId,
+            string storeName,
+            string correlationId,
+            CancellationToken cancellationToken = default)
+            => Task.FromResult(new IdentitySellerProvisioningResult(
+                IdentitySellerProvisioningOutcome.Failed,
+                null,
+                storeId,
+                "Failure",
+                "Failed"));
+    }
+
+    private sealed class FakeTransactionService(DbContext dbContext) : ITransactionService
+    {
+        public Task IdempotenceCheckAsync() => Task.CompletedTask;
+
+        public async Task InTransactionScopeAsync(
+            Func<IDbContextTransaction, Task> action,
+            bool performIdempotenceCheck = false,
+            string actionName = "")
+        {
+            var storeIdsBeforeAction = await dbContext.Set<Store>()
+                .Select(store => store.Id)
+                .ToListAsync();
+
+            try
+            {
+                await action(null!);
+            }
+            catch
+            {
+                var storesToRollback = await dbContext.Set<Store>()
+                    .Where(store => !storeIdsBeforeAction.Contains(store.Id))
+                    .ToListAsync();
+                dbContext.RemoveRange(storesToRollback);
+                await dbContext.SaveChangesAsync();
+                throw;
+            }
+        }
+
+        public Task OutOfOrderCheckAsync() => Task.CompletedTask;
     }
 }

@@ -106,6 +106,25 @@ public class AccountSessionHandlerBaseTests
         sessionUser.DisplayName.Should().Be("named-user");
     }
 
+    [Fact]
+    public void ToSessionUser_IncludesStoreIdWhenPresent()
+    {
+        var storeId = Guid.NewGuid();
+        var user = new ApplicationUser
+        {
+            Id = Guid.NewGuid(),
+            Email = "seller@hivespace.local",
+            UserName = "seller-user",
+            EmailConfirmed = true,
+            Status = UserStatus.Active,
+            StoreId = storeId
+        };
+
+        var sessionUser = Invoke<SessionUser>("ToSessionUser", user, new[] { "Seller" });
+
+        sessionUser.StoreId.Should().Be(storeId);
+    }
+
     private static T Invoke<T>(string methodName, params object?[] args)
     {
         var method = FindMethod(methodName, args.Length);

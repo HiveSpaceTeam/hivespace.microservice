@@ -6,4 +6,5 @@ public record SessionUser(
     string? DisplayName,
     IReadOnlyCollection<string> Roles,
     bool EmailVerified,
-    string AccountStatus);
+    string AccountStatus,
+    Guid? StoreId = null);

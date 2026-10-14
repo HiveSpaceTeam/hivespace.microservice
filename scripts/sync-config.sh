@@ -34,6 +34,12 @@ sync_file "$REPO_ROOT/src/HiveSpace.IdentityService/HiveSpace.IdentityService.Ap
 sync_file "$REPO_ROOT/src/HiveSpace.CatalogService/HiveSpace.CatalogService.Api/appsettings.json" \
           "$CONFIG_ROOT/services/catalog/appsettings.json"
 
+sync_file "$REPO_ROOT/src/HiveSpace.CatalogService/HiveSpace.CatalogService.Func/host.json" \
+          "$CONFIG_ROOT/services/catalog/func/host.json"
+
+sync_file "$REPO_ROOT/src/HiveSpace.CatalogService/HiveSpace.CatalogService.Func/local.settings.json" \
+          "$CONFIG_ROOT/services/catalog/func/local.settings.json"
+
 sync_file "$REPO_ROOT/src/HiveSpace.MediaService/HiveSpace.MediaService.Api/appsettings.json" \
           "$CONFIG_ROOT/services/media/appsettings.json"
 

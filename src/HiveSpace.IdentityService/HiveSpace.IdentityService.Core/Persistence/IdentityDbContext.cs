@@ -19,7 +19,7 @@ public class IdentityDbContext(DbContextOptions<IdentityDbContext> options)
 
         builder.ApplyConfigurationsFromAssembly(typeof(IdentityDbContext).Assembly);
 
-        MassTransitExtensions.AddEntityOutBox(builder);
+        builder.AddMassTransitInboxOutboxEntities();
 
         builder.Entity<IdentityRole<Guid>>().ToTable("roles");
         builder.Entity<IdentityUserClaim<Guid>>().ToTable("user_claims");

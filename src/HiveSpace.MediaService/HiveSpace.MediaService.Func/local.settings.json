@@ -3,6 +3,7 @@
   "Values": {
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+    "HIVESPACE_FUNCTION_QUEUE_MODE": "RabbitMQ",
     "ConnectionStrings:AzureStorage": "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=",
     "ConnectionStrings:AzureQueueStorage": "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=",
     "ConnectionStrings:AzureStorageQueues": "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=",
@@ -11,7 +12,10 @@
     "AzureStorage:QueueName": "image-processing-queue",
     "AzureStorage:CdnHost": "",
     "ConnectionStrings:MediaDb": "Server=tcp:127.0.0.1,1433;Database=MediaDb;User Id=sa;Encrypt=False;TrustServerCertificate=True",
+    "ConnectionStrings:rabbitmq": "amqp://guest:@localhost:5672/",
     "ConnectionStrings:RabbitMq": "amqp://guest:@localhost:5672/",
+    "ConnectionStrings:azureservicebus": "Endpoint=sb://local/",
+    "ConnectionStrings:AzureServiceBus": "Endpoint=sb://local/",
     "MediaCleanup:ExpirationHours": "24",
     "MediaCleanup:BatchSize": "100",
     "MediaService:PresignUrlExpiryMinutes": "10",

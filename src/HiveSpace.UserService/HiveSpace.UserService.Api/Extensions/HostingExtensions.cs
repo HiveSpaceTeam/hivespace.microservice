@@ -7,6 +7,8 @@ using HiveSpace.UserService.Api.Middleware;
 using HiveSpace.UserService.Infrastructure;
 using HiveSpace.UserService.Infrastructure.Data;
 using HiveSpace.Infrastructure.Messaging.Configurations;
+using HiveSpace.UserService.Api.Grpc;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Hosting;
 using Scalar.AspNetCore;
@@ -19,6 +21,19 @@ internal static class HostingExtensions
 
     public static WebApplication ConfigureServices(this WebApplicationBuilder builder, IConfiguration configuration)
     {
+        builder.WebHost.ConfigureKestrel(options =>
+        {
+            options.ListenLocalhost(5007, listenOptions =>
+            {
+                listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
+            });
+
+            options.ListenLocalhost(50017, listenOptions =>
+            {
+                listenOptions.Protocols = HttpProtocols.Http2;
+            });
+        });
+
         builder.AddDefaultSerilog();
         builder.AddServiceDefaults();
         builder.Services.Configure<ForwardedHeadersOptions>(options =>
@@ -33,6 +48,7 @@ internal static class HostingExtensions
 
         builder.Services.AddUserDbContext(configuration);
         builder.Services.AddCoreServices();
+        builder.Services.AddGrpc(options => options.Interceptors.Add<HiveSpace.Infrastructure.Messaging.Shared.Grpc.CorrelationGrpcInterceptor>());
         builder.Services.AddAppDomainServices();
         builder.Services.AddLocalizationServices(); // Add localization support
         builder.Services.AddAppApplicationServices();
@@ -85,6 +101,7 @@ internal static class HostingExtensions
         app.MapAdminStoreEndpoints();
         app.MapStoreEndpoints();
         app.MapUserAddressEndpoints();
+        app.MapGrpcService<UserImportedSellerProvisioningGrpcService>();
         app.MapDefaultEndpoints();
         
         if (app.Environment.IsDevelopment())

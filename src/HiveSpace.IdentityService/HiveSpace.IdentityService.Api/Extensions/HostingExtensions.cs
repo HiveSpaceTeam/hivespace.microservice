@@ -1,6 +1,8 @@
 using HiveSpace.Core.Extensions;
 using HiveSpace.IdentityService.Api.Endpoints;
+using HiveSpace.IdentityService.Api.Grpc;
 using HiveSpace.IdentityService.Api.Middleware;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Hosting;
 using Scalar.AspNetCore;
 using Serilog;
@@ -12,6 +14,19 @@ internal static class HostingExtensions
     public static WebApplication ConfigureServices(this WebApplicationBuilder builder)
     {
         var configuration = builder.Configuration;
+
+        builder.WebHost.ConfigureKestrel(options =>
+        {
+            options.ListenLocalhost(5001, listenOptions =>
+            {
+                listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
+            });
+
+            options.ListenLocalhost(50011, listenOptions =>
+            {
+                listenOptions.Protocols = HttpProtocols.Http2;
+            });
+        });
 
         builder.AddDefaultSerilog();
         builder.AddServiceDefaults();
@@ -59,6 +74,8 @@ internal static class HostingExtensions
         app.MapOtpSignInEndpoints();
         app.MapGoogleExternalAuthEndpoints();
         app.MapAdminIdentityEndpoints();
+        app.MapGrpcService<IdentitySellerProvisioningGrpcService>();
+        app.MapGrpcService<IdentityImportedSellerProvisioningGrpcService>();
         app.MapDefaultEndpoints();
 
         return app;

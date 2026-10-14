@@ -1,4 +1,5 @@
 using Duende.IdentityServer;
+using HiveSpace.Infrastructure.Authorization.Grpc;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
@@ -76,13 +77,16 @@ public static class AuthorizationServiceCollectionExtensions
                 })
                 .Build());
 
-            options.AddPolicy("RequireCatalogImportProvisioning", ScopedPolicy()
-                .RequireAssertion(ctx =>
-                {
-                    var role = ctx.User.FindFirst("role")?.Value;
-                    var clientId = ctx.User.FindFirst("client_id")?.Value;
-                    return role == "SystemAdmin" || clientId == "catalog-service";
-                })
+            options.AddPolicy(ServiceClientAuthorization.SellerProvisioningPolicy, ScopedPolicy()
+                .RequireAssertion(ServiceClientAuthorization.IsAuthorizedSellerProvisioningClient)
+                .Build());
+
+            options.AddPolicy(ServiceClientAuthorization.UserServiceSellerProvisioningPolicy, ScopedPolicy()
+                .RequireAssertion(ServiceClientAuthorization.IsAuthorizedUserServiceSellerProvisioningClient)
+                .Build());
+
+            options.AddPolicy(ServiceClientAuthorization.CatalogServiceSellerProvisioningPolicy, ScopedPolicy()
+                .RequireAssertion(ServiceClientAuthorization.IsAuthorizedCatalogServiceSellerProvisioningClient)
                 .Build());
         });
     }

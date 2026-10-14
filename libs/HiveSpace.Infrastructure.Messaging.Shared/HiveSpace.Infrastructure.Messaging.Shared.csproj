@@ -7,6 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Google.Protobuf" />
+    <PackageReference Include="Grpc.Core.Api" />
+    <PackageReference Include="Grpc.Tools" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="Grpc\SellerProvisioning\seller_provisioning.proto" GrpcServices="Both" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\HiveSpace.Domain.Shared\HiveSpace.Domain.Shared.csproj" />
     <ProjectReference Include="..\HiveSpace.Infrastructure.Messaging\HiveSpace.Infrastructure.Messaging.csproj" />
   </ItemGroup>

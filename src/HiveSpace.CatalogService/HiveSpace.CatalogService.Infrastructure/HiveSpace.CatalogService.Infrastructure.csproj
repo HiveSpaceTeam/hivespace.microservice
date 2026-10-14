@@ -17,6 +17,7 @@
     <PackageReference Include="Serilog.AspNetCore" />
     <PackageReference Include="MassTransit" />
     <PackageReference Include="RabbitMQ.Client" />
+    <PackageReference Include="Grpc.Net.Client" />
   </ItemGroup>
 
   <ItemGroup>
