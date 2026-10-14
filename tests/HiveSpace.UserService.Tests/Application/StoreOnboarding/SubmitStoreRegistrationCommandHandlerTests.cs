@@ -1,8 +1,10 @@
 using FluentAssertions;
 using HiveSpace.Testing.Shared.Doubles;
+using HiveSpace.Infrastructure.Persistence.Transaction;
 using HiveSpace.UserService.Application.Interfaces.Messaging;
 using HiveSpace.UserService.Application.Stores.Commands.CreateStore;
 using HiveSpace.UserService.Application.Stores.Dtos;
+using HiveSpace.UserService.Application.Stores.IdentityProvisioning;
 using HiveSpace.UserService.Domain.Aggregates.Store;
 using HiveSpace.UserService.Domain.Aggregates.User;
 using HiveSpace.UserService.Domain.Repositories;
@@ -10,6 +12,7 @@ using HiveSpace.UserService.Domain.Services;
 using HiveSpace.UserService.Infrastructure.Repositories;
 using HiveSpace.UserService.Tests.Fixtures;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Xunit;
 
 namespace HiveSpace.UserService.Tests.Application.StoreOnboarding;
@@ -46,7 +49,9 @@ public class SubmitStoreRegistrationCommandHandlerTests : IClassFixture<UserServ
             new FakeUserContext { UserId = userId },
             storeManager,
             storeRepository,
-            new StoreEventPublisherFake());
+            new SuccessfulIdentitySellerProvisioningClient(),
+            new StoreEventPublisherFake(),
+            new FakeTransactionService());
     }
 
     private static User NewUser(string email) =>
@@ -56,5 +61,34 @@ public class SubmitStoreRegistrationCommandHandlerTests : IClassFixture<UserServ
     {
         public Task PublishStoreCreatedAsync(Store store, CancellationToken cancellationToken = default) => Task.CompletedTask;
         public Task PublishStoreUpdatedAsync(Store store, CancellationToken cancellationToken = default) => Task.CompletedTask;
+    }
+
+    private sealed class SuccessfulIdentitySellerProvisioningClient : IIdentitySellerProvisioningClient
+    {
+        public Task<IdentitySellerProvisioningResult> ProvisionSellerIdentityAsync(
+            Guid userId,
+            Guid storeId,
+            string storeName,
+            string correlationId,
+            CancellationToken cancellationToken = default)
+            => Task.FromResult(new IdentitySellerProvisioningResult(
+                IdentitySellerProvisioningOutcome.Created,
+                userId,
+                storeId,
+                null,
+                null));
+    }
+
+    private sealed class FakeTransactionService : ITransactionService
+    {
+        public Task IdempotenceCheckAsync() => Task.CompletedTask;
+
+        public Task InTransactionScopeAsync(
+            Func<IDbContextTransaction, Task> action,
+            bool performIdempotenceCheck = false,
+            string actionName = "")
+            => action(null!);
+
+        public Task OutOfOrderCheckAsync() => Task.CompletedTask;
     }
 }

@@ -41,6 +41,35 @@ public class OtpChallengeCleanupServiceTests
         repository.LastCutoff.Should().BeAfter(DateTimeOffset.UtcNow.AddHours(-25));
     }
 
+    [Fact]
+    public async Task StopAsync_WhenCleanupIsInFlight_DoesNotSurfaceCancellation()
+    {
+        var repository = new BlockingOtpChallengeRepository();
+        var services = new ServiceCollection()
+            .AddScoped<IOtpChallengeRepository>(_ => repository)
+            .BuildServiceProvider();
+
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Otp:CleanupGraceHours"] = "24",
+                ["Otp:CleanupIntervalHours"] = "1"
+            })
+            .Build();
+
+        var service = new OtpChallengeCleanupService(
+            services.GetRequiredService<IServiceScopeFactory>(),
+            configuration,
+            NullLogger<OtpChallengeCleanupService>.Instance);
+
+        await service.StartAsync(CancellationToken.None);
+        await repository.DeleteStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+        await service.StopAsync(CancellationToken.None);
+
+        repository.DeleteCanceled.Should().BeTrue();
+    }
+
     private sealed class RecordingOtpChallengeRepository : IOtpChallengeRepository
     {
         public bool DeleteExpiredCalled { get; private set; }
@@ -57,6 +86,41 @@ public class OtpChallengeCleanupServiceTests
             DeleteExpiredCalled = true;
             LastCutoff = cutoff;
             return Task.FromResult(3);
+        }
+
+        public Task AddAsync(OtpChallenge challenge, CancellationToken ct = default)
+            => Task.CompletedTask;
+
+        public Task SaveChangesAsync(CancellationToken ct = default)
+            => Task.CompletedTask;
+    }
+
+    private sealed class BlockingOtpChallengeRepository : IOtpChallengeRepository
+    {
+        public TaskCompletionSource DeleteStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public bool DeleteCanceled { get; private set; }
+
+        public Task<OtpChallenge?> GetActiveByChallengeTokenAsync(string challengeToken, CancellationToken ct = default)
+            => Task.FromResult<OtpChallenge?>(null);
+
+        public Task<OtpChallenge?> GetLatestActiveByEmailAndPurposeAsync(string emailNormalized, OtpChallengePurpose purpose, CancellationToken ct = default)
+            => Task.FromResult<OtpChallenge?>(null);
+
+        public async Task<int> DeleteExpiredOlderThanAsync(DateTimeOffset cutoff, CancellationToken ct = default)
+        {
+            DeleteStarted.SetResult();
+
+            try
+            {
+                await Task.Delay(TimeSpan.FromMinutes(5), ct);
+            }
+            catch (OperationCanceledException)
+            {
+                DeleteCanceled = true;
+                throw;
+            }
+
+            return 0;
         }
 
         public Task AddAsync(OtpChallenge challenge, CancellationToken ct = default)

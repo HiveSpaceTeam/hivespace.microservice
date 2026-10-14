@@ -62,6 +62,7 @@ internal static class AccountSessionHandlerBase
             user.UserName ?? user.Email,
             roles.ToArray(),
             user.EmailConfirmed,
-            user.Status.ToString());
+            user.Status.ToString(),
+            user.StoreId);
     }
 }

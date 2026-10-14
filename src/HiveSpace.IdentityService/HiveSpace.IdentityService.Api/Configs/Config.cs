@@ -76,6 +76,7 @@ public static class Config
         AddSpaClient(clients, clientsSection.GetSection("sellercenter").Get<ClientConfig>());
         AddSpaClient(clients, clientsSection.GetSection("storefront").Get<ClientConfig>());
         AddServiceClient(clients, clientsSection.GetSection("catalogservice").Get<ClientConfig>());
+        AddServiceClient(clients, clientsSection.GetSection("userservice").Get<ClientConfig>());
 
         return clients;
     }

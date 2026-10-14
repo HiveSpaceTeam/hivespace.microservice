@@ -11,6 +11,8 @@ using Microsoft.Extensions.DependencyInjection;
 using HiveSpace.Core.Exceptions;
 using HiveSpace.Core.Exceptions.Models;
 using HiveSpace.UserService.Application.Interfaces.Messaging;
+using HiveSpace.UserService.Application.Stores.IdentityProvisioning;
+using HiveSpace.UserService.Infrastructure.IdentityProvisioning;
 using HiveSpace.UserService.Infrastructure.Messaging.Publishers;
 
 namespace HiveSpace.UserService.Infrastructure;
@@ -68,6 +70,8 @@ public static class UserInfrastructureExtension
 
     public static void AddInfrastructureServices(this IServiceCollection services)
     {
+        services.AddHttpClient<IIdentityServiceClientTokenProvider, IdentityServiceClientTokenProvider>();
+        services.AddScoped<IIdentitySellerProvisioningClient, IdentitySellerProvisioningGrpcClient>();
     }
 
     public static void AddEventPublisherServices(this IServiceCollection services)

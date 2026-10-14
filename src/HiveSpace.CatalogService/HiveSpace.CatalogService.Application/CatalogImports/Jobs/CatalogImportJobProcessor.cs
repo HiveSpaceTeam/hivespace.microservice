@@ -841,7 +841,10 @@ public class CatalogImportJobProcessor(
                     bundle.SourceSystem,
                     seller.ExternalSellerId,
                     seller.DisplayName,
-                    seller.SourceUrl),
+                    seller.SourceUrl,
+                    job.Id.ToString("N"),
+                    bundle.Id,
+                    seller.Id),
                 cancellationToken);
 
             if (account.Outcome is ImportedSellerProvisioningOutcome.Conflict or ImportedSellerProvisioningOutcome.Failed || account.UserId is null)
@@ -863,11 +866,15 @@ public class CatalogImportJobProcessor(
                     account.UserId.Value,
                     seller.DisplayName,
                     seller.SourceUrl,
-                    seller.LogoUrl),
+                    seller.LogoUrl,
+                    job.Id.ToString("N"),
+                    bundle.Id,
+                    seller.Id),
                 cancellationToken);
 
             if (store.Outcome is ImportedSellerProvisioningOutcome.Conflict or ImportedSellerProvisioningOutcome.Failed || store.StoreId is null)
             {
+                seller.RetainIdentityAccount(account.UserId.Value);
                 MarkSellerProblem(bundle, seller, store.Outcome, store.ConflictReason ?? "ImportedSellerStoreProvisioningFailed");
                 if (store.Outcome == ImportedSellerProvisioningOutcome.Conflict)
                     conflicts++;

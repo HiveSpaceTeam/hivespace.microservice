@@ -40,4 +40,5 @@ public class UserDomainErrorCode : DomainErrorCode
     public static readonly UserDomainErrorCode PlatformDefaultCurrencyDisabled = new(36, "PlatformDefaultCurrencyDisabled", "USR0036");
     public static readonly UserDomainErrorCode PlatformCurrencySetRequired = new(37, "PlatformCurrencySetRequired", "USR0037");
     public static readonly UserDomainErrorCode PlatformCurrencyVersionConflict = new(38, "PlatformCurrencyVersionConflict", "USR0038");
+    public static readonly UserDomainErrorCode SellerIdentityProvisioningFailed = new(39, "SellerIdentityProvisioningFailed", "USR0039");
 }

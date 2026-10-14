@@ -54,9 +54,13 @@ var rabbitMq = builder.AddRabbitMQ("rabbit-mq", rabbitMqUsername, rabbitMqPasswo
     .WithManagementPlugin()
     .WithPersistentRestart();
 
-var kafka = builder.AddKafka("kafka", port: 9092)
-    .WithDataVolume()
-    .WithPersistentRestart();
+if (builder.Configuration.GetValue("AppHost:Kafka:Enabled", false))
+{
+    builder.AddKafka("kafka", port: 9092)
+        .WithEnvironment("KAFKA_ADVERTISED_LISTENERS", "PLAINTEXT://localhost:29092,PLAINTEXT_HOST://127.0.0.1:9092,PLAINTEXT_INTERNAL://kafka:9093")
+        .WithDataVolume()
+        .WithPersistentRestart();
+}
 
 var redis = builder.AddRedis("redis", port: 6379, redisPassword)
     .WithDataVolume()
@@ -74,7 +78,9 @@ var storage = builder.AddAzureStorage("azure-storage")
 var blobStorage = storage.AddBlobs("azure-blob-storage");
 var queueStorage = storage.AddQueues("azure-queue-storage");
 
-var identity = builder.AddProject<Projects.HiveSpace_IdentityService_Api>("identity-service", httpLaunchProfile)
+var identity = builder.AddProject<Projects.HiveSpace_IdentityService_Api>("identity-service")
+    .WithHttpEndpoint(port: 5001, targetPort: 5001, name: httpLaunchProfile, isProxied: false)
+    .WithHttpEndpoint(port: 50011, targetPort: 50011, name: "grpc", isProxied: false)
     .WithReference(identityDb)
     .WithReference(rabbitMq, "RabbitMq")
     .WaitFor(identityDb)
@@ -82,10 +88,14 @@ var identity = builder.AddProject<Projects.HiveSpace_IdentityService_Api>("ident
 
 var identityEndpoint = identity.GetEndpoint(httpLaunchProfile);
 
-var user = builder.AddProject<Projects.HiveSpace_UserService_Api>("user-service", httpLaunchProfile)
+var user = builder.AddProject<Projects.HiveSpace_UserService_Api>("user-service")
+    .WithHttpEndpoint(port: 5007, targetPort: 5007, name: httpLaunchProfile, isProxied: false)
+    .WithHttpEndpoint(port: 50017, targetPort: 50017, name: "grpc", isProxied: false)
     .WithReference(userDb)
     .WithReference(rabbitMq, "RabbitMq")
     .WithEnvironment("Authentication__Authority", identityEndpoint)
+    .WithEnvironment("InternalGrpc__IdentityService__Address", identity.GetEndpoint("grpc"))
+    .WithEnvironment("InternalGrpc__IdentityService__TokenEndpoint", $"{identityEndpoint}/connect/token")
     .WaitFor(userDb)
     .WaitFor(rabbitMq)
     .WaitFor(identity);
@@ -94,6 +104,7 @@ var catalog = builder.AddProject<Projects.HiveSpace_CatalogService_Api>("catalog
     .WithReference(catalogDb)
     .WithReference(rabbitMq, "RabbitMq")
     .WithEnvironment("Authentication__Authority", identityEndpoint)
+    .WithEnvironment("InternalGrpc__UserService__Address", user.GetEndpoint("grpc"))
     .WithEnvironment("HIVESPACE_FUNCTION_QUEUE_MODE", "RabbitMQ")
     .WaitFor(catalogDb)
     .WaitFor(rabbitMq)
@@ -124,17 +135,17 @@ builder.AddExecutable("media-func", "func", mediaFuncPath, "start", "--port", "7
     .WaitFor(rabbitMq)
     .WaitFor(mediaDb);
 
-builder.AddExecutable("catalog-func", "func", catalogFuncPath, "start", "--port", "7073", "--no-build", "--verbose", "--script-root", "bin\\Debug\\net8.0")
-    .WithReference(rabbitMq, "RabbitMq")
-    .WithReference(catalogDb)
-    .WithEnvironment("FUNCTIONS_WORKER_RUNTIME", "dotnet-isolated")
-    .WithEnvironment("AzureWebJobsStorage", "UseDevelopmentStorage=true")
-    .WithEnvironment("HIVESPACE_FUNCTION_QUEUE_MODE", "RabbitMQ")
-    .WithEnvironment("AzureWebJobs.CatalogImportRabbitMqFunction.Disabled", "false")
-    .WithEnvironment("AzureWebJobs.CatalogImportServiceBusFunction.Disabled", "true")
-    .WithEnvironment("Messaging__EnableRabbitMq", "true")
-    .WaitFor(rabbitMq)
-    .WaitFor(catalogDb);
+// builder.AddExecutable("catalog-func", "func", catalogFuncPath, "start", "--port", "7073", "--no-build", "--verbose", "--script-root", "bin\\Debug\\net8.0")
+//     .WithReference(rabbitMq, "RabbitMq")
+//     .WithReference(catalogDb)
+//     .WithEnvironment("FUNCTIONS_WORKER_RUNTIME", "dotnet-isolated")
+//     .WithEnvironment("AzureWebJobsStorage", "UseDevelopmentStorage=true")
+//     .WithEnvironment("HIVESPACE_FUNCTION_QUEUE_MODE", "RabbitMQ")
+//     .WithEnvironment("AzureWebJobs.CatalogImportRabbitMqFunction.Disabled", "false")
+//     .WithEnvironment("AzureWebJobs.CatalogImportServiceBusFunction.Disabled", "true")
+//     .WithEnvironment("Messaging__EnableRabbitMq", "true")
+//     .WaitFor(rabbitMq)
+//     .WaitFor(catalogDb);
 
 var order = builder.AddProject<Projects.HiveSpace_OrderService_Api>("order-service", httpLaunchProfile)
     .WithReference(orderDb)

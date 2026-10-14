@@ -23,10 +23,9 @@ var configuration = builder.Configuration;
 
 builder.Services.AddFunctionQueueMode(configuration);
 builder.Services.AddScoped<IRequestContext, RequestContext>();
-builder.Services.AddApplication();
+builder.Services.AddCatalogImportWorkerApplication();
 builder.Services.AddCatalogDbContext(configuration);
 builder.Services.AddPersistenceInfrastructure<CatalogDbContext>();
-builder.Services.AddScoped<CatalogImportFunctionDispatcher>();
 
 var queueMode = FunctionQueueModeOptions
     .FromConfiguration(configuration)

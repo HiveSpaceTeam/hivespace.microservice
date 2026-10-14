@@ -47,7 +47,7 @@ public static class MassTransitExtensions
     /// Configures the Entity Framework entities required for the Outbox and Inbox patterns.
     /// </summary>
     /// <param name="modelBuilder"></param>
-    public static void AddEntityOutBox(this ModelBuilder modelBuilder)
+    public static void AddMassTransitInboxOutboxEntities(this ModelBuilder modelBuilder)
     {
         modelBuilder.AddInboxStateEntity(entity =>
         {
@@ -64,4 +64,7 @@ public static class MassTransitExtensions
             entity.ToTable("outbox_state");
         });
     }
+
+    public static void AddEntityOutBox(this ModelBuilder modelBuilder)
+        => modelBuilder.AddMassTransitInboxOutboxEntities();
 }

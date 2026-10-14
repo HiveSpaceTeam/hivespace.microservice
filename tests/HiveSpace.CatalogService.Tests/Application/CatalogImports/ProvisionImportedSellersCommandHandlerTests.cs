@@ -136,6 +136,28 @@ public class ProvisionImportedSellersCommandHandlerTests
     }
 
     [Fact]
+    public async Task Handle_WithAccountCreatedAndStoreConflict_RetainsAccountReferenceAndKeepsSellerBlocked()
+    {
+        var bundle = CreateBundle("provision-account-ok-store-conflict");
+        var repository = new CatalogImportBundleRepositoryFake(bundle);
+        var accountUserId = Guid.NewGuid();
+        var accountClient = new RecordingImportedSellerAccountClient(
+            new ImportedSellerAccountProvisioningResult(accountUserId, ImportedSellerProvisioningOutcome.Created, null));
+        var storeClient = new RecordingImportedSellerStoreClient(
+            new ImportedSellerStoreProvisioningResult(null, ImportedSellerProvisioningOutcome.Conflict, "StoreNameConflict"));
+
+        var job = await ExecuteProvisionAsync(repository, accountClient, storeClient, bundle.Id);
+
+        var seller = bundle.Sellers.Single();
+        job.ConflictCount.Should().Be(1);
+        seller.HiveSpaceUserId.Should().Be(accountUserId);
+        seller.HiveSpaceStoreId.Should().BeNull();
+        seller.HasActiveOwnership.Should().BeFalse();
+        seller.ConflictReason.Should().Be("StoreNameConflict");
+        bundle.ValidationIssues.Should().Contain(x => x.ReasonCode == "StoreNameConflict");
+    }
+
+    [Fact]
     public async Task Handle_WithPendingProvisionJob_ReturnsExistingJob()
     {
         var bundle = CreateBundle("provision-active");

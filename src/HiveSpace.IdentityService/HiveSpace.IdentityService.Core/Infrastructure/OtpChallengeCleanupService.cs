@@ -17,10 +17,9 @@ public class OtpChallengeCleanupService(
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            await CleanupExpiredChallengesAsync(stoppingToken);
-
             try
             {
+                await CleanupExpiredChallengesAsync(stoppingToken);
                 await Task.Delay(interval, stoppingToken);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)

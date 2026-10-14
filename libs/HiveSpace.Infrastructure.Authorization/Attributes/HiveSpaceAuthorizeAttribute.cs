@@ -56,14 +56,6 @@ public class HiveSpaceAuthorizeAttribute : AuthorizeAttribute
         public const string Policy = "RequireAdminOrUser";
     }
 
-    /// <summary>
-    /// Requires a SystemAdmin user or the CatalogService internal provisioning client.
-    /// </summary>
-    public static class CatalogImportProvisioning
-    {
-        public const string Policy = "RequireCatalogImportProvisioning";
-    }
-
     public HiveSpaceAuthorizeAttribute(string policy) : base(policy) { }
 }
 
@@ -101,7 +93,3 @@ public class RequireAdminOrUserAttribute : AuthorizeAttribute
     public RequireAdminOrUserAttribute() : base(HiveSpaceAuthorizeAttribute.AdminOrUser.Policy) { }
 }
 
-public class RequireCatalogImportProvisioningAttribute : AuthorizeAttribute
-{
-    public RequireCatalogImportProvisioningAttribute() : base(HiveSpaceAuthorizeAttribute.CatalogImportProvisioning.Policy) { }
-}

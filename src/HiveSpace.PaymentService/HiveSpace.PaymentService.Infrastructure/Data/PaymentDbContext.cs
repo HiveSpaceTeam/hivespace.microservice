@@ -1,4 +1,6 @@
 using HiveSpace.Infrastructure.Messaging.Extensions;
+using HiveSpace.Infrastructure.Persistence;
+using HiveSpace.Infrastructure.Persistence.Idempotence;
 using HiveSpace.PaymentService.Domain.Aggregates.External;
 using HiveSpace.PaymentService.Domain.Aggregates.Payments;
 using HiveSpace.PaymentService.Domain.Aggregates.Wallets;
@@ -15,6 +17,7 @@ public class PaymentDbContext : DbContext
     public DbSet<PlatformCurrencyPolicyRef> PlatformCurrencyPolicyRefs { get; set; } = null!;
     public DbSet<Wallet> Wallets { get; set; } = null!;
     public DbSet<Transaction> Transactions { get; set; } = null!;
+    public DbSet<IncomingRequest> IncomingRequests { get; set; } = null!;
 
     public PaymentDbContext(DbContextOptions<PaymentDbContext> options) : base(options)
     {
@@ -24,6 +27,7 @@ public class PaymentDbContext : DbContext
     {
         base.OnModelCreating(builder);
         builder.ApplyConfigurationsFromAssembly(typeof(PaymentDbContext).Assembly);
-        MassTransitExtensions.AddEntityOutBox(builder);
+        builder.AddPersistenceBuilder();
+        builder.AddMassTransitInboxOutboxEntities();
     }
 }

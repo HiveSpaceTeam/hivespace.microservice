@@ -1,4 +1,6 @@
 using HiveSpace.Infrastructure.Messaging.Extensions;
+using HiveSpace.Infrastructure.Persistence;
+using HiveSpace.Infrastructure.Persistence.Idempotence;
 using HiveSpace.OrderService.Domain.Aggregates.Carts;
 using HiveSpace.OrderService.Domain.Aggregates.Coupons;
 using HiveSpace.OrderService.Domain.Aggregates.Orders;
@@ -25,6 +27,7 @@ public class OrderDbContext : DbContext
     public DbSet<SkuRef> SkuRefs { get; set; } = null!;
     public DbSet<PlatformCurrencyPolicyRef> PlatformCurrencyPolicyRefs { get; set; } = null!;
     public DbSet<FulfillmentSagaState> FulfillmentSagaStates { get; set; } = null!;
+    public DbSet<IncomingRequest> IncomingRequests { get; set; } = null!;
 
     public OrderDbContext(DbContextOptions<OrderDbContext> options) : base(options)
     {
@@ -39,6 +42,8 @@ public class OrderDbContext : DbContext
         builder.ApplyConfiguration(new CheckoutSagaStateEntityConfiguration());
         builder.ApplyConfiguration(new FulfillmentSagaStateEntityConfiguration());
 
-        MassTransitExtensions.AddEntityOutBox(builder);
+        builder.AddPersistenceBuilder();
+
+        builder.AddMassTransitInboxOutboxEntities();
     }
 }

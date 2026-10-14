@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.SqlClient;
 using HiveSpace.NotificationService.Core.DomainModels.External;
 using HiveSpace.NotificationService.Core.Interfaces;
 
@@ -20,6 +21,23 @@ public class UserRefRepository(NotificationDbContext db) : IUserRefRepository
         else
             db.Entry(existing).CurrentValues.SetValues(userRef);
 
-        await db.SaveChangesAsync(ct);
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex) when (IsDuplicateKeyViolation(ex))
+        {
+            db.Entry(userRef).State = EntityState.Detached;
+
+            existing = await db.UserRefs.FirstOrDefaultAsync(u => u.Id == userRef.Id, ct);
+            if (existing is null)
+                throw;
+
+            db.Entry(existing).CurrentValues.SetValues(userRef);
+            await db.SaveChangesAsync(ct);
+        }
     }
+
+    private static bool IsDuplicateKeyViolation(DbUpdateException ex)
+        => ex.InnerException is SqlException { Number: 2601 or 2627 };
 }

@@ -6,4 +6,7 @@ public record ImportedSellerStoreProvisioningRequest(
     Guid UserId,
     string StoreName,
     string? SourceUrl,
-    string? LogoUrl = null);
+    string? LogoUrl = null,
+    string? CorrelationId = null,
+    Guid? BundleId = null,
+    Guid? ImportedSellerId = null);

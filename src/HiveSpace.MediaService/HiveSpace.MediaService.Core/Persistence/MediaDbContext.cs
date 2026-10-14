@@ -1,4 +1,5 @@
 using HiveSpace.MediaService.Core.DomainModels;
+using HiveSpace.Infrastructure.Messaging.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace HiveSpace.MediaService.Core.Persistence;
@@ -11,5 +12,6 @@ public class MediaDbContext(DbContextOptions<MediaDbContext> options) : DbContex
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(MediaDbContext).Assembly);
+        modelBuilder.AddMassTransitInboxOutboxEntities();
     }
 }

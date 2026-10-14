@@ -22,6 +22,30 @@ namespace HiveSpace.OrderService.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("HiveSpace.Infrastructure.Persistence.Idempotence.IncomingRequest", b =>
+                {
+                    b.Property<Guid>("RequestId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CorrelationId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ActionName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("RequestId", "CorrelationId");
+
+                    b.HasIndex("RequestId")
+                        .IsUnique();
+
+                    b.ToTable("incoming_requests", (string)null);
+                });
+
             modelBuilder.Entity("HiveSpace.OrderService.Domain.Aggregates.Carts.Cart", b =>
                 {
                     b.Property<Guid>("Id")
